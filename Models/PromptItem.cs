@@ -1,12 +1,20 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 
-namespace PromptMasterv3.Models
+namespace PromptMasterv5.Models
 {
-    // 文件模型
-    public class PromptItem
+    public partial class PromptItem : ObservableObject
     {
-        public string Title { get; set; } = "";   // 标题
-        public string Content { get; set; } = ""; // 内容
-        public DateTime LastModified { get; set; } // 最后修改时间
+        [ObservableProperty]
+        private string title = "";
+
+        [ObservableProperty]
+        private string content = "";
+
+        [ObservableProperty]
+        private DateTime lastModified;
+
+        // ★ 新增：所属文件夹的ID
+        public string FolderId { get; set; } = "";
     }
 }

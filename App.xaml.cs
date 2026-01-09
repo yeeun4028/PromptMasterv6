@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
+﻿// File: App.xaml.cs
 using System.Windows;
 
 namespace PromptMasterv5
@@ -10,5 +9,4 @@ namespace PromptMasterv5
     public partial class App : Application
     {
     }
-
 }
