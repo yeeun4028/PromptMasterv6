@@ -64,15 +64,16 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,4"/>
-            <!-- ★★★ 修复关键点 1: 绑定 Tag 到 ListBox 的 DataContext (即 MainViewModel) -->
             <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
 
             <Setter Property="ContextMenu">
                 <Setter.Value>
                     <ContextMenu>
-                        <!-- ★★★ 修复关键点 2: 使用 PlacementTarget.Tag 来获取 ViewModel -->
                         <MenuItem Header="设置图标..." 
                                   Command="{Binding PlacementTarget.Tag.ChangeFolderIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding}"/>
+                        <MenuItem Header="重命名..." 
+                                  Command="{Binding PlacementTarget.Tag.RenameFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                   CommandParameter="{Binding}"/>
                     </ContextMenu>
                 </Setter.Value>
@@ -93,7 +94,6 @@
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <!-- 默认显示通用文件夹图标，如果上传了自定义则覆盖 -->
                             <DataTrigger Binding="{Binding IconGeometry}" Value="{x:Null}">
                                 <Setter TargetName="IconPath" Property="Data" Value="{StaticResource IconFolderLinear}"/>
                             </DataTrigger>
@@ -119,7 +119,6 @@
             <Setter Property="Margin" Value="0,2"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
-            <!-- 右键菜单: 文件设置图标/删除 -->
             <Setter Property="ContextMenu">
                 <Setter.Value>
                     <ContextMenu>
@@ -147,7 +146,6 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <!-- 文件图标: 默认隐藏，只有上传了图标才显示 -->
                                 <Path x:Name="FileIcon" 
                                       Data="{Binding IconGeometry}" 
                                       Visibility="Visible" 
@@ -162,7 +160,6 @@
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <!-- 列表无图标逻辑: IconGeometry 为空时隐藏 Path -->
                             <DataTrigger Binding="{Binding IconGeometry}" Value="{x:Null}">
                                 <Setter TargetName="FileIcon" Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
@@ -774,7 +771,19 @@
                                     </Style>
                                 </StackPanel.Style>
 
-                                <TextBlock Text="全局唤醒热键" Foreground="#333" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                                <TextBlock Text="极速唤醒" Foreground="#333" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                                <Border Background="#F9F9F9" CornerRadius="4" Padding="10" Margin="0,0,0,20">
+                                    <CheckBox IsChecked="{Binding Config.EnableDoubleCtrl}" Cursor="Hand">
+                                        <CheckBox.Content>
+                                            <StackPanel>
+                                                <TextBlock Text="双击 Ctrl 键唤醒/隐藏窗口" FontSize="14" Foreground="#333"/>
+                                                <TextBlock Text="推荐开启。就像使用 Listary 一样方便。" FontSize="11" Foreground="#999" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </CheckBox.Content>
+                                    </CheckBox>
+                                </Border>
+
+                                <TextBlock Text="传统组合热键" Foreground="#333" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
                                 <TextBlock Text="即使窗口最小化，按下此快捷键也能立即唤醒/隐藏程序。" Foreground="#888" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
                                 <TextBlock Text="当前热键" Foreground="#666" Margin="0,0,0,5"/>

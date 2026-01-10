@@ -4,6 +4,8 @@ using System.Windows.Input;
 using System.Text.RegularExpressions;
 using PromptMasterv5.ViewModels;
 using System.Text; // 引用 StringBuilder
+using TextBox = System.Windows.Controls.TextBox;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace PromptMasterv5
 {

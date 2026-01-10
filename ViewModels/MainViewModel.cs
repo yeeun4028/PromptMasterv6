@@ -17,11 +17,18 @@ using NHotkey.Wpf;
 using PromptMasterv5.Models;
 using PromptMasterv5.Services;
 
+// ★★★ 关键别名：解决与 WinForms 的冲突 ★★★
+using MessageBox = System.Windows.MessageBox;
+using Application = System.Windows.Application;
+using Clipboard = System.Windows.Clipboard;
+using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
+
 namespace PromptMasterv5.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
         private readonly IDataService _dataService;
+        private readonly GlobalKeyService _keyService; // 双击服务
         private bool _isCreatingFile = false;
         private DispatcherTimer _timer;
         private DateTime _lastSyncTime = DateTime.Now;
@@ -76,7 +83,25 @@ namespace PromptMasterv5.ViewModels
         {
             Config = ConfigService.Load();
 
+            // 1. 初始化热键 (Alt+Space)
             UpdateGlobalHotkey();
+
+            // 2. 初始化双击 Ctrl 服务
+            _keyService = new GlobalKeyService();
+            _keyService.OnDoubleCtrlDetected += (s, e) =>
+            {
+                // 切回主线程 UI
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ToggleMainWindow();
+                });
+            };
+
+            // ★★★ 修复逻辑：根据配置决定是否启动监听 ★★★
+            if (Config.EnableDoubleCtrl)
+            {
+                try { _keyService.Start(); } catch { }
+            }
 
             if (_useLocalMode)
                 _dataService = new FileDataService();
@@ -109,6 +134,7 @@ namespace PromptMasterv5.ViewModels
                 string keyStr = hotkeyStr.Split('+').Last().Trim();
                 if (Enum.TryParse(keyStr, out Key key))
                 {
+                    try { HotkeyManager.Current.Remove("ToggleWindow"); } catch { }
                     HotkeyManager.Current.AddOrReplace("ToggleWindow", key, modifiers, OnGlobalHotkeyTriggered);
                 }
             }
@@ -118,8 +144,13 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
-        // ★★★ 修复 CS8622：参数 sender 改为 object? 类型
         private void OnGlobalHotkeyTriggered(object? sender, HotkeyEventArgs e)
+        {
+            ToggleMainWindow();
+        }
+
+        // 切换主窗口显示/隐藏
+        private void ToggleMainWindow()
         {
             var window = Application.Current.MainWindow;
             if (window == null) return;
@@ -131,6 +162,9 @@ namespace PromptMasterv5.ViewModels
                     window.Show();
                     window.WindowState = WindowState.Normal;
                     window.Activate();
+                    window.Topmost = true;
+                    window.Topmost = false;
+                    window.Focus();
                 }
                 else if (window.IsActive)
                 {
@@ -139,6 +173,9 @@ namespace PromptMasterv5.ViewModels
                 else
                 {
                     window.Activate();
+                    window.Topmost = true;
+                    window.Topmost = false;
+                    window.Focus();
                 }
             }
             else
@@ -146,6 +183,9 @@ namespace PromptMasterv5.ViewModels
                 window.Show();
                 window.WindowState = WindowState.Normal;
                 window.Activate();
+                window.Topmost = true;
+                window.Topmost = false;
+                window.Focus();
             }
         }
 
@@ -218,15 +258,11 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
-        // ★★★ 功能实现：打开图标设置弹窗（文件夹）
         [RelayCommand]
         private void ChangeFolderIcon(FolderItem folder)
         {
             if (folder == null) return;
-
-            // ★ 修复 CS8604：使用 ?? "" 确保不传 null
             var dialog = new IconInputDialog(folder.IconGeometry ?? "");
-
             if (dialog.ShowDialog() == true)
             {
                 folder.IconGeometry = dialog.ResultGeometry;
@@ -234,19 +270,32 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
-        // ★★★ 功能实现：打开图标设置弹窗（文件）
+        // ... 在 ChangeFolderIcon 方法下方添加 ...
+
+        [RelayCommand]
+        private void RenameFolder(FolderItem folder)
+        {
+            if (folder == null) return;
+
+            // 打开重命名弹窗
+            var dialog = new NameInputDialog(folder.Name);
+            if (dialog.ShowDialog() == true)
+            {
+                folder.Name = dialog.ResultName;
+                RequestSave();
+            }
+        }
+
+        // ...
+
         [RelayCommand]
         private void ChangeFileIcon(PromptItem file)
         {
             if (file == null) return;
-
-            // ★ 修复 CS8604：使用 ?? "" 确保不传 null
             var dialog = new IconInputDialog(file.IconGeometry ?? "");
-
             if (dialog.ShowDialog() == true)
             {
                 file.IconGeometry = dialog.ResultGeometry;
-                // 刷新视图以应用更改
                 FilesView?.Refresh();
                 RequestSave();
             }
@@ -265,6 +314,17 @@ namespace PromptMasterv5.ViewModels
         {
             ConfigService.Save(Config);
             UpdateGlobalHotkey();
+
+            // ★★★ 修复逻辑：保存时根据开关状态 启动或停止 服务 ★★★
+            if (Config.EnableDoubleCtrl)
+            {
+                try { _keyService.Start(); } catch { }
+            }
+            else
+            {
+                _keyService.Stop();
+            }
+
             IsSettingsOpen = false;
         }
 

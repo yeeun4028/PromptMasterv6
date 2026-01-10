@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Media;
+using MessageBox = System.Windows.MessageBox;
 
 namespace PromptMasterv5
 {

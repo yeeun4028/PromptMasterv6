@@ -13,10 +13,12 @@ namespace PromptMasterv5.Models
         [ObservableProperty]
         private string password = "";
 
-        // ★★★ 新增：全局唤醒热键 (默认 Alt+Space) ★★★
-        // 这就是之前报错缺少的属性
         [ObservableProperty]
         private string globalHotkey = "Alt+Space";
+
+        // ★★★ 修复关键：补上这个缺失的属性 ★★★
+        [ObservableProperty]
+        private bool enableDoubleCtrl = true;
 
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }

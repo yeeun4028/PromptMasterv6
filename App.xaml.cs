@@ -1,12 +1,9 @@
-﻿// File: App.xaml.cs
-using System.Windows;
+﻿using System.Windows;
 
 namespace PromptMasterv5
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    // 修改这一行，显式继承 System.Windows.Application
+    public partial class App : System.Windows.Application
     {
     }
 }
