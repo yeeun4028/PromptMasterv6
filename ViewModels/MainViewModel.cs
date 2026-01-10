@@ -10,10 +10,10 @@ using System.Collections.Specialized;
 using System.Windows.Data;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using System.Windows.Input; // 引用 Key, ModifierKeys
+using System.Windows.Input;
 using GongSolutions.Wpf.DragDrop;
-using NHotkey; // ★ 必须引用
-using NHotkey.Wpf; // ★ 必须引用
+using NHotkey;
+using NHotkey.Wpf;
 using PromptMasterv5.Models;
 using PromptMasterv5.Services;
 
@@ -32,7 +32,6 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty]
         private bool isSettingsOpen = false;
 
-        // 0=同步, 1=快捷键
         [ObservableProperty]
         private int selectedSettingsTab = 0;
 
@@ -77,7 +76,6 @@ namespace PromptMasterv5.ViewModels
         {
             Config = ConfigService.Load();
 
-            // ★★★ 启动时注册热键 ★★★
             UpdateGlobalHotkey();
 
             if (_useLocalMode)
@@ -95,7 +93,6 @@ namespace PromptMasterv5.ViewModels
             _ = InitializeAsync();
         }
 
-        // ★★★ 核心：注册/更新全局热键逻辑 ★★★
         public void UpdateGlobalHotkey()
         {
             try
@@ -103,18 +100,15 @@ namespace PromptMasterv5.ViewModels
                 string hotkeyStr = Config.GlobalHotkey;
                 if (string.IsNullOrEmpty(hotkeyStr)) return;
 
-                // 解析逻辑：例如 "Ctrl+Alt+Space"
                 ModifierKeys modifiers = ModifierKeys.None;
                 if (hotkeyStr.Contains("Ctrl")) modifiers |= ModifierKeys.Control;
                 if (hotkeyStr.Contains("Alt")) modifiers |= ModifierKeys.Alt;
                 if (hotkeyStr.Contains("Shift")) modifiers |= ModifierKeys.Shift;
                 if (hotkeyStr.Contains("Win")) modifiers |= ModifierKeys.Windows;
 
-                // 获取最后一个按键 (例如 "Space")
                 string keyStr = hotkeyStr.Split('+').Last().Trim();
                 if (Enum.TryParse(keyStr, out Key key))
                 {
-                    // 先移除旧的，防止冲突，然后注册新的
                     HotkeyManager.Current.AddOrReplace("ToggleWindow", key, modifiers, OnGlobalHotkeyTriggered);
                 }
             }
@@ -124,8 +118,8 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
-        // ★★★ 热键触发时的动作：显示/隐藏主窗口 ★★★
-        private void OnGlobalHotkeyTriggered(object sender, HotkeyEventArgs e)
+        // ★★★ 修复 CS8622：参数 sender 改为 object? 类型
+        private void OnGlobalHotkeyTriggered(object? sender, HotkeyEventArgs e)
         {
             var window = Application.Current.MainWindow;
             if (window == null) return;
@@ -138,13 +132,13 @@ namespace PromptMasterv5.ViewModels
                     window.WindowState = WindowState.Normal;
                     window.Activate();
                 }
-                else if (window.IsActive) // 如果当前正是活跃状态，则隐藏
+                else if (window.IsActive)
                 {
                     window.WindowState = WindowState.Minimized;
                 }
                 else
                 {
-                    window.Activate(); // 如果被遮挡，则置顶
+                    window.Activate();
                 }
             }
             else
@@ -224,6 +218,40 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
+        // ★★★ 功能实现：打开图标设置弹窗（文件夹）
+        [RelayCommand]
+        private void ChangeFolderIcon(FolderItem folder)
+        {
+            if (folder == null) return;
+
+            // ★ 修复 CS8604：使用 ?? "" 确保不传 null
+            var dialog = new IconInputDialog(folder.IconGeometry ?? "");
+
+            if (dialog.ShowDialog() == true)
+            {
+                folder.IconGeometry = dialog.ResultGeometry;
+                RequestSave();
+            }
+        }
+
+        // ★★★ 功能实现：打开图标设置弹窗（文件）
+        [RelayCommand]
+        private void ChangeFileIcon(PromptItem file)
+        {
+            if (file == null) return;
+
+            // ★ 修复 CS8604：使用 ?? "" 确保不传 null
+            var dialog = new IconInputDialog(file.IconGeometry ?? "");
+
+            if (dialog.ShowDialog() == true)
+            {
+                file.IconGeometry = dialog.ResultGeometry;
+                // 刷新视图以应用更改
+                FilesView?.Refresh();
+                RequestSave();
+            }
+        }
+
         [RelayCommand]
         private void OpenSettings()
         {
@@ -236,7 +264,6 @@ namespace PromptMasterv5.ViewModels
         private void SaveSettings()
         {
             ConfigService.Save(Config);
-            // ★ 保存时立即应用新热键
             UpdateGlobalHotkey();
             IsSettingsOpen = false;
         }

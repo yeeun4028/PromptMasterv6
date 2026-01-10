@@ -5,16 +5,26 @@ namespace PromptMasterv5.Models
 {
     public partial class PromptItem : ObservableObject
     {
-        [ObservableProperty]
-        private string title = "";
+        // 文件唯一标识
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
+        // 文件标题
         [ObservableProperty]
-        private string content = "";
+        private string title = string.Empty;
 
+        // 文件内容 (Markdown)
+        [ObservableProperty]
+        private string? content;
+
+        // 最后修改时间
         [ObservableProperty]
         private DateTime lastModified;
 
-        // ★ 新增：所属文件夹的ID
-        public string FolderId { get; set; } = "";
+        // 所属文件夹ID
+        public string? FolderId { get; set; }
+
+        // ★★★ 新增：自定义图标 SVG 路径代码 ★★★
+        [ObservableProperty]
+        private string? iconGeometry;
     }
 }
