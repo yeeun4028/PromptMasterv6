@@ -2,7 +2,6 @@
 
 namespace PromptMasterv5.Models
 {
-    // 继承 ObservableObject 以便界面绑定
     public partial class AppConfig : ObservableObject
     {
         [ObservableProperty]
@@ -14,7 +13,11 @@ namespace PromptMasterv5.Models
         [ObservableProperty]
         private string password = "";
 
-        // 远程文件夹名称
+        // ★★★ 新增：全局唤醒热键 (默认 Alt+Space) ★★★
+        // 这就是之前报错缺少的属性
+        [ObservableProperty]
+        private string globalHotkey = "Alt+Space";
+
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }
 }

@@ -9,8 +9,11 @@ using System.Windows;
 using System.Collections.Specialized;
 using System.Windows.Data;
 using System.Threading.Tasks;
-using System.Windows.Threading; // 必须引用：用于定时器
+using System.Windows.Threading;
+using System.Windows.Input; // 引用 Key, ModifierKeys
 using GongSolutions.Wpf.DragDrop;
+using NHotkey; // ★ 必须引用
+using NHotkey.Wpf; // ★ 必须引用
 using PromptMasterv5.Models;
 using PromptMasterv5.Services;
 
@@ -20,8 +23,8 @@ namespace PromptMasterv5.ViewModels
     {
         private readonly IDataService _dataService;
         private bool _isCreatingFile = false;
-        private DispatcherTimer _timer; // 定时器
-        private DateTime _lastSyncTime = DateTime.Now; // 记录上次同步时间点
+        private DispatcherTimer _timer;
+        private DateTime _lastSyncTime = DateTime.Now;
 
         [ObservableProperty]
         private AppConfig config;
@@ -29,14 +32,16 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty]
         private bool isSettingsOpen = false;
 
-        // ★★★ 新增：极简时间显示 (例如 "5s", "1m") ★★★
+        // 0=同步, 1=快捷键
+        [ObservableProperty]
+        private int selectedSettingsTab = 0;
+
         [ObservableProperty]
         private string syncTimeDisplay = "Now";
 
         [ObservableProperty]
         private ICollectionView? filesView;
 
-        // 默认为 WebDAV 模式 (由 Config 控制连接细节)
         private bool _useLocalMode = false;
 
         public IDropTarget FolderDropHandler { get; private set; }
@@ -72,6 +77,9 @@ namespace PromptMasterv5.ViewModels
         {
             Config = ConfigService.Load();
 
+            // ★★★ 启动时注册热键 ★★★
+            UpdateGlobalHotkey();
+
             if (_useLocalMode)
                 _dataService = new FileDataService();
             else
@@ -79,7 +87,6 @@ namespace PromptMasterv5.ViewModels
 
             FolderDropHandler = new FolderDropHandler(this);
 
-            // ★★★ 启动定时器：每1秒刷新一次时间显示 ★★★
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += (s, e) => UpdateTimeDisplay();
@@ -88,31 +95,84 @@ namespace PromptMasterv5.ViewModels
             _ = InitializeAsync();
         }
 
-        // ★★★ 核心逻辑：计算时间差并格式化 ★★★
+        // ★★★ 核心：注册/更新全局热键逻辑 ★★★
+        public void UpdateGlobalHotkey()
+        {
+            try
+            {
+                string hotkeyStr = Config.GlobalHotkey;
+                if (string.IsNullOrEmpty(hotkeyStr)) return;
+
+                // 解析逻辑：例如 "Ctrl+Alt+Space"
+                ModifierKeys modifiers = ModifierKeys.None;
+                if (hotkeyStr.Contains("Ctrl")) modifiers |= ModifierKeys.Control;
+                if (hotkeyStr.Contains("Alt")) modifiers |= ModifierKeys.Alt;
+                if (hotkeyStr.Contains("Shift")) modifiers |= ModifierKeys.Shift;
+                if (hotkeyStr.Contains("Win")) modifiers |= ModifierKeys.Windows;
+
+                // 获取最后一个按键 (例如 "Space")
+                string keyStr = hotkeyStr.Split('+').Last().Trim();
+                if (Enum.TryParse(keyStr, out Key key))
+                {
+                    // 先移除旧的，防止冲突，然后注册新的
+                    HotkeyManager.Current.AddOrReplace("ToggleWindow", key, modifiers, OnGlobalHotkeyTriggered);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"热键注册失败: {ex.Message}");
+            }
+        }
+
+        // ★★★ 热键触发时的动作：显示/隐藏主窗口 ★★★
+        private void OnGlobalHotkeyTriggered(object sender, HotkeyEventArgs e)
+        {
+            var window = Application.Current.MainWindow;
+            if (window == null) return;
+
+            if (window.Visibility == Visibility.Visible)
+            {
+                if (window.WindowState == WindowState.Minimized)
+                {
+                    window.Show();
+                    window.WindowState = WindowState.Normal;
+                    window.Activate();
+                }
+                else if (window.IsActive) // 如果当前正是活跃状态，则隐藏
+                {
+                    window.WindowState = WindowState.Minimized;
+                }
+                else
+                {
+                    window.Activate(); // 如果被遮挡，则置顶
+                }
+            }
+            else
+            {
+                window.Show();
+                window.WindowState = WindowState.Normal;
+                window.Activate();
+            }
+        }
+
         private void UpdateTimeDisplay()
         {
             var span = DateTime.Now - _lastSyncTime;
-
             if (span.TotalSeconds < 60)
             {
-                // 小于1分钟：显示秒 (例如 3s)
-                // 如果小于1秒，显示 Now
                 int sec = (int)span.TotalSeconds;
                 SyncTimeDisplay = sec <= 0 ? "Now" : $"{sec}s";
             }
             else if (span.TotalMinutes < 60)
             {
-                // 小于1小时：显示分 (例如 5m)
                 SyncTimeDisplay = $"{(int)span.TotalMinutes}m";
             }
             else if (span.TotalHours < 24)
             {
-                // 小于24小时：显示小时 (例如 2h)
                 SyncTimeDisplay = $"{(int)span.TotalHours}h";
             }
             else
             {
-                // 大于1天：显示天 (例如 1d)
                 SyncTimeDisplay = $"{(int)span.TotalDays}d";
             }
         }
@@ -120,8 +180,6 @@ namespace PromptMasterv5.ViewModels
         private async Task InitializeAsync()
         {
             var data = await _dataService.LoadAsync();
-
-            // 加载成功也算一次同步，重置时间
             _lastSyncTime = DateTime.Now;
             UpdateTimeDisplay();
 
@@ -139,14 +197,10 @@ namespace PromptMasterv5.ViewModels
             }
 
             var view = CollectionViewSource.GetDefaultView(Files);
-            if (view != null)
-            {
-                view.Filter = FilterFiles;
-            }
+            if (view != null) view.Filter = FilterFiles;
             FilesView = view;
 
             Files.CollectionChanged += (s, e) => RequestSave();
-
             SelectedFolder = Folders.First();
         }
 
@@ -158,22 +212,15 @@ namespace PromptMasterv5.ViewModels
 
         private async Task SaveDataAsync()
         {
-            // 虽然不显示文字了，但可以通过 SyncTimeDisplay 变成 "..." 来暗示正在同步，
-            // 不过为了极简，我们这里保持不变，只在成功后刷新时间。
             try
             {
                 await _dataService.SaveAsync(Folders, Files);
-
-                // ★★★ 同步成功：更新时间基准点 ★★★
                 _lastSyncTime = DateTime.Now;
                 UpdateTimeDisplay();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // 如果出错了，可以在时间位置显示 Err
                 SyncTimeDisplay = "Err";
-                // 也可以选择弹窗或忽略
-                // MessageBox.Show(ex.Message);
             }
         }
 
@@ -181,6 +228,7 @@ namespace PromptMasterv5.ViewModels
         private void OpenSettings()
         {
             Config = ConfigService.Load();
+            SelectedSettingsTab = 0;
             IsSettingsOpen = true;
         }
 
@@ -188,7 +236,18 @@ namespace PromptMasterv5.ViewModels
         private void SaveSettings()
         {
             ConfigService.Save(Config);
+            // ★ 保存时立即应用新热键
+            UpdateGlobalHotkey();
             IsSettingsOpen = false;
+        }
+
+        [RelayCommand]
+        private void SelectSettingsTab(string indexStr)
+        {
+            if (int.TryParse(indexStr, out int index))
+            {
+                SelectedSettingsTab = index;
+            }
         }
 
         [RelayCommand]
@@ -198,7 +257,7 @@ namespace PromptMasterv5.ViewModels
             try
             {
                 await _dataService.SaveAsync(Folders, Files);
-                _lastSyncTime = DateTime.Now; // 更新时间
+                _lastSyncTime = DateTime.Now;
                 MessageBox.Show("成功备份到远程服务器！", "备份成功");
             }
             catch (Exception ex)
@@ -233,7 +292,7 @@ namespace PromptMasterv5.ViewModels
                 Files.CollectionChanged += (s, e) => RequestSave();
                 SelectedFolder = Folders.FirstOrDefault();
 
-                _lastSyncTime = DateTime.Now; // 更新时间
+                _lastSyncTime = DateTime.Now;
                 MessageBox.Show("成功从远程恢复数据！", "恢复成功");
             }
             catch (Exception ex)
@@ -244,6 +303,12 @@ namespace PromptMasterv5.ViewModels
 
         [RelayCommand]
         private void ToggleNavigation() => IsNavigationVisible = !IsNavigationVisible;
+
+        public void ReorderFolders(int oldIndex, int newIndex)
+        {
+            Folders.Move(oldIndex, newIndex);
+            RequestSave();
+        }
 
         public void MoveFileToFolder(PromptItem file, FolderItem targetFolder)
         {
