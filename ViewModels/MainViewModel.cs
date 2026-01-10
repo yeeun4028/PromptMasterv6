@@ -17,7 +17,7 @@ using NHotkey.Wpf;
 using PromptMasterv5.Models;
 using PromptMasterv5.Services;
 
-// ★★★ 关键别名：解决与 WinForms 的冲突 ★★★
+// 别名解决冲突
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using Clipboard = System.Windows.Clipboard;
@@ -28,13 +28,20 @@ namespace PromptMasterv5.ViewModels
     public partial class MainViewModel : ObservableObject
     {
         private readonly IDataService _dataService;
-        private readonly GlobalKeyService _keyService; // 双击服务
+        private readonly GlobalKeyService _keyService;
         private bool _isCreatingFile = false;
         private DispatcherTimer _timer;
         private DateTime _lastSyncTime = DateTime.Now;
 
+        // 记录上一个窗口句柄
+        private IntPtr _previousWindowHandle = IntPtr.Zero;
+
         [ObservableProperty]
         private AppConfig config;
+
+        // 字段保持小写，初始化防止 CS8618
+        [ObservableProperty]
+        private LocalSettings localConfig = new LocalSettings();
 
         [ObservableProperty]
         private bool isSettingsOpen = false;
@@ -83,21 +90,20 @@ namespace PromptMasterv5.ViewModels
         {
             Config = ConfigService.Load();
 
-            // 1. 初始化热键 (Alt+Space)
+            // ★★★ 修复：使用大写属性 LocalConfig ★★★
+            LocalConfig = LocalConfigService.Load();
+
             UpdateGlobalHotkey();
 
-            // 2. 初始化双击 Ctrl 服务
             _keyService = new GlobalKeyService();
             _keyService.OnDoubleCtrlDetected += (s, e) =>
             {
-                // 切回主线程 UI
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ToggleMainWindow();
                 });
             };
 
-            // ★★★ 修复逻辑：根据配置决定是否启动监听 ★★★
             if (Config.EnableDoubleCtrl)
             {
                 try { _keyService.Start(); } catch { }
@@ -149,7 +155,15 @@ namespace PromptMasterv5.ViewModels
             ToggleMainWindow();
         }
 
-        // 切换主窗口显示/隐藏
+        public void CaptureForegroundWindow()
+        {
+            var handle = NativeMethods.GetForegroundWindow();
+            if (handle != IntPtr.Zero)
+            {
+                _previousWindowHandle = handle;
+            }
+        }
+
         private void ToggleMainWindow()
         {
             var window = Application.Current.MainWindow;
@@ -168,7 +182,7 @@ namespace PromptMasterv5.ViewModels
                 }
                 else if (window.IsActive)
                 {
-                    window.WindowState = WindowState.Minimized;
+                    window.Hide();
                 }
                 else
                 {
@@ -180,6 +194,9 @@ namespace PromptMasterv5.ViewModels
             }
             else
             {
+                // 显示前捕获句柄
+                CaptureForegroundWindow();
+
                 window.Show();
                 window.WindowState = WindowState.Normal;
                 window.Activate();
@@ -270,14 +287,10 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
-        // ... 在 ChangeFolderIcon 方法下方添加 ...
-
         [RelayCommand]
         private void RenameFolder(FolderItem folder)
         {
             if (folder == null) return;
-
-            // 打开重命名弹窗
             var dialog = new NameInputDialog(folder.Name);
             if (dialog.ShowDialog() == true)
             {
@@ -285,8 +298,6 @@ namespace PromptMasterv5.ViewModels
                 RequestSave();
             }
         }
-
-        // ...
 
         [RelayCommand]
         private void ChangeFileIcon(PromptItem file)
@@ -305,6 +316,8 @@ namespace PromptMasterv5.ViewModels
         private void OpenSettings()
         {
             Config = ConfigService.Load();
+            // ★★★ 修复：使用大写属性 LocalConfig ★★★
+            LocalConfig = LocalConfigService.Load();
             SelectedSettingsTab = 0;
             IsSettingsOpen = true;
         }
@@ -313,9 +326,11 @@ namespace PromptMasterv5.ViewModels
         private void SaveSettings()
         {
             ConfigService.Save(Config);
+            // ★★★ 修复：使用大写属性 LocalConfig ★★★
+            LocalConfigService.Save(LocalConfig);
+
             UpdateGlobalHotkey();
 
-            // ★★★ 修复逻辑：保存时根据开关状态 启动或停止 服务 ★★★
             if (Config.EnableDoubleCtrl)
             {
                 try { _keyService.Start(); } catch { }
@@ -426,11 +441,13 @@ namespace PromptMasterv5.ViewModels
             {
                 newValue.PropertyChanged += SelectedFile_PropertyChanged;
                 ParseVariables();
+                AdditionalInput = "";
             }
             else
             {
                 Variables.Clear();
                 HasVariables = false;
+                AdditionalInput = "";
             }
 
             if (_isCreatingFile) return;
@@ -470,23 +487,69 @@ namespace PromptMasterv5.ViewModels
             HasVariables = Variables.Count > 0;
         }
 
-        [RelayCommand]
-        private void CopyCompiledText()
+        // 修改后的 CompileContent：支持无选中文档时单独发送 BLOCK4 内容
+        // ★★★ 修复后的 CompileContent：支持无选中文档时单独发送 BLOCK4 内容 ★★★
+        private string CompileContent()
         {
-            if (SelectedFile == null) return;
-            string finalContent = SelectedFile.Content ?? "";
-            if (HasVariables)
+            // 基础内容：如果有选中文档，取文档内容；否则为空字符串
+            string finalContent = SelectedFile?.Content ?? "";
+
+            // 1. 替换变量 (仅在有选中文档且有变量时执行)
+            if (SelectedFile != null && HasVariables)
             {
                 foreach (var variable in Variables)
                 {
                     finalContent = finalContent.Replace("{{" + variable.Name + "}}", variable.Value ?? "");
                 }
             }
-            else if (!string.IsNullOrWhiteSpace(AdditionalInput))
+
+            // 2. 合并附加输入 (BLOCK4)
+            if (!string.IsNullOrWhiteSpace(AdditionalInput))
             {
-                finalContent += "\n" + AdditionalInput;
+                // 如果基础内容非空，则换行追加
+                if (!string.IsNullOrWhiteSpace(finalContent))
+                {
+                    finalContent += "\n";
+                }
+                finalContent += AdditionalInput;
             }
-            if (!string.IsNullOrEmpty(finalContent)) Clipboard.SetText(finalContent);
+
+            return finalContent;
+        }
+
+        [RelayCommand]
+        private void CopyCompiledText()
+        {
+            string content = CompileContent();
+            if (!string.IsNullOrEmpty(content)) Clipboard.SetText(content);
+        }
+
+        [RelayCommand]
+        private async Task SendDirectPrompt()
+        {
+            string content = CompileContent();
+            await ExecuteSendAsync(content);
+        }
+
+        [RelayCommand]
+        private async Task SendCombinedInput()
+        {
+            string content = CompileContent().TrimEnd();
+            await ExecuteSendAsync(content);
+        }
+
+        private async Task ExecuteSendAsync(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content)) return;
+
+            var window = Application.Current.MainWindow;
+            if (window != null)
+            {
+                window.Hide();
+            }
+
+            // ★★★ 修复：使用大写属性 LocalConfig ★★★
+            await InputSender.SendAsync(content, LocalConfig, _previousWindowHandle);
         }
 
         [RelayCommand]
