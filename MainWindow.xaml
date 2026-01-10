@@ -34,7 +34,6 @@
         <Geometry x:Key="IconDelete">M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z</Geometry>
 
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
         <Style x:Key="Block1ToolTipStyle" TargetType="ToolTip">
             <Setter Property="Background" Value="{StaticResource Block1Background}"/>
             <Setter Property="Foreground" Value="#333"/>
@@ -45,9 +44,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ToolTip">
                         <Grid Margin="0,0,5,5">
-                            <Border Background="{TemplateBinding Background}"
-                                    CornerRadius="2"
-                                    Padding="8,4">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="2" Padding="8,4">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.2" ShadowDepth="2" Direction="315" BlurRadius="4"/>
                                 </Border.Effect>
@@ -212,6 +209,12 @@
                                     </DataTemplate>
                                 </Button.ContentTemplate>
                             </Button>
+
+                            <TextBlock Text="{Binding SyncTimeDisplay}" 
+                                       HorizontalAlignment="Center" 
+                                       FontSize="10" 
+                                       Foreground="#999999"
+                                       Margin="0,5,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -222,22 +225,14 @@
 
                 <Border Grid.Column="1" Background="#F1F1EF">
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                        <Grid Height="40" VerticalAlignment="Top" Background="Transparent" MouseLeftButtonDown="TopBar_MouseLeftButtonDown" Panel.ZIndex="99"/>
 
-                        <Grid Grid.Row="0" Height="40" Background="Transparent" MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
-                            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#999"/>
-                        </Grid>
-
-                        <ListBox Grid.Row="1"
-                                 ItemsSource="{Binding FilesView}"
+                        <ListBox ItemsSource="{Binding FilesView}"
                                  SelectedItem="{Binding SelectedFile}"
                                  ItemContainerStyle="{StaticResource FileListBoxItemStyle}"
                                  Background="Transparent"
                                  BorderThickness="0"
-                                 Margin="10,5,5,10"
+                                 Margin="10,15,5,10"
                                  dd:DragDrop.IsDragSource="True"
                                  dd:DragDrop.IsDropTarget="True">
 

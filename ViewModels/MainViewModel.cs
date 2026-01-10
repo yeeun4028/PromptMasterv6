@@ -9,6 +9,7 @@ using System.Windows;
 using System.Collections.Specialized;
 using System.Windows.Data;
 using System.Threading.Tasks;
+using System.Windows.Threading; // 必须引用：用于定时器
 using GongSolutions.Wpf.DragDrop;
 using PromptMasterv5.Models;
 using PromptMasterv5.Services;
@@ -19,26 +20,23 @@ namespace PromptMasterv5.ViewModels
     {
         private readonly IDataService _dataService;
         private bool _isCreatingFile = false;
+        private DispatcherTimer _timer; // 定时器
+        private DateTime _lastSyncTime = DateTime.Now; // 记录上次同步时间点
 
-        // ★★★ 新增：配置对象，绑定到设置界面 ★★★
         [ObservableProperty]
         private AppConfig config;
 
-        // ★★★ 新增：控制设置弹窗是否显示 ★★★
         [ObservableProperty]
         private bool isSettingsOpen = false;
 
-        private string _statusMessage = "就绪";
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set => SetProperty(ref _statusMessage, value);
-        }
+        // ★★★ 新增：极简时间显示 (例如 "5s", "1m") ★★★
+        [ObservableProperty]
+        private string syncTimeDisplay = "Now";
 
         [ObservableProperty]
         private ICollectionView? filesView;
 
-        // 强制使用 WebDAV 服务，通过 Config 控制是否启用
+        // 默认为 WebDAV 模式 (由 Config 控制连接细节)
         private bool _useLocalMode = false;
 
         public IDropTarget FolderDropHandler { get; private set; }
@@ -72,7 +70,6 @@ namespace PromptMasterv5.ViewModels
 
         public MainViewModel()
         {
-            // 加载配置
             Config = ConfigService.Load();
 
             if (_useLocalMode)
@@ -82,13 +79,51 @@ namespace PromptMasterv5.ViewModels
 
             FolderDropHandler = new FolderDropHandler(this);
 
+            // ★★★ 启动定时器：每1秒刷新一次时间显示 ★★★
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Tick += (s, e) => UpdateTimeDisplay();
+            _timer.Start();
+
             _ = InitializeAsync();
+        }
+
+        // ★★★ 核心逻辑：计算时间差并格式化 ★★★
+        private void UpdateTimeDisplay()
+        {
+            var span = DateTime.Now - _lastSyncTime;
+
+            if (span.TotalSeconds < 60)
+            {
+                // 小于1分钟：显示秒 (例如 3s)
+                // 如果小于1秒，显示 Now
+                int sec = (int)span.TotalSeconds;
+                SyncTimeDisplay = sec <= 0 ? "Now" : $"{sec}s";
+            }
+            else if (span.TotalMinutes < 60)
+            {
+                // 小于1小时：显示分 (例如 5m)
+                SyncTimeDisplay = $"{(int)span.TotalMinutes}m";
+            }
+            else if (span.TotalHours < 24)
+            {
+                // 小于24小时：显示小时 (例如 2h)
+                SyncTimeDisplay = $"{(int)span.TotalHours}h";
+            }
+            else
+            {
+                // 大于1天：显示天 (例如 1d)
+                SyncTimeDisplay = $"{(int)span.TotalDays}d";
+            }
         }
 
         private async Task InitializeAsync()
         {
-            StatusMessage = "正在加载数据...";
             var data = await _dataService.LoadAsync();
+
+            // 加载成功也算一次同步，重置时间
+            _lastSyncTime = DateTime.Now;
+            UpdateTimeDisplay();
 
             if (data.Folders.Count == 0)
             {
@@ -113,81 +148,74 @@ namespace PromptMasterv5.ViewModels
             Files.CollectionChanged += (s, e) => RequestSave();
 
             SelectedFolder = Folders.First();
-            StatusMessage = "加载完成";
-
-            await Task.Delay(2000);
-            StatusMessage = "";
         }
 
         private async void RequestSave()
         {
-            // 如果没填密码，就不自动保存，避免报错烦人
             if (string.IsNullOrEmpty(Config.UserName) || string.IsNullOrEmpty(Config.Password)) return;
             await SaveDataAsync();
         }
 
         private async Task SaveDataAsync()
         {
-            StatusMessage = "正在同步...";
+            // 虽然不显示文字了，但可以通过 SyncTimeDisplay 变成 "..." 来暗示正在同步，
+            // 不过为了极简，我们这里保持不变，只在成功后刷新时间。
             try
             {
                 await _dataService.SaveAsync(Folders, Files);
-                StatusMessage = "同步完成";
+
+                // ★★★ 同步成功：更新时间基准点 ★★★
+                _lastSyncTime = DateTime.Now;
+                UpdateTimeDisplay();
             }
             catch (Exception ex)
             {
-                StatusMessage = "同步失败: " + ex.Message;
+                // 如果出错了，可以在时间位置显示 Err
+                SyncTimeDisplay = "Err";
+                // 也可以选择弹窗或忽略
+                // MessageBox.Show(ex.Message);
             }
         }
 
-        // ★★★ 打开设置命令 ★★★
         [RelayCommand]
         private void OpenSettings()
         {
-            // 重新从磁盘加载，防止意外覆盖
             Config = ConfigService.Load();
             IsSettingsOpen = true;
         }
 
-        // ★★★ 保存设置并关闭命令 ★★★
         [RelayCommand]
         private void SaveSettings()
         {
             ConfigService.Save(Config);
             IsSettingsOpen = false;
-            StatusMessage = "设置已保存";
         }
 
-        // ★★★ 手动备份命令 (推送到云端) ★★★
         [RelayCommand]
         private async Task ManualBackup()
         {
-            ConfigService.Save(Config); // 先保存配置
-            StatusMessage = "正在上传备份...";
+            ConfigService.Save(Config);
             try
             {
                 await _dataService.SaveAsync(Folders, Files);
+                _lastSyncTime = DateTime.Now; // 更新时间
                 MessageBox.Show("成功备份到远程服务器！", "备份成功");
-                StatusMessage = "备份成功";
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"备份失败：{ex.Message}", "错误");
-                StatusMessage = "备份失败";
             }
         }
 
-        // ★★★ 手动恢复命令 (从云端拉取) ★★★
         [RelayCommand]
         private async Task ManualRestore()
         {
-            ConfigService.Save(Config); // 先保存配置
+            ConfigService.Save(Config);
             if (MessageBox.Show("确定要从远程恢复吗？\n这将覆盖本地当前所有未保存的修改！", "警告", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
                 return;
             }
 
-            StatusMessage = "正在从远程下载...";
             try
             {
                 var data = await _dataService.LoadAsync();
@@ -197,24 +225,20 @@ namespace PromptMasterv5.ViewModels
                     return;
                 }
 
-                // 重新加载数据到界面
                 Folders = new ObservableCollection<FolderItem>(data.Folders);
                 Files = new ObservableCollection<PromptItem>(data.Files);
-                // 重新绑定视图
                 var view = CollectionViewSource.GetDefaultView(Files);
                 if (view != null) view.Filter = FilterFiles;
                 FilesView = view;
-                // 重新挂载事件
                 Files.CollectionChanged += (s, e) => RequestSave();
                 SelectedFolder = Folders.FirstOrDefault();
 
+                _lastSyncTime = DateTime.Now; // 更新时间
                 MessageBox.Show("成功从远程恢复数据！", "恢复成功");
-                StatusMessage = "恢复成功";
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"恢复失败：{ex.Message}", "错误");
-                StatusMessage = "恢复失败";
             }
         }
 
