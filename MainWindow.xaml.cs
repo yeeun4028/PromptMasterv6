@@ -99,6 +99,9 @@ namespace PromptMasterv5
 
                 this.ResizeMode = ResizeMode.CanResize;
                 this.Topmost = true;
+                // 强制聚焦输入框，解决切换回极简模式后需要点一下才能输入的问题
+                // 使用 Dispatcher 确保窗口属性应用后再聚焦
+                Dispatcher.BeginInvoke(new Action(() => MiniInputBox.Focus()), System.Windows.Threading.DispatcherPriority.Render);
             }
         }
 
@@ -356,6 +359,16 @@ namespace PromptMasterv5
                 await Task.Delay(1000);
             }
             finally { btn.Content = org; btn.IsEnabled = true; }
+        }
+        // ★ 修复 ESC 键功能：完整模式->极简模式->隐藏
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                // 调用 ViewModel 已有的退出命令
+                ViewModel.ExitFullModeCommand.Execute(null);
+                e.Handled = true;
+            }
         }
     }
 }

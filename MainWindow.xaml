@@ -14,7 +14,8 @@
         AllowsTransparency="True"
         ResizeMode="CanResize"
         Background="Transparent"
-        Topmost="True">
+        Topmost="True"
+        PreviewKeyDown="Window_PreviewKeyDown">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="8" GlassFrameThickness="0" CornerRadius="0"/>
@@ -229,16 +230,53 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- ★ 新增：极细隐形滚动条样式 ★ -->
+        <Style x:Key="HiddenScrollBarStyle" TargetType="ScrollBar">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid>
+                            <Border Background="Transparent"/>
+                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <!-- 颜色与深色背景融合，半透明 -->
+                                                <Border Background="#555" CornerRadius="2" Opacity="0.4"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
+        <!-- ★★★ 核心修复：极简模式容器改为 Grid 行布局，消除遮挡 ★★★ -->
         <Grid x:Name="MiniModeContainer" 
               Visibility="{Binding IsFullMode, Converter={StaticResource InverseBoolToVis}}"
               Background="Transparent">
 
-            <Border Background="{StaticResource MiniBackgroundBrush}" 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Row 0: 输入框 -->
+                <RowDefinition Height="Auto"/>
+                <!-- Row 1: 变量列表 (自动堆叠) -->
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: 输入框区域 -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource MiniBackgroundBrush}" 
                     CornerRadius="8" 
                     Margin="10"
+                    Panel.ZIndex="1"
                     Effect="{StaticResource EffectShadow2}">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -247,19 +285,27 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
+                    <!-- 拖拽手柄 -->
                     <Border Grid.Column="0" Width="15" Background="Transparent" Cursor="SizeAll" MouseLeftButtonDown="MiniWindow_MouseLeftButtonDown">
                         <Path Data="M4,10 L4,20 M8,10 L8,20" Stroke="#555" StrokeThickness="2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Border>
 
+                    <!-- 核心输入框 -->
                     <Grid Grid.Column="1" VerticalAlignment="Stretch" Margin="5,5">
-
                         <TextBox x:Name="MiniInputBox"
                                  Text="{Binding MiniInputText, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource MiniTextBoxStyle}"
                                  d:Text="输入 / 搜索提示词..."
+                                 MaxHeight="200" 
                                  PreviewKeyDown="MiniInput_PreviewKeyDown"
-                                 TextChanged="MiniInput_TextChanged"/>
+                                 TextChanged="MiniInput_TextChanged">
+                            <!-- 应用隐形滚动条 -->
+                            <TextBox.Resources>
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource HiddenScrollBarStyle}"/>
+                            </TextBox.Resources>
+                        </TextBox>
 
+                        <!-- 搜索下拉框 (位置微调) -->
                         <Popup IsOpen="{Binding IsSearchPopupOpen}" 
                                PlacementTarget="{Binding ElementName=MiniInputBox}"
                                Placement="Bottom"
@@ -271,7 +317,8 @@
                                     CornerRadius="4" 
                                     Width="400" 
                                     MaxHeight="300">
-                                <ListBox ItemsSource="{Binding SearchResults}" 
+                                <ListBox x:Name="SearchListBox"
+                                         ItemsSource="{Binding SearchResults}" 
                                          SelectedItem="{Binding SelectedSearchItem}"
                                          Background="Transparent" 
                                          BorderThickness="0"
@@ -313,6 +360,7 @@
                         </Popup>
                     </Grid>
 
+                    <!-- 展开按钮 -->
                     <Button Grid.Column="2" 
                             Command="{Binding EnterFullModeCommand}"
                             Background="Transparent" BorderThickness="0"
@@ -323,26 +371,66 @@
                 </Grid>
             </Border>
 
-            <Border Background="{StaticResource MiniSearchBackgroundBrush}" 
+            <!-- Row 1: 变量填写区域 (Block4 风格 + 滚动支持) -->
+            <Border Grid.Row="1"
+                    Background="{StaticResource MiniSearchBackgroundBrush}" 
                     CornerRadius="0,0,8,8"
-                    Margin="15,55,15,10"
+                    Margin="15,-8,15,10"
+                    Padding="0,10,0,5"
+                    Panel.ZIndex="0"
                     Visibility="{Binding IsMiniVarsExpanded, Converter={StaticResource BoolToVis}}"
                     VerticalAlignment="Top">
-                <ItemsControl ItemsSource="{Binding Variables}" Margin="10">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="80"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding Name}" Foreground="#CCC" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0"/>
-                                <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" 
-                                         Background="#333" Foreground="White" BorderThickness="0" Padding="5"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+
+                <!-- 限制最大高度，超过出隐形滚动条 -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="300">
+                    <ScrollViewer.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource HiddenScrollBarStyle}"/>
+                    </ScrollViewer.Resources>
+
+                    <ItemsControl x:Name="MiniVarsList" ItemsSource="{Binding Variables}" Margin="15,5">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- ★ 复刻 Block4 样式：下划线风格 ★ -->
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="MiniLabel"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- 变量名：加粗，右对齐 -->
+                                    <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" 
+                                               Foreground="#CCC" 
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center" 
+                                               HorizontalAlignment="Right" 
+                                               Margin="0,0,10,0"/>
+
+                                    <!-- 输入框：底部边框，聚焦变蓝 -->
+                                    <Border x:Name="InputBorder" Grid.Column="1" 
+                                            BorderThickness="0,0,0,1" 
+                                            BorderBrush="#555" 
+                                            Background="Transparent">
+                                        <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Background="Transparent" 
+                                                 Foreground="White" 
+                                                 BorderThickness="0" 
+                                                 Padding="2"
+                                                 CaretBrush="White"
+                                                 PreviewKeyDown="TextBox_PreviewKeyDown"/>
+                                    </Border>
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="InputBorder" Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                    </Trigger>
+                                    <!-- 注意：这里无法直接通过 Trigger 监听 TextBox 焦点改变 Border，
+                                         因为 TextBox 在 Border 内部。简单起见仅做鼠标悬停变色，
+                                         或者稍后在 Style 中处理 -->
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </Border>
         </Grid>
 
