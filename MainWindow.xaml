@@ -275,7 +275,7 @@
             <Border Grid.Row="0"
                     Background="{StaticResource MiniBackgroundBrush}" 
                     CornerRadius="8" 
-                    Margin="10"
+                    Margin="10,10,10,0"
                     Panel.ZIndex="1"
                     Effect="{StaticResource EffectShadow2}">
                 <Grid>
@@ -372,12 +372,13 @@
             </Border>
 
             <!-- Row 1: 变量填写区域 (Block4 风格 + 滚动支持) -->
+            <!-- Row 1: 变量填写区域 (样式修正：宽度对齐 + 四周圆角 + 阴影) -->
             <Border Grid.Row="1"
                     Background="{StaticResource MiniSearchBackgroundBrush}" 
-                    CornerRadius="0,0,8,8"
-                    Margin="15,-8,15,10"
+                    CornerRadius="8"
+                    Margin="10,1,10,10"
                     Padding="0,10,0,5"
-                    Panel.ZIndex="0"
+                    Effect="{StaticResource EffectShadow2}"
                     Visibility="{Binding IsMiniVarsExpanded, Converter={StaticResource BoolToVis}}"
                     VerticalAlignment="Top">
 
@@ -390,14 +391,14 @@
                     <ItemsControl x:Name="MiniVarsList" ItemsSource="{Binding Variables}" Margin="15,5">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <!-- ★ 复刻 Block4 样式：下划线风格 ★ -->
+                                <!-- 下划线风格 -->
                                 <Grid Margin="0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="MiniLabel"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- 变量名：加粗，右对齐 -->
+                                    <!-- 变量名 -->
                                     <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" 
                                                Foreground="#CCC" 
                                                FontWeight="SemiBold"
@@ -405,7 +406,7 @@
                                                HorizontalAlignment="Right" 
                                                Margin="0,0,10,0"/>
 
-                                    <!-- 输入框：底部边框，聚焦变蓝 -->
+                                    <!-- 输入框 -->
                                     <Border x:Name="InputBorder" Grid.Column="1" 
                                             BorderThickness="0,0,0,1" 
                                             BorderBrush="#555" 
@@ -423,9 +424,6 @@
                                     <Trigger SourceName="InputBorder" Property="IsMouseOver" Value="True">
                                         <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                                     </Trigger>
-                                    <!-- 注意：这里无法直接通过 Trigger 监听 TextBox 焦点改变 Border，
-                                         因为 TextBox 在 Border 内部。简单起见仅做鼠标悬停变色，
-                                         或者稍后在 Style 中处理 -->
                                 </DataTemplate.Triggers>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
