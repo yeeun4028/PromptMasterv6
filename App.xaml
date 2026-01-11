@@ -2,15 +2,49 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PromptMasterv5"
+             xmlns:models="clr-namespace:PromptMasterv5.Models"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- 确保已安装 HandyControl NuGet 包 -->
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            <local:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+
+            <DropShadowEffect x:Key="EffectShadow2" Color="Black" Direction="270" ShadowDepth="4" BlurRadius="10" Opacity="0.4"/>
+
+            <SolidColorBrush x:Key="MiniBackgroundBrush" Color="#1E1E1E"/>
+            <SolidColorBrush x:Key="MiniTextBrush" Color="#E0E0E0"/>
+            <SolidColorBrush x:Key="MiniSearchBackgroundBrush" Color="#252526"/>
+            <SolidColorBrush x:Key="MiniHighlightBrush" Color="#3C3C3C"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="#4183C4"/>
+
+            <Style x:Key="MiniTextBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource MiniTextBrush}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="CaretBrush" Value="White"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
+
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="AcceptsReturn" Value="True"/>
+                <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
+
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+                <Setter Property="Padding" Value="5,2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <ScrollViewer x:Name="PART_ContentHost" Background="Transparent"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
