@@ -115,19 +115,23 @@ namespace PromptMasterv5
         {
             if (ViewModel != null && !ViewModel.IsFullMode)
             {
-                UpdateMiniHeight();
-
-                // ★ 修复：改用 ScrollToLine 替代 ScrollToCaret
-                if (MiniInputBox.LineCount > 0)
+                // ★★★ 核心修复：使用 Dispatcher 异步等待布局更新 ★★★
+                // ExtentHeight 在 TextChanged 触发时还未更新，必须等待 Render 优先级
+                Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    var caretIndex = MiniInputBox.CaretIndex;
-                    var lineIndex = MiniInputBox.GetLineIndexFromCharacterIndex(caretIndex);
-                    // 防止越界
-                    if (lineIndex >= 0 && lineIndex < MiniInputBox.LineCount)
+                    UpdateMiniHeight();
+
+                    // 确保光标跟随逻辑也在高度调整后执行
+                    if (MiniInputBox.LineCount > 0)
                     {
-                        MiniInputBox.ScrollToLine(lineIndex);
+                        var caretIndex = MiniInputBox.CaretIndex;
+                        var lineIndex = MiniInputBox.GetLineIndexFromCharacterIndex(caretIndex);
+                        if (lineIndex >= 0 && lineIndex < MiniInputBox.LineCount)
+                        {
+                            MiniInputBox.ScrollToLine(lineIndex);
+                        }
                     }
-                }
+                }), System.Windows.Threading.DispatcherPriority.Render);
             }
         }
 
@@ -154,43 +158,67 @@ namespace PromptMasterv5
         {
             if (MiniInputBox == null) return;
 
-            // 1. 获取内容真实高度，设定最小高度限制
+            // --- 1. 计算内容所需总高度 ---
             double contentHeight = MiniInputBox.ExtentHeight;
             if (contentHeight < 40) contentHeight = 40;
 
-            // 2. 计算最大可用高度
-            // 限制A: 屏幕高度的一半 (保持设计初衷)
-            double screenHalf = SystemParameters.PrimaryScreenHeight / 2;
-
-            // 限制B: 当前位置到底部的距离 (防止穿透屏幕底部)
-            // 减去 50px 作为安全边距(Taskbar缓冲)
-            double distToBottom = SystemParameters.WorkArea.Height - this.Top - 50;
-            if (distToBottom < 100) distToBottom = 100; // 至少保留100px显示空间
-
-            // 最终最大高度 = A 和 B 中较小的一个
-            double finalMaxHeight = Math.Min(screenHalf, distToBottom);
-
-            // 3. 应用限制
-            if (contentHeight > finalMaxHeight) contentHeight = finalMaxHeight;
-
-            // 4. 计算变量区域高度
             double chromePadding = 60;
             double varsHeight = 0;
 
+            // 计算变量区域高度
             if (ViewModel.IsMiniVarsExpanded)
             {
                 double estimatedVarsHeight = ViewModel.Variables.Count * 45 + 20;
-                // 变量区也要受限，防止把输入框挤没了，最多占剩余空间的 40%
-                double maxVars = finalMaxHeight * 0.4;
-                if (estimatedVarsHeight > 300) estimatedVarsHeight = 300; // 绝对上限
-
+                // 限制变量区最大高度 (配合 XAML 中的 MaxHeight)
+                if (estimatedVarsHeight > 300) estimatedVarsHeight = 300;
                 varsHeight = estimatedVarsHeight;
             }
 
-            // 5. 应用最终窗口高度
-            this.Height = contentHeight + chromePadding + varsHeight;
+            // 初步目标高度 (内容 + 边框 + 变量区)
+            double targetHeight = contentHeight + chromePadding + varsHeight;
 
-            // ★ 修复：改用 ScrollToLine 替代 ScrollToCaret
+            // --- 2. 应用高度限制 (屏幕的一半) ---
+            double screenHalf = SystemParameters.PrimaryScreenHeight / 2;
+            if (targetHeight > screenHalf) targetHeight = screenHalf;
+
+            // --- 3. ★★★ 智能上移逻辑 (Smart Lift) ★★★ ---
+            // 获取当前屏幕的工作区信息
+            double workAreaTop = SystemParameters.WorkArea.Top;
+            double workAreaBottom = SystemParameters.WorkArea.Bottom;
+            double currentTop = this.Top;
+
+            // 底部安全边距 (防止紧贴任务栏)
+            double safetyMargin = 20;
+
+            // 预测：如果保持当前 Top 不变，窗口底部会在哪里？
+            double predictedBottom = currentTop + targetHeight + safetyMargin;
+
+            // 检测是否撞到底部
+            if (predictedBottom > workAreaBottom)
+            {
+                // 计算溢出量 (需要上移多少)
+                double offset = predictedBottom - workAreaBottom;
+
+                // 计算新的 Top
+                double newTop = currentTop - offset;
+
+                // 边界检查：不能移出屏幕顶部
+                if (newTop < workAreaTop)
+                {
+                    newTop = workAreaTop;
+                    // 如果顶到底部也顶到顶部了，只能压缩高度
+                    double maxPossibleHeight = workAreaBottom - workAreaTop - safetyMargin;
+                    if (targetHeight > maxPossibleHeight) targetHeight = maxPossibleHeight;
+                }
+
+                // 执行上移
+                this.Top = newTop;
+            }
+
+            // --- 4. 应用最终高度 ---
+            this.Height = targetHeight;
+
+            // --- 5. 滚动光标跟随 ---
             if (MiniInputBox.IsKeyboardFocused && MiniInputBox.LineCount > 0)
             {
                 var caretIndex = MiniInputBox.CaretIndex;

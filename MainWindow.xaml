@@ -293,11 +293,12 @@
                     <!-- 核心输入框 -->
                     <Grid Grid.Column="1" VerticalAlignment="Stretch" Margin="5,5">
                         <TextBox x:Name="MiniInputBox"
-                                 Text="{Binding MiniInputText, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MiniTextBoxStyle}"
-                                 d:Text="输入 / 搜索提示词..."
-                                 PreviewKeyDown="MiniInput_PreviewKeyDown"
-                                 TextChanged="MiniInput_TextChanged">
+         Text="{Binding MiniInputText, UpdateSourceTrigger=PropertyChanged}"
+         Style="{StaticResource MiniTextBoxStyle}"
+         VerticalScrollBarVisibility="Auto"  
+         d:Text="输入 / 搜索提示词..."
+         PreviewKeyDown="MiniInput_PreviewKeyDown"
+         TextChanged="MiniInput_TextChanged">
                             <!-- 应用隐形滚动条 -->
                             <TextBox.Resources>
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource HiddenScrollBarStyle}"/>
