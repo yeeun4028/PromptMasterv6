@@ -152,7 +152,12 @@ namespace PromptMasterv5.ViewModels
             for (int i = Variables.Count - 1; i >= 0; i--) if (!newVarNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
             foreach (var name in newVarNames) if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
             HasVariables = Variables.Count > 0;
-            IsMiniVarsExpanded = HasVariables;
+            HasVariables = Variables.Count > 0;
+            // 只有在非完全模式下才自动展开，避免全屏模式下布局跳动
+            if (!IsFullMode)
+            {
+                IsMiniVarsExpanded = HasVariables;
+            }
         }
 
         [RelayCommand] private void ToggleWindowMode() => IsFullMode = !IsFullMode;
@@ -214,6 +219,16 @@ namespace PromptMasterv5.ViewModels
                     window.Activate();
                     window.Topmost = true;
                     window.Focus();
+
+                    // ★★★ 新增：强制将焦点归还给极简模式的输入框 ★★★
+                    if (window is MainWindow mainWin)
+                    {
+                        // 使用 Dispatcher 确保窗口元素已渲染完毕，特别是当变量列表收起导致布局变化时
+                        await mainWin.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            mainWin.MiniInputBox.Focus();
+                        }), DispatcherPriority.Render);
+                    }
                 }
             }
         }
@@ -227,15 +242,12 @@ namespace PromptMasterv5.ViewModels
 
         // --- 辅助逻辑 (CRUD等) ---
 
-        // ============================================
-        // ★★★ 核心修复：文件夹关联逻辑 ★★★
-        // ============================================
         partial void OnSelectedFolderChanged(FolderItem? value)
         {
             // 1. 强制刷新文件列表视图，这会重新触发 FilterFiles 方法
             FilesView?.Refresh();
 
-            // 2. 切换文件夹时，清空当前选中的文件（可选，为了体验更清晰）
+            // 2. 切换文件夹时，清空当前选中的文件
             SelectedFile = null;
         }
 
@@ -270,6 +282,15 @@ namespace PromptMasterv5.ViewModels
                 CaptureForegroundWindow();
                 if (window.Visibility != Visibility.Visible) IsFullMode = false;
                 window.Show(); window.Activate(); window.Focus();
+
+                // 确保唤醒时焦点也在输入框
+                if (!IsFullMode && window is MainWindow mainWin)
+                {
+                    mainWin.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        mainWin.MiniInputBox.Focus();
+                    }), DispatcherPriority.Render);
+                }
             }
         }
 
