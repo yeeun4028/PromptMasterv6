@@ -14,6 +14,7 @@ using PromptMasterv5.Models;
 // 引用自定义枚举和控件别名，解决命名冲突
 using InputMode = PromptMasterv5.Models.InputMode;
 using Button = System.Windows.Controls.Button;
+// ★ 明确指定 TextBox 别名，防止歧义
 using TextBox = System.Windows.Controls.TextBox;
 using WinFormsCursor = System.Windows.Forms.Cursor;
 
@@ -101,13 +102,13 @@ namespace PromptMasterv5
                 this.ResizeMode = ResizeMode.CanResize;
                 this.Topmost = true;
 
-                // ★ 修复：切换回极简模式后强制聚焦输入框
+                // 切换回极简模式后强制聚焦输入框
                 _ = Dispatcher.BeginInvoke(new Action(() => MiniInputBox.Focus()), System.Windows.Threading.DispatcherPriority.Render);
             }
         }
 
         // ============================================
-        // ★ 高度动态计算逻辑 (支持 Auto-Expand & 屏幕50%限制) ★
+        // ★ 高度动态计算逻辑 (防穿透屏幕底部 & 自动滚动) ★
         // ============================================
 
         private void MiniInput_TextChanged(object sender, TextChangedEventArgs e)
@@ -115,11 +116,22 @@ namespace PromptMasterv5
             if (ViewModel != null && !ViewModel.IsFullMode)
             {
                 UpdateMiniHeight();
+
+                // ★ 修复：改用 ScrollToLine 替代 ScrollToCaret
+                if (MiniInputBox.LineCount > 0)
+                {
+                    var caretIndex = MiniInputBox.CaretIndex;
+                    var lineIndex = MiniInputBox.GetLineIndexFromCharacterIndex(caretIndex);
+                    // 防止越界
+                    if (lineIndex >= 0 && lineIndex < MiniInputBox.LineCount)
+                    {
+                        MiniInputBox.ScrollToLine(lineIndex);
+                    }
+                }
             }
         }
 
-        // ★ 新增辅助方法：用于在 ItemsControl 中查找 TextBox
-        // ★ 修复：增加可空引用类型支持 (childItem? 和 DependencyObject?)，消除 CS8603/CS8600 警告
+        // 辅助方法：用于在 ItemsControl 中查找 TextBox (增加可空引用支持)
         private childItem? FindVisualChild<childItem>(DependencyObject? obj) where childItem : DependencyObject
         {
             if (obj == null) return null;
@@ -127,14 +139,13 @@ namespace PromptMasterv5
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is childItem)
-                    return (childItem)child;
-                else
-                {
-                    childItem? childOfChild = FindVisualChild<childItem>(child);
-                    if (childOfChild != null)
-                        return childOfChild;
-                }
+
+                if (child is childItem item)
+                    return item;
+
+                childItem? childOfChild = FindVisualChild<childItem>(child);
+                if (childOfChild != null)
+                    return childOfChild;
             }
             return null;
         }
@@ -147,25 +158,48 @@ namespace PromptMasterv5
             double contentHeight = MiniInputBox.ExtentHeight;
             if (contentHeight < 40) contentHeight = 40;
 
-            // ★ 修改点：最大高度限制为屏幕高度的一半
-            double maxHeight = SystemParameters.PrimaryScreenHeight / 2;
-            if (contentHeight > maxHeight) contentHeight = maxHeight;
+            // 2. 计算最大可用高度
+            // 限制A: 屏幕高度的一半 (保持设计初衷)
+            double screenHalf = SystemParameters.PrimaryScreenHeight / 2;
 
-            // 3. 计算边框冗余 (根据最新的 Margin 调整，适当增加余量)
+            // 限制B: 当前位置到底部的距离 (防止穿透屏幕底部)
+            // 减去 50px 作为安全边距(Taskbar缓冲)
+            double distToBottom = SystemParameters.WorkArea.Height - this.Top - 50;
+            if (distToBottom < 100) distToBottom = 100; // 至少保留100px显示空间
+
+            // 最终最大高度 = A 和 B 中较小的一个
+            double finalMaxHeight = Math.Min(screenHalf, distToBottom);
+
+            // 3. 应用限制
+            if (contentHeight > finalMaxHeight) contentHeight = finalMaxHeight;
+
+            // 4. 计算变量区域高度
             double chromePadding = 60;
             double varsHeight = 0;
 
-            // 若有变量需要填写，展开高度
             if (ViewModel.IsMiniVarsExpanded)
             {
-                // 限制变量区域预估高度，配合 XAML 中的 MaxHeight=300
                 double estimatedVarsHeight = ViewModel.Variables.Count * 45 + 20;
-                if (estimatedVarsHeight > 300) estimatedVarsHeight = 300;
+                // 变量区也要受限，防止把输入框挤没了，最多占剩余空间的 40%
+                double maxVars = finalMaxHeight * 0.4;
+                if (estimatedVarsHeight > 300) estimatedVarsHeight = 300; // 绝对上限
+
                 varsHeight = estimatedVarsHeight;
             }
 
-            // 4. 应用最终高度
+            // 5. 应用最终窗口高度
             this.Height = contentHeight + chromePadding + varsHeight;
+
+            // ★ 修复：改用 ScrollToLine 替代 ScrollToCaret
+            if (MiniInputBox.IsKeyboardFocused && MiniInputBox.LineCount > 0)
+            {
+                var caretIndex = MiniInputBox.CaretIndex;
+                var lineIndex = MiniInputBox.GetLineIndexFromCharacterIndex(caretIndex);
+                if (lineIndex >= 0 && lineIndex < MiniInputBox.LineCount)
+                {
+                    MiniInputBox.ScrollToLine(lineIndex);
+                }
+            }
         }
 
         private void EnsureWindowOnScreen()
@@ -186,7 +220,7 @@ namespace PromptMasterv5
             var textBox = sender as TextBox;
             if (textBox == null) return;
 
-            // ★ 新增：搜索列表的键盘导航 (上/下键选择)
+            // 搜索列表的键盘导航 (上/下键选择)
             if (ViewModel.IsSearchPopupOpen && ViewModel.SearchResults.Count > 0)
             {
                 if (e.Key == Key.Down)
@@ -211,7 +245,7 @@ namespace PromptMasterv5
 
             if (e.Key == Key.Enter)
             {
-                // ★ 修改：搜索确认后的智能焦点流转
+                // 搜索确认后的智能焦点流转
                 if (ViewModel.IsSearchPopupOpen)
                 {
                     // 1. 执行确认命令 (填入文本)
@@ -439,7 +473,7 @@ namespace PromptMasterv5
             finally { btn.Content = org; btn.IsEnabled = true; }
         }
 
-        // ★ 修复 ESC 键功能：完整模式->极简模式->隐藏
+        // ESC 键功能：完整模式->极简模式->隐藏
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
