@@ -569,7 +569,7 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Text="{Binding SelectedFile.Title, UpdateSourceTrigger=PropertyChanged}" FontSize="18" FontWeight="Bold" BorderThickness="0" Background="Transparent" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI">
+                                    <TextBox Grid.Column="0" Text="{Binding SelectedFile.Title, UpdateSourceTrigger=PropertyChanged}" FontSize="18" FontWeight="Bold" BorderThickness="0" Background="Transparent" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI" Margin="0,20,0,0">
                                         <TextBox.Style>
                                             <Style TargetType="TextBox">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -581,7 +581,7 @@
                                             </Style>
                                         </TextBox.Style>
                                     </TextBox>
-                                    <TextBlock Grid.Column="0" Text="{Binding SelectedFile.Title}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI">
+                                    <TextBlock Grid.Column="0" Text="{Binding SelectedFile.Title}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI" Margin="0,20,0,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -671,17 +671,7 @@
                                                 </DataTemplate>
                                             </Button.ContentTemplate>
                                         </Button>
-                                        <Button Command="{Binding ExitFullModeCommand}" Style="{StaticResource ActionBtnStyle}" ToolTip="收起 (Esc)">
-                                            <Button.ContentTemplate>
-                                                <DataTemplate>
-                                                    <Path Data="M4,12 L10,6 L16,12" RenderTransformOrigin="0.5,0.5" Style="{StaticResource SmallHeaderIconStyle}">
-                                                        <Path.RenderTransform>
-                                                            <RotateTransform Angle="180"/>
-                                                        </Path.RenderTransform>
-                                                    </Path>
-                                                </DataTemplate>
-                                            </Button.ContentTemplate>
-                                        </Button>
+
                                     </StackPanel>
                                 </Grid>
 
