@@ -7,8 +7,16 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- 1. HandyControl 默认主题 -->
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+
+                <!-- 2. ★★★ 新增：GitHub Markdown 主题 ★★★ -->
+                <ResourceDictionary Source="Themes/GitHubMarkdownTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- ===============================================
+                 以下是项目原有的本地资源，保持不变
+                 =============================================== -->
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
             <local:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>

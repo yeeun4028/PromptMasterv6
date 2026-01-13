@@ -15,6 +15,8 @@
         ResizeMode="CanResize"
         Background="Transparent"
         Topmost="True"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
         PreviewKeyDown="Window_PreviewKeyDown"
         Activated="Window_Activated">
 
@@ -695,11 +697,14 @@
                                         </Style>
                                     </TextBox.Style>
                                 </TextBox>
-                                <md:MarkdownViewer Grid.Row="1" Markdown="{Binding SelectedFile.Content}" xml:lang="zh-CN">
+                                <md:MarkdownViewer Grid.Row="1" 
+                   Markdown="{Binding SelectedFile.Content}" 
+                   xml:lang="zh-CN">
                                     <md:MarkdownViewer.Style>
                                         <Style TargetType="md:MarkdownViewer">
                                             <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Margin" Value="5,0,10,0"/>
+                                            <!-- 将 Margin 设为 0，因为 GitHub 主题内部已经定义了 PagePadding (内边距) -->
+                                            <Setter Property="Margin" Value="0"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsEditMode}" Value="True">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -707,15 +712,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </md:MarkdownViewer.Style>
-                                    <md:MarkdownViewer.Resources>
-                                        <Style x:Key="{x:Static md:Styles.DocumentStyleKey}" TargetType="{x:Type FlowDocument}">
-                                            <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI, sans-serif"/>
-                                            <Setter Property="FontSize" Value="15"/>
-                                            <Setter Property="Foreground" Value="#333333"/>
-                                            <Setter Property="TextAlignment" Value="Left"/>
-                                            <Setter Property="LineHeight" Value="24"/>
-                                        </Style>
-                                    </md:MarkdownViewer.Resources>
+                                    <!-- 此处移除了 <md:MarkdownViewer.Resources> 块，从而自动应用全局 GitHub 主题 -->
                                 </md:MarkdownViewer>
                             </Grid>
 
