@@ -499,13 +499,13 @@
                             <Grid Height="40" VerticalAlignment="Top" Background="Transparent" MouseLeftButtonDown="FullWindow_MouseLeftButtonDown"/>
 
                             <ListBox ItemsSource="{Binding FilesView}"
-                                     SelectedItem="{Binding SelectedFile}"
-                                     ItemContainerStyle="{StaticResource FileListBoxItemStyle}"
-                                     Background="Transparent"
-                                     BorderThickness="0"
-                                     Margin="10,15,5,10"
-                                     dd:DragDrop.IsDragSource="True"
-                                     dd:DragDrop.IsDropTarget="True">
+                                      SelectedItem="{Binding SelectedFile}"
+                                      ItemContainerStyle="{StaticResource FileListBoxItemStyle}"
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      Margin="10,23,5,10"
+                                      dd:DragDrop.IsDragSource="True"
+                                      dd:DragDrop.IsDropTarget="True">
 
                                 <ListBox.InputBindings>
                                     <KeyBinding Key="Delete" Command="{Binding DeleteFileCommand}"/>
