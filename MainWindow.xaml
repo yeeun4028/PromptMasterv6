@@ -240,6 +240,11 @@
                         <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#EAEAEA"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -860,7 +865,6 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="0">
-                                                            <Setter Property="FontWeight" Value="Bold"/>
                                                             <Setter Property="Foreground" Value="Black"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="1">
@@ -896,7 +900,6 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="1">
-                                                            <Setter Property="FontWeight" Value="Bold"/>
                                                             <Setter Property="Foreground" Value="Black"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="0">
@@ -932,7 +935,6 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="2">
-                                                            <Setter Property="FontWeight" Value="Bold"/>
                                                             <Setter Property="Foreground" Value="Black"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="0">
@@ -968,7 +970,6 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="3">
-                                                            <Setter Property="FontWeight" Value="Bold"/>
                                                             <Setter Property="Foreground" Value="Black"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="0">
