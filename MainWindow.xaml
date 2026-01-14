@@ -882,7 +882,8 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="☁️  同步" FontSize="14"/>
+                                                <Path Data="{StaticResource IconShortcut}" Fill="#666" Stretch="Uniform" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="快捷键" FontSize="14" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
 
@@ -917,8 +918,7 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <Path Data="{StaticResource IconShortcut}" Fill="#666" Stretch="Uniform" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                <TextBlock Text="快捷键" FontSize="14" VerticalAlignment="Center"/>
+                                                <TextBlock Text="⚡  自动化" FontSize="14"/>
                                             </StackPanel>
                                         </Button>
 
@@ -953,7 +953,8 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="⚡  自动化" FontSize="14"/>
+                                                <Path Data="{StaticResource IconModel}" Fill="#666" Stretch="Uniform" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="模型" FontSize="14" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
 
@@ -988,8 +989,7 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <Path Data="{StaticResource IconModel}" Fill="#666" Stretch="Uniform" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                <TextBlock Text="模型" FontSize="14" VerticalAlignment="Center"/>
+                                                <TextBlock Text="☁️  同步" FontSize="14"/>
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>
@@ -1009,45 +1009,13 @@
                                         </Button.Template>
                                     </Button>
 
-                                    <!-- Tab 0: 同步设置 -->
+                                    <!-- Tab 0: 快捷键 -->
                                     <StackPanel>
                                         <StackPanel.Style>
                                             <Style TargetType="StackPanel">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="0">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </StackPanel.Style>
-
-                                        <TextBlock Text="WebDAV 网址" Foreground="#666" Margin="0,0,0,5"/>
-                                        <TextBox Text="{Binding Config.WebDavUrl}" Padding="5" Margin="0,0,0,10" Background="#F5F5F5" BorderThickness="0"/>
-
-                                        <TextBlock Text="账号 (邮箱)" Foreground="#666" Margin="0,0,0,5"/>
-                                        <TextBox Text="{Binding Config.UserName}" Padding="5" Margin="0,0,0,10" Background="#F5F5F5" BorderThickness="0"/>
-
-                                        <TextBlock Text="应用密码" Foreground="#666" Margin="0,0,0,5"/>
-                                        <PasswordBox x:Name="WebDavPasswordBox" 
-                                                     PasswordChar="●"
-                                                     Padding="5" 
-                                                     Margin="0,0,0,15" 
-                                                     Background="#F5F5F5" 
-                                                     BorderThickness="0"
-                                                     PasswordChanged="WebDavPasswordBox_PasswordChanged"
-                                                     Loaded="WebDavPasswordBox_Loaded"/>
-
-
-                                    </StackPanel>
-
-                                    <!-- Tab 1: 快捷键 -->
-                                    <StackPanel>
-                                        <StackPanel.Style>
-                                            <Style TargetType="StackPanel">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="1">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -1071,14 +1039,14 @@
 
                                         <TextBlock Text="当前热键" Foreground="#666" Margin="0,0,0,5"/>
 
-                                        <TextBox Text="{Binding Config.GlobalHotkey}" 
-                                                 Padding="10" 
+                                        <TextBox Text="{Binding Config.GlobalHotkey}"
+                                                 Padding="10"
                                                  FontSize="14"
                                                  FontWeight="Bold"
-                                                 Background="#F5F5F5" 
+                                                 Background="#F5F5F5"
                                                  BorderThickness="1"
                                                  BorderBrush="#DDD"
-                                                 IsReadOnly="True" 
+                                                 IsReadOnly="True"
                                                  Cursor="IBeam"
                                                  PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
                                                  ToolTip="点击此处并按下键盘组合键来修改"/>
@@ -1086,13 +1054,13 @@
                                         <TextBlock Text="* 点击输入框并直接按下键盘组合键（如 Ctrl+Shift+X）即可修改" Foreground="#999" FontSize="11" Margin="0,5,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Tab 2: 自动化 -->
+                                    <!-- Tab 1: 自动化 -->
                                     <StackPanel>
                                         <StackPanel.Style>
                                             <Style TargetType="StackPanel">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="2">
+                                                    <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="1">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -1102,21 +1070,21 @@
                                         <TextBlock Text="输入发送模式" Foreground="#333" FontWeight="Bold" FontSize="16" Margin="0,0,0,15"/>
 
                                         <Border Background="#F9F9F9" CornerRadius="4" Padding="15" Margin="0,0,0,10">
-                                            <RadioButton GroupName="InputMode" 
+                                            <RadioButton GroupName="InputMode"
                                                          IsChecked="{Binding LocalConfig.Mode, Converter={models:EnumToBoolConverter}, ConverterParameter=SmartFocus}"
-                                                         Content="智能回退模式 (推荐)" 
+                                                         Content="智能回退模式 (推荐)"
                                                          FontSize="14" FontWeight="Bold" Cursor="Hand"/>
                                         </Border>
-                                        <TextBlock Text="软件隐藏后，自动将焦点还给上一个活动的窗口 (如浏览器输入框)，然后发送内容。" 
+                                        <TextBlock Text="软件隐藏后，自动将焦点还给上一个活动的窗口 (如浏览器输入框)，然后发送内容。"
                                                    Foreground="#888" FontSize="12" Margin="5,0,0,20" TextWrapping="Wrap"/>
 
                                         <Border Background="#F9F9F9" CornerRadius="4" Padding="15" Margin="0,0,0,10">
-                                            <RadioButton GroupName="InputMode" 
+                                            <RadioButton GroupName="InputMode"
                                                          IsChecked="{Binding LocalConfig.Mode, Converter={models:EnumToBoolConverter}, ConverterParameter=CoordinateClick}"
-                                                         Content="坐标点击模式" 
+                                                         Content="坐标点击模式"
                                                          FontSize="14" FontWeight="Bold" Cursor="Hand"/>
                                         </Border>
-                                        <TextBlock Text="软件隐藏后，强制点击屏幕上的指定位置来激活输入框。" 
+                                        <TextBlock Text="软件隐藏后，强制点击屏幕上的指定位置来激活输入框。"
                                                    Foreground="#888" FontSize="12" Margin="5,0,0,10" TextWrapping="Wrap"/>
 
                                         <StackPanel Margin="20,0,0,0">
@@ -1164,13 +1132,13 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- Tab 3: 模型配置 -->
+                                    <!-- Tab 2: 模型配置 -->
                                     <StackPanel>
                                         <StackPanel.Style>
                                             <Style TargetType="StackPanel">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="3">
+                                                    <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="2">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -1187,6 +1155,38 @@
 
                                         <TextBlock Text="模型名称" Foreground="#666" Margin="0,0,0,5"/>
                                         <TextBox Text="{Binding Config.AiModel}" Padding="5" Margin="0,0,0,15" Background="#F5F5F5" BorderThickness="0" ToolTip="例如: deepseek-chat, qwen-turbo"/>
+                                    </StackPanel>
+
+                                    <!-- Tab 3: 同步设置 -->
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="3">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+
+                                        <TextBlock Text="WebDAV 网址" Foreground="#666" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Config.WebDavUrl}" Padding="5" Margin="0,0,0,10" Background="#F5F5F5" BorderThickness="0"/>
+
+                                        <TextBlock Text="账号 (邮箱)" Foreground="#666" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Config.UserName}" Padding="5" Margin="0,0,0,10" Background="#F5F5F5" BorderThickness="0"/>
+
+                                        <TextBlock Text="应用密码" Foreground="#666" Margin="0,0,0,5"/>
+                                        <PasswordBox x:Name="WebDavPasswordBox"
+                                                     PasswordChar="●"
+                                                     Padding="5"
+                                                     Margin="0,0,0,15"
+                                                     Background="#F5F5F5"
+                                                     BorderThickness="0"
+                                                     PasswordChanged="WebDavPasswordBox_PasswordChanged"
+                                                     Loaded="WebDavPasswordBox_Loaded"/>
+
+
                                     </StackPanel>
 
                                     <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
