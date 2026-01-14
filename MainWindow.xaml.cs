@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,12 +10,14 @@ using System.Text;
 using System.Windows.Media;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using PromptMasterv5.Models;
+using PromptMasterv5.Services;
 
 // 引用自定义枚举和控件别名，解决命名冲突
 using InputMode = PromptMasterv5.Models.InputMode;
 using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
 using WinFormsCursor = System.Windows.Forms.Cursor;
+using MessageBox = System.Windows.MessageBox;
 
 namespace PromptMasterv5
 {
@@ -463,7 +465,41 @@ namespace PromptMasterv5
             }
             finally { btn.Content = org; btn.IsEnabled = true; }
         }
-        
+
+
+        private async void TestAiConnection_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn == null) return;
+
+            string originalContent = btn.Content?.ToString() ?? "连通测试";
+
+            try
+            {
+                btn.IsEnabled = false;
+                btn.Content = "测试中...";
+
+                var aiService = new AiService();
+                (bool success, string message) = await aiService.TestConnectionAsync(ViewModel.Config);
+
+                MessageBox.Show(
+                    success ? "✓ " + message : "✗ " + message,
+                    "连接测试",
+                    MessageBoxButton.OK,
+                    success ? MessageBoxImage.Information : MessageBoxImage.Warning
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"测试出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                btn.Content = originalContent;
+                btn.IsEnabled = true;
+            }
+        }
+
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {

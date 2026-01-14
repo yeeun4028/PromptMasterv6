@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,6 +66,53 @@ namespace PromptMasterv5.Services
             catch (Exception ex)
             {
                 return $"[系统错误] {ex.Message}";
+            }
+        }
+
+        public async Task<(bool Success, string Message)> TestConnectionAsync(AppConfig config)
+        {
+            if (string.IsNullOrWhiteSpace(config.AiApiKey))
+                return (false, "API Key 为空");
+            if (string.IsNullOrWhiteSpace(config.AiBaseUrl))
+                return (false, "API 地址为空");
+            if (string.IsNullOrWhiteSpace(config.AiModel))
+                return (false, "模型名称为空");
+
+            try
+            {
+                var options = new OpenAiOptions
+                {
+                    ApiKey = config.AiApiKey,
+                    BaseDomain = config.AiBaseUrl
+                };
+
+                var openAiService = new OpenAIService(options);
+
+                var request = new ChatCompletionCreateRequest
+                {
+                    Messages = new List<ChatMessage>
+                    {
+                        ChatMessage.FromSystem("Test"),
+                        ChatMessage.FromUser("Hi")
+                    },
+                    Model = config.AiModel,
+                    MaxTokens = 5
+                };
+
+                var completionResult = await openAiService.ChatCompletion.CreateCompletion(request);
+
+                if (completionResult.Successful)
+                {
+                    return (true, "连接成功！");
+                }
+                else
+                {
+                    return (false, $"连接失败: {completionResult.Error?.Message ?? "未知错误"}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"连接异常: {ex.Message}");
             }
         }
     }
