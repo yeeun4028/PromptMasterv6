@@ -216,6 +216,15 @@ namespace PromptMasterv5
             var textBox = sender as TextBox;
             if (textBox == null) return;
 
+            // 新增：处理Delete键 - 如果显示AI回复结果，一次Delete删除全部内容
+            if (e.Key == Key.Delete && ViewModel.IsAiResultDisplayed)
+            {
+                ViewModel.MiniInputText = "";
+                ViewModel.IsAiResultDisplayed = false;
+                e.Handled = true;
+                return;
+            }
+
             // 1. 搜索提示列表导航 (Up/Down)
             if (ViewModel.IsSearchPopupOpen && ViewModel.SearchResults.Count > 0)
             {

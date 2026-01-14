@@ -70,6 +70,7 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private string additionalInput = "";
 
         [ObservableProperty] private bool isAiProcessing = false;
+        [ObservableProperty] private bool isAiResultDisplayed = false;
 
         public MainViewModel()
         {
@@ -168,6 +169,12 @@ namespace PromptMasterv5.ViewModels
         // ★★★ 修改 1：实时检测输入框内容 ★★★
         partial void OnMiniInputTextChanged(string value)
         {
+            // 新增：用户开始输入时，清除AI回复标记
+            if (IsAiResultDisplayed && !string.IsNullOrWhiteSpace(value))
+            {
+                IsAiResultDisplayed = false;
+            }
+
             // 1. AI 触发检测：根据配置决定是否需要前缀
             bool needPrefix = !LocalConfig.MiniWindowUseAi;
 
@@ -283,16 +290,19 @@ namespace PromptMasterv5.ViewModels
                 {
                     string assembledPrompt = $"{patternContent}\n\n---\n\nUSER INPUT:\n{query}";
                     MiniInputText = assembledPrompt;
+                    IsAiResultDisplayed = true;
                 }
                 else
                 {
                     string result = await _aiService.ChatAsync(query, Config);
                     MiniInputText = result;
+                    IsAiResultDisplayed = true;
                 }
             }
             catch (Exception ex)
             {
                 MiniInputText = $"[AI 错误] {ex.Message}";
+                IsAiResultDisplayed = true;
             }
             finally
             {
