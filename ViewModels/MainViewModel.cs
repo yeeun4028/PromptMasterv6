@@ -481,9 +481,38 @@ namespace PromptMasterv5.ViewModels
             Folders.Remove(folder);
             RequestSave();
         }
-        [RelayCommand] private void ChangeFolderIcon(FolderItem f) { /* ... */ }
+        [RelayCommand] private void ChangeFolderIcon(FolderItem f)
+        {
+            if (f == null) return;
+            var dialog = new IconInputDialog(f.IconGeometry);
+            if (dialog.ShowDialog() == true)
+            {
+                f.IconGeometry = dialog.ResultGeometry;
+                RequestSave();
+            }
+        }
         [RelayCommand] private void RenameFolder(FolderItem f) { /* ... */ }
-        [RelayCommand] private void ChangeFileIcon(PromptItem f) { /* ... */ }
+        [RelayCommand] private void ChangeFileIcon(PromptItem f)
+        {
+            if (f == null) return;
+            var dialog = new IconInputDialog(f.IconGeometry);
+            if (dialog.ShowDialog() == true)
+            {
+                f.IconGeometry = dialog.ResultGeometry;
+                RequestSave();
+            }
+        }
+        [RelayCommand]
+        private void ChangeActionIcon(string actionId)
+        {
+            if (string.IsNullOrEmpty(actionId)) return;
+
+            var dialog = new IconInputDialog(LocalConfig.ActionIcons.GetValueOrDefault(actionId));
+            if (dialog.ShowDialog() == true)
+            {
+                LocalConfig.ActionIcons[actionId] = dialog.ResultGeometry;
+            }
+        }
         [RelayCommand] private void OpenSettings() { Config = ConfigService.Load(); LocalConfig = LocalConfigService.Load(); SelectedSettingsTab = 0; IsSettingsOpen = true; }
         [RelayCommand] private void SaveSettings() { ConfigService.Save(Config); LocalConfigService.Save(LocalConfig); UpdateGlobalHotkey(); if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { } else _keyService.Stop(); IsSettingsOpen = false; }
         [RelayCommand] private void SelectSettingsTab(string s) { if (int.TryParse(s, out int i)) SelectedSettingsTab = i; }

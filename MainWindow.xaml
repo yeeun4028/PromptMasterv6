@@ -47,13 +47,14 @@
             <Setter Property="Background" Value="{StaticResource Block1Background}"/>
             <Setter Property="Foreground" Value="#333"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="HasDropShadow" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToolTip">
                         <Grid Margin="0,0,5,5">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="2" Padding="8,4">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" Padding="8,4">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.2" ShadowDepth="2" Direction="315" BlurRadius="4"/>
                                 </Border.Effect>
@@ -469,30 +470,70 @@
 
                             <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,20">
                                 <Button Style="{StaticResource ActionBtnStyle}" Content="新建文档" Command="{Binding CreateFileCommand}">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="设置图标..."
+                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      CommandParameter="CreateFile"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Button.ToolTip>
+                                        <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="新建文档"/>
+                                    </Button.ToolTip>
                                     <Button.ContentTemplate>
                                         <DataTemplate>
-                                            <Path Data="{StaticResource IconNewDoc}" Style="{StaticResource ActionIconPathStyle}"/>
+                                            <Path Data="{Binding LocalConfig.ActionIcons[CreateFile], TargetNullValue={StaticResource IconNewDoc}, FallbackValue={StaticResource IconNewDoc}}" Style="{StaticResource ActionIconPathStyle}"/>
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
                                 <Button Style="{StaticResource ActionBtnStyle}" Content="新建文件夹" Command="{Binding CreateFolderCommand}">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="设置图标..."
+                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      CommandParameter="CreateFolder"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Button.ToolTip>
+                                        <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="新建文件夹"/>
+                                    </Button.ToolTip>
                                     <Button.ContentTemplate>
                                         <DataTemplate>
-                                            <Path Data="{StaticResource IconNewFolder}" Style="{StaticResource ActionIconPathStyle}"/>
+                                            <Path Data="{Binding LocalConfig.ActionIcons[CreateFolder], TargetNullValue={StaticResource IconNewFolder}, FallbackValue={StaticResource IconNewFolder}}" Style="{StaticResource ActionIconPathStyle}"/>
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
-                                <Button Style="{StaticResource ActionBtnStyle}" Content="导入" ToolTip="导入 Markdown 文件" Command="{Binding ImportMarkdownFilesCommand}">
+                                <Button Style="{StaticResource ActionBtnStyle}" Content="导入" Command="{Binding ImportMarkdownFilesCommand}">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="设置图标..."
+                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      CommandParameter="Import"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Button.ToolTip>
+                                        <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="导入 Markdown 文件"/>
+                                    </Button.ToolTip>
                                     <Button.ContentTemplate>
                                         <DataTemplate>
-                                            <Path Data="{StaticResource IconImport}" Style="{StaticResource ActionIconPathStyle}"/>
+                                            <Path Data="{Binding LocalConfig.ActionIcons[Import], TargetNullValue={StaticResource IconImport}, FallbackValue={StaticResource IconImport}}" Style="{StaticResource ActionIconPathStyle}"/>
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
-                                <Button Style="{StaticResource ActionBtnStyle}" Content="设置" ToolTip="设置" Command="{Binding OpenSettingsCommand}">
+                                <Button Style="{StaticResource ActionBtnStyle}" Content="设置" Command="{Binding OpenSettingsCommand}">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="设置图标..."
+                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      CommandParameter="Settings"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Button.ToolTip>
+                                        <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="设置"/>
+                                    </Button.ToolTip>
                                     <Button.ContentTemplate>
                                         <DataTemplate>
-                                            <Path Data="{StaticResource IconSettings}" Style="{StaticResource ActionIconPathStyle}"/>
+                                            <Path Data="{Binding LocalConfig.ActionIcons[Settings], TargetNullValue={StaticResource IconSettings}, FallbackValue={StaticResource IconSettings}}" Style="{StaticResource ActionIconPathStyle}"/>
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
@@ -992,24 +1033,7 @@
                                                      PasswordChanged="WebDavPasswordBox_PasswordChanged"
                                                      Loaded="WebDavPasswordBox_Loaded"/>
 
-                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                            <Button Content="☁️ 备份到远程" Command="{Binding ManualBackupCommand}" 
-                                                    Background="#4183C4" Foreground="White" BorderThickness="0" Padding="15,6" Margin="0,0,10,0" Cursor="Hand">
-                                                <Button.Resources>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="CornerRadius" Value="4"/>
-                                                    </Style>
-                                                </Button.Resources>
-                                            </Button>
-                                            <Button Content="📂 导入 MD" Command="{Binding ImportMarkdownFilesCommand}" 
-                                                    Background="White" Foreground="#333" BorderBrush="#CCC" BorderThickness="1" Padding="15,6" Cursor="Hand">
-                                                <Button.Resources>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="CornerRadius" Value="4"/>
-                                                    </Style>
-                                                </Button.Resources>
-                                            </Button>
-                                        </StackPanel>
+
                                     </StackPanel>
 
                                     <!-- Tab 1: 快捷键 -->

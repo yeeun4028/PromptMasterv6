@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace PromptMasterv5.Models
 {
@@ -42,5 +42,10 @@ namespace PromptMasterv5.Models
         public double FullWindowLeft { get; set; } = 100;
         public double FullWindowWidth { get; set; } = 1000;
         public double FullWindowHeight { get; set; } = 600;
+
+        // 存储按钮自定义图标（SVG Path Data）
+        // Key: 按钮标识符（"CreateFile", "CreateFolder", "Import", "Settings"）
+        // Value: SVG Path Data 字符串
+        public Dictionary<string, string> ActionIcons { get; set; } = new();
     }
 }
