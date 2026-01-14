@@ -41,6 +41,7 @@ namespace PromptMasterv5.ViewModels
         private DispatcherTimer _timer;
         private DateTime _lastSyncTime = DateTime.Now;
         private IntPtr _previousWindowHandle = IntPtr.Zero;
+        private bool _previousFullMode = true;
 
         [ObservableProperty] private AppConfig config;
         [ObservableProperty] private LocalSettings localConfig = new LocalSettings();
@@ -444,11 +445,15 @@ namespace PromptMasterv5.ViewModels
         {
             var window = Application.Current.MainWindow;
             if (window == null) return;
-            if (window.Visibility == Visibility.Visible) window.Hide();
+            if (window.Visibility == Visibility.Visible)
+            {
+                _previousFullMode = IsFullMode;
+                window.Hide();
+            }
             else
             {
                 CaptureForegroundWindow();
-                if (window.Visibility != Visibility.Visible) IsFullMode = false;
+                if (window.Visibility != Visibility.Visible) IsFullMode = _previousFullMode;
                 window.Show(); window.Activate(); window.Focus();
                 if (!IsFullMode && window is MainWindow mainWin)
                 {
