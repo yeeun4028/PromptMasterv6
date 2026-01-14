@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace PromptMasterv5.Models
 {
@@ -22,13 +23,19 @@ namespace PromptMasterv5.Models
         // ★★★ 新增：AI 配置项 ★★★
 
         [ObservableProperty]
-        private string aiBaseUrl = "https://api.deepseek.com"; // 默认 DeepSeek
+        private string aiBaseUrl = "https://api.deepseek.com";
 
         [ObservableProperty]
         private string aiApiKey = "";
 
         [ObservableProperty]
-        private string aiModel = "deepseek-chat"; // 默认模型名
+        private string aiModel = "deepseek-chat";
+
+        [ObservableProperty]
+        private ObservableCollection<AiModelConfig> savedModels = new();
+
+        [ObservableProperty]
+        private string activeModelId = "";
 
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }

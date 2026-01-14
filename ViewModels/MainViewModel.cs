@@ -532,6 +532,66 @@ namespace PromptMasterv5.ViewModels
         [RelayCommand] private async Task ManualRestore() { /* ... */ }
 
         [RelayCommand]
+        private void AddAiModel()
+        {
+            if (string.IsNullOrWhiteSpace(Config.AiBaseUrl) ||
+                string.IsNullOrWhiteSpace(Config.AiApiKey) ||
+                string.IsNullOrWhiteSpace(Config.AiModel))
+            {
+                MessageBox.Show("请先填写完整的模型配置信息", "提示");
+                return;
+            }
+
+            var existingModel = Config.SavedModels.FirstOrDefault(m => m.ModelName == Config.AiModel);
+            if (existingModel != null)
+            {
+                existingModel.BaseUrl = Config.AiBaseUrl;
+                existingModel.ApiKey = Config.AiApiKey;
+                Config.ActiveModelId = existingModel.Id;
+            }
+            else
+            {
+                var newModel = new AiModelConfig
+                {
+                    BaseUrl = Config.AiBaseUrl,
+                    ApiKey = Config.AiApiKey,
+                    ModelName = Config.AiModel
+                };
+                Config.SavedModels.Add(newModel);
+                Config.ActiveModelId = newModel.Id;
+            }
+
+            ConfigService.Save(Config);
+        }
+
+        [RelayCommand]
+        private void ActivateAiModel(AiModelConfig model)
+        {
+            if (model == null) return;
+
+            Config.AiBaseUrl = model.BaseUrl;
+            Config.AiApiKey = model.ApiKey;
+            Config.AiModel = model.ModelName;
+            Config.ActiveModelId = model.Id;
+
+            ConfigService.Save(Config);
+        }
+
+        [RelayCommand]
+        private void DeleteAiModel(AiModelConfig model)
+        {
+            if (model == null) return;
+
+            Config.SavedModels.Remove(model);
+            if (Config.ActiveModelId == model.Id)
+            {
+                Config.ActiveModelId = "";
+            }
+
+            ConfigService.Save(Config);
+        }
+
+        [RelayCommand]
         private async Task ImportMarkdownFiles()
         {
             var dialog = new Microsoft.Win32.OpenFileDialog

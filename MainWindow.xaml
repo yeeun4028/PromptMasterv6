@@ -1203,7 +1203,107 @@
                                                     </Style>
                                                 </Button.Resources>
                                             </Button>
+
+                                            <Button x:Name="AddModelBtn"
+                                                    Content="保存"
+                                                    Command="{Binding AddAiModelCommand}"
+                                                    Padding="20,8"
+                                                    Background="#4183C4"
+                                                    Foreground="White"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    Margin="10,0,0,0">
+                                                <Button.Resources>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="CornerRadius" Value="4"/>
+                                                    </Style>
+                                                </Button.Resources>
+                                            </Button>
                                         </StackPanel>
+
+                                        <ListBox ItemsSource="{Binding Config.SavedModels}"
+                                                 SelectedValue="{Binding Config.ActiveModelId}"
+                                                 SelectedValuePath="Id"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 Padding="0"
+                                                 Margin="0,20,0,0"
+                                                 SelectionMode="Single"
+                                                 SelectionChanged="AiModelList_SelectionChanged">
+                                            <ListBox.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ListBox.ItemsPanel>
+                                            <ListBox.ItemContainerStyle>
+                                                <Style TargetType="ListBoxItem">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                    <Setter Property="Margin" Value="2"/>
+                                                    <Setter Property="Width" Value="150"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="ListBoxItem">
+                                                                <Border Background="#F9F9F9"
+                                                                        CornerRadius="6"
+                                                                        Padding="12,10"
+                                                                        Cursor="Hand">
+                                                                    <Border.ContextMenu>
+                                                                        <ContextMenu>
+                                                                            <MenuItem Header="删除"
+                                                                                      Command="{Binding DataContext.DeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                                                      CommandParameter="{Binding}"/>
+                                                                        </ContextMenu>
+                                                                    </Border.ContextMenu>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Text="✓"
+                                                                                   Foreground="#43A047"
+                                                                                   FontSize="14"
+                                                                                   VerticalAlignment="Center"
+                                                                                   Margin="0,0,8,0">
+                                                                            <TextBlock.Style>
+                                                                                <Style TargetType="TextBlock">
+                                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </TextBlock.Style>
+                                                                        </TextBlock>
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="{Binding ModelName}"
+                                                                                   FontSize="14"
+                                                                                   VerticalAlignment="Center"
+                                                                                   Foreground="#333"/>
+                                                                    </Grid>
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                                                    <Setter Property="Background" Value="#E8F5E9"/>
+                                                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                                                    <Setter Property="BorderBrush" Value="#43A047"/>
+                                                                                </DataTrigger>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="#E0E0E0"/>
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </ListBox.ItemContainerStyle>
+                                        </ListBox>
                                     </StackPanel>
 
                                     <!-- Tab 3: 同步设置 -->

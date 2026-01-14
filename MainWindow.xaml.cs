@@ -16,6 +16,7 @@ using PromptMasterv5.Services;
 using InputMode = PromptMasterv5.Models.InputMode;
 using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
+using ListBox = System.Windows.Controls.ListBox;
 using WinFormsCursor = System.Windows.Forms.Cursor;
 using MessageBox = System.Windows.MessageBox;
 
@@ -509,6 +510,16 @@ namespace PromptMasterv5
             }
         }
 
+        private void AiModelList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var listBox = sender as ListBox;
+            if (listBox == null) return;
+
+            if (listBox.SelectedItem is AiModelConfig selectedModel)
+            {
+                ViewModel.ActivateAiModelCommand.Execute(selectedModel);
+            }
+        }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
