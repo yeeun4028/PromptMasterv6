@@ -529,7 +529,7 @@ namespace PromptMasterv5
                     statusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(229, 57, 53));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 statusText.Text = "❌ 连接异常";
                 statusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(229, 57, 53));
