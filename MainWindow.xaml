@@ -15,11 +15,11 @@
         AllowsTransparency="True"
         ResizeMode="CanResize"
         Background="Transparent"
-        Topmost="True"
         TextOptions.TextFormattingMode="Display"
         UseLayoutRounding="True"
         PreviewKeyDown="Window_PreviewKeyDown"
-        Activated="Window_Activated">
+        Activated="Window_Activated"
+        Deactivated="Window_Deactivated">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="8" GlassFrameThickness="0" CornerRadius="0"/>

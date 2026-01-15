@@ -12,6 +12,8 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using PromptMasterv5.Models;
 using PromptMasterv5.Services;
 using System.Windows.Forms;
+using System.Windows.Threading;
+using System.Linq; // 新增引用，用于查询子窗口状态
 
 // 引用自定义枚举和控件别名，解决命名冲突
 using InputMode = PromptMasterv5.Models.InputMode;
@@ -20,6 +22,7 @@ using TextBox = System.Windows.Controls.TextBox;
 using ListBox = System.Windows.Controls.ListBox;
 using WinFormsCursor = System.Windows.Forms.Cursor;
 using MessageBox = System.Windows.MessageBox;
+using Application = System.Windows.Application;
 
 namespace PromptMasterv5
 {
@@ -35,24 +38,25 @@ namespace PromptMasterv5
         private DateTime _lastMiniEnterTime = DateTime.MinValue;
         private DateTime _lastVarEnterTime = DateTime.MinValue;
         private DateTime _lastAddEnterTime = DateTime.MinValue;
-        
+
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private bool _isExiting = false;
+        private DispatcherTimer? _hideTimer;
 
         public MainWindow()
         {
             InitializeComponent();
-            
+
             // 设置窗口不在任务栏显示
             this.ShowInTaskbar = false;
-            
+
             ViewModel = new MainViewModel();
             this.DataContext = ViewModel;
 
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
             InitializeTrayIcon();
             ApplyModeState();
-            
+
             // 处理窗口关闭事件
             this.Closing += MainWindow_Closing;
         }
@@ -63,21 +67,21 @@ namespace PromptMasterv5
             _notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
             _notifyIcon.Text = "PromptMaster v5";
             _notifyIcon.Visible = true;
-            
+
             // 添加托盘菜单
             var contextMenu = new System.Windows.Forms.ContextMenuStrip();
             contextMenu.Items.Add("显示/隐藏窗口", null, (s, e) => ToggleWindowVisibility());
             contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            contextMenu.Items.Add("退出", null, (s, e) => 
+            contextMenu.Items.Add("退出", null, (s, e) =>
             {
                 _isExiting = true;
                 this.Close();
             });
-            
+
             _notifyIcon.ContextMenuStrip = contextMenu;
-            
+
             // 单击托盘图标显示/隐藏窗口
-            _notifyIcon.Click += (s, e) => 
+            _notifyIcon.Click += (s, e) =>
             {
                 if (e is System.Windows.Forms.MouseEventArgs mouseArgs && mouseArgs.Button == System.Windows.Forms.MouseButtons.Left)
                 {
@@ -85,7 +89,7 @@ namespace PromptMasterv5
                 }
             };
         }
-        
+
         private void ToggleWindowVisibility()
         {
             if (this.Visibility == Visibility.Visible)
@@ -94,14 +98,19 @@ namespace PromptMasterv5
             }
             else
             {
+                // 取消隐藏定时器
+                StopHideTimer();
+
                 this.Show();
                 this.Activate();
                 this.Focus();
-                NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+
+                // 唤醒时强制置顶
                 this.Topmost = true;
+                NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
             }
         }
-        
+
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
             // 如果不是通过退出菜单关闭，则隐藏窗口而不是关闭
@@ -111,7 +120,7 @@ namespace PromptMasterv5
                 this.Hide();       // 隐藏窗口
                 return;
             }
-            
+
             // 清理托盘图标
             if (_notifyIcon != null)
             {
@@ -122,11 +131,19 @@ namespace PromptMasterv5
 
         private void Window_Activated(object sender, EventArgs e)
         {
+            // 1. 窗口被激活（唤醒）时，取消任何待执行的隐藏操作
+            StopHideTimer();
+
+            // 2. 需求实现：唤醒时置顶显示
+            // 无论是极简还是完整模式，只要被激活，就应该在最上层
+            this.Topmost = true;
+
+            // 3. 强制抢占前台焦点 (Win32 API)
+            NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+
+            // 4. 处理极简模式下的输入框焦点
             if (ViewModel != null && !ViewModel.IsFullMode)
             {
-                // 强制窗口到前台
-                NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
-                
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (MiniInputBox != null)
@@ -136,6 +153,46 @@ namespace PromptMasterv5
                         MiniInputBox.CaretIndex = MiniInputBox.Text.Length;
                     }
                 }), System.Windows.Threading.DispatcherPriority.ContextIdle);
+            }
+        }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            // 1. 需求实现：不需要始终保持置顶
+            // 当失去焦点（用户点击了其他软件）时，取消置顶，允许其他窗口覆盖它
+            this.Topmost = false;
+
+            // 取消之前的定时器
+            StopHideTimer();
+
+            // 2. 需求实现：失去焦点自动隐藏
+            // 创建新的定时器，延迟200毫秒后检查并隐藏窗口
+            // 延迟是为了防止在应用内部切换焦点（如点击弹出菜单、对话框）时误判为失焦
+            _hideTimer = new DispatcherTimer();
+            _hideTimer.Interval = TimeSpan.FromMilliseconds(200);
+            _hideTimer.Tick += (s, args) =>
+            {
+                StopHideTimer();
+
+                // ★★★ 核心修复：检测子窗口状态 ★★★
+                // 如果当前应用程序的任何窗口（包括对话框）处于激活状态，则视为未完全失焦，不隐藏
+                bool isAnyChildActive = Application.Current.Windows.Cast<Window>().Any(w => w.IsActive);
+
+                // 只有当主窗口不活动，且没有任何子窗口活动时，才执行隐藏
+                if (!this.IsActive && !isAnyChildActive)
+                {
+                    this.Hide();
+                }
+            };
+            _hideTimer.Start();
+        }
+
+        private void StopHideTimer()
+        {
+            if (_hideTimer != null)
+            {
+                _hideTimer.Stop();
+                _hideTimer = null;
             }
         }
 
@@ -160,9 +217,6 @@ namespace PromptMasterv5
             }
         }
 
-        // ... (ApplyModeState, MiniInput_TextChanged, FindVisualChild, UpdateMiniHeight 等保持不变) ...
-        // 请保留中间这些负责窗口高度计算和拖拽的方法
-
         private void ApplyModeState()
         {
             if (ViewModel.IsFullMode)
@@ -172,6 +226,8 @@ namespace PromptMasterv5
                 this.Left = _lastFullLeft;
                 this.Top = _lastFullTop;
                 this.ResizeMode = ResizeMode.CanResize;
+
+                // 切换模式时，确保重置Topmost
                 this.Topmost = true;
                 EnsureWindowOnScreen();
             }
@@ -191,12 +247,12 @@ namespace PromptMasterv5
                 this.Top = sh * 0.2;
 
                 this.ResizeMode = ResizeMode.CanResize;
-                this.Topmost = true;
 
+                // 切换模式时，确保重置Topmost并激活
+                this.Topmost = true;
                 this.Activate();
-                // 强制窗口到前台
                 NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
-                
+
                 _ = Dispatcher.BeginInvoke(new Action(() => MiniInputBox.Focus()), System.Windows.Threading.DispatcherPriority.Render);
             }
         }
@@ -288,16 +344,11 @@ namespace PromptMasterv5
         private void MiniWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
         private void FullWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
 
-        // =========================================================
-        // ★ 核心修改：在按键预览中处理 AI 触发 ★
-        // =========================================================
-
         private async void MiniInput_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             var textBox = sender as TextBox;
             if (textBox == null) return;
 
-            // 新增：处理Delete键 - 如果显示AI回复结果，一次Delete删除全部内容
             if (e.Key == Key.Delete && ViewModel.IsAiResultDisplayed)
             {
                 ViewModel.MiniInputText = "";
@@ -306,7 +357,6 @@ namespace PromptMasterv5
                 return;
             }
 
-            // 1. 搜索提示列表导航 (Up/Down)
             if (ViewModel.IsSearchPopupOpen && ViewModel.SearchResults.Count > 0)
             {
                 if (e.Key == Key.Down)
@@ -331,7 +381,6 @@ namespace PromptMasterv5
 
             if (e.Key == Key.Enter)
             {
-                // 2. 确认搜索结果
                 if (ViewModel.IsSearchPopupOpen)
                 {
                     ViewModel.ConfirmSearchResultCommand.Execute(null);
@@ -339,7 +388,6 @@ namespace PromptMasterv5
                     await Dispatcher.BeginInvoke(new Action(() =>
                     {
                         UpdateMiniHeight();
-                        // 如果选中的模版有变量，尝试聚焦第一个变量输入框
                         if (ViewModel.HasVariables)
                         {
                             var container = MiniVarsList.ItemContainerGenerator.ContainerFromIndex(0) as FrameworkElement;
@@ -360,27 +408,16 @@ namespace PromptMasterv5
                     return;
                 }
 
-                // 3. ★★★ AI 触发逻辑 (更新版) ★★★
                 string text = ViewModel.MiniInputText.Trim();
                 bool shouldExecuteAi = false;
 
                 if (ViewModel.LocalConfig.MiniWindowUseAi)
                 {
-                    // 默认使用AI模式
-                    if (ViewModel.LocalConfig.MiniEnterForAi)
-                    {
-                        // Enter = AI查询
-                        shouldExecuteAi = true;
-                    }
-                    else
-                    {
-                        // Enter = 普通发送
-                        shouldExecuteAi = false;
-                    }
+                    if (ViewModel.LocalConfig.MiniEnterForAi) shouldExecuteAi = true;
+                    else shouldExecuteAi = false;
                 }
                 else
                 {
-                    // 需要前缀模式（原有逻辑）
                     shouldExecuteAi = text.StartsWith("ai ", StringComparison.OrdinalIgnoreCase) ||
                                       text.StartsWith("ai　", StringComparison.OrdinalIgnoreCase) ||
                                       text.StartsWith("''") ||
@@ -389,10 +426,9 @@ namespace PromptMasterv5
 
                 if (shouldExecuteAi)
                 {
-                    e.Handled = true; // 拦截 Enter，不发送，转为执行 AI
+                    e.Handled = true;
                     await ViewModel.ExecuteAiQuery();
 
-                    // AI 返回结果后，更新高度并聚焦末尾
                     await Dispatcher.BeginInvoke(new Action(() => {
                         UpdateMiniHeight();
                         MiniInputBox.Focus();
@@ -401,7 +437,6 @@ namespace PromptMasterv5
                     return;
                 }
 
-                // 4. 常规发送逻辑
                 _ = Dispatcher.BeginInvoke(new Action(() => {
                     UpdateMiniHeight();
                 }), System.Windows.Threading.DispatcherPriority.Render);
@@ -410,7 +445,6 @@ namespace PromptMasterv5
                 var now = DateTime.Now;
                 var span = (now - _lastMiniEnterTime).TotalMilliseconds;
 
-                // 双击 Enter (间隔小于500ms) -> 坐标点击模式发送
                 if (span < 500 && !isCtrl)
                 {
                     e.Handled = true;
@@ -419,7 +453,6 @@ namespace PromptMasterv5
                     return;
                 }
 
-                // Ctrl + Enter -> 智能焦点回退发送
                 if (isCtrl)
                 {
                     e.Handled = true;
@@ -429,7 +462,6 @@ namespace PromptMasterv5
 
                 _lastMiniEnterTime = now;
 
-                // 5. 自动列表编号 (1. -> Enter -> 2.)
                 int caretIndex = textBox.CaretIndex;
                 int lineIndex = textBox.GetLineIndexFromCharacterIndex(caretIndex);
                 if (lineIndex >= 0)
@@ -449,7 +481,6 @@ namespace PromptMasterv5
                     }
                 }
             }
-            // 6. Ctrl + Up -> 切换到完整模式
             else if (e.Key == Key.Up && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
                 ViewModel.EnterFullModeCommand.Execute(null);
@@ -458,8 +489,6 @@ namespace PromptMasterv5
         }
 
         private void SearchResult_Click(object sender, MouseButtonEventArgs e) => ViewModel.ConfirmSearchResultCommand.Execute(null);
-
-        // ... (TriggerSendProcess, TextBox_PreviewKeyDown, AdditionalInputBox_PreviewKeyDown 等保持不变) ...
 
         private async Task TriggerSendProcess(TextBox sourceBox, InputMode mode)
         {
@@ -560,7 +589,7 @@ namespace PromptMasterv5
             sb.Append(key.ToString());
             if (sender is TextBox tb) { ViewModel.Config.GlobalHotkey = sb.ToString(); tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget(); }
         }
-        // ★★★ 修复 CA1416: 显式标记支持 Windows 平台 ★★★
+
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
         private async void PickCoordinate_Click(object sender, RoutedEventArgs e)
         {
