@@ -525,7 +525,16 @@ namespace PromptMasterv5.ViewModels
                 RequestSave();
             }
         }
-        [RelayCommand] private void RenameFolder(FolderItem f) { /* ... */ }
+        [RelayCommand] private void RenameFolder(FolderItem f)
+        {
+            if (f == null) return;
+            var dialog = new NameInputDialog(f.Name);
+            if (dialog.ShowDialog() == true)
+            {
+                f.Name = dialog.ResultName;
+                RequestSave();
+            }
+        }
         [RelayCommand] private void ChangeFileIcon(PromptItem f)
         {
             if (f == null) return;
