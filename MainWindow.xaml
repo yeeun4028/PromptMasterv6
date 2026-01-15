@@ -883,7 +883,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0" Background="#F7F7F7" CornerRadius="8,0,0,8">
-                                    <StackPanel Margin="10,20">
+                                    <StackPanel Margin="10,25">
                                         <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="0"
                                                 Style="{StaticResource SettingsTabBtnStyle}">
                                             <Button.Background>
@@ -924,7 +924,7 @@
                                         </Button>
 
                                         <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="1"
-                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,5,0,0">
+                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,15,0,0">
                                             <Button.Background>
                                                 <SolidColorBrush Color="Transparent"/>
                                             </Button.Background>
@@ -962,7 +962,7 @@
                                         </Button>
 
                                         <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="2"
-                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,5,0,0">
+                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,15,0,0">
                                             <Button.Background>
                                                 <SolidColorBrush Color="Transparent"/>
                                             </Button.Background>
@@ -1001,7 +1001,7 @@
                                         </Button>
 
                                         <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="3"
-                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,5,0,0">
+                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,15,0,0">
                                             <Button.Background>
                                                 <SolidColorBrush Color="Transparent"/>
                                             </Button.Background>
@@ -1039,7 +1039,7 @@
                                         </Button>
 
                                         <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="4"
-                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,5,0,0">
+                                                Style="{StaticResource SettingsTabBtnStyle}" Margin="0,15,0,0">
                                             <Button.Background>
                                                 <SolidColorBrush Color="Transparent"/>
                                             </Button.Background>
