@@ -113,6 +113,24 @@ namespace PromptMasterv5
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
+            // ★★★ 新增：安全退出拦截机制 ★★★
+            if (ViewModel.IsDirty)
+            {
+                var result = MessageBox.Show("您有未备份的修改。是否在退出/隐藏前备份到云端？", "未保存的更改", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.Cancel)
+                {
+                    e.Cancel = true; // 取消关闭/隐藏操作
+                    return;
+                }
+                else if (result == MessageBoxResult.Yes)
+                {
+                    // 同步执行备份
+                    ViewModel.ManualBackupCommand.Execute(null);
+                }
+                // 如果选 No，直接继续执行后续关闭或隐藏操作
+            }
+
             // 如果不是通过退出菜单关闭，则隐藏窗口而不是关闭
             if (!_isExiting)
             {

@@ -72,6 +72,9 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private bool isAiProcessing = false;
         [ObservableProperty] private bool isAiResultDisplayed = false;
 
+        // ★★★ 新增：脏数据状态，用于追踪是否有未备份的修改 ★★★
+        [ObservableProperty] private bool isDirty = false;
+
         public MainViewModel()
         {
             // 1. 初始化配置
@@ -463,7 +466,10 @@ namespace PromptMasterv5.ViewModels
         private void SelectedFile_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(PromptItem.Content) && IsFullMode) ParseVariablesRealTime(SelectedFile?.Content ?? "");
-            RequestSave();
+            
+            // ★★★ 修改：不再自动保存，而是标记为脏数据 ★★★
+            if (!IsDirty) IsDirty = true; 
+            // 如果你采用了“双轨方案”，这里可以调用一个本地的防抖保存方法。
         }
 
         public void ToggleMainWindow()
@@ -566,7 +572,28 @@ namespace PromptMasterv5.ViewModels
         [RelayCommand] private void CopyCompiledText() { /* ... */ }
         [RelayCommand] private async Task SendDirectPrompt() { await SendFromMini("SmartFocus"); }
         [RelayCommand] private async Task SendCombinedInput() { await SendFromMini("SmartFocus"); }
-        [RelayCommand] private async Task ManualBackup() { ConfigService.Save(Config); try { await _dataService.SaveAsync(Folders, Files); _lastSyncTime = DateTime.Now; MessageBox.Show("备份成功"); } catch (Exception e) { MessageBox.Show(e.Message); } }
+        [RelayCommand]
+        private async Task ManualBackup()
+        {
+            // 增加 UI 阻塞和状态提示
+            SyncTimeDisplay = "备份中...";
+            try
+            {
+                ConfigService.Save(Config);
+                await _dataService.SaveAsync(Folders, Files);
+                _lastSyncTime = DateTime.Now;
+                UpdateTimeDisplay();
+                
+                // ★★★ 成功后清除脏数据标记 ★★★
+                IsDirty = false; 
+                MessageBox.Show("云端备份成功！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception e)
+            {
+                SyncTimeDisplay = "备份失败";
+                MessageBox.Show($"备份失败: {e.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         [RelayCommand] private async Task ManualRestore() { /* ... */ }
 
         [RelayCommand]
