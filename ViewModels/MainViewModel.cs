@@ -29,16 +29,22 @@ namespace PromptMasterv5.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        private readonly IDataService _dataService;
+        private readonly IDataService _dataService; // 云端服务 (WebDAV)
+
+        // ★★★ 方案A：新增本地热备份服务 ★★★
+        private readonly IDataService _localDataService;
+
         private readonly GlobalKeyService _keyService;
         private readonly BrowserAutomationService _browserService;
         private readonly AiService _aiService;
-
-        // ★★★ 新增：Fabric 服务 ★★★
         private readonly FabricService _fabricService;
 
         private bool _isCreatingFile = false;
         private DispatcherTimer _timer;
+
+        // ★★★ 方案A：新增本地热备份防抖定时器 ★★★
+        private DispatcherTimer _localBackupTimer;
+
         private DateTime _lastSyncTime = DateTime.Now;
         private IntPtr _previousWindowHandle = IntPtr.Zero;
         private bool _previousFullMode = true;
@@ -72,7 +78,6 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private bool isAiProcessing = false;
         [ObservableProperty] private bool isAiResultDisplayed = false;
 
-        // ★★★ 新增：脏数据状态，用于追踪是否有未备份的修改 ★★★
         [ObservableProperty] private bool isDirty = false;
 
         public MainViewModel()
@@ -82,10 +87,22 @@ namespace PromptMasterv5.ViewModels
             LocalConfig = LocalConfigService.Load();
             UpdateGlobalHotkey();
 
-            // 2. ★★★ 初始化所有服务 (解决字段为 null 的报错) ★★★
-            _dataService = new WebDavDataService(); // 默认使用 WebDav，也可改为 new FileDataService()
+            // 2. 初始化所有服务
+            _dataService = new WebDavDataService(); // 默认使用 WebDav (云端主存储)
+
+            // ★★★ 方案A：初始化本地服务 (本地副存储) ★★★
+            _localDataService = new FileDataService();
+
             _aiService = new AiService();
             _fabricService = new FabricService();
+
+            // ★★★ 方案A：初始化本地热备份定时器 (2秒防抖) ★★★
+            _localBackupTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            _localBackupTimer.Tick += async (s, e) =>
+            {
+                _localBackupTimer.Stop();
+                await PerformLocalBackup();
+            };
 
             _browserService = new BrowserAutomationService();
             _browserService.OnTargetSiteMatched += BrowserService_OnTargetSiteMatched;
@@ -101,33 +118,26 @@ namespace PromptMasterv5.ViewModels
 
             // 5. 初始化按键监听服务
             _keyService = new GlobalKeyService();
-
-            // 绑定 Ctrl 双击事件 (唤醒/隐藏)
             _keyService.OnDoubleCtrlDetected += (s, e) => Application.Current.Dispatcher.Invoke(() => ToggleMainWindow());
 
-            // ★★★ 绑定双击分号事件 (包含强制焦点修复) ★★★
-            // ★★★ 绑定双击分号事件 (包含强制焦点修复 + 防泄漏清理) ★★★
             _keyService.OnDoubleSemiColonDetected += (s, e) => Application.Current.Dispatcher.Invoke(async () =>
             {
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow == null) return;
 
-                // 1. 唤醒窗口逻辑
                 if (!IsFullMode && mainWindow.Visibility == Visibility.Visible && mainWindow.IsActive)
                 {
-                    MiniInputText = ""; // 已经在前台，仅清空
+                    MiniInputText = "";
                 }
                 else
                 {
                     if (mainWindow.Visibility != Visibility.Visible)
                     {
-                        ToggleMainWindow(); // 唤醒
+                        ToggleMainWindow();
                     }
-                    MiniInputText = ""; // 先清空一次
+                    MiniInputText = "";
                 }
 
-                // 2. 强制抢占焦点
-                // 给一点延迟等待窗口渲染
                 await Task.Delay(50);
 
                 mainWindow.Show();
@@ -140,50 +150,35 @@ namespace PromptMasterv5.ViewModels
                 mainWindow.MiniInputBox.Focus();
                 Keyboard.Focus(mainWindow.MiniInputBox);
 
-                // 3. ★★★ 核心修复：二次清理 ★★★
-                // 在获取焦点后，再次检查输入框。如果输入法或系统“漏”进来一个分号，在这里删掉它。
-                // 给极短的缓冲时间让“漏”进来的字符上屏
                 await Task.Delay(20);
 
-                // 检查并移除开头的分号 (兼容中英文)
                 if (!string.IsNullOrEmpty(MiniInputText))
                 {
-                    // 移除开头的 ; 或 ；
                     string cleaned = MiniInputText.TrimStart(';', '；');
-
-                    // 只有当确实有变化时才赋值，避免光标跳动
                     if (cleaned != MiniInputText)
                     {
                         MiniInputText = cleaned;
                     }
                 }
-
-                // 4. 确保光标在最后
                 mainWindow.MiniInputBox.CaretIndex = mainWindow.MiniInputBox.Text.Length;
             });
 
-            // 启动按键监听
             if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { }
 
-            // 6. 异步加载数据
             _ = InitializeAsync();
         }
 
-        // ★★★ 修改 1：实时检测输入框内容 ★★★
         partial void OnMiniInputTextChanged(string value)
         {
-            // 新增：用户开始输入时，清除AI回复标记
             if (IsAiResultDisplayed && !string.IsNullOrWhiteSpace(value))
             {
                 IsAiResultDisplayed = false;
             }
 
-            // 1. AI 触发检测：根据配置决定是否需要前缀
             bool needPrefix = !LocalConfig.MiniWindowUseAi;
 
             if (needPrefix)
             {
-                // 需要前缀的检测逻辑
                 if (value.StartsWith("ai ", StringComparison.OrdinalIgnoreCase) ||
                     value.StartsWith("ai　", StringComparison.OrdinalIgnoreCase) ||
                     value.StartsWith("''") ||
@@ -197,7 +192,6 @@ namespace PromptMasterv5.ViewModels
                 }
             }
 
-            // 2. 补回缺失的逻辑：搜索触发 (/)
             if (value.StartsWith("/") || value.StartsWith("、"))
             {
                 string keyword = value.Length > 1 ? value.Substring(1) : "";
@@ -209,11 +203,8 @@ namespace PromptMasterv5.ViewModels
                 IsSearchPopupOpen = false;
             }
 
-            // 3. 补回缺失的逻辑：实时变量解析
             ParseVariablesRealTime(value);
         }
-
-        // ... (BrowserService_OnTargetSiteMatched, UpdateGlobalHotkey 等方法保持不变) ...
 
         private void BrowserService_OnTargetSiteMatched(object? sender, EventArgs e)
         {
@@ -255,7 +246,7 @@ namespace PromptMasterv5.ViewModels
         }
 
         private void OnGlobalHotkeyTriggered(object? sender, HotkeyEventArgs e) => ToggleMainWindow();
-        // ★★★ 修改：执行 AI 路由与组装逻辑 (选项 B) ★★★
+
         public async Task ExecuteAiQuery()
         {
             string inputText = MiniInputText.Trim();
@@ -265,7 +256,6 @@ namespace PromptMasterv5.ViewModels
 
             if (needPrefix)
             {
-                // 需要前缀的检测逻辑
                 if (inputText.StartsWith("ai ", StringComparison.OrdinalIgnoreCase))
                     query = inputText.Substring(3);
                 else if (inputText.StartsWith("ai　", StringComparison.OrdinalIgnoreCase))
@@ -279,7 +269,6 @@ namespace PromptMasterv5.ViewModels
             }
             else
             {
-                // 不需要前缀，直接使用全部输入
                 query = inputText;
             }
 
@@ -312,8 +301,6 @@ namespace PromptMasterv5.ViewModels
                 IsAiProcessing = false;
             }
         }
-
-        // ... (其余代码完全保持不变) ...
 
         private void PerformSearch(string keyword)
         {
@@ -396,41 +383,16 @@ namespace PromptMasterv5.ViewModels
             if (string.IsNullOrWhiteSpace(content)) return;
             var window = Application.Current.MainWindow;
 
-            // 1. 先隐藏窗口
             if (window != null) window.Hide();
 
-            // 2. 执行发送（模拟剪贴板粘贴）
             await InputSender.SendAsync(content, targetMode, LocalConfig, _previousWindowHandle);
 
-            // 3. 发送完成后清理输入框
             if (!IsFullMode)
             {
-                MiniInputText = ""; // 清空输入框
-
-                // ★★★ 修改：注释掉或删除下面的“重新显示”逻辑 ★★★
-                // 原来的逻辑是发送完自动弹回来，现在注释掉，让它保持隐藏。
-                /*
-                await Task.Delay(100);
-                if (window != null)
-                {
-                    window.Show();
-                    window.WindowState = WindowState.Normal;
-                    window.Activate();
-                    window.Topmost = true;
-                    window.Focus();
-                    if (window is MainWindow mainWin)
-                    {
-                        await mainWin.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            mainWin.MiniInputBox.Focus();
-                        }), DispatcherPriority.Render);
-                    }
-                }
-                */
+                MiniInputText = "";
             }
             else
             {
-                // 如果是完整模式，通常也清空附加输入框
                 AdditionalInput = "";
             }
         }
@@ -465,11 +427,20 @@ namespace PromptMasterv5.ViewModels
 
         private void SelectedFile_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PromptItem.Content) && IsFullMode) ParseVariablesRealTime(SelectedFile?.Content ?? "");
-            
-            // ★★★ 修改：不再自动保存，而是标记为脏数据 ★★★
-            if (!IsDirty) IsDirty = true; 
-            // 如果你采用了“双轨方案”，这里可以调用一个本地的防抖保存方法。
+            if (e.PropertyName == nameof(PromptItem.Content))
+            {
+                if (IsFullMode) ParseVariablesRealTime(SelectedFile?.Content ?? "");
+
+                // ★★★ 方案A：更新最后修改时间，以便版本对比 ★★★
+                if (SelectedFile != null) SelectedFile.LastModified = DateTime.Now;
+            }
+
+            // 标记为脏数据
+            if (!IsDirty) IsDirty = true;
+
+            // ★★★ 方案A：触发本地热备份 (重置防抖计时) ★★★
+            _localBackupTimer.Stop();
+            _localBackupTimer.Start();
         }
 
         public void ToggleMainWindow()
@@ -486,10 +457,9 @@ namespace PromptMasterv5.ViewModels
                 CaptureForegroundWindow();
                 if (window.Visibility != Visibility.Visible) IsFullMode = _previousFullMode;
                 window.Show(); window.Activate(); window.Focus();
-                // 强制窗口到前台
                 NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(window).Handle);
                 window.Topmost = true;
-                
+
                 if (!IsFullMode && window is MainWindow mainWin)
                 {
                     mainWin.Dispatcher.BeginInvoke(new Action(() =>
@@ -509,7 +479,8 @@ namespace PromptMasterv5.ViewModels
         [RelayCommand] private void CreateFolder() { var f = new FolderItem { Name = $"新建文件夹 {Folders.Count + 1}" }; Folders.Add(f); SelectedFolder = f; RequestSave(); }
         [RelayCommand] private void CreateFile() { if (SelectedFolder == null) return; _isCreatingFile = true; var f = new PromptItem { Title = "新文档", Content = "# 新文档", FolderId = SelectedFolder.Id, LastModified = DateTime.Now }; Files.Add(f); SelectedFile = f; IsEditMode = true; RequestSave(); _isCreatingFile = false; }
         [RelayCommand] private void DeleteFile(PromptItem? i) { var t = i ?? SelectedFile; if (t != null) { Files.Remove(t); if (SelectedFile == t) SelectedFile = null; RequestSave(); } }
-        [RelayCommand] private void DeleteFolder(FolderItem? folder)
+        [RelayCommand]
+        private void DeleteFolder(FolderItem? folder)
         {
             if (folder == null) return;
 
@@ -521,7 +492,8 @@ namespace PromptMasterv5.ViewModels
             Folders.Remove(folder);
             RequestSave();
         }
-        [RelayCommand] private void ChangeFolderIcon(FolderItem f)
+        [RelayCommand]
+        private void ChangeFolderIcon(FolderItem f)
         {
             if (f == null) return;
             var dialog = new IconInputDialog(f.IconGeometry);
@@ -531,7 +503,8 @@ namespace PromptMasterv5.ViewModels
                 RequestSave();
             }
         }
-        [RelayCommand] private void RenameFolder(FolderItem f)
+        [RelayCommand]
+        private void RenameFolder(FolderItem f)
         {
             if (f == null) return;
             var dialog = new NameInputDialog(f.Name);
@@ -541,7 +514,8 @@ namespace PromptMasterv5.ViewModels
                 RequestSave();
             }
         }
-        [RelayCommand] private void ChangeFileIcon(PromptItem f)
+        [RelayCommand]
+        private void ChangeFileIcon(PromptItem f)
         {
             if (f == null) return;
             var dialog = new IconInputDialog(f.IconGeometry);
@@ -572,10 +546,10 @@ namespace PromptMasterv5.ViewModels
         [RelayCommand] private void CopyCompiledText() { /* ... */ }
         [RelayCommand] private async Task SendDirectPrompt() { await SendFromMini("SmartFocus"); }
         [RelayCommand] private async Task SendCombinedInput() { await SendFromMini("SmartFocus"); }
+
         [RelayCommand]
         private async Task ManualBackup()
         {
-            // 增加 UI 阻塞和状态提示
             SyncTimeDisplay = "备份中...";
             try
             {
@@ -583,8 +557,6 @@ namespace PromptMasterv5.ViewModels
                 await _dataService.SaveAsync(Folders, Files);
                 _lastSyncTime = DateTime.Now;
                 UpdateTimeDisplay();
-                
-// ★★★ 成功后清除脏数据标记 ★★★
                 IsDirty = false;
             }
             catch (Exception e)
@@ -593,13 +565,13 @@ namespace PromptMasterv5.ViewModels
                 MessageBox.Show($"备份失败: {e.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         [RelayCommand]
         private async Task ManualRestore()
         {
-            // 1. 安全检查：如果有未保存的修改，发出强警告
             if (IsDirty)
             {
-                if (MessageBox.Show("检测到本地有未备份的修改！\n\n恢复操作将用云端数据【完全覆盖】本地数据，未备份的修改将丢失。\n\n是否仍要继续？", 
+                if (MessageBox.Show("检测到本地有未备份的修改！\n\n恢复操作将用云端数据【完全覆盖】本地数据，未备份的修改将丢失。\n\n是否仍要继续？",
                     "数据覆盖警告", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
                 {
                     return;
@@ -607,8 +579,7 @@ namespace PromptMasterv5.ViewModels
             }
             else
             {
-                // 2. 普通警告：确认覆盖
-                if (MessageBox.Show("确定要从云端恢复数据吗？\n本地当前数据将被云端版本覆盖。", 
+                if (MessageBox.Show("确定要从云端恢复数据吗？\n本地当前数据将被云端版本覆盖。",
                     "确认恢复", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 {
                     return;
@@ -616,13 +587,11 @@ namespace PromptMasterv5.ViewModels
             }
 
             SyncTimeDisplay = "恢复中...";
-            
+
             try
             {
-                // 3. 加载数据
                 var data = await _dataService.LoadAsync();
-                
-                // 4. 更新集合 (使用 Clear/Add 以保持引用稳定，避免破坏 FilesView 绑定)
+
                 SelectedFile = null;
                 SelectedFolder = null;
 
@@ -632,10 +601,8 @@ namespace PromptMasterv5.ViewModels
                 Files.Clear();
                 foreach (var f in data.Files) Files.Add(f);
 
-                // 5. 恢复默认选中项
                 if (Folders.Count > 0) SelectedFolder = Folders.FirstOrDefault();
 
-                // 6. 重置状态
                 IsDirty = false;
                 _lastSyncTime = DateTime.Now;
                 UpdateTimeDisplay();
@@ -763,14 +730,77 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
+        private bool FilterFiles(object o) => o is PromptItem f && SelectedFolder != null && f.FolderId == SelectedFolder.Id;
+
+        private void RequestSave()
+        {
+            if (!IsDirty) IsDirty = true;
+
+            // ★★★ 方案A：数据结构变更时也触发本地热备份 ★★★
+            _localBackupTimer.Stop();
+            _localBackupTimer.Start();
+        }
+
+        // ★★★ 方案A：执行本地热备份的具体实现 ★★★
+        private async Task PerformLocalBackup()
+        {
+            try
+            {
+                // 静默保存到本地 data.json，用户无感知
+                await _localDataService.SaveAsync(Folders, Files);
+            }
+            catch (Exception ex)
+            {
+                // 热备份失败不应打断用户，仅记录调试信息
+                System.Diagnostics.Debug.WriteLine($"[热备份失败] {ex.Message}");
+            }
+        }
+
+        private async Task SaveDataAsync() { try { await _dataService.SaveAsync(Folders, Files); _lastSyncTime = DateTime.Now; UpdateTimeDisplay(); } catch { SyncTimeDisplay = "Err"; } }
+        private void UpdateTimeDisplay() { var s = DateTime.Now - _lastSyncTime; SyncTimeDisplay = s.TotalSeconds < 60 ? $"{(int)s.TotalSeconds}s" : $"{(int)s.TotalMinutes}m"; }
+
+        // ★★★ 方案A：初始化与智能恢复逻辑 ★★★
         private async Task InitializeAsync()
         {
+            // 1. 尝试加载云端数据 (主要数据源)
             var data = await _dataService.LoadAsync();
+
+            // 2. 加载本地热备份数据 (次要数据源，用于灾难恢复)
+            var localData = await _localDataService.LoadAsync();
+
+            if (localData.Files.Count > 0 || localData.Folders.Count > 0)
+            {
+                var cloudTime = data.Files.Any() ? data.Files.Max(f => f.LastModified) : DateTime.MinValue;
+                var localTime = localData.Files.Any() ? localData.Files.Max(f => f.LastModified) : DateTime.MinValue;
+
+                // 简单判定：如果本地备份的时间比云端更新，说明上次可能发生了数据丢失或未同步
+                if (localTime > cloudTime)
+                {
+                    var result = MessageBox.Show(
+                        $"检测到本地热备份数据 (最后修改: {localTime:MM-dd HH:mm}) 比云端数据 (最后修改: {cloudTime:MM-dd HH:mm}) 更新。\n\n这通常是因为上次软件未正常退出或网络同步失败。\n\n是否加载本地备份数据？",
+                        "发现未保存的数据",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        data = localData;
+                        // 既然加载了本地未上传的数据，标记为 Dirty 以便用户后续手动同步到云端
+                        IsDirty = true;
+                    }
+                }
+            }
+
             if (data.Folders.Count == 0) data.Folders.Add(new FolderItem { Name = "我的提示词" });
             Folders = new ObservableCollection<FolderItem>(data.Folders);
             Files = new ObservableCollection<PromptItem>(data.Files);
-            var fid = Folders.First().Id;
-            foreach (var f in Files) if (string.IsNullOrEmpty(f.FolderId)) f.FolderId = fid;
+
+            if (Folders.Count > 0)
+            {
+                var fid = Folders.First().Id;
+                foreach (var f in Files) if (string.IsNullOrEmpty(f.FolderId)) f.FolderId = fid;
+            }
+
             var v = CollectionViewSource.GetDefaultView(Files);
 
             if (v != null) v.Filter = FilterFiles;
@@ -779,14 +809,9 @@ namespace PromptMasterv5.ViewModels
             Files.CollectionChanged += (s, e) => RequestSave();
             SelectedFolder = Folders.FirstOrDefault();
             IsFullMode = true;
-            
-            // ★★★ 初始化完成后重置脏数据状态 ★★★
-            IsDirty = false;
-        }
 
-        private bool FilterFiles(object o) => o is PromptItem f && SelectedFolder != null && f.FolderId == SelectedFolder.Id;
-        private void RequestSave() { if (!IsDirty) IsDirty = true; }
-        private async Task SaveDataAsync() { try { await _dataService.SaveAsync(Folders, Files); _lastSyncTime = DateTime.Now; UpdateTimeDisplay(); } catch { SyncTimeDisplay = "Err"; } }
-        private void UpdateTimeDisplay() { var s = DateTime.Now - _lastSyncTime; SyncTimeDisplay = s.TotalSeconds < 60 ? $"{(int)s.TotalSeconds}s" : $"{(int)s.TotalMinutes}m"; }
+            // 如果不是从本地恢复的脏数据，则重置为 Clean
+            if (!IsDirty) IsDirty = false;
+        }
     }
 }
