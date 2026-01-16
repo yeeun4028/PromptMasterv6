@@ -566,25 +566,26 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
+        [ObservableProperty]
+        private bool _isRestoreConfirmVisible;
+
+        [RelayCommand]
+        private void ShowRestoreConfirm()
+        {
+            IsRestoreConfirmVisible = true;
+        }
+
+        [RelayCommand]
+        private void CancelRestoreConfirm()
+        {
+            IsRestoreConfirmVisible = false;
+        }
+
         [RelayCommand]
         private async Task ManualRestore()
         {
-            if (IsDirty)
-            {
-                if (MessageBox.Show("检测到本地有未备份的修改！\n\n恢复操作将用云端数据【完全覆盖】本地数据，未备份的修改将丢失。\n\n是否仍要继续？",
-                    "数据覆盖警告", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                if (MessageBox.Show("确定要从云端恢复数据吗？\n本地当前数据将被云端版本覆盖。",
-                    "确认恢复", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-            }
+            // 无论结果如何，先关闭确认面板
+            IsRestoreConfirmVisible = false;
 
             SyncTimeDisplay = "恢复中...";
 

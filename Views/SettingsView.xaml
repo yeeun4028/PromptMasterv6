@@ -479,44 +479,121 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <Border Style="{StaticResource CardStyle}">
-                                        <StackPanel>
-                                            <TextBlock Text="WebDAV 配置" FontWeight="SemiBold" Margin="0,0,0,15" Foreground="{StaticResource TextPrimary}"/>
+                                    
+                                    <StackPanel>
+                                        <TextBlock Text="WebDAV 配置" FontWeight="SemiBold" Margin="0,0,0,15" Foreground="{StaticResource TextPrimary}"/>
+                                        
+                                        <TextBlock Text="WebDAV 网址" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Config.WebDavUrl}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,15"/>
+
+                                        <TextBlock Text="账号 (邮箱)" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Config.UserName}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,15"/>
+
+                                        <TextBlock Text="应用密码" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                                        <PasswordBox x:Name="WebDavPasswordBox"
+                                                     PasswordChar="●"
+                                                     Padding="10,8"
+                                                     Margin="0,0,0,20"
+                                                     Background="#FAFAFA"
+                                                     BorderBrush="#E0E0E0"
+                                                     BorderThickness="1"
+                                                     PasswordChanged="WebDavPasswordBox_PasswordChanged"
+                                                     Loaded="WebDavPasswordBox_Loaded">
+                                            <PasswordBox.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="4"/>
+                                                </Style>
+                                            </PasswordBox.Resources>
+                                        </PasswordBox>
+
+                                        <!-- 初始按钮：点击后隐藏，并显示确认区 -->
+                                        <Button Content="📥 从云端强制恢复数据" 
+                                                Command="{Binding ShowRestoreConfirmCommand}"
+                                                Background="#E53935" 
+                                                Foreground="White" 
+                                                HorizontalAlignment="Left"
+                                                ToolTip="注意：此操作将使用云端数据覆盖本地所有数据">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        
+                                        <!-- 内联确认区 -->
+                                        <Border Background="#FFF1F0" BorderBrush="#FFA39E" BorderThickness="1" CornerRadius="6" Padding="15" Margin="0,0,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             
-                                            <TextBlock Text="WebDAV 网址" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                                            <TextBox Text="{Binding Config.WebDavUrl}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,15"/>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                                    <TextBlock Text="⚠️" Foreground="#E53935" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="确定要覆盖吗？" FontWeight="Bold" Foreground="#E53935" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock Text="本地未保存的修改将永久丢失。" Foreground="#666" FontSize="12" Margin="0,0,0,15"/>
+                                                
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="取消" Command="{Binding CancelRestoreConfirmCommand}" 
+                                                            Background="Transparent" Foreground="#666" BorderThickness="1" BorderBrush="#CCC"
+                                                            Padding="15,6" Margin="0,0,10,0" Cursor="Hand">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#F5F5F5"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    
+                                                    <Button Content="确认覆盖" Command="{Binding ManualRestoreCommand}" 
+                                                            Background="#E53935" Foreground="White" BorderThickness="0"
+                                                            Padding="15,6" Cursor="Hand">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Opacity" Value="0.9"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
 
-                                            <TextBlock Text="账号 (邮箱)" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                                            <TextBox Text="{Binding Config.UserName}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,15"/>
-
-                                            <TextBlock Text="应用密码" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                                            <PasswordBox x:Name="WebDavPasswordBox"
-                                                         PasswordChar="●"
-                                                         Padding="10,8"
-                                                         Margin="0,0,0,20"
-                                                         Background="#FAFAFA"
-                                                         BorderBrush="#E0E0E0"
-                                                         BorderThickness="1"
-                                                         PasswordChanged="WebDavPasswordBox_PasswordChanged"
-                                                         Loaded="WebDavPasswordBox_Loaded">
-                                                <PasswordBox.Resources>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="CornerRadius" Value="4"/>
-                                                    </Style>
-                                                </PasswordBox.Resources>
-                                            </PasswordBox>
-
-                                            <Button Content="📥 从云端强制恢复数据" 
-                                                    Command="{Binding ManualRestoreCommand}"
-                                                    Background="#E53935" 
-                                                    Foreground="White" 
-                                                    Style="{StaticResource PrimaryButtonStyle}"
-                                                    HorizontalAlignment="Left"
-                                                    ToolTip="注意：此操作将使用云端数据覆盖本地所有数据"/>
-                                            
-                                            <TextBlock Text="* 恢复操作会完全覆盖本地文件，请谨慎操作。" Foreground="#999" FontSize="12" Margin="0,8,0,0"/>
-                                        </StackPanel>
-                                    </Border>
+                                        <TextBlock Text="* 恢复操作会完全覆盖本地文件，请谨慎操作。" Foreground="#999" FontSize="12" Margin="0,8,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- Tab 4: Mini Window -->
