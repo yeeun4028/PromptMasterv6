@@ -594,7 +594,61 @@ namespace PromptMasterv5.ViewModels
                 MessageBox.Show($"备份失败: {e.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        [RelayCommand] private async Task ManualRestore() { /* ... */ }
+        [RelayCommand]
+        private async Task ManualRestore()
+        {
+            // 1. 安全检查：如果有未保存的修改，发出强警告
+            if (IsDirty)
+            {
+                if (MessageBox.Show("检测到本地有未备份的修改！\n\n恢复操作将用云端数据【完全覆盖】本地数据，未备份的修改将丢失。\n\n是否仍要继续？", 
+                    "数据覆盖警告", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                // 2. 普通警告：确认覆盖
+                if (MessageBox.Show("确定要从云端恢复数据吗？\n本地当前数据将被云端版本覆盖。", 
+                    "确认恢复", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            SyncTimeDisplay = "恢复中...";
+            
+            try
+            {
+                // 3. 加载数据
+                var data = await _dataService.LoadAsync();
+                
+                // 4. 更新集合 (使用 Clear/Add 以保持引用稳定，避免破坏 FilesView 绑定)
+                SelectedFile = null;
+                SelectedFolder = null;
+
+                Folders.Clear();
+                foreach (var f in data.Folders) Folders.Add(f);
+
+                Files.Clear();
+                foreach (var f in data.Files) Files.Add(f);
+
+                // 5. 恢复默认选中项
+                if (Folders.Count > 0) SelectedFolder = Folders.FirstOrDefault();
+
+                // 6. 重置状态
+                IsDirty = false;
+                _lastSyncTime = DateTime.Now;
+                UpdateTimeDisplay();
+
+                MessageBox.Show("数据恢复成功！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception e)
+            {
+                SyncTimeDisplay = "恢复失败";
+                MessageBox.Show($"恢复失败: {e.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         [RelayCommand]
         private void AddAiModel()
