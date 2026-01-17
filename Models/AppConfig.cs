@@ -15,10 +15,16 @@ namespace PromptMasterv5.Models
         private string password = "";
 
         [ObservableProperty]
-        private string globalHotkey = "Alt+Space";
+        private string globalHotkey = "";
 
         [ObservableProperty]
         private string singleHotkey = "";
+
+        [ObservableProperty]
+        private string fullWindowHotkey = "";
+
+        [ObservableProperty]
+        private string miniWindowHotkey = "";
 
         [ObservableProperty]
         private bool enableDoubleCtrl = true;

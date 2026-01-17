@@ -55,7 +55,7 @@ namespace PromptMasterv5.Views
             }
         }
 
-        private void HotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void FullWindowHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (ViewModel == null) return;
 
@@ -65,9 +65,9 @@ namespace PromptMasterv5.Views
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
-                ViewModel.Config.GlobalHotkey = "";
+                ViewModel.Config.FullWindowHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateGlobalHotkey();
+                ViewModel.UpdateWindowHotkeys();
                 return;
             }
 
@@ -82,13 +82,13 @@ namespace PromptMasterv5.Views
             
             if (sender is TextBox tb)
             {
-                ViewModel.Config.GlobalHotkey = sb.ToString();
+                ViewModel.Config.FullWindowHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateGlobalHotkey();
+                ViewModel.UpdateWindowHotkeys();
             }
         }
 
-        private void SingleHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void MiniWindowHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (ViewModel == null) return;
 
@@ -98,25 +98,27 @@ namespace PromptMasterv5.Views
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
-                ViewModel.Config.SingleHotkey = "";
+                ViewModel.Config.MiniWindowHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateGlobalHotkey();
+                ViewModel.UpdateWindowHotkeys();
                 return;
             }
 
-            // Block modifiers
             if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin) return;
-
-            // Block combos
-            if (Keyboard.Modifiers != ModifierKeys.None) return;
-
             e.Handled = true;
 
             if (sender is TextBox tb)
             {
-                ViewModel.Config.SingleHotkey = key.ToString();
+                var sb = new StringBuilder();
+                if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
+                if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
+                if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
+                sb.Append(key.ToString());
+
+                ViewModel.Config.MiniWindowHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateGlobalHotkey();
+                ViewModel.UpdateWindowHotkeys();
             }
         }
 

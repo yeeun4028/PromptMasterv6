@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 using PromptMasterv5.Models;
@@ -26,7 +26,19 @@ namespace PromptMasterv5.Services
             try
             {
                 string json = File.ReadAllText(ConfigPath);
-                return JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+                var config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+
+                if (string.IsNullOrWhiteSpace(config.FullWindowHotkey) && !string.IsNullOrWhiteSpace(config.GlobalHotkey))
+                {
+                    config.FullWindowHotkey = config.GlobalHotkey;
+                }
+
+                if (string.IsNullOrWhiteSpace(config.MiniWindowHotkey) && !string.IsNullOrWhiteSpace(config.SingleHotkey))
+                {
+                    config.MiniWindowHotkey = config.SingleHotkey;
+                }
+
+                return config;
             }
             catch
             {

@@ -86,7 +86,7 @@ namespace PromptMasterv5.ViewModels
             Config = ConfigService.Load();
             LocalConfig = LocalConfigService.Load();
             ApplyTheme(LocalConfig.Theme);
-            UpdateGlobalHotkey();
+            UpdateWindowHotkeys();
 
             // 2. 初始化所有服务
             _dataService = new WebDavDataService(); // 默认使用 WebDav (云端主存储)
@@ -327,51 +327,43 @@ namespace PromptMasterv5.ViewModels
         }
 
         [SupportedOSPlatform("windows")]
-        public void UpdateGlobalHotkey()
+        public void UpdateWindowHotkeys()
         {
-            // 1. Register Combo Hotkey
-            try
-            {
-                string hotkeyStr = Config.GlobalHotkey;
-                if (!string.IsNullOrEmpty(hotkeyStr))
-                {
-                    ModifierKeys modifiers = ModifierKeys.None;
-                    if (hotkeyStr.Contains("Ctrl")) modifiers |= ModifierKeys.Control;
-                    if (hotkeyStr.Contains("Alt")) modifiers |= ModifierKeys.Alt;
-                    if (hotkeyStr.Contains("Shift")) modifiers |= ModifierKeys.Shift;
-                    if (hotkeyStr.Contains("Win")) modifiers |= ModifierKeys.Windows;
-                    string keyStr = hotkeyStr.Split('+').Last().Trim();
-                    if (Enum.TryParse(keyStr, out Key key))
-                    {
-                        try { HotkeyManager.Current.Remove("ToggleWindow"); } catch { }
-                        HotkeyManager.Current.AddOrReplace("ToggleWindow", key, modifiers, OnGlobalHotkeyTriggered);
-                    }
-                }
-                else
-                {
-                    try { HotkeyManager.Current.Remove("ToggleWindow"); } catch { }
-                }
-            }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"组合热键注册失败: {ex.Message}"); }
+            try { HotkeyManager.Current.Remove("ToggleWindow"); } catch { }
+            try { HotkeyManager.Current.Remove("ToggleWindowSingle"); } catch { }
 
-            // 2. Register Single Hotkey
-            try
-            {
-                string singleKeyStr = Config.SingleHotkey;
-                if (!string.IsNullOrEmpty(singleKeyStr) && Enum.TryParse(singleKeyStr, out Key singleKey))
-                {
-                    try { HotkeyManager.Current.Remove("ToggleWindowSingle"); } catch { }
-                    HotkeyManager.Current.AddOrReplace("ToggleWindowSingle", singleKey, ModifierKeys.None, OnGlobalHotkeyTriggered);
-                }
-                else
-                {
-                    try { HotkeyManager.Current.Remove("ToggleWindowSingle"); } catch { }
-                }
-            }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"单键热键注册失败: {ex.Message}"); }
+            RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
+            RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => ToggleWindowToMode(false));
         }
 
-        private void OnGlobalHotkeyTriggered(object? sender, HotkeyEventArgs e) => ToggleMainWindow();
+        private void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(hotkeyStr))
+                {
+                    try { HotkeyManager.Current.Remove(name); } catch { }
+                    return;
+                }
+
+                ModifierKeys modifiers = ModifierKeys.None;
+                if (hotkeyStr.Contains("Ctrl", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Control;
+                if (hotkeyStr.Contains("Alt", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Alt;
+                if (hotkeyStr.Contains("Shift", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Shift;
+                if (hotkeyStr.Contains("Win", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Windows;
+
+                string keyStr = hotkeyStr.Split('+').Last().Trim();
+                if (Enum.TryParse(keyStr, true, out Key key))
+                {
+                    try { HotkeyManager.Current.Remove(name); } catch { }
+                    HotkeyManager.Current.AddOrReplace(name, key, modifiers, (s, e) => action());
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"热键注册失败({name}): {ex.Message}");
+            }
+        }
 
         public async Task ExecuteAiQuery()
         {
@@ -681,6 +673,56 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
+        public void ToggleWindowToMode(bool targetFullMode)
+        {
+            var window = Application.Current.MainWindow;
+            if (window == null) return;
+
+            if (window.Visibility == Visibility.Visible)
+            {
+                if (IsFullMode != targetFullMode)
+                {
+                    IsFullMode = targetFullMode;
+                    window.Activate();
+                    window.Focus();
+                    NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(window).Handle);
+                    window.Topmost = true;
+
+                    if (!IsFullMode && window is MainWindow mainWin)
+                    {
+                        mainWin.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            mainWin.MiniInputBox.Focus();
+                        }), DispatcherPriority.Render);
+                    }
+                }
+                else
+                {
+                    _previousFullMode = IsFullMode;
+                    window.Hide();
+                }
+                return;
+            }
+
+            CaptureForegroundWindow();
+            IsFullMode = targetFullMode;
+            _previousFullMode = targetFullMode;
+
+            window.Show();
+            window.Activate();
+            window.Focus();
+            NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(window).Handle);
+            window.Topmost = true;
+
+            if (!IsFullMode && window is MainWindow miniWin)
+            {
+                miniWin.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    miniWin.MiniInputBox.Focus();
+                }), DispatcherPriority.Render);
+            }
+        }
+
         public void CaptureForegroundWindow()
         {
             var handle = NativeMethods.GetForegroundWindow();
@@ -748,7 +790,32 @@ namespace PromptMasterv5.ViewModels
             }
         }
         [RelayCommand] private void OpenSettings() { Config = ConfigService.Load(); LocalConfig = LocalConfigService.Load(); SelectedSettingsTab = 0; IsSettingsOpen = true; }
-        [RelayCommand] private void SaveSettings() { ConfigService.Save(Config); LocalConfigService.Save(LocalConfig); UpdateGlobalHotkey(); _keyService.AlwaysOnTopSequence = LocalConfig.MiniAlwaysOnTopHotkeyPrefix; if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { } else _keyService.Stop(); IsSettingsOpen = false; }
+        [RelayCommand]
+        private void SaveSettings()
+        {
+            string full = (Config.FullWindowHotkey ?? "").Trim();
+            string mini = (Config.MiniWindowHotkey ?? "").Trim();
+            string fullNorm = full.Replace(" ", "").ToUpperInvariant();
+            string miniNorm = mini.Replace(" ", "").ToUpperInvariant();
+
+            if (!string.IsNullOrEmpty(fullNorm) && fullNorm == miniNorm)
+            {
+                MessageBox.Show("完整窗口热键与迷你窗口热键不能相同。请修改其中一个。", "热键冲突", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            Config.GlobalHotkey = "";
+            Config.SingleHotkey = "";
+
+            ConfigService.Save(Config);
+            LocalConfigService.Save(LocalConfig);
+
+            UpdateWindowHotkeys();
+            _keyService.AlwaysOnTopSequence = LocalConfig.MiniAlwaysOnTopHotkeyPrefix;
+            if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { } else _keyService.Stop();
+
+            IsSettingsOpen = false;
+        }
         [RelayCommand] private void SelectSettingsTab(string s) { if (int.TryParse(s, out int i)) SelectedSettingsTab = i; }
         public void ReorderFolders(int o, int n) { Folders.Move(o, n); RequestSave(); }
         public void MoveFileToFolder(PromptItem f, FolderItem t) { if (f == null || t == null || f.FolderId == t.Id) return; f.FolderId = t.Id; FilesView?.Refresh(); if (SelectedFile == f) SelectedFile = null; RequestSave(); }
