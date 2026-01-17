@@ -28,6 +28,27 @@
             <SolidColorBrush x:Key="MiniHighlightBrush" Color="#3C3C3C"/>
             <SolidColorBrush x:Key="AccentBrush" Color="#4183C4"/>
 
+            <SolidColorBrush x:Key="ShellBackground" Color="#FAFAFA"/>
+            <SolidColorBrush x:Key="Block1Background" Color="#F1F1EF"/>
+            <SolidColorBrush x:Key="Block2Background" Color="#F1F1EF"/>
+            <SolidColorBrush x:Key="Block3Background" Color="#FAFAFA"/>
+            <SolidColorBrush x:Key="Block4Background" Color="#FAFAFA"/>
+
+            <SolidColorBrush x:Key="PrimaryTextBrush" Color="#333333"/>
+            <SolidColorBrush x:Key="SecondaryTextBrush" Color="#666666"/>
+            <SolidColorBrush x:Key="PlaceholderTextBrush" Color="#999999"/>
+
+            <SolidColorBrush x:Key="DividerBrush" Color="#E0E0E0"/>
+
+            <SolidColorBrush x:Key="ActionIconBrush" Color="#898888"/>
+            <SolidColorBrush x:Key="ActionIconHoverBrush" Color="#000000"/>
+            <SolidColorBrush x:Key="HeaderIconBrush" Color="#666666"/>
+            <SolidColorBrush x:Key="HeaderIconHoverBrush" Color="#333333"/>
+
+            <SolidColorBrush x:Key="InputFocusBackgroundBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="ListItemHoverBackgroundBrush" Color="#EAEAEA"/>
+            <SolidColorBrush x:Key="ListItemSelectedBackgroundBrush" Color="#E0E0E0"/>
+
             <Style x:Key="MiniTextBoxStyle" TargetType="TextBox">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{StaticResource MiniTextBrush}"/>

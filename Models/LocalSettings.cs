@@ -28,7 +28,7 @@ namespace PromptMasterv5.Models
         // --- 新增配置项 ---
 
         [ObservableProperty]
-        private ThemeType theme = ThemeType.Dark; // 默认深色，符合极简模式定位
+        private ThemeType theme = ThemeType.Light;
 
         [ObservableProperty]
         private double miniFontSize = 18.0;

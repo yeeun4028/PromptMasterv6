@@ -28,9 +28,7 @@
 
     <!-- (Window.Resources 保持不变) ... -->
     <Window.Resources>
-        <SolidColorBrush x:Key="TextBrush" Color="#333333"/>
         <SolidColorBrush x:Key="GitHubBlue" Color="#4183C4"/>
-        <SolidColorBrush x:Key="Block1Background" Color="#F1F1EF"/>
 
         <Geometry x:Key="IconChevronRight">M 9,6 L 15,12 L 9,18</Geometry>
         <Geometry x:Key="IconChevronLeft">M 15,6 L 9,12 L 15,18</Geometry>
@@ -42,6 +40,8 @@
         <Geometry x:Key="IconCopyThin">M20 2H10c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H10V4h10v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z</Geometry>
         <Geometry x:Key="IconLockClosedThin">M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z</Geometry>
         <Geometry x:Key="IconLockOpenThin">M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h2c0-1.66 1.34-3 3-3s3 1.34 3 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z</Geometry>
+        <Geometry x:Key="IconSunThin">M12,18 A6,6 0 1 1 12,6 A6,6 0 1 1 12,18 Z M12,2 L12,4 M12,20 L12,22 M2,12 L4,12 M20,12 L22,12 M4.22,4.22 L5.64,5.64 M18.36,18.36 L19.78,19.78 M19.78,4.22 L18.36,5.64 M5.64,18.36 L4.22,19.78</Geometry>
+        <Geometry x:Key="IconMoonThin">M21,12.79 A9,9 0 1 1 11.21,3 A7,7 0 0 0 21,12.79 Z</Geometry>
         <Geometry x:Key="IconDelete">M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z</Geometry>
         <Geometry x:Key="IconImport">M960 672v128c0 89.6-70.4 160-160 160h-576C134.4 960 64 889.6 64 800v-576C64 134.4 134.4 64 224 64h128c19.2 0 32 12.8 32 32s-12.8 32-32 32h-128C172.8 128 128 172.8 128 224v576c0 51.2 44.8 96 96 96h576c51.2 0 96-44.8 96-96v-128c0-19.2 12.8-32 32-32s32 12.8 32 32zM800 576c19.2 0 32-12.8 32-32s-12.8-32-32-32H556.8l326.4-326.4c12.8-12.8 12.8-32 0-44.8s-32-12.8-44.8 0L512 467.2V224c0-19.2-12.8-32-32-32s-32 12.8-32 32V576h352z</Geometry>
         <Geometry x:Key="IconCloudUpload">M480 224c43 0 84.7 11.6 120.6 33.5 34.6 21.1 62.5 50.9 80.6 86 10.4 20.1 30.6 33.3 53.2 34.6C796 381.6 853 407 895.2 449.7c41.7 42.1 64.6 97.2 64.6 155 0 30.8-5.9 60.6-17.7 88.7-11.3 27.1-27.5 51.4-48.2 72.3-42.3 42.8-98.4 66.3-158 66.3h-478c-53.3-3.1-102.6-24-139-58.8-35.3-33.6-54.7-77.2-54.7-122.5 0-38.5 13.7-75.3 39.7-106.4 12.9-15.5 28.5-29.1 46.3-40.3 18.3-11.6 38.4-20.4 59.9-26.3 26.1-7.1 44.9-29.9 47-56.9 4-52.9 28.6-102.1 69.4-138.7C368.1 244.6 422.6 224 480 224m0-64c-139.2 0-255.2 94.9-281.9 220.8-4.4 20.8-18.5 38.3-38.2 46.3C65.8 465.6 0.2 551.2 0.2 650.7 0.2 781.3 113.4 888.6 256.1 896H736c158.9 0 287.9-130.5 287.9-291.3 0-145.4-111.1-265.5-256.2-287.4-18.1-2.7-34.1-13-44.2-28.2C672.5 211.6 582.7 160 480 160z M603.5 532.6h-71c-2.2 0-4 1.8-4 4V748c0 2.2-1.8 4-4 4h-56c-2.2 0-4-1.8-4-4V536.6c0-2.2-1.8-4-4-4h-71c-3.6 0-5.3-4.3-2.8-6.8l98.5-98.5c6.2-6.2 16.4-6.2 22.6 0l98.5 98.5c2.5 2.5 0.7 6.8-2.8 6.8z</Geometry>
@@ -56,8 +56,8 @@
         <Geometry x:Key="IconLoading">M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 1 1 4 12A8 8 0 0 1 12 4Z</Geometry>
 
         <Style x:Key="Block1ToolTipStyle" TargetType="ToolTip">
-            <Setter Property="Background" Value="{StaticResource Block1Background}"/>
-            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="Background" Value="{DynamicResource Block1Background}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="Padding" Value="0"/>
@@ -122,7 +122,7 @@
                                       Command="{Binding PlacementTarget.Tag.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}">
                                 <MenuItem.Icon>
-                                    <Path Data="{StaticResource IconDelete}" Fill="#333" Stretch="Uniform" Width="12"/>
+                                    <Path Data="{StaticResource IconDelete}" Fill="{DynamicResource PrimaryTextBrush}" Stretch="Uniform" Width="12"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                         </ContextMenu>
@@ -137,7 +137,7 @@
                             </Border.ToolTip>
                             <Path x:Name="IconPath" 
                                   Data="{Binding IconGeometry}" 
-                                  Fill="#898888" 
+                                  Fill="{DynamicResource ActionIconBrush}" 
                                   Stretch="Uniform" 
                                   Width="20" Height="20" 
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -150,10 +150,10 @@
                                 <Setter TargetName="IconPath" Property="Data" Value="{StaticResource IconFolderLinear}"/>
                             </DataTrigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="IconPath" Property="Fill" Value="Black"/>
+                                <Setter TargetName="IconPath" Property="Fill" Value="{DynamicResource ActionIconHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="IconPath" Property="Fill" Value="Black"/>
+                                <Setter TargetName="IconPath" Property="Fill" Value="{DynamicResource ActionIconHoverBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -179,7 +179,7 @@
                                   Command="{Binding PlacementTarget.Tag.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                   CommandParameter="{Binding}">
                             <MenuItem.Icon>
-                                <Path Data="{StaticResource IconDelete}" Fill="#333" Stretch="Uniform" Width="12"/>
+                                <Path Data="{StaticResource IconDelete}" Fill="{DynamicResource PrimaryTextBrush}" Stretch="Uniform" Width="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
                     </ContextMenu>
@@ -197,7 +197,7 @@
                                 <Path x:Name="FileIcon" 
                                       Data="{Binding IconGeometry}" 
                                       Visibility="Visible" 
-                                      Fill="#999" 
+                                      Fill="{DynamicResource PlaceholderTextBrush}" 
                                       Stretch="Uniform" 
                                       Width="14" 
                                       Height="14" 
@@ -214,12 +214,12 @@
                                 <Setter TargetName="FileIcon" Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#EAEAEA"/>
-                                <Setter TargetName="FileIcon" Property="Fill" Value="#666"/>
+                                <Setter Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                <Setter TargetName="FileIcon" Property="Fill" Value="{DynamicResource SecondaryTextBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#E0E0E0"/>
-                                <Setter TargetName="FileIcon" Property="Fill" Value="#333"/>
+                                <Setter Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
+                                <Setter TargetName="FileIcon" Property="Fill" Value="{DynamicResource PrimaryTextBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -243,13 +243,13 @@
         </Style>
 
         <Style x:Key="ActionIconPathStyle" TargetType="Path">
-            <Setter Property="Fill" Value="#898888"/>
+            <Setter Property="Fill" Value="{DynamicResource ActionIconBrush}"/>
             <Setter Property="Stretch" Value="Uniform"/>
             <Setter Property="Width" Value="22"/>
             <Setter Property="Height" Value="22"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                    <Setter Property="Fill" Value="Black"/>
+                    <Setter Property="Fill" Value="{DynamicResource ActionIconHoverBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -257,10 +257,10 @@
         <Style x:Key="SmallHeaderIconStyle" TargetType="Path" BasedOn="{StaticResource ActionIconPathStyle}">
             <Setter Property="Width" Value="16"/>
             <Setter Property="Height" Value="16"/>
-            <Setter Property="Fill" Value="#666666"/>
+            <Setter Property="Fill" Value="{DynamicResource HeaderIconBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                    <Setter Property="Fill" Value="#333333"/>
+                    <Setter Property="Fill" Value="{DynamicResource HeaderIconHoverBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -279,7 +279,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#EAEAEA"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -482,7 +482,7 @@
               Visibility="{Binding IsFullMode, Converter={StaticResource BoolToVis}}"
               Background="Transparent">
 
-            <Border Background="#FAFAFA" CornerRadius="5">
+            <Border Background="{DynamicResource ShellBackground}" CornerRadius="5">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -495,7 +495,7 @@
                     <Border Grid.Column="0" 
                             Width="60"
                             Visibility="{Binding IsNavigationVisible, Converter={StaticResource BoolToVis}}"
-                            Background="{StaticResource Block1Background}" 
+                            Background="{DynamicResource Block1Background}" 
                             CornerRadius="5,0,0,5">
                         <Grid>
                             <ListBox ItemsSource="{Binding Folders}" 
@@ -583,7 +583,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
                                     <TextBlock Text="{Binding SyncTimeDisplay}" 
                                                FontSize="10" 
-                                               Foreground="#999999"
+                                               Foreground="{DynamicResource PlaceholderTextBrush}"
                                                VerticalAlignment="Center"/>
                                     <!-- ★★★ 新增：脏数据状态指示器 (红色星号) ★★★ -->
                                     <TextBlock Text="*" 
@@ -603,7 +603,7 @@
                                   Visibility="{Binding IsNavigationVisible, Converter={StaticResource BoolToVis}}"
                                   Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Transparent" ShowsPreview="True"/>
 
-                    <Border Grid.Column="1" Background="#F1F1EF">
+                    <Border Grid.Column="1" Background="{DynamicResource Block2Background}">
                         <Grid>
                             <Grid Height="40" VerticalAlignment="Top" Background="Transparent" MouseLeftButtonDown="FullWindow_MouseLeftButtonDown"/>
 
@@ -622,16 +622,16 @@
 
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Title}" Foreground="#333333" FontSize="13" FontFamily="Segoe UI, Microsoft YaHei UI"/>
+                                        <TextBlock Text="{Binding Title}" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="13" FontFamily="Segoe UI, Microsoft YaHei UI"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
                         </Grid>
                     </Border>
                     <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Transparent" ShowsPreview="True"/>
-                    <Border Grid.Column="1" Width="1" HorizontalAlignment="Right" Background="#E0E0E0" IsHitTestVisible="False"/>
+                    <Border Grid.Column="1" Width="1" HorizontalAlignment="Right" Background="{DynamicResource DividerBrush}" IsHitTestVisible="False"/>
 
-                    <Border Grid.Column="2" Background="#FAFAFA" CornerRadius="0,5,5,0">
+                    <Border Grid.Column="2" Background="{DynamicResource Block3Background}" CornerRadius="0,5,5,0">
                         <Grid>
                             <Grid.Resources>
                                 <Style TargetType="ScrollBar">
@@ -657,9 +657,7 @@
                                 <RowDefinition Height="3*"/>
                             </Grid.RowDefinitions>
 
-                            <Grid Grid.Row="0" Margin="20,10,20,0">
-                                <TextElement.FontFamily>Segoe UI, Microsoft YaHei UI</TextElement.FontFamily>
-                                <TextElement.Foreground>#333333</TextElement.Foreground>
+                            <Grid Grid.Row="0" Margin="20,10,20,0" TextElement.Foreground="{DynamicResource PrimaryTextBrush}" TextElement.FontFamily="Segoe UI, Microsoft YaHei UI">
                                 <Grid.Style>
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
@@ -678,7 +676,7 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Text="{Binding SelectedFile.Title, UpdateSourceTrigger=PropertyChanged}" FontSize="18" FontWeight="Bold" BorderThickness="0" Background="Transparent" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI" Margin="0,20,0,0">
+                                    <TextBox Grid.Column="0" Text="{Binding SelectedFile.Title, UpdateSourceTrigger=PropertyChanged}" FontSize="18" FontWeight="Bold" BorderThickness="0" Background="Transparent" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Margin="0,20,0,0">
                                         <TextBox.Style>
                                             <Style TargetType="TextBox">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -690,7 +688,7 @@
                                             </Style>
                                         </TextBox.Style>
                                     </TextBox>
-                                    <TextBlock Grid.Column="0" Text="{Binding SelectedFile.Title}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI" Margin="0,20,0,0">
+                                    <TextBlock Grid.Column="0" Text="{Binding SelectedFile.Title}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Margin="0,20,0,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -707,7 +705,7 @@
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <Grid>
-                                                        <Path x:Name="ChevronPath" Stroke="#666666" StrokeThickness="1.5" Stretch="None" Data="{StaticResource IconChevronLeft}"/>
+                                                        <Path x:Name="ChevronPath" Stroke="{DynamicResource HeaderIconBrush}" StrokeThickness="1.5" Stretch="None" Data="{StaticResource IconChevronLeft}"/>
                                                     </Grid>
                                                     <DataTemplate.Triggers>
                                                         <DataTrigger Binding="{Binding DataContext.IsNavigationVisible, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
@@ -717,7 +715,7 @@
                                                             <Setter TargetName="ChevronPath" Property="Data" Value="{StaticResource IconChevronRight}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                                                            <Setter TargetName="ChevronPath" Property="Stroke" Value="#333333"/>
+                                                            <Setter TargetName="ChevronPath" Property="Stroke" Value="{DynamicResource HeaderIconHoverBrush}"/>
                                                         </DataTrigger>
                                                     </DataTemplate.Triggers>
                                                 </DataTemplate>
@@ -749,6 +747,27 @@
                                                     <Path Data="{StaticResource IconCopyThin}">
                                                         <Path.Style>
                                                             <Style TargetType="Path" BasedOn="{StaticResource SmallHeaderIconStyle}"/>
+                                                        </Path.Style>
+                                                    </Path>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button Command="{Binding ToggleThemeCommand}" Style="{StaticResource ActionBtnStyle}" ToolTip="切换主题">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <Path x:Name="ThemeIcon" Data="{StaticResource IconMoonThin}" Stroke="{DynamicResource HeaderIconBrush}" StrokeThickness="1.5" Stretch="Uniform" Width="16" Height="16">
+                                                        <Path.Style>
+                                                            <Style TargetType="Path">
+                                                                <Setter Property="Stroke" Value="{DynamicResource HeaderIconBrush}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding DataContext.LocalConfig.Theme, RelativeSource={RelativeSource AncestorType=Window}}" Value="Dark">
+                                                                        <Setter Property="Data" Value="{StaticResource IconSunThin}"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                        <Setter Property="Stroke" Value="{DynamicResource HeaderIconHoverBrush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
                                                         </Path.Style>
                                                     </Path>
                                                 </DataTemplate>
@@ -835,74 +854,76 @@
                                 </md:MarkdownViewer>
                             </Grid>
 
-                            <Border Grid.Row="1" Height="1" Background="#E0E0E0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            <Border Grid.Row="1" Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" IsHitTestVisible="False"/>
                             <GridSplitter Grid.Row="1" Height="8" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" ResizeBehavior="PreviousAndNext" ShowsPreview="True"/>
 
-                            <Grid Grid.Row="2" Margin="20,10">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" BorderThickness="0">
-                                    <ScrollViewer.Style>
-                                        <Style TargetType="ScrollViewer">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HasVariables}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ScrollViewer.Style>
-                                    <ItemsControl ItemsSource="{Binding Variables}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="0,5">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Top" Margin="0,6,10,0" HorizontalAlignment="Right" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI"/>
-                                                    <Border x:Name="InputBorder" Grid.Column="1" BorderThickness="0" Background="Transparent" CornerRadius="2,2,0,0">
-                                                        <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="5" FontSize="14" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" PreviewKeyDown="TextBox_PreviewKeyDown" Foreground="#333333" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}"/>
-                                                    </Border>
-                                                </Grid>
-                                                <DataTemplate.Triggers>
-                                                    <Trigger SourceName="InputBox" Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="InputBorder" Property="Background" Value="White"/>
-                                                        <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource GitHubBlue}"/>
-                                                        <Setter TargetName="InputBorder" Property="BorderThickness" Value="0,0,0,1"/>
-                                                    </Trigger>
-                                                    <Trigger SourceName="InputBox" Property="IsKeyboardFocused" Value="True">
-                                                        <Setter TargetName="InputBorder" Property="Background" Value="White"/>
-                                                        <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource GitHubBlue}"/>
-                                                        <Setter TargetName="InputBorder" Property="BorderThickness" Value="0,0,0,1"/>
-                                                    </Trigger>
-                                                </DataTemplate.Triggers>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
+                            <Border Grid.Row="2" Background="{DynamicResource Block4Background}">
+                                <Grid Margin="20,10">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" BorderThickness="0">
+                                        <ScrollViewer.Style>
+                                            <Style TargetType="ScrollViewer">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasVariables}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ScrollViewer.Style>
+                                        <ItemsControl ItemsSource="{Binding Variables}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,5">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Top" Margin="0,6,10,0" HorizontalAlignment="Right" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI"/>
+                                                        <Border x:Name="InputBorder" Grid.Column="1" BorderThickness="0" Background="Transparent" CornerRadius="2,2,0,0">
+                                                            <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="5" FontSize="14" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" PreviewKeyDown="TextBox_PreviewKeyDown" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <DataTemplate.Triggers>
+                                                        <Trigger SourceName="InputBox" Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="InputBorder" Property="Background" Value="{DynamicResource InputFocusBackgroundBrush}"/>
+                                                            <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource GitHubBlue}"/>
+                                                            <Setter TargetName="InputBorder" Property="BorderThickness" Value="0,0,0,1"/>
+                                                        </Trigger>
+                                                        <Trigger SourceName="InputBox" Property="IsKeyboardFocused" Value="True">
+                                                            <Setter TargetName="InputBorder" Property="Background" Value="{DynamicResource InputFocusBackgroundBrush}"/>
+                                                            <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource GitHubBlue}"/>
+                                                            <Setter TargetName="InputBorder" Property="BorderThickness" Value="0,0,0,1"/>
+                                                        </Trigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
 
-                                <TextBox Text="{Binding AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
-                                         PreviewKeyDown="AdditionalInputBox_PreviewKeyDown"
-                                         AcceptsReturn="True" 
-                                         TextWrapping="Wrap" 
-                                         Padding="10" 
-                                         BorderThickness="0" 
-                                         Background="Transparent" 
-                                         VerticalContentAlignment="Top" 
-                                         FontSize="14" 
-                                         Foreground="#333333" 
-                                         FontFamily="Segoe UI, Microsoft YaHei UI">
-                                    <TextBox.Style>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HasVariables}" Value="True">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBox.Style>
-                                </TextBox>
-                            </Grid>
+                                    <TextBox Text="{Binding AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
+                                             PreviewKeyDown="AdditionalInputBox_PreviewKeyDown"
+                                             AcceptsReturn="True" 
+                                             TextWrapping="Wrap" 
+                                             Padding="10" 
+                                             BorderThickness="0" 
+                                             Background="Transparent" 
+                                             VerticalContentAlignment="Top" 
+                                             FontSize="14" 
+                                             Foreground="{DynamicResource PrimaryTextBrush}" 
+                                             FontFamily="Segoe UI, Microsoft YaHei UI">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasVariables}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                </Grid>
+                            </Border>
                         </Grid>
                     </Border>
 
