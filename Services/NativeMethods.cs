@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace PromptMasterv5.Services
@@ -31,6 +31,9 @@ namespace PromptMasterv5.Services
         [DllImport("user32.dll")]
         public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
 
+        [DllImport("user32.dll")]
+        public static extern short GetAsyncKeyState(int vKey);
+
         // --- 新增：WinEventHook 相关，用于监听窗口切换 ---
         public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
 
@@ -48,9 +51,13 @@ namespace PromptMasterv5.Services
         public const uint MOUSEEVENTF_LEFTUP = 0x0004;
 
         public const byte VK_CONTROL = 0x11;
+        public const byte VK_SHIFT = 0x10;
+        public const byte VK_MENU = 0x12;
         public const byte VK_RETURN = 0x0D;
         public const byte VK_V = 0x56;
 
         public const uint KEYEVENTF_KEYUP = 0x0002;
+
+        public static bool IsKeyDown(int vKey) => (GetAsyncKeyState(vKey) & 0x8000) != 0;
     }
 }

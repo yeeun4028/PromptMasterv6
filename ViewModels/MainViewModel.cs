@@ -406,9 +406,30 @@ namespace PromptMasterv5.ViewModels
             if (string.IsNullOrWhiteSpace(content)) return;
             var window = Application.Current.MainWindow;
 
-            if (window != null) window.Hide();
+            bool stoppedGlobalHook = false;
+            try
+            {
+                if (Config.EnableDoubleCtrl)
+                {
+                    _keyService.Stop();
+                    stoppedGlobalHook = true;
+                }
 
-            await InputSender.SendAsync(content, targetMode, LocalConfig, _previousWindowHandle);
+                if (window != null) window.Hide();
+
+                await InputSender.SendAsync(content, targetMode, LocalConfig, _previousWindowHandle);
+            }
+            finally
+            {
+                if (stoppedGlobalHook)
+                {
+                    await Task.Delay(450);
+                    if (Config.EnableDoubleCtrl)
+                    {
+                        try { _keyService.Start(); } catch { }
+                    }
+                }
+            }
 
             if (!IsFullMode)
             {

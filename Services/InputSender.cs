@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using PromptMasterv5.Models;
 
@@ -75,7 +75,18 @@ namespace PromptMasterv5.Services
             NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
 
             // 5. 模拟 Enter
-            await Task.Delay(100);
+            await Task.Delay(120);
+            for (int i = 0; i < 30; i++)
+            {
+                if (!NativeMethods.IsKeyDown(NativeMethods.VK_CONTROL) &&
+                    !NativeMethods.IsKeyDown(NativeMethods.VK_SHIFT) &&
+                    !NativeMethods.IsKeyDown(NativeMethods.VK_MENU))
+                {
+                    break;
+                }
+                await Task.Delay(20);
+            }
+
             NativeMethods.keybd_event(NativeMethods.VK_RETURN, 0, 0, 0);
             await Task.Delay(20);
             NativeMethods.keybd_event(NativeMethods.VK_RETURN, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
