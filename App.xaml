@@ -58,24 +58,28 @@
             <SolidColorBrush x:Key="HintBrush" Color="#999999"/>
 
             <Style x:Key="MiniTextBoxStyle" TargetType="TextBox">
-                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Background" Value="#363B40"/>
                 <Setter Property="Foreground" Value="{StaticResource MiniTextBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="CaretBrush" Value="White"/>
-                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontSize" Value="16"/>
                 <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
 
                 <Setter Property="TextWrapping" Value="Wrap"/>
                 <Setter Property="AcceptsReturn" Value="True"/>
                 <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
 
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Top"/>
 
-                <Setter Property="Padding" Value="5,2"/>
+                <Setter Property="Padding" Value="30"/>
+                <Setter Property="TextBlock.LineHeight" Value="25.6"/>
+                <Setter Property="TextBlock.LineStackingStrategy" Value="BlockLineHeight"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
-                            <ScrollViewer x:Name="PART_ContentHost" Background="Transparent"/>
+                            <Border Background="{TemplateBinding Background}">
+                                <ScrollViewer x:Name="PART_ContentHost" Background="Transparent" Margin="{TemplateBinding Padding}"/>
+                            </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

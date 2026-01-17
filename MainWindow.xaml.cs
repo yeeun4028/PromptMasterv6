@@ -303,6 +303,26 @@ namespace PromptMasterv5
 
         private void MiniInput_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (MiniInputBox != null)
+            {
+                var text = MiniInputBox.Text?.Trim() ?? "";
+                var isUrlLike = Regex.IsMatch(text, @"^(https?://|www\.)\S+$", RegexOptions.IgnoreCase);
+                if (!isUrlLike && Uri.TryCreate(text, UriKind.Absolute, out var uri))
+                {
+                    isUrlLike = uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+                }
+
+                if (isUrlLike)
+                {
+                    var accent = TryFindResource("AccentBrush") as System.Windows.Media.Brush;
+                    MiniInputBox.Foreground = accent ?? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x41, 0x83, 0xC4));
+                }
+                else
+                {
+                    MiniInputBox.ClearValue(TextBox.ForegroundProperty);
+                }
+            }
+
             if (ViewModel != null && !ViewModel.IsFullMode)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -392,6 +412,11 @@ namespace PromptMasterv5
         {
             var textBox = sender as TextBox;
             if (textBox == null) return;
+
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                return;
+            }
 
             if (e.Key == Key.Delete && ViewModel.IsAiResultDisplayed)
             {
