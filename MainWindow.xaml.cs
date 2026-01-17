@@ -342,6 +342,7 @@ namespace PromptMasterv5
             _isApplyingMiniAutoResize = false;
 
             _miniBottomAnchor = bottom;
+            ApplyMiniScrollBarAppearance(isOverflow: false);
         }
 
         private void ApplyModeState()
@@ -407,7 +408,18 @@ namespace PromptMasterv5
                 Height = _miniDefaultHeight;
                 Width = MiniDefaultWidth;
                 _miniBottomAnchor = Top + Height;
+                ApplyMiniScrollBarAppearance(isOverflow: false);
             }), DispatcherPriority.Loaded);
+        }
+
+        private void ApplyMiniScrollBarAppearance(bool isOverflow)
+        {
+            if (MiniInputBox == null) return;
+            var styleKey = "MiniInvisibleScrollBarStyle";
+            if (TryFindResource(styleKey) is Style style)
+            {
+                MiniInputBox.Resources[typeof(System.Windows.Controls.Primitives.ScrollBar)] = style;
+            }
         }
 
         private void ScheduleMiniAutoResize()
@@ -437,8 +449,9 @@ namespace PromptMasterv5
 
             var lineCount = MiniInputBox.LineCount;
             if (lineCount < 1) lineCount = 1;
+            var isOverflow = lineCount > MiniMaxAutoLines;
 
-            var targetWidth = lineCount > MiniMaxAutoLines ? MiniExpandedWidth : MiniDefaultWidth;
+            var targetWidth = isOverflow ? MiniExpandedWidth : MiniDefaultWidth;
             var cappedLines = Math.Min(lineCount, MiniMaxAutoLines);
             var targetHeight = _miniDefaultHeight + (cappedLines - 1) * _miniLineHeight;
 
@@ -453,6 +466,8 @@ namespace PromptMasterv5
             Height = targetHeight;
             Top = bottom - Height;
             _isApplyingMiniAutoResize = false;
+
+            ApplyMiniScrollBarAppearance(isOverflow);
         }
 
         private void MiniInput_TextChanged(object sender, TextChangedEventArgs e)
