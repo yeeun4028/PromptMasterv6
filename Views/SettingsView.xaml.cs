@@ -27,17 +27,7 @@ namespace PromptMasterv5.Views
             InitializeComponent();
         }
 
-        private MainViewModel ViewModel
-        {
-            get
-            {
-                if (DataContext is MainViewModel vm)
-                {
-                    return vm;
-                }
-                return null;
-            }
-        }
+        private MainViewModel? ViewModel => DataContext as MainViewModel;
 
         private void WebDavPasswordBox_Loaded(object sender, RoutedEventArgs e)
         {

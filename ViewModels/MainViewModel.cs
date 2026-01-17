@@ -625,12 +625,28 @@ namespace PromptMasterv5.ViewModels
                 window.Topmost = true;
                 if (window is MainWindow mainWin)
                 {
-                    mainWin.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        mainWin.MiniInputBox.Focus();
-                        Keyboard.Focus(mainWin.MiniInputBox);
-                    }), DispatcherPriority.Render);
+                    FocusMiniInputBox(mainWin);
                 }
+            }
+        }
+
+        private static void FocusMiniInputBox(MainWindow window)
+        {
+            void Focus()
+            {
+                var box = window.MiniInputBox;
+                if (box == null) return;
+                box.Focus();
+                Keyboard.Focus(box);
+            }
+
+            if (window.Dispatcher.CheckAccess())
+            {
+                Focus();
+            }
+            else
+            {
+                window.Dispatcher.Invoke(Focus, DispatcherPriority.Render);
             }
         }
 
@@ -699,10 +715,7 @@ namespace PromptMasterv5.ViewModels
 
                 if (!IsFullMode && window is MainWindow mainWin)
                 {
-                    mainWin.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        mainWin.MiniInputBox.Focus();
-                    }), DispatcherPriority.Render);
+                    FocusMiniInputBox(mainWin);
                 }
             }
         }
@@ -724,10 +737,7 @@ namespace PromptMasterv5.ViewModels
 
                     if (!IsFullMode && window is MainWindow mainWin)
                     {
-                        mainWin.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            mainWin.MiniInputBox.Focus();
-                        }), DispatcherPriority.Render);
+                        FocusMiniInputBox(mainWin);
                     }
                 }
                 else
@@ -750,10 +760,7 @@ namespace PromptMasterv5.ViewModels
 
             if (!IsFullMode && window is MainWindow miniWin)
             {
-                miniWin.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    miniWin.MiniInputBox.Focus();
-                }), DispatcherPriority.Render);
+                FocusMiniInputBox(miniWin);
             }
         }
 
