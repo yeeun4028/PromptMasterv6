@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using System.Windows.Threading;
 using System.Linq; // 新增引用，用于查询子窗口状态
 using System.Windows.Controls.Primitives;
+using System.Windows.Shapes;
 
 // 引用自定义枚举和控件别名，解决命名冲突
 using InputMode = PromptMasterv5.Models.InputMode;
@@ -46,8 +47,6 @@ namespace PromptMasterv5
         private DispatcherTimer? _hideTimer;
         private DispatcherTimer? _miniPersistTimer;
 
-        private const double MiniDefaultWidth = 500;
-        private const double MiniExpandedWidth = 800;
         private const int MiniMaxAutoLines = 23;
 
         private double _miniDefaultHeight = 0;
@@ -55,6 +54,25 @@ namespace PromptMasterv5
         private double? _miniBottomAnchor;
         private DispatcherTimer? _miniAutoResizeTimer;
         private bool _isApplyingMiniAutoResize = false;
+
+        private double GetMiniDefaultWidth()
+        {
+            if (ViewModel == null) return 500;
+            var w = ViewModel.LocalConfig.MiniDefaultWidth;
+            if (w <= 0) w = 500;
+            if (w < 200) w = 200;
+            return w;
+        }
+
+        private double GetMiniExpandedWidth()
+        {
+            if (ViewModel == null) return 800;
+            var w = ViewModel.LocalConfig.MiniExpandedWidth;
+            if (w <= 0) w = 800;
+            var min = GetMiniDefaultWidth();
+            if (w < min) w = min;
+            return w;
+        }
 
         public MainWindow()
         {
@@ -186,6 +204,17 @@ namespace PromptMasterv5
             {
                 // 取消隐藏定时器
                 StopHideTimer();
+
+                if (ViewModel != null && !ViewModel.IsFullMode && ViewModel.LocalConfig.MiniUseDefaultPosition)
+                {
+                    var cfg = ViewModel.LocalConfig;
+                    Left = cfg.MiniDefaultLeft;
+                    if (cfg.MiniDefaultBottom > 0)
+                    {
+                        _miniBottomAnchor = cfg.MiniDefaultBottom;
+                        Top = _miniBottomAnchor.Value - Height;
+                    }
+                }
 
                 this.Show();
                 this.Activate();
@@ -336,7 +365,7 @@ namespace PromptMasterv5
             var targetHeight = _miniDefaultHeight;
 
             _isApplyingMiniAutoResize = true;
-            Width = MiniDefaultWidth;
+            Width = GetMiniDefaultWidth();
             Height = targetHeight;
             Top = bottom - Height;
             _isApplyingMiniAutoResize = false;
@@ -367,10 +396,20 @@ namespace PromptMasterv5
                 _lastFullTop = this.Top;
 
                 var cfg = ViewModel.LocalConfig;
-                this.Width = MiniDefaultWidth;
-                this.Left = cfg.MiniWindowLeft;
-                this.Top = cfg.MiniWindowTop;
+                this.Width = GetMiniDefaultWidth();
+                if (cfg.MiniUseDefaultPosition)
+                {
+                    this.Left = cfg.MiniDefaultLeft;
+                    var bottom = cfg.MiniDefaultBottom > 0 ? cfg.MiniDefaultBottom : (cfg.MiniWindowTop + this.Height);
+                    _miniBottomAnchor = bottom;
+                }
+                else
+                {
+                    this.Left = cfg.MiniWindowLeft;
+                    this.Top = cfg.MiniWindowTop;
+                }
                 if (this.Height < 160) this.Height = 160;
+                if (cfg.MiniUseDefaultPosition && _miniBottomAnchor.HasValue) this.Top = _miniBottomAnchor.Value - this.Height;
 
                 this.ResizeMode = ResizeMode.NoResize;
 
@@ -382,6 +421,7 @@ namespace PromptMasterv5
 
                 _ = Dispatcher.BeginInvoke(new Action(() => MiniInputBox.Focus()), System.Windows.Threading.DispatcherPriority.Render);
                 EnsureMiniDefaultSizeMeasured();
+                UpdateMiniPinnedPromptUi();
             }
         }
 
@@ -405,10 +445,16 @@ namespace PromptMasterv5
                 _miniDefaultHeight = overhead + modeBarHeight + (_miniLineHeight + padding.Top + padding.Bottom);
                 if (_miniDefaultHeight < 70) _miniDefaultHeight = 70;
 
+                var cfg = ViewModel.LocalConfig;
+                var bottom = _miniBottomAnchor ?? (Top + Height);
+                if (cfg.MiniUseDefaultPosition && cfg.MiniDefaultBottom > 0) bottom = cfg.MiniDefaultBottom;
+
                 Height = _miniDefaultHeight;
-                Width = MiniDefaultWidth;
-                _miniBottomAnchor = Top + Height;
+                Width = GetMiniDefaultWidth();
+                Top = bottom - Height;
+                _miniBottomAnchor = bottom;
                 ApplyMiniScrollBarAppearance(isOverflow: false);
+                UpdateMiniPinnedPromptUi();
             }), DispatcherPriority.Loaded);
         }
 
@@ -451,7 +497,7 @@ namespace PromptMasterv5
             if (lineCount < 1) lineCount = 1;
             var isOverflow = lineCount > MiniMaxAutoLines;
 
-            var targetWidth = isOverflow ? MiniExpandedWidth : MiniDefaultWidth;
+            var targetWidth = isOverflow ? GetMiniExpandedWidth() : GetMiniDefaultWidth();
             var cappedLines = Math.Min(lineCount, MiniMaxAutoLines);
             var targetHeight = _miniDefaultHeight + (cappedLines - 1) * _miniLineHeight;
 
@@ -586,6 +632,77 @@ namespace PromptMasterv5
 
         private void MiniWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
         private void FullWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
+
+        private void MiniPinnedPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (ViewModel.IsFullMode) return;
+
+            var prompt = TryGetMiniPinnedPrompt();
+            if (prompt == null) return;
+
+            if (ViewModel.LocalConfig.MiniPinnedPromptClickShowsFullContent)
+            {
+                ViewModel.MiniInputText = prompt.Content ?? "";
+                _ = Dispatcher.BeginInvoke(new Action(() => MiniInputBox?.Focus()), DispatcherPriority.Render);
+            }
+        }
+
+        private PromptItem? TryGetMiniPinnedPrompt()
+        {
+            if (ViewModel == null) return null;
+            var id = ViewModel.LocalConfig.MiniPinnedPromptId ?? "";
+            if (string.IsNullOrWhiteSpace(id)) return null;
+            return ViewModel.Files.FirstOrDefault(f => f.Id == id);
+        }
+
+        private void UpdateMiniPinnedPromptUi()
+        {
+            var prompt = TryGetMiniPinnedPrompt();
+            if (prompt == null)
+            {
+                MiniPinnedPromptChip.Visibility = Visibility.Collapsed;
+                MiniPinnedPromptFooter.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            MiniPinnedPromptChip.Visibility = Visibility.Visible;
+            MiniPinnedPromptFooter.Visibility = Visibility.Visible;
+
+            var showIcons = ViewModel.LocalConfig.MiniPinnedPromptShowIcons && !string.IsNullOrWhiteSpace(prompt.IconGeometry);
+
+            MiniPinnedPromptChipIcon.Visibility = showIcons ? Visibility.Visible : Visibility.Collapsed;
+            MiniPinnedPromptFooterIcon.Visibility = showIcons ? Visibility.Visible : Visibility.Collapsed;
+
+            MiniPinnedPromptChipTitle.Visibility = showIcons ? Visibility.Collapsed : Visibility.Visible;
+            MiniPinnedPromptFooterTitle.Visibility = showIcons ? Visibility.Collapsed : Visibility.Visible;
+
+            if (showIcons)
+            {
+                try
+                {
+                    var geo = Geometry.Parse(prompt.IconGeometry!);
+                    MiniPinnedPromptChipIcon.Data = geo;
+                    MiniPinnedPromptFooterIcon.Data = geo;
+                }
+                catch
+                {
+                    MiniPinnedPromptChipIcon.Visibility = Visibility.Collapsed;
+                    MiniPinnedPromptFooterIcon.Visibility = Visibility.Collapsed;
+                    MiniPinnedPromptChipTitle.Visibility = Visibility.Visible;
+                    MiniPinnedPromptFooterTitle.Visibility = Visibility.Visible;
+                    MiniPinnedPromptChipTitle.Text = prompt.Title ?? "";
+                    MiniPinnedPromptFooterTitle.Text = prompt.Title ?? "";
+                    return;
+                }
+            }
+
+            if (!showIcons)
+            {
+                MiniPinnedPromptChipTitle.Text = prompt.Title ?? "";
+                MiniPinnedPromptFooterTitle.Text = prompt.Title ?? "";
+            }
+        }
 
         private void MiniResizeThumb_DragDelta(object sender, DragDeltaEventArgs e)
         {

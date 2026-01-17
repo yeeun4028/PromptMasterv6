@@ -145,6 +145,27 @@ namespace PromptMasterv5.Views
             finally { btn.Content = org; btn.IsEnabled = true; }
         }
 
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+        private async void PickMiniWindowDefaultPosition_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            var btn = sender as Button;
+            if (btn == null) return;
+            string org = btn.Content.ToString() ?? "⏱️3秒拾取";
+            try
+            {
+                btn.IsEnabled = false;
+                for (int i = 3; i > 0; i--) { btn.Content = $"{i}"; await Task.Delay(1000); }
+                var pt = WinFormsCursor.Position;
+                ViewModel.LocalConfig.MiniDefaultLeft = pt.X;
+                ViewModel.LocalConfig.MiniDefaultBottom = pt.Y;
+                btn.Content = "已获取!";
+                await Task.Delay(1000);
+            }
+            finally { btn.Content = org; btn.IsEnabled = true; }
+        }
+
         private void CoordinateRuleField_GotFocus(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement fe)

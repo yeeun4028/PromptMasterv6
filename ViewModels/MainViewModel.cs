@@ -545,8 +545,30 @@ namespace PromptMasterv5.ViewModels
         private string CompileContent()
         {
             string finalContent;
-            if (IsFullMode) finalContent = SelectedFile?.Content ?? "";
-            else finalContent = MiniInputText;
+            if (IsFullMode)
+            {
+                finalContent = SelectedFile?.Content ?? "";
+            }
+            else
+            {
+                finalContent = MiniInputText;
+                if (!LocalConfig.MiniPinnedPromptClickShowsFullContent && !string.IsNullOrWhiteSpace(LocalConfig.MiniPinnedPromptId))
+                {
+                    var pinned = Files.FirstOrDefault(f => f.Id == LocalConfig.MiniPinnedPromptId);
+                    var pinnedContent = pinned?.Content ?? "";
+                    if (!string.IsNullOrWhiteSpace(pinnedContent))
+                    {
+                        if (string.IsNullOrWhiteSpace(finalContent))
+                        {
+                            finalContent = pinnedContent;
+                        }
+                        else
+                        {
+                            finalContent = $"{pinnedContent}\n\n---\n\nUSER INPUT:\n{finalContent}";
+                        }
+                    }
+                }
+            }
 
             if (HasVariables)
             {

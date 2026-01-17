@@ -446,17 +446,55 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <TextBox x:Name="MiniInputBox"
-                                     Text="{Binding MiniInputText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource MiniTextBoxStyle}"
-                                     VerticalScrollBarVisibility="Hidden"  
-                                     d:Text="输入 / 搜索提示词..."
-                                     PreviewKeyDown="MiniInput_PreviewKeyDown"
-                                     TextChanged="MiniInput_TextChanged">
-                                <TextBox.Resources>
-                                    <Style TargetType="ScrollBar" BasedOn="{StaticResource MiniInvisibleScrollBarStyle}"/>
-                                </TextBox.Resources>
-                            </TextBox>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button x:Name="MiniPinnedPromptChip"
+                                        Grid.Column="0"
+                                        Visibility="Collapsed"
+                                        Background="#2B2F33"
+                                        BorderBrush="#3A3E44"
+                                        BorderThickness="1"
+                                        Padding="8,4"
+                                        Margin="4,4,6,4"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Cursor="Hand"
+                                        Click="MiniPinnedPrompt_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path x:Name="MiniPinnedPromptChipIcon"
+                                              Width="14"
+                                              Height="14"
+                                              Stretch="Uniform"
+                                              Fill="#CFCFCF"
+                                              Margin="0,0,6,0"
+                                              Visibility="Collapsed"/>
+                                        <TextBlock x:Name="MiniPinnedPromptChipTitle"
+                                                   Foreground="#CFCFCF"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="120"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <TextBox x:Name="MiniInputBox"
+                                         Grid.Column="1"
+                                         Text="{Binding MiniInputText, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource MiniTextBoxStyle}"
+                                         VerticalScrollBarVisibility="Hidden"  
+                                         d:Text="输入 / 搜索提示词..."
+                                         PreviewKeyDown="MiniInput_PreviewKeyDown"
+                                         TextChanged="MiniInput_TextChanged">
+                                    <TextBox.Resources>
+                                        <Style TargetType="ScrollBar" BasedOn="{StaticResource MiniInvisibleScrollBarStyle}"/>
+                                    </TextBox.Resources>
+                                </TextBox>
+                            </Grid>
 
                             <Popup IsOpen="{Binding IsSearchPopupOpen}" 
                                    PlacementTarget="{Binding ElementName=MiniInputBox}"
@@ -511,11 +549,44 @@
                                 </Border>
                             </Popup>
 
-                            <StackPanel x:Name="MiniModeBar"
-                                        Grid.Row="1"
-                                        Orientation="Horizontal"
-                                        HorizontalAlignment="Right"
-                                        Margin="0,1,6,0">
+                            <Grid Grid.Row="1" Margin="0,1,6,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button x:Name="MiniPinnedPromptFooter"
+                                        Grid.Column="0"
+                                        Visibility="Collapsed"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="4,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Cursor="Hand"
+                                        Click="MiniPinnedPrompt_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path x:Name="MiniPinnedPromptFooterIcon"
+                                              Width="12"
+                                              Height="12"
+                                              Stretch="Uniform"
+                                              Fill="#B0B0B0"
+                                              Margin="0,0,6,0"
+                                              Visibility="Collapsed"/>
+                                        <TextBlock x:Name="MiniPinnedPromptFooterTitle"
+                                                   Foreground="#B0B0B0"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="220"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <StackPanel x:Name="MiniModeBar"
+                                            Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Right">
                                 <Grid Width="12"
                                       Height="12"
                                       Margin="0,0,8,0"
@@ -577,7 +648,8 @@
                                         </Style>
                                     </Button.Style>
                                 </Button>
-                            </StackPanel>
+                                </StackPanel>
+                            </Grid>
                         </Grid>
                     </Grid>
 

@@ -63,6 +63,17 @@ namespace PromptMasterv5.Models
         public double MiniWindowWidth { get; set; } = 500;
         public double MiniWindowHeight { get; set; } = 0;
 
+        public bool MiniUseDefaultPosition { get; set; } = false;
+        public double MiniDefaultLeft { get; set; } = 100;
+        public double MiniDefaultBottom { get; set; } = 600;
+
+        public double MiniDefaultWidth { get; set; } = 500;
+        public double MiniExpandedWidth { get; set; } = 800;
+
+        public string MiniPinnedPromptId { get; set; } = "";
+        public bool MiniPinnedPromptShowIcons { get; set; } = false;
+        public bool MiniPinnedPromptClickShowsFullContent { get; set; } = true;
+
         // 完整模式窗口位置记忆
         public double FullWindowTop { get; set; } = 100;
         public double FullWindowLeft { get; set; } = 100;
