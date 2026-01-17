@@ -1,5 +1,6 @@
-﻿using Gma.System.MouseKeyHook;
+using Gma.System.MouseKeyHook;
 using System;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace PromptMasterv5.Services
@@ -12,13 +13,28 @@ namespace PromptMasterv5.Services
         private DateTime _lastCtrlPressTime = DateTime.MinValue;
         private const int DoubleClickInterval = 400;
 
-        // ★★★ 新增：分号双击相关 ★★★
-        private char _lastChar = '\0';
-        private DateTime _lastCharTime = DateTime.MinValue;
+        private string _sequenceBuffer = "";
+        private DateTime _lastSequenceTime = DateTime.MinValue;
+
+        public string AlwaysOnTopSequence { get; set; } = "";
 
         public event EventHandler? OnDoubleCtrlDetected;
-        // 定义双击分号事件
         public event EventHandler? OnDoubleSemiColonDetected;
+        public event EventHandler? OnAlwaysOnTopSequenceDetected;
+
+        private static char NormalizeSymbol(char c)
+        {
+            return c switch
+            {
+                '；' => ';',
+                '＇' => '\'',
+                '‘' => '\'',
+                '’' => '\'',
+                '`' => '\'',
+                '´' => '\'',
+                _ => c
+            };
+        }
 
         public void Start()
         {
@@ -46,39 +62,43 @@ namespace PromptMasterv5.Services
             }
         }
 
-        // ★★★ 新增：字符监听逻辑 ★★★
-        // ★★★ 修改：字符监听逻辑 ★★★
         private void GlobalHook_KeyPress(object? sender, KeyPressEventArgs e)
         {
-            char currentChar = e.KeyChar;
+            var now = DateTime.Now;
+            var normalizedChar = NormalizeSymbol(e.KeyChar);
 
-            // 兼容英文分号 ';' and 中文分号 '；'
-            if (currentChar == ';' || currentChar == '；')
+            if ((now - _lastSequenceTime).TotalMilliseconds > 800)
             {
-                var now = DateTime.Now;
-                var span = (now - _lastCharTime).TotalMilliseconds;
-
-                // 判断是否连续按下
-                if ((_lastChar == ';' || _lastChar == '；') && span < 800)
-                {
-                    // 触发唤醒事件
-                    OnDoubleSemiColonDetected?.Invoke(this, EventArgs.Empty);
-
-                    // ★★★ 核心修复：将该按键标记为已处理，防止它“泄漏”进输入框 ★★★
-                    e.Handled = true;
-
-                    _lastChar = '\0'; // 重置防止三连击触发两次
-                    _lastCharTime = DateTime.MinValue;
-                }
-                else
-                {
-                    _lastChar = currentChar;
-                    _lastCharTime = now;
-                }
+                _sequenceBuffer = "";
             }
-            else
+
+            _lastSequenceTime = now;
+            _sequenceBuffer += normalizedChar;
+
+            if (_sequenceBuffer.Length > 32)
             {
-                _lastChar = '\0'; // 打断连击
+                _sequenceBuffer = _sequenceBuffer.Substring(_sequenceBuffer.Length - 32);
+            }
+
+            if (_sequenceBuffer.EndsWith(";;", StringComparison.Ordinal))
+            {
+                OnDoubleSemiColonDetected?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                _sequenceBuffer = "";
+                _lastSequenceTime = DateTime.MinValue;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(AlwaysOnTopSequence))
+            {
+                var normalizedSequence = new string(AlwaysOnTopSequence.Select(NormalizeSymbol).ToArray());
+                if (_sequenceBuffer.EndsWith(normalizedSequence, StringComparison.Ordinal))
+                {
+                    OnAlwaysOnTopSequenceDetected?.Invoke(this, EventArgs.Empty);
+                    e.Handled = true;
+                    _sequenceBuffer = "";
+                    _lastSequenceTime = DateTime.MinValue;
+                }
             }
         }
 

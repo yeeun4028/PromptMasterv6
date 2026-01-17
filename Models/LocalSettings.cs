@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace PromptMasterv5.Models
 {
@@ -38,6 +39,19 @@ namespace PromptMasterv5.Models
 
         [ObservableProperty]
         private bool miniEnterForAi = false; // Enter键用于AI查询（true=AI, false=普通发送）
+
+        [ObservableProperty]
+        private bool miniAiOnlyChatEnabled = false;
+
+        [ObservableProperty]
+        private string miniPatternPrefix = "''";
+
+        [ObservableProperty]
+        private string miniAlwaysOnTopHotkeyPrefix = "";
+
+        [ObservableProperty]
+        [property: JsonIgnore]
+        private bool isMiniTopmostLocked = false;
 
         // 极简模式窗口位置记忆
         public double MiniWindowTop { get; set; } = 100;

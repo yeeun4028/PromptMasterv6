@@ -797,29 +797,52 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <StackPanel Margin="0,0,0,14">
-                                        <CheckBox IsChecked="{Binding LocalConfig.MiniWindowUseAi}" Cursor="Hand">
-                                            <CheckBox.Content>
-                                                <TextBlock Text="极简窗口默认使用 AI 查询" FontSize="14" Foreground="{DynamicResource TextPrimary}" Margin="5,-1,0,0"/>
-                                            </CheckBox.Content>
-                                        </CheckBox>
-                                        <TextBlock Text="勾选后，无需使用 &quot;ai&quot; 前缀，直接输入即可"
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="260"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                                       Text="强制窗口置顶"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1"
+                                                     Text="{Binding LocalConfig.MiniAlwaysOnTopHotkeyPrefix, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="14"
+                                                     Margin="10,0,0,0"/>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                                       Text="AI查询（默认聊天；前缀触发提示词匹配）"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="1" Grid.Column="1"
+                                                      IsChecked="{Binding LocalConfig.MiniAiOnlyChatEnabled}"
+                                                      Content="启用"
+                                                      Margin="10,12,0,0"
+                                                      Cursor="Hand"/>
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                                       Text="提示词匹配前缀"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1"
+                                                     Text="{Binding LocalConfig.MiniPatternPrefix, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="14"
+                                                     Margin="10,12,0,0"/>
+                                        </Grid>
+
+                                        <TextBlock Text="说明：Enter=AI查询/匹配提示词（AI关闭时 Enter=发送到网页输入框）；Shift+Enter=换行；Ctrl+Enter/双击Enter=发送到网页输入框"
                                                    Style="{StaticResource HintTextStyle}"
-                                                   Margin="24,6,0,0"/>
-                                    </StackPanel>
-
-                                    <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,4,0,14"/>
-
-                                    <StackPanel Margin="0,0,0,14">
-                                        <TextBlock Text="回车键 (Enter) 行为" Style="{StaticResource FieldLabelTextStyle}"/>
-                                        <RadioButton GroupName="MiniEnterMode"
-                                                     IsChecked="{Binding LocalConfig.MiniEnterForAi}"
-                                                     Content="Enter = AI 查询"
-                                                     FontSize="14" Margin="0,0,0,8" Cursor="Hand" VerticalContentAlignment="Center"/>
-
-                                        <RadioButton GroupName="MiniEnterMode"
-                                                     IsChecked="{Binding LocalConfig.MiniEnterForAi, Converter={StaticResource InverseBoolConverter}}"
-                                                     Content="Enter = 普通发送"
-                                                     FontSize="14" Cursor="Hand" VerticalContentAlignment="Center"/>
+                                                   Margin="0,10,0,0"
+                                                   TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

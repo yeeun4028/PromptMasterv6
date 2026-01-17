@@ -164,6 +164,26 @@ namespace PromptMasterv5.ViewModels
                 mainWindow.MiniInputBox.CaretIndex = mainWindow.MiniInputBox.Text.Length;
             });
 
+            _keyService.AlwaysOnTopSequence = LocalConfig.MiniAlwaysOnTopHotkeyPrefix;
+            _keyService.OnAlwaysOnTopSequenceDetected += (s, e) => Application.Current.Dispatcher.Invoke(() =>
+            {
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow == null) return;
+
+                if (IsFullMode) IsFullMode = false;
+                LocalConfig.IsMiniTopmostLocked = true;
+
+                mainWindow.Show();
+                mainWindow.Activate();
+                mainWindow.Topmost = true;
+
+                var interopHelper = new System.Windows.Interop.WindowInteropHelper(mainWindow);
+                NativeMethods.SetForegroundWindow(interopHelper.Handle);
+
+                mainWindow.MiniInputBox.Focus();
+                Keyboard.Focus(mainWindow.MiniInputBox);
+            });
+
             if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { }
 
             _ = InitializeAsync();
@@ -261,14 +281,21 @@ namespace PromptMasterv5.ViewModels
                 IsAiResultDisplayed = false;
             }
 
-            bool needPrefix = !LocalConfig.MiniWindowUseAi;
-
-            if (needPrefix)
+            if (!LocalConfig.MiniAiOnlyChatEnabled)
             {
-                if (value.StartsWith("ai ", StringComparison.OrdinalIgnoreCase) ||
-                    value.StartsWith("ai　", StringComparison.OrdinalIgnoreCase) ||
-                    value.StartsWith("''") ||
-                    value.StartsWith("''"))
+                IsSearchPopupOpen = false;
+                Variables.Clear();
+                HasVariables = false;
+                IsMiniVarsExpanded = false;
+                return;
+            }
+
+            var prefix = LocalConfig.MiniPatternPrefix ?? "";
+            if (!string.IsNullOrWhiteSpace(prefix))
+            {
+                var normalizedValue = NormalizeSymbols(value);
+                var normalizedPrefix = NormalizeSymbols(prefix);
+                if (normalizedValue.StartsWith(normalizedPrefix, StringComparison.Ordinal))
                 {
                     IsSearchPopupOpen = false;
                     Variables.Clear();
@@ -278,17 +305,7 @@ namespace PromptMasterv5.ViewModels
                 }
             }
 
-            if (value.StartsWith("/") || value.StartsWith("、"))
-            {
-                string keyword = value.Length > 1 ? value.Substring(1) : "";
-                PerformSearch(keyword);
-                IsSearchPopupOpen = true;
-            }
-            else
-            {
-                IsSearchPopupOpen = false;
-            }
-
+            IsSearchPopupOpen = false;
             ParseVariablesRealTime(value);
         }
 
@@ -399,6 +416,70 @@ namespace PromptMasterv5.ViewModels
                     MiniInputText = result;
                     IsAiResultDisplayed = true;
                 }
+            }
+            catch (Exception ex)
+            {
+                MiniInputText = $"[AI 错误] {ex.Message}";
+                IsAiResultDisplayed = true;
+            }
+            finally
+            {
+                IsAiProcessing = false;
+            }
+        }
+
+        private static char NormalizeSymbol(char c)
+        {
+            return c switch
+            {
+                '；' => ';',
+                '＇' => '\'',
+                '‘' => '\'',
+                '’' => '\'',
+                '`' => '\'',
+                '´' => '\'',
+                _ => c
+            };
+        }
+
+        private static string NormalizeSymbols(string s)
+        {
+            return new string((s ?? "").Select(NormalizeSymbol).ToArray());
+        }
+
+        public async Task ExecuteMiniAiOrPatternAsync()
+        {
+            var inputText = MiniInputText.Trim();
+            if (string.IsNullOrWhiteSpace(inputText)) return;
+
+            IsAiProcessing = true;
+            try
+            {
+                var prefix = LocalConfig.MiniPatternPrefix ?? "";
+                var normalizedInput = NormalizeSymbols(inputText);
+                var normalizedPrefix = NormalizeSymbols(prefix);
+
+                if (!string.IsNullOrWhiteSpace(prefix) && normalizedInput.StartsWith(normalizedPrefix, StringComparison.Ordinal))
+                {
+                    var query = inputText.Substring(prefix.Length).TrimStart();
+                    if (string.IsNullOrWhiteSpace(query)) return;
+
+                    var patternContent = await _fabricService.FindBestPatternAndContentAsync(query, _aiService, Config);
+                    if (!string.IsNullOrEmpty(patternContent))
+                    {
+                        MiniInputText = $"{patternContent}\n\n---\n\nUSER INPUT:\n{query}";
+                    }
+                    else
+                    {
+                        MiniInputText = $"[提示词匹配失败] {query}";
+                    }
+                    IsAiResultDisplayed = true;
+                    return;
+                }
+
+                var result = await _aiService.ChatAsync(inputText, Config);
+                MiniInputText = result;
+                IsAiResultDisplayed = true;
             }
             catch (Exception ex)
             {
@@ -667,7 +748,7 @@ namespace PromptMasterv5.ViewModels
             }
         }
         [RelayCommand] private void OpenSettings() { Config = ConfigService.Load(); LocalConfig = LocalConfigService.Load(); SelectedSettingsTab = 0; IsSettingsOpen = true; }
-        [RelayCommand] private void SaveSettings() { ConfigService.Save(Config); LocalConfigService.Save(LocalConfig); UpdateGlobalHotkey(); if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { } else _keyService.Stop(); IsSettingsOpen = false; }
+        [RelayCommand] private void SaveSettings() { ConfigService.Save(Config); LocalConfigService.Save(LocalConfig); UpdateGlobalHotkey(); _keyService.AlwaysOnTopSequence = LocalConfig.MiniAlwaysOnTopHotkeyPrefix; if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { } else _keyService.Stop(); IsSettingsOpen = false; }
         [RelayCommand] private void SelectSettingsTab(string s) { if (int.TryParse(s, out int i)) SelectedSettingsTab = i; }
         public void ReorderFolders(int o, int n) { Folders.Move(o, n); RequestSave(); }
         public void MoveFileToFolder(PromptItem f, FolderItem t) { if (f == null || t == null || f.FolderId == t.Id) return; f.FolderId = t.Id; FilesView?.Refresh(); if (SelectedFile == f) SelectedFile = null; RequestSave(); }

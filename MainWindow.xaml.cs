@@ -38,6 +38,7 @@ namespace PromptMasterv5
         private DateTime _lastMiniEnterTime = DateTime.MinValue;
         private DateTime _lastVarEnterTime = DateTime.MinValue;
         private DateTime _lastAddEnterTime = DateTime.MinValue;
+        private int _miniEnterSequence = 0;
 
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private bool _isExiting = false;
@@ -202,6 +203,11 @@ namespace PromptMasterv5
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
+            if (ViewModel != null && ViewModel.LocalConfig.IsMiniTopmostLocked)
+            {
+                return;
+            }
+
             // 1. 需求实现：不需要始终保持置顶
             // 当失去焦点（用户点击了其他软件）时，取消置顶，允许其他窗口覆盖它
             this.Topmost = false;
@@ -477,79 +483,48 @@ namespace PromptMasterv5
                     return;
                 }
 
-                string text = ViewModel.MiniInputText.Trim();
-                bool shouldExecuteAi = false;
-
-                if (ViewModel.LocalConfig.MiniWindowUseAi)
-                {
-                    if (ViewModel.LocalConfig.MiniEnterForAi) shouldExecuteAi = true;
-                    else shouldExecuteAi = false;
-                }
-                else
-                {
-                    shouldExecuteAi = text.StartsWith("ai ", StringComparison.OrdinalIgnoreCase) ||
-                                      text.StartsWith("ai　", StringComparison.OrdinalIgnoreCase) ||
-                                      text.StartsWith("''") ||
-                                      text.StartsWith("''");
-                }
-
-                if (shouldExecuteAi)
-                {
-                    e.Handled = true;
-                    await ViewModel.ExecuteAiQuery();
-
-                    await Dispatcher.BeginInvoke(new Action(() => {
-                        UpdateMiniHeight();
-                        MiniInputBox.Focus();
-                        MiniInputBox.CaretIndex = MiniInputBox.Text.Length;
-                    }), System.Windows.Threading.DispatcherPriority.ContextIdle);
-                    return;
-                }
-
-                _ = Dispatcher.BeginInvoke(new Action(() => {
-                    UpdateMiniHeight();
-                }), System.Windows.Threading.DispatcherPriority.Render);
-
                 bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
                 var now = DateTime.Now;
                 var span = (now - _lastMiniEnterTime).TotalMilliseconds;
 
-                if (span < 500 && !isCtrl)
-                {
-                    e.Handled = true;
-                    _lastMiniEnterTime = DateTime.MinValue;
-                    await ViewModel.SendByCoordinate();
-                    return;
-                }
-
                 if (isCtrl)
                 {
                     e.Handled = true;
-                    await ViewModel.SendBySmartFocus();
+                    _miniEnterSequence++;
+                    await TriggerSendProcess(textBox, InputMode.SmartFocus);
                     return;
                 }
 
-                _lastMiniEnterTime = now;
-
-                int caretIndex = textBox.CaretIndex;
-                int lineIndex = textBox.GetLineIndexFromCharacterIndex(caretIndex);
-                if (lineIndex >= 0)
+                if (!ViewModel.LocalConfig.MiniAiOnlyChatEnabled)
                 {
-                    string lineText = textBox.GetLineText(lineIndex);
-                    var match = Regex.Match(lineText, @"^(\s*)(\d+)([.)])(\s+)");
-                    if (match.Success)
-                    {
-                        string indentation = match.Groups[1].Value;
-                        int currentNumber = int.Parse(match.Groups[2].Value);
-                        string delimiter = match.Groups[3].Value;
-                        string spacing = match.Groups[4].Value;
-                        int nextNumber = currentNumber + 1;
-                        string insertText = $"\n{indentation}{nextNumber}{delimiter}{spacing}";
-                        textBox.SelectedText = insertText;
-                        textBox.CaretIndex += insertText.Length;
-                        e.Handled = true;
-                    }
+                    e.Handled = true;
+                    _miniEnterSequence++;
+                    await TriggerSendProcess(textBox, ViewModel.LocalConfig.Mode);
+                    return;
                 }
+
+                if (span < 500)
+                {
+                    e.Handled = true;
+                    _lastMiniEnterTime = DateTime.MinValue;
+                    _miniEnterSequence++;
+                    await TriggerSendProcess(textBox, InputMode.CoordinateClick);
+                    return;
+                }
+
+                e.Handled = true;
+                _lastMiniEnterTime = now;
+                var enterSeq = ++_miniEnterSequence;
+
+                _ = Dispatcher.InvokeAsync(async () =>
+                {
+                    await Task.Delay(450);
+                    if (_miniEnterSequence != enterSeq) return;
+                    await ViewModel.ExecuteMiniAiOrPatternAsync();
+                    UpdateMiniHeight();
+                    MiniInputBox.Focus();
+                    MiniInputBox.CaretIndex = MiniInputBox.Text.Length;
+                }, System.Windows.Threading.DispatcherPriority.ContextIdle);
             }
             else if (e.Key == Key.Up && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
@@ -735,6 +710,10 @@ namespace PromptMasterv5
         {
             if (e.Key == Key.Escape)
             {
+                if (ViewModel != null)
+                {
+                    ViewModel.LocalConfig.IsMiniTopmostLocked = false;
+                }
                 ViewModel.ExitFullModeCommand.Execute(null);
                 e.Handled = true;
             }
