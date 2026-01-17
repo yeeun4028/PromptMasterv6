@@ -27,6 +27,8 @@
             <SolidColorBrush x:Key="MiniSearchBackgroundBrush" Color="#252526"/>
             <SolidColorBrush x:Key="MiniHighlightBrush" Color="#3C3C3C"/>
             <SolidColorBrush x:Key="AccentBrush" Color="#4183C4"/>
+            <SolidColorBrush x:Key="MiniModeBtnInactiveBrush" Color="#8A8A8A"/>
+            <SolidColorBrush x:Key="MiniModeBtnActiveBrush" Color="#B0B0B0"/>
 
             <SolidColorBrush x:Key="ShellBackground" Color="#FAFAFA"/>
             <SolidColorBrush x:Key="Block1Background" Color="#F1F1EF"/>
@@ -71,7 +73,7 @@
 
                 <Setter Property="VerticalContentAlignment" Value="Top"/>
 
-                <Setter Property="Padding" Value="6"/>
+                <Setter Property="Padding" Value="4"/>
                 <Setter Property="TextBlock.LineHeight" Value="25.6"/>
                 <Setter Property="TextBlock.LineStackingStrategy" Value="BlockLineHeight"/>
                 <Setter Property="Template">
@@ -80,6 +82,33 @@
                             <Border Background="{TemplateBinding Background}">
                                 <ScrollViewer x:Name="PART_ContentHost" Background="Transparent" Margin="{TemplateBinding Padding}"/>
                             </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="MiniModeButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="4,0"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource MiniModeBtnInactiveBrush}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#1FFFFFFF"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#26FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

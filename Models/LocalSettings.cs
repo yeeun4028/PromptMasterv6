@@ -48,7 +48,7 @@ namespace PromptMasterv5.Models
         private bool miniAiOnlyChatEnabled = false;
 
         [ObservableProperty]
-        private string miniPatternPrefix = "''";
+        private string miniPatternPrefix = "ai";
 
         [ObservableProperty]
         private string miniAlwaysOnTopHotkeyPrefix = "";

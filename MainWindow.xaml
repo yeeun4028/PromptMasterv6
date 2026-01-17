@@ -342,6 +342,11 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.Column="0" VerticalAlignment="Stretch" Margin="5,5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
                             <TextBox x:Name="MiniInputBox"
                                      Text="{Binding MiniInputText, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource MiniTextBoxStyle}"
@@ -406,98 +411,129 @@
                                     </ListBox>
                                 </Border>
                             </Popup>
-                        </Grid>
 
-                        <Grid Grid.Column="1"
-                              Width="16"
-                              Height="16"
-                              Margin="0,8,8,0"
-                              HorizontalAlignment="Center"
-                              VerticalAlignment="Top"
-                              Visibility="{Binding IsAiProcessing, Converter={StaticResource BoolToVis}}">
-                            <Canvas x:Name="MiniSpinner" Width="16" Height="16">
-                                <Rectangle x:Name="MiniSpinner0" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="0" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner1" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="30" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner2" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="60" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner3" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="90" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner4" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="120" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner5" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="150" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner6" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="180" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner7" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="210" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner8" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="240" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner9" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="270" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner10" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="300" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="MiniSpinner11" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="330" CenterX="8" CenterY="8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
+                            <StackPanel Grid.Row="1"
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Margin="0,6,6,2">
+                                <Grid Width="16"
+                                      Height="16"
+                                      Margin="0,0,8,0"
+                                      VerticalAlignment="Center"
+                                      Visibility="{Binding IsAiProcessing, Converter={StaticResource BoolToVis}}">
+                                    <Canvas x:Name="MiniSpinner" Width="16" Height="16">
+                                        <Rectangle x:Name="MiniSpinner0" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="0" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner1" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="30" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner2" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="60" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner3" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="90" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner4" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="120" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner5" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="150" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner6" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="180" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner7" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="210" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner8" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="240" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner9" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="270" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner10" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="300" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                        <Rectangle x:Name="MiniSpinner11" Width="3" Height="7" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource AccentBrush}" Opacity="0.1" Canvas.Left="6.5" Canvas.Top="0">
+                                            <Rectangle.RenderTransform>
+                                                <RotateTransform Angle="330" CenterX="8" CenterY="8"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
 
-                                <Canvas.Triggers>
-                                    <EventTrigger RoutedEvent="Loaded">
-                                        <BeginStoryboard>
-                                            <Storyboard RepeatBehavior="Forever" Duration="0:0:1.2">
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner0" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner1" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.1"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner2" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.2"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner3" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.3"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner4" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.4"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner5" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.5"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner6" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.6"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner7" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.7"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner8" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.8"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner9" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.9"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner10" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:1.0"/>
-                                                <DoubleAnimation Storyboard.TargetName="MiniSpinner11" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:1.1"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger>
-                                </Canvas.Triggers>
-                            </Canvas>
+                                        <Canvas.Triggers>
+                                            <EventTrigger RoutedEvent="Loaded">
+                                                <BeginStoryboard>
+                                                    <Storyboard RepeatBehavior="Forever" Duration="0:0:1.2">
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner0" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner1" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.1"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner2" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.2"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner3" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.3"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner4" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.4"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner5" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.5"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner6" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.6"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner7" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.7"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner8" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.8"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner9" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:0.9"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner10" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:1.0"/>
+                                                        <DoubleAnimation Storyboard.TargetName="MiniSpinner11" Storyboard.TargetProperty="Opacity" From="1" To="0.1" Duration="0:0:1.2" BeginTime="0:0:1.1"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Canvas.Triggers>
+                                    </Canvas>
+                                </Grid>
+
+                                <Button Content="AI"
+                                        Command="{Binding EnableMiniAiModeCommand}"
+                                        ToolTip="AI：使用已配置的 API Key 对话；以 ai 前缀开头则匹配提示词">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource MiniModeButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LocalConfig.MiniAiOnlyChatEnabled}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource MiniModeBtnActiveBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <Button Content="T"
+                                        Command="{Binding EnableMiniTestModeCommand}"
+                                        ToolTip="T：迷你输入框作为网页对话框，按当前发送模式直接发送">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource MiniModeButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LocalConfig.MiniAiOnlyChatEnabled}" Value="False">
+                                                    <Setter Property="Foreground" Value="{StaticResource MiniModeBtnActiveBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </Grid>
 

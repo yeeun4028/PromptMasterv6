@@ -197,6 +197,24 @@ namespace PromptMasterv5.ViewModels
             LocalConfigService.Save(LocalConfig);
         }
 
+        [RelayCommand]
+        private void EnableMiniAiMode()
+        {
+            LocalConfig.MiniAiOnlyChatEnabled = true;
+            if (string.IsNullOrWhiteSpace(LocalConfig.MiniPatternPrefix))
+            {
+                LocalConfig.MiniPatternPrefix = "ai";
+            }
+            LocalConfigService.Save(LocalConfig);
+        }
+
+        [RelayCommand]
+        private void EnableMiniTestMode()
+        {
+            LocalConfig.MiniAiOnlyChatEnabled = false;
+            LocalConfigService.Save(LocalConfig);
+        }
+
         private void ApplyTheme(ThemeType theme)
         {
             var resources = Application.Current?.Resources;
@@ -564,6 +582,7 @@ namespace PromptMasterv5.ViewModels
         {
             if (string.IsNullOrWhiteSpace(content)) return;
             var window = Application.Current.MainWindow;
+            bool wasMiniMode = !IsFullMode;
 
             bool stoppedGlobalHook = false;
             try
@@ -597,6 +616,21 @@ namespace PromptMasterv5.ViewModels
             else
             {
                 AdditionalInput = "";
+            }
+
+            if (wasMiniMode && window != null)
+            {
+                window.Show();
+                window.Activate();
+                window.Topmost = true;
+                if (window is MainWindow mainWin)
+                {
+                    mainWin.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        mainWin.MiniInputBox.Focus();
+                        Keyboard.Focus(mainWin.MiniInputBox);
+                    }), DispatcherPriority.Render);
+                }
             }
         }
 

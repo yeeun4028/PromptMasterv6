@@ -424,6 +424,14 @@ namespace PromptMasterv5
                 return;
             }
 
+            if (e.Key == Key.Delete && ViewModel.LocalConfig.MiniAiOnlyChatEnabled)
+            {
+                ViewModel.MiniInputText = "";
+                ViewModel.IsAiResultDisplayed = false;
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key == Key.Delete && ViewModel.IsAiResultDisplayed)
             {
                 ViewModel.MiniInputText = "";
@@ -539,6 +547,8 @@ namespace PromptMasterv5
         {
             sourceBox?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
             this.Hide();
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+            await Task.Delay(60);
             if (mode == InputMode.SmartFocus)
                 await ViewModel.SendBySmartFocus();
             else
