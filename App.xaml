@@ -93,12 +93,23 @@
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="CaretBrush" Value="#DEDEDE"/>
                 <Setter Property="FontSize" Value="16"/>
-                <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
-                <Setter Property="Padding" Value="4"/>
+                <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI, Microsoft YaHei"/>
+                <Setter Property="Padding" Value="15,15,15,3"/>
                 <Setter Property="TextBlock.LineHeight" Value="25.6"/>
                 <Setter Property="TextBlock.LineStackingStrategy" Value="BlockLineHeight"/>
                 <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
                 <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RichTextBox">
+                            <Border Background="{TemplateBinding Background}">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Background="Transparent"
+                                              Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="MiniModeButtonStyle" TargetType="Button">

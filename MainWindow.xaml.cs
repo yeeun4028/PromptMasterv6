@@ -81,10 +81,24 @@ namespace PromptMasterv5
         private string GetMiniUserInputText()
         {
             if (MiniInputBox?.Document == null) return "";
-            var para = MiniInputBox.Document.Blocks.OfType<Paragraph>().LastOrDefault();
-            if (para == null) return "";
-            var text = new TextRange(para.ContentStart, para.ContentEnd).Text ?? "";
-            return text.TrimEnd('\r', '\n');
+            var paragraphs = MiniInputBox.Document.Blocks.OfType<Paragraph>().ToList();
+            if (paragraphs.Count == 0) return "";
+
+            var selected = GetMiniSelectedPrompt();
+            var startIndex = (selected != null && paragraphs.Count >= 2) ? 1 : 0;
+
+            var sb = new StringBuilder();
+            for (int i = startIndex; i < paragraphs.Count; i++)
+            {
+                var p = paragraphs[i];
+                var segment = new TextRange(p.ContentStart, p.ContentEnd).Text ?? "";
+                segment = segment.TrimEnd('\r', '\n');
+
+                if (sb.Length > 0) sb.Append('\n');
+                sb.Append(segment);
+            }
+
+            return sb.ToString();
         }
 
         private PromptItem? GetMiniSelectedPrompt()
@@ -107,13 +121,16 @@ namespace PromptMasterv5
                 {
                     PagePadding = new Thickness(0),
                     FontFamily = MiniInputBox.FontFamily,
-                    FontSize = MiniInputBox.FontSize
+                    FontSize = MiniInputBox.FontSize,
+                    LineHeight = MiniInputBox.FontSize * 1.6,
+                    LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
+                    Background = System.Windows.Media.Brushes.Transparent
                 };
 
                 var selected = GetMiniSelectedPrompt();
                 if (selected != null)
                 {
-                    var chipParagraph = new Paragraph { Margin = new Thickness(0, 0, 0, 2) };
+                    var chipParagraph = new Paragraph { Margin = new Thickness(0, 2, 0, 3) };
                     var showIcons = ViewModel.LocalConfig.MiniPinnedPromptShowIcons && !string.IsNullOrWhiteSpace(selected.IconGeometry);
 
                     if (showIcons)
@@ -129,32 +146,58 @@ namespace PromptMasterv5
                                 Width = 14,
                                 Height = 14,
                                 Stretch = Stretch.Uniform,
-                                Fill = TryFindResource("GitHubBlue") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White,
+                                Fill = TryFindResource("MiniModeBtnActiveBrush") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White,
                                 VerticalAlignment = VerticalAlignment.Center
                             };
-                            chipParagraph.Inlines.Add(new InlineUIContainer(path) { BaselineAlignment = BaselineAlignment.Center });
+                            var border = new Border
+                            {
+                                Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x33, 0x33, 0x33)),
+                                BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x65, 0x65, 0x65)),
+                                BorderThickness = new Thickness(1),
+                                CornerRadius = new CornerRadius(3),
+                                Padding = new Thickness(1.5)
+                            };
+                            border.Child = path;
+                            chipParagraph.Inlines.Add(new InlineUIContainer(border) { BaselineAlignment = BaselineAlignment.Center });
                         }
                         else
                         {
-                            chipParagraph.Inlines.Add(new Run(selected.Title ?? "") { Foreground = TryFindResource("GitHubBlue") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White });
+                            var border = new Border
+                            {
+                                Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x33, 0x33, 0x33)),
+                                BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x65, 0x65, 0x65)),
+                                BorderThickness = new Thickness(1),
+                                CornerRadius = new CornerRadius(3),
+                                Padding = new Thickness(1.5)
+                            };
+                            border.Child = new TextBlock
+                            {
+                                Text = selected.Title ?? "",
+                                Foreground = TryFindResource("MiniModeBtnActiveBrush") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White,
+                                FontFamily = new System.Windows.Media.FontFamily("Segoe UI, Microsoft YaHei UI, Microsoft YaHei"),
+                                FontSize = 14,
+                                FontWeight = FontWeights.Normal
+                            };
+                            chipParagraph.Inlines.Add(new InlineUIContainer(border) { BaselineAlignment = BaselineAlignment.Center });
                         }
                     }
                     else
                     {
                         var border = new Border
                         {
-                            Background = System.Windows.Media.Brushes.Transparent,
-                            BorderBrush = TryFindResource("GitHubBlue") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White,
+                            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x33, 0x33, 0x33)),
+                            BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x65, 0x65, 0x65)),
                             BorderThickness = new Thickness(1),
-                            CornerRadius = new CornerRadius(4),
-                            Padding = new Thickness(8, 2, 8, 2)
+                            CornerRadius = new CornerRadius(3),
+                            Padding = new Thickness(1.5)
                         };
                         border.Child = new TextBlock
                         {
                             Text = selected.Title ?? "",
-                            Foreground = TryFindResource("GitHubBlue") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White,
-                            FontSize = Math.Max(10, MiniInputBox.FontSize - 2),
-                            FontWeight = FontWeights.SemiBold
+                            Foreground = TryFindResource("MiniModeBtnActiveBrush") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.White,
+                            FontFamily = new System.Windows.Media.FontFamily("Segoe UI, Microsoft YaHei UI, Microsoft YaHei"),
+                            FontSize = 14,
+                            FontWeight = FontWeights.Normal
                         };
                         chipParagraph.Inlines.Add(new InlineUIContainer(border) { BaselineAlignment = BaselineAlignment.Center });
                     }
@@ -162,16 +205,29 @@ namespace PromptMasterv5
                     doc.Blocks.Add(chipParagraph);
                 }
 
-                var userParagraph = new Paragraph { Margin = new Thickness(0) };
-                userParagraph.Inlines.Add(new Run(userText ?? ""));
-                doc.Blocks.Add(userParagraph);
+                Paragraph? firstUserParagraph = null;
+                var normalized = (userText ?? "").Replace("\r\n", "\n").Replace("\r", "\n");
+                var lines = normalized.Split('\n');
+                foreach (var line in lines)
+                {
+                    var p = new Paragraph { Margin = new Thickness(0) };
+                    p.Inlines.Add(new Run(line));
+                    doc.Blocks.Add(p);
+                    firstUserParagraph ??= p;
+                }
+
+                if (firstUserParagraph == null)
+                {
+                    firstUserParagraph = new Paragraph { Margin = new Thickness(0) };
+                    doc.Blocks.Add(firstUserParagraph);
+                }
 
                 MiniInputBox.Document = doc;
 
                 if (focusUserInput)
                 {
                     MiniInputBox.Focus();
-                    MiniInputBox.CaretPosition = userParagraph.ContentStart;
+                    MiniInputBox.CaretPosition = firstUserParagraph.ContentStart;
                 }
             }
             finally
@@ -182,7 +238,21 @@ namespace PromptMasterv5
 
         private int GetMiniVisualLineCount()
         {
-            if (MiniInputBox?.Document == null) return 1;
+            if (MiniInputBox == null) return 1;
+
+            MiniInputBox.UpdateLayout();
+            if (_miniLineHeight > 0)
+            {
+                var extent = MiniInputBox.ExtentHeight;
+                if (extent > 0)
+                {
+                    var linesByExtent = (int)Math.Ceiling(extent / _miniLineHeight);
+                    if (linesByExtent < 1) linesByExtent = 1;
+                    return linesByExtent;
+                }
+            }
+
+            if (MiniInputBox.Document == null) return 1;
             var start = MiniInputBox.Document.ContentStart;
             if (start == null) return 1;
             var line = start;
@@ -827,11 +897,12 @@ namespace PromptMasterv5
                     var docStart = box.Document.ContentStart.GetInsertionPosition(LogicalDirection.Forward);
 
                     var paragraphs = box.Document.Blocks.OfType<Paragraph>().ToList();
-                    var userPara = paragraphs.LastOrDefault();
                     var chipPara = paragraphs.Count > 1 ? paragraphs.First() : null;
+                    var userParas = paragraphs.Skip(chipPara != null ? 1 : 0).ToList();
+                    var firstUserPara = userParas.FirstOrDefault();
 
                     var atDocStart = caret != null && docStart != null && caret.CompareTo(docStart) == 0;
-                    var atUserStart = userPara != null && caret != null && caret.CompareTo(userPara.ContentStart) == 0;
+                    var atUserStart = firstUserPara != null && caret != null && caret.CompareTo(firstUserPara.ContentStart) == 0;
                     var inChipLine = chipPara != null && caret != null && caret.CompareTo(chipPara.ContentStart) >= 0 && caret.CompareTo(chipPara.ContentEnd) <= 0;
 
                     var shouldRemoveChip =
