@@ -64,8 +64,12 @@ namespace PromptMasterv5.Models
         public double MiniWindowHeight { get; set; } = 0;
 
         public bool MiniUseDefaultPosition { get; set; } = false;
-        public double MiniDefaultLeft { get; set; } = 100;
-        public double MiniDefaultBottom { get; set; } = 600;
+
+        [ObservableProperty]
+        private double miniDefaultLeft = 100;
+
+        [ObservableProperty]
+        private double miniDefaultBottom = 600;
 
         public double MiniDefaultWidth { get; set; } = 500;
         public double MiniDefaultHeight { get; set; } = 0;

@@ -158,12 +158,25 @@ namespace PromptMasterv5.Views
                 btn.IsEnabled = false;
                 for (int i = 3; i > 0; i--) { btn.Content = $"{i}"; await Task.Delay(1000); }
                 var pt = WinFormsCursor.Position;
-                ViewModel.LocalConfig.MiniDefaultLeft = pt.X;
-                ViewModel.LocalConfig.MiniDefaultBottom = pt.Y;
+                var dip = ScreenToDip(new System.Windows.Point(pt.X, pt.Y));
+                ViewModel.LocalConfig.MiniDefaultLeft = Math.Round(dip.X, 1);
+                ViewModel.LocalConfig.MiniDefaultBottom = Math.Round(dip.Y, 1);
                 btn.Content = "已获取!";
                 await Task.Delay(1000);
             }
             finally { btn.Content = org; btn.IsEnabled = true; }
+        }
+
+        private System.Windows.Point ScreenToDip(System.Windows.Point screenPoint)
+        {
+            var hostWindow = Window.GetWindow(this);
+            if (hostWindow == null) return screenPoint;
+
+            var source = PresentationSource.FromVisual(hostWindow);
+            var target = source?.CompositionTarget;
+            if (target == null) return screenPoint;
+
+            return target.TransformFromDevice.Transform(screenPoint);
         }
 
         private void CoordinateRuleField_GotFocus(object sender, RoutedEventArgs e)
