@@ -850,11 +850,32 @@ namespace PromptMasterv5.ViewModels
 
                     if (!IsFullMode && window is MainWindow mainWin)
                     {
+                        mainWin.SuppressMiniAutoHide(800);
                         FocusMiniInputBox(mainWin);
                     }
                 }
                 else
                 {
+                    if (!window.IsActive)
+                    {
+                        if (window is MainWindow mainWin)
+                        {
+                            mainWin.BringToFrontAndEnsureOnScreen();
+                            if (!IsFullMode)
+                            {
+                                FocusMiniInputBox(mainWin);
+                            }
+                        }
+                        else
+                        {
+                            window.Activate();
+                            window.Focus();
+                            NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(window).Handle);
+                            window.Topmost = true;
+                        }
+                        return;
+                    }
+
                     _previousFullMode = IsFullMode;
                     window.Hide();
                 }
@@ -873,6 +894,7 @@ namespace PromptMasterv5.ViewModels
 
             if (!IsFullMode && window is MainWindow miniWin)
             {
+                miniWin.SuppressMiniAutoHide(800);
                 FocusMiniInputBox(miniWin);
             }
         }

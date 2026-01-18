@@ -59,6 +59,7 @@ namespace PromptMasterv5
         private DispatcherTimer? _miniAutoResizeTimer;
         private bool _isApplyingMiniAutoResize = false;
         private bool _isUpdatingMiniInputDocument = false;
+        private DateTime _suppressAutoHideUntilUtc = DateTime.MinValue;
 
         private double GetMiniDefaultWidth()
         {
@@ -535,6 +536,10 @@ namespace PromptMasterv5
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
+            if (DateTime.UtcNow < _suppressAutoHideUntilUtc)
+            {
+                return;
+            }
             if (ViewModel != null && ViewModel.LocalConfig.IsMiniTopmostLocked)
             {
                 return;
@@ -576,6 +581,23 @@ namespace PromptMasterv5
                 _hideTimer.Stop();
                 _hideTimer = null;
             }
+        }
+
+        public void SuppressMiniAutoHide(int milliseconds)
+        {
+            _suppressAutoHideUntilUtc = DateTime.UtcNow.AddMilliseconds(milliseconds);
+            StopHideTimer();
+        }
+
+        public void BringToFrontAndEnsureOnScreen()
+        {
+            SuppressMiniAutoHide(800);
+            EnsureWindowOnScreen();
+            Topmost = true;
+            Show();
+            Activate();
+            Focus();
+            NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
         }
 
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -856,8 +878,21 @@ namespace PromptMasterv5
 
         private void EnsureWindowOnScreen()
         {
-            if (this.Left < 0) this.Left = 0;
-            if (this.Top < 0) this.Top = 0;
+            var wa = SystemParameters.WorkArea;
+
+            if (Width <= 0 || double.IsNaN(Width)) Width = Math.Min(1000, wa.Width);
+            if (Height <= 0 || double.IsNaN(Height)) Height = Math.Min(600, wa.Height);
+
+            var maxLeft = wa.Right - Width;
+            var maxTop = wa.Bottom - Height;
+
+            if (maxLeft < wa.Left) maxLeft = wa.Left;
+            if (maxTop < wa.Top) maxTop = wa.Top;
+
+            if (Left < wa.Left) Left = wa.Left;
+            if (Top < wa.Top) Top = wa.Top;
+            if (Left > maxLeft) Left = maxLeft;
+            if (Top > maxTop) Top = maxTop;
         }
 
         private void MiniWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
