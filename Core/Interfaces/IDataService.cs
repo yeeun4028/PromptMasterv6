@@ -1,12 +1,14 @@
-﻿using System;
+﻿using PromptMasterv5.Core.Models; // 命名空间记得修改
+using PromptMasterv5.Models;
+using PromptMasterv5.Services;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PromptMasterv5.Core.Interfaces
 {
-    internal class IDataService
+    public interface IDataService
     {
+        Task<AppData> LoadAsync();
+        Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files);
     }
 }
