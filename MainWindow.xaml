@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="clr-namespace:System.Windows.Input;assembly=PresentationCore"
         xmlns:md="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
         xmlns:dd="urn:gong-wpf-dragdrop"
         xmlns:models="clr-namespace:PromptMasterv5.Models"
@@ -448,6 +449,8 @@
                             <Border Padding="30,30,30,30" Background="Transparent">
                                 <RichTextBox x:Name="MiniInputBox"
                                              Style="{StaticResource MiniRichTextBoxStyle}"
+                                             i:TextCompositionManager.PreviewTextInputStart="MiniInput_PreviewTextInputStart"
+                                             PreviewTextInput="MiniInput_PreviewTextInput"
                                              PreviewKeyDown="MiniInput_PreviewKeyDown"
                                              TextChanged="MiniInput_TextChanged">
                                     <RichTextBox.Resources>

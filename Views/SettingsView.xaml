@@ -880,6 +880,7 @@
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -1012,6 +1013,17 @@
                                             <CheckBox Grid.Row="6" Grid.Column="1"
                                                       IsChecked="{Binding LocalConfig.MiniPinnedPromptClickShowsFullContent}"
                                                       Content="点击后填入完整内容（关闭则组合发送）"
+                                                      Margin="10,12,0,0"
+                                                      Cursor="Hand"/>
+
+                                            <TextBlock Grid.Row="7" Grid.Column="0"
+                                                       Text="AI回复后输入清空"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="7" Grid.Column="1"
+                                                      IsChecked="{Binding LocalConfig.MiniClearAiResultOnTyping}"
+                                                      Content="输入新内容时清空AI回复（保留本次输入）"
                                                       Margin="10,12,0,0"
                                                       Cursor="Hand"/>
                                         </Grid>

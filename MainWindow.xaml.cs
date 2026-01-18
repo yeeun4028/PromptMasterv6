@@ -270,6 +270,15 @@ namespace PromptMasterv5
             finally
             {
                 _isUpdatingMiniInputDocument = false;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (ViewModel == null) return;
+                    if (ViewModel.IsFullMode) return;
+                    if (MiniInputBox == null) return;
+                    if (_miniDefaultHeight <= 0) return;
+
+                    ApplyMiniAutoResize();
+                }), DispatcherPriority.Background);
             }
         }
 
@@ -796,6 +805,42 @@ namespace PromptMasterv5
             }
         }
 
+        private void MiniInput_PreviewTextInputStart(object sender, TextCompositionEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (ViewModel.IsFullMode) return;
+            if (MiniInputBox == null) return;
+            if (!ViewModel.IsAiResultDisplayed) return;
+            if (!ViewModel.LocalConfig.MiniClearAiResultOnTyping) return;
+
+            ViewModel.IsAiResultDisplayed = false;
+            ViewModel.MiniInputText = "";
+            RebuildMiniInputDocument("", focusUserInput: true);
+        }
+
+        private void MiniInput_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (ViewModel.IsFullMode) return;
+            if (MiniInputBox == null) return;
+            if (!ViewModel.IsAiResultDisplayed) return;
+            if (!ViewModel.LocalConfig.MiniClearAiResultOnTyping) return;
+            if (string.IsNullOrEmpty(e.Text)) return;
+
+            var textToInsert = e.Text;
+            e.Handled = true;
+
+            ViewModel.IsAiResultDisplayed = false;
+            ViewModel.MiniInputText = "";
+            RebuildMiniInputDocument("", focusUserInput: true);
+
+            var caret = MiniInputBox.CaretPosition?.GetInsertionPosition(LogicalDirection.Forward) ?? MiniInputBox.CaretPosition;
+            if (caret == null) return;
+
+            caret.InsertTextInRun(textToInsert);
+            MiniInputBox.CaretPosition = caret.GetPositionAtOffset(textToInsert.Length, LogicalDirection.Forward) ?? MiniInputBox.CaretPosition;
+        }
+
         private childItem? FindVisualChild<childItem>(DependencyObject? obj) where childItem : DependencyObject
         {
             if (obj == null) return null;
@@ -980,6 +1025,17 @@ namespace PromptMasterv5
             var box = sender as RichTextBox;
             if (box == null) return;
             if (ViewModel == null) return;
+
+            if (!ViewModel.IsFullMode &&
+                ViewModel.IsAiResultDisplayed &&
+                ViewModel.LocalConfig.MiniClearAiResultOnTyping &&
+                e.Key == Key.ImeProcessed)
+            {
+                ViewModel.IsAiResultDisplayed = false;
+                ViewModel.MiniInputText = "";
+                RebuildMiniInputDocument("", focusUserInput: true);
+                return;
+            }
 
             if (!ViewModel.IsFullMode && !_isUpdatingMiniInputDocument)
             {

@@ -70,6 +70,7 @@ namespace PromptMasterv5.Models
         public double MiniDefaultWidth { get; set; } = 500;
         public double MiniDefaultHeight { get; set; } = 0;
         public double MiniExpandedWidth { get; set; } = 800;
+        public bool MiniClearAiResultOnTyping { get; set; } = true;
 
         public string MiniPinnedPromptId { get; set; } = "";
         public string MiniPinnedPromptCandidateId { get; set; } = "";
