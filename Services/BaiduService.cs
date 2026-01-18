@@ -21,52 +21,44 @@ namespace PromptMasterv5.Services
         }
 
         /// <summary>
-        /// 文本翻译 (完美修复版)
-        /// 采用 POST 方式提交，自动处理 URL 编码，支持长文本和特殊字符
+        /// 文本翻译 (修复版)
         /// </summary>
         /// <param name="appId">百度翻译 AppID</param>
-        /// <param name="secretKey">密钥</param>
-        /// <param name="q">待翻译文本</param>
+        /// <param name="secretKey">百度翻译 密钥</param>
+        /// <param name="text">待翻译文本</param>
+        /// <param name="from">源语言 (默认 auto)</param>
         /// <param name="to">目标语言 (默认 zh)</param>
-        /// <returns>翻译结果或错误提示</returns>
-        public async Task<string> TranslateAsync(string appId, string secretKey, string q, string to = "zh")
+        public async Task<string> TranslateAsync(string appId, string secretKey, string text, string from = "auto", string to = "zh")
         {
-            // 1. 基础检查
-            if (string.IsNullOrWhiteSpace(q)) return "";
+            // 1. 基础校验
             if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(secretKey))
-                return "请先在设置中配置百度翻译 AppID 和密钥";
+                return "请先在设置中配置百度翻译 AppID 和 密钥";
+
+            if (string.IsNullOrWhiteSpace(text))
+                return "翻译内容为空";
 
             try
             {
-                string url = "https://api.fanyi.baidu.com/api/trans/vip/translate";
+                // 2. 生成随机盐 (Salt)
                 string salt = DateTime.Now.Ticks.ToString();
-                string from = "auto";
 
-                // 2. 签名计算 (核心点：Sign 必须使用【未编码】的原始字符串计算)
-                // 官方公式: appid + q + salt + 密钥
-                string signStr = appId + q + salt + secretKey;
-                string sign = MD5Encrypt(signStr);
+                // 3. 生成签名 (Sign)
+                // ★★★ 关键点1：签名必须使用【未编码】的原始文本拼接 ★★★
+                string rawSignStr = appId + text + salt + secretKey;
+                string sign = EncryptString(rawSignStr);
 
-                // 3. 构建请求参数 (使用 FormUrlEncodedContent 自动处理特殊字符编码)
-                var postData = new List<KeyValuePair<string, string>>
-                {
-                    new("q", q),
-                    new("from", from),
-                    new("to", to),
-                    new("appid", appId),
-                    new("salt", salt),
-                    new("sign", sign)
-                };
+                // 4. 构造请求 URL
+                // ★★★ 关键点2：发送请求时，Query 参数中的文本必须经过 URL 编码 ★★★
+                // 百度通用翻译 API 地址
+                string url = $"https://fanyi-api.baidu.com/api/trans/vip/translate?q={Uri.EscapeDataString(text)}&from={from}&to={to}&appid={appId}&salt={salt}&sign={sign}";
 
-                using var content = new FormUrlEncodedContent(postData);
-
-                // 4. 发送 POST 请求
-                var response = await _client.PostAsync(url, content);
+                // 5. 发送请求
+                var response = await _client.GetAsync(url);
                 var json = await response.Content.ReadAsStringAsync();
 
-                // 5. 安全解析结果
+                // 6. 解析结果
                 var jsonNode = JsonNode.Parse(json);
-                if (jsonNode == null) return "错误：接口返回数据为空";
+                if (jsonNode == null) return "翻译接口返回数据为空";
 
                 // 优先检查错误码 (52000 为成功)
                 var errorCode = jsonNode["error_code"]?.ToString();
@@ -112,9 +104,9 @@ namespace PromptMasterv5.Services
                 // 1. 获取 Access Token
                 // 注意：OCR 的鉴权方式与翻译不同，需要先换取 Token
                 string tokenUrl = $"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={apiKey}&client_secret={secretKey}";
-
                 var tokenResponse = await _client.PostAsync(tokenUrl, null);
                 var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
+
                 var tokenNode = JsonNode.Parse(tokenJson);
                 var accessToken = tokenNode?["access_token"]?.ToString();
 
@@ -123,61 +115,63 @@ namespace PromptMasterv5.Services
 
                 // 2. 调用 OCR 接口
                 string ocrUrl = $"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={accessToken}";
-                string base64 = Convert.ToBase64String(imageBytes);
 
+                string base64 = Convert.ToBase64String(imageBytes);
                 var postData = new List<KeyValuePair<string, string>>
                 {
                     new("image", base64),
                     new("language_type", "CHN_ENG") // 识别中英混合
                 };
-                using var content = new FormUrlEncodedContent(postData);
 
+                using var content = new FormUrlEncodedContent(postData);
                 var response = await _client.PostAsync(ocrUrl, content);
                 var json = await response.Content.ReadAsStringAsync();
 
                 // 3. 解析结果
-                var resultNode = JsonNode.Parse(json);
-                if (resultNode == null) return "错误：OCR 返回数据为空";
+                var jsonNode = JsonNode.Parse(json);
+                if (jsonNode == null) return "OCR 接口返回为空";
 
-                // 检查错误
-                var errorMsg = resultNode["error_msg"]?.ToString();
-                if (!string.IsNullOrEmpty(errorMsg)) return $"OCR 识别错误：{errorMsg}";
-
-                var wordsResult = resultNode["words_result"] as JsonArray;
-                if (wordsResult == null || wordsResult.Count == 0) return "未识别到文字";
-
-                var sb = new StringBuilder();
-                foreach (var item in wordsResult)
+                if (jsonNode["error_code"] != null)
                 {
-                    var words = item?["words"]?.ToString();
-                    if (!string.IsNullOrEmpty(words))
-                    {
-                        sb.AppendLine(words);
-                    }
+                    return $"OCR 失败: {jsonNode["error_msg"]}";
                 }
-                return sb.ToString().Trim();
+
+                if (jsonNode["words_result"] is JsonArray wordsArray)
+                {
+                    var sb = new StringBuilder();
+                    foreach (var item in wordsArray)
+                    {
+                        sb.AppendLine(item?["words"]?.ToString());
+                    }
+                    return sb.ToString().Trim();
+                }
+
+                return "未识别到文字";
             }
             catch (Exception ex)
             {
-                return $"OCR 异常：{ex.Message}";
+                return $"OCR 异常: {ex.Message}";
             }
         }
 
         /// <summary>
-        /// MD5 加密辅助方法
+        /// MD5 加密工具方法
         /// </summary>
-        private string MD5Encrypt(string str)
+        private static string EncryptString(string str)
         {
-            using var md5 = MD5.Create();
-            var inputBytes = Encoding.UTF8.GetBytes(str);
-            var hashBytes = md5.ComputeHash(inputBytes);
-
-            var sb = new StringBuilder();
-            foreach (var b in hashBytes)
+            using (var md5 = MD5.Create())
             {
-                sb.Append(b.ToString("x2")); // 使用小写 x2 格式
+                var byteOld = Encoding.UTF8.GetBytes(str);
+                var byteNew = md5.ComputeHash(byteOld);
+                var sb = new StringBuilder();
+                foreach (var b in byteNew)
+                {
+                    // ★★★ 关键点3：必须使用 "x2" 格式化为小写十六进制 ★★★
+                    // 如果使用 "X2" (大写)，百度 API 会提示签名错误 (54001)
+                    sb.Append(b.ToString("x2"));
+                }
+                return sb.ToString();
             }
-            return sb.ToString();
         }
     }
 }
