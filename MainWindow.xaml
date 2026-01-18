@@ -1148,17 +1148,18 @@
                                 </Grid>
 
                                 <Grid Grid.Row="1">
-                                    <TextBox x:Name="Block3ContentEditor"
-                                             Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
-                                             AcceptsReturn="True"
-                                             TextWrapping="Wrap"
-                                             VerticalContentAlignment="Top"
-                                             BorderThickness="0"
-                                             Background="Transparent"
-                                             FontSize="14"
-                                             Padding="5"
-                                             FontFamily="Segoe UI, Microsoft YaHei UI"
-                                             PreviewKeyDown="TextBox_PreviewKeyDown">
+                                     <TextBox x:Name="Block3ContentEditor"
+                                              Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
+                                              AcceptsReturn="True"
+                                              TextWrapping="Wrap"
+                                              VerticalContentAlignment="Top"
+                                              BorderThickness="0"
+                                              Background="Transparent"
+                                              FontSize="14"
+                                              Padding="5"
+                                              FontFamily="Segoe UI, Microsoft YaHei UI"
+                                              Foreground="{DynamicResource PrimaryTextBrush}"
+                                              PreviewKeyDown="TextBox_PreviewKeyDown">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Setter Property="Visibility" Value="Collapsed"/>

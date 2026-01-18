@@ -366,7 +366,7 @@ namespace PromptMasterv5.ViewModels
                 SetBrush(resources, "Block3Background", "#363B40");
                 SetBrush(resources, "Block4Background", "#363B40");
 
-                SetBrush(resources, "PrimaryTextBrush", "#E6E8EA");
+                SetBrush(resources, "PrimaryTextBrush", "#B8BFC6");
                 SetBrush(resources, "SecondaryTextBrush", "#B0B4B8");
                 SetBrush(resources, "PlaceholderTextBrush", "#8A8F96");
 
