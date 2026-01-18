@@ -1,0 +1,41 @@
+﻿<Window x:Class="PromptMasterv5.Views.TranslationPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="翻译结果" 
+        Height="200" Width="300"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Deactivated="Window_Deactivated">
+
+    <Border Background="#FAFAFA" 
+            BorderBrush="#DDD" 
+            BorderThickness="1" 
+            CornerRadius="8"
+            Padding="15">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="翻译结果" FontWeight="Bold" Foreground="#666" Margin="0,0,0,10"/>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <TextBox x:Name="ResultBox"
+                         Text="Loading..."
+                         TextWrapping="Wrap"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         FontSize="14"
+                         IsReadOnly="True"/>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

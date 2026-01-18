@@ -50,12 +50,18 @@ namespace PromptMasterv5.Models
         [ObservableProperty]
         private string miniPatternPrefix = "ai";
 
-        [ObservableProperty]
-        private string miniAlwaysOnTopHotkeyPrefix = "";
+        [ObservableProperty] 
+ private string miniAlwaysOnTopHotkeyPrefix = ""; 
 
-        [ObservableProperty]
-        [property: JsonIgnore]
-        private bool isMiniTopmostLocked = false;
+[ObservableProperty] 
+ private string ocrHotkey = "F9"; // 默认 F9 触发 OCR 
+
+[ObservableProperty] 
+ private string translateHotkey = "Alt+D"; // 默认 Alt+D 触发翻译 
+
+[ObservableProperty] 
+ [property: JsonIgnore] 
+ private bool isMiniTopmostLocked = false;
 
         // 极简模式窗口位置记忆
         public double MiniWindowTop { get; set; } = 100;

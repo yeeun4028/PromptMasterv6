@@ -7,7 +7,7 @@
              xmlns:models="clr-namespace:PromptMasterv5.Models"
              xmlns:utils="clr-namespace:PromptMasterv5.Utils"
              mc:Ignorable="d" 
-             d:DesignHeight="500" d:DesignWidth="750">
+             d:DesignHeight="600" d:DesignWidth="750">
     <UserControl.Resources>
         <Color x:Key="AccentColorValue">#4183C4</Color>
         <SolidColorBrush x:Key="AccentColor" Color="{StaticResource AccentColorValue}"/>
@@ -33,7 +33,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                         <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="15,0">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="15,0">
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -289,7 +289,7 @@
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="25" ShadowDepth="0"/>
                 </Border.Effect>
-                
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
@@ -389,6 +389,24 @@
                                     <TextBlock Text="极简窗口" FontSize="14" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+
+                            <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="5">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ModernTabBtnStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="5">
+                                                <Setter Property="Tag" Value="Selected"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="16" Height="16" Margin="0,1,12,1">
+                                        <TextBlock Text="🛠️" FontSize="16" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                    </Viewbox>
+                                    <TextBlock Text="外部工具" FontSize="14" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </Border>
 
@@ -431,7 +449,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    
+
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -623,13 +641,13 @@
                                                        VerticalAlignment="Center"
                                                        Margin="0,0,10,0"
                                                        Style="{StaticResource HintTextStyle}"/>
-                                             <Button Content="测试连接" Click="TestAiConnection_Click" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,14,0"/>
-                                             <Button Content="保存模型" Command="{Binding AddAiModelCommand}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}"/>
+                                            <Button Content="测试连接" Click="TestAiConnection_Click" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,14,0"/>
+                                            <Button Content="保存模型" Command="{Binding AddAiModelCommand}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}"/>
                                         </StackPanel>
                                     </StackPanel>
 
                                     <TextBlock Text="已保存的模型" Style="{StaticResource FieldLabelTextStyle}" Margin="0,6,0,10"/>
-                                    
+
                                     <ListBox ItemsSource="{Binding Config.SavedModels}"
                                              SelectedValue="{Binding Config.ActiveModelId}"
                                              SelectedValuePath="Id"
@@ -663,11 +681,11 @@
                                                                         <ColumnDefinition Width="*"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
-                                                                         <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Border>
-                                                                     <TextBlock Grid.Column="1" Text="{Binding ModelName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                                                    <TextBlock Grid.Column="1" Text="{Binding ModelName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
                                                                 </Grid>
-                                                                
+
                                                                 <Border.ContextMenu>
                                                                     <ContextMenu>
                                                                         <MenuItem Header="删除" Command="{Binding DataContext.DeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
@@ -675,13 +693,13 @@
                                                                 </Border.ContextMenu>
                                                             </Border>
                                                             <ControlTemplate.Triggers>
-                                                                 <Trigger Property="IsSelected" Value="True">
-                                                                      <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
-                                                                      <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
-                                                                  </Trigger>
-                                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                                     <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                 </Trigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                                                    <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                </Trigger>
                                                             </ControlTemplate.Triggers>
                                                         </ControlTemplate>
                                                     </Setter.Value>
@@ -703,7 +721,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    
+
                                     <StackPanel>
                                         <StackPanel Margin="0,0,0,12">
                                             <TextBlock Text="WebDAV 网址" Style="{StaticResource FieldLabelTextStyle}"/>
@@ -1032,6 +1050,92 @@
                                                    Style="{StaticResource HintTextStyle}"
                                                    Margin="0,10,0,0"
                                                    TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Tab 5: External Tools (OCR/Translate) -->
+                                <StackPanel>
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel" BasedOn="{StaticResource FadeInContentStyle}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="5">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <StackPanel Margin="0,0,0,14">
+                                        <TextBlock Text="快捷键设置" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="150"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="截图 OCR (复制到剪贴板)" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LocalConfig.OcrHotkey}" Style="{StaticResource ModernTextBoxStyle}" IsReadOnly="True" Margin="0,0,0,10" ToolTip="直接修改配置文件 local_settings.json 生效"/>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="截图 翻译 (显示结果)" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LocalConfig.TranslateHotkey}" Style="{StaticResource ModernTextBoxStyle}" IsReadOnly="True" ToolTip="直接修改配置文件 local_settings.json 生效"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,14"/>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <TextBlock Text="API 配置管理 (百度)" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <Button Content="+ 新增配置" Command="{Binding AddApiProfileCommand}" Style="{StaticResource TextLinkButtonStyle}"/>
+                                        </StackPanel>
+
+                                        <ListBox ItemsSource="{Binding Config.ApiProfiles}" 
+                                                 SelectedValue="{Binding Config.ActiveApiProfileId}"
+                                                 SelectedValuePath="Id"
+                                                 Background="Transparent" 
+                                                 BorderThickness="0">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10" BorderBrush="{DynamicResource DividerColor}" BorderThickness="1">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <RadioButton GroupName="ApiProfiles" IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" VerticalAlignment="Center" Grid.RowSpan="4" Margin="0,0,10,0"/>
+
+                                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="配置名称" FontSize="10" Foreground="#999"/>
+                                                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="150" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+
+                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="API Key / AppID" FontSize="10" Foreground="#999"/>
+                                                            <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Key1, UpdateSourceTrigger=PropertyChanged}" Width="150" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+
+                                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Secret Key" FontSize="10" Foreground="#999"/>
+                                                            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Key2, UpdateSourceTrigger=PropertyChanged}" Width="150" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+
+                                                            <Button Grid.Row="3" Grid.Column="2" Content="删除此配置" 
+                                                                    Command="{Binding DataContext.DeleteApiProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource DangerLinkButtonStyle}" HorizontalAlignment="Right" FontSize="11"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+
+                                        <TextBlock Text="注意：OCR 功能需要百度智能云【通用文字识别】的 API Key 和 Secret Key；翻译功能需要百度翻译开放平台的 App ID 和 密钥。由于两者体系不同，请根据需求创建不同的配置并切换激活。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

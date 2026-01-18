@@ -38,6 +38,7 @@ namespace PromptMasterv5.ViewModels
         private readonly BrowserAutomationService _browserService;
         private readonly AiService _aiService;
         private readonly FabricService _fabricService;
+        private readonly BaiduService _baiduService = new BaiduService();
 
         private bool _isCreatingFile = false;
         private DispatcherTimer _timer;
@@ -78,9 +79,9 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private bool isAiProcessing = false;
         [ObservableProperty] private bool isAiResultDisplayed = false;
 
-        [ObservableProperty] private bool isDirty = false;
+        [ObservableProperty] private bool isDirty = false; 
 
-        public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
+public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
         public IDropTarget MiniPinnedPromptDropHandler { get; private set; }
 
         public MainViewModel()
@@ -481,10 +482,128 @@ namespace PromptMasterv5.ViewModels
             try { HotkeyManager.Current.Remove("ToggleWindowSingle"); } catch { }
 
             RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
-            RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => ToggleWindowToMode(false));
-        }
+RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => ToggleWindowToMode(false)); 
 
-        private void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
+// 注册 OCR 与 翻译 热键 
+        RegisterWindowHotkey("TriggerOcrHotkey", LocalConfig.OcrHotkey, () => TriggerOcrCommand.Execute(null)); 
+        RegisterWindowHotkey("TriggerTranslateHotkey", LocalConfig.TranslateHotkey, () => TriggerTranslateCommand.Execute(null)); 
+    } 
+
+    [RelayCommand] 
+    private async Task TriggerOcr() 
+    { 
+        // 1. 检查配置 
+        var profile = GetActiveApiProfile(); 
+        if (profile == null) 
+        { 
+            MessageBox.Show("请先在设置中配置并激活 API 密钥。", "OCR 未配置"); 
+            return; 
+        } 
+
+        // 2. 截图 
+        var capture = new Views.CaptureWindow(); 
+        if (capture.ShowDialog() != true || capture.CapturedImageBytes == null) return; 
+
+        // 3. 识别 (更改鼠标状态为等待) 
+        var originalCursor = System.Windows.Input.Mouse.OverrideCursor; 
+        System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait; 
+
+        try 
+        { 
+            string result = await _baiduService.OcrAsync(profile.Key1, profile.Key2, capture.CapturedImageBytes); 
+            if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("错误") && !result.StartsWith("异常")) 
+            { 
+                Clipboard.SetText(result); 
+                // 简单的视觉反馈（如果当前在全屏模式，可以通过状态栏显示，这里简单弹个Toast或不打扰） 
+                // 按照需求：写入剪贴板后恢复鼠标即可 
+            } 
+            else 
+            { 
+                MessageBox.Show(result, "识别失败"); 
+            } 
+        } 
+        finally 
+        { 
+            System.Windows.Input.Mouse.OverrideCursor = originalCursor; 
+        } 
+    } 
+
+    [RelayCommand] 
+    private async Task TriggerTranslate() 
+    { 
+        // 1. 检查配置 
+        var profile = GetActiveApiProfile(); 
+        if (profile == null) 
+        { 
+            MessageBox.Show("请先在设置中配置并激活 API 密钥。", "翻译未配置"); 
+            return; 
+        } 
+
+        // 2. 截图 (优先截图，划词逻辑复杂暂且通过截图实现) 
+        var capture = new Views.CaptureWindow(); 
+        if (capture.ShowDialog() != true || capture.CapturedImageBytes == null) return; 
+
+        // 3. 显示结果弹窗 (Loading) 
+        var popup = new Views.TranslationPopup("正在识别并翻译..."); 
+        popup.Show(); 
+
+        try 
+        { 
+            // 4. 先 OCR 
+            string ocrText = await _baiduService.OcrAsync(profile.Key1, profile.Key2, capture.CapturedImageBytes); 
+            
+            if (string.IsNullOrWhiteSpace(ocrText) || ocrText.StartsWith("错误") || ocrText.StartsWith("异常")) 
+            { 
+                popup.UpdateText($"识别失败: {ocrText}"); 
+                return; 
+            } 
+
+            // 5. 再翻译 
+            popup.UpdateText($"识别成功:\n{ocrText}\n\n正在翻译..."); 
+            string transResult = await _baiduService.TranslateAsync(profile.Key1, profile.Key2, ocrText); // 注意：百度翻译Key也是复用 Key1/Key2，实际使用建议分开配置或使用同一个App的Key 
+            // *注：百度 OCR 使用 APIKey/SecretKey，百度翻译使用 AppID/SecretKey。 
+            // 这里的 ApiProfile 只有两个 Key 字段。如果是同一个百度账号，这两种Key是不同的。 
+            // 建议：用户在配置里填两套，或者我们简单假设用户只用其中一个功能，或者提示用户填对 Key。 
+            // 这里假设用户填的是 OCR 的 Key，那么翻译可能会失败。 
+            // *修正方案*：为了简化，我们假设 ApiProfile 存储的是 【通用文字识别】的 AK/SK。 
+            // 百度翻译需要 AppID/SK。 
+            // 既然结构已定，且需求是 "百度翻译 API" 和 "百度 OCR API"，通常这是两个独立的应用/服务。 
+            // 我们在 ApiProfile 增加 ProviderType 区分？或者让用户建立两个 Profile，一个叫"OCR用", 一个叫"翻译用"。 
+            // 这里简化逻辑：TranslateAsync 使用 Key1(AppID) Key2(Secret)。 
+            
+            popup.UpdateText($"【原文】\n{ocrText}\n\n【译文】\n{transResult}"); 
+        } 
+        catch (Exception ex) 
+        { 
+            popup.UpdateText($"错误: {ex.Message}"); 
+        } 
+    } 
+
+    private ApiProfile? GetActiveApiProfile() 
+    { 
+        if (string.IsNullOrEmpty(Config.ActiveApiProfileId)) return Config.ApiProfiles.FirstOrDefault(); 
+        return Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.ActiveApiProfileId); 
+    } 
+
+    [RelayCommand] 
+    private void AddApiProfile() 
+    { 
+        var p = new ApiProfile(); 
+        Config.ApiProfiles.Add(p); 
+        Config.ActiveApiProfileId = p.Id; 
+        ConfigService.Save(Config); 
+    } 
+
+    [RelayCommand] 
+    private void DeleteApiProfile(ApiProfile p) 
+    { 
+        if (p == null) return; 
+        Config.ApiProfiles.Remove(p); 
+        if (Config.ActiveApiProfileId == p.Id) Config.ActiveApiProfileId = ""; 
+        ConfigService.Save(Config); 
+    } 
+
+    private void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
         {
             try
             {

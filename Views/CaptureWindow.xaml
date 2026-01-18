@@ -1,0 +1,32 @@
+﻿<Window x:Class="PromptMasterv5.Views.CaptureWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ScreenCapture" 
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="#01000000"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Cursor="Cross"
+        WindowState="Maximized"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <!-- 背景用极低透明度而非Transparent，保证鼠标事件能触发 -->
+
+    <Canvas x:Name="CanvasArea" Background="Transparent"
+            MouseDown="CanvasArea_MouseDown"
+            MouseMove="CanvasArea_MouseMove"
+            MouseUp="CanvasArea_MouseUp">
+
+        <!-- 遮罩层 (半透明黑色) -->
+        <Path x:Name="MaskPath" Fill="#55000000" StrokeThickness="0"/>
+
+        <!-- 选框边框 -->
+        <Rectangle x:Name="SelectionRect" Stroke="#00BFFF" StrokeThickness="2" Visibility="Collapsed"/>
+
+        <!-- 操作提示 -->
+        <Border Background="#CC000000" CornerRadius="4" Padding="10,5" Canvas.Left="0" Canvas.Top="0" Margin="10">
+            <TextBlock Text="左键框选区域 | 右键或 Esc 退出" Foreground="White" FontSize="14"/>
+        </Border>
+    </Canvas>
+</Window>

@@ -46,6 +46,13 @@ namespace PromptMasterv5.Models
         [ObservableProperty]
         private string activeModelId = "";
 
+        // ★★★ 新增：外部工具 API 配置 ★★★
+        [ObservableProperty]
+        private System.Collections.ObjectModel.ObservableCollection<ApiProfile> apiProfiles = new();
+
+        [ObservableProperty]
+        private string activeApiProfileId = "";
+
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }
 }
