@@ -6,7 +6,7 @@
         xmlns:i="clr-namespace:System.Windows.Input;assembly=PresentationCore"
         xmlns:md="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
         xmlns:dd="urn:gong-wpf-dragdrop"
-        xmlns:models="clr-namespace:PromptMasterv5.Models"
+        xmlns:models="clr-namespace:PromptMasterv5.Core.Models"
         xmlns:utils="clr-namespace:PromptMasterv5.Utils"
         xmlns:views="clr-namespace:PromptMasterv5.Views"
         mc:Ignorable="d"

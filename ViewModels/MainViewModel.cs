@@ -13,13 +13,15 @@ using System.Windows.Input;
 using GongSolutions.Wpf.DragDrop;
 using NHotkey;
 using NHotkey.Wpf;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
 using PromptMasterv5.Services;
+using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv5.Core.Interfaces;
 using System.Collections.Generic;
 using System.Runtime.Versioning;
 using System.IO;
 
-using InputMode = PromptMasterv5.Models.InputMode;
+using InputMode = PromptMasterv5.Core.Models.InputMode;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using Clipboard = System.Windows.Clipboard;
@@ -36,7 +38,7 @@ namespace PromptMasterv5.ViewModels
 
         private readonly GlobalKeyService _keyService;
         private readonly BrowserAutomationService _browserService;
-        private readonly AiService _aiService;
+        private readonly IAiService _aiService;
         private readonly FabricService _fabricService;
         private readonly BaiduService _baiduService = new BaiduService();
 
@@ -98,7 +100,7 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
             // ★★★ 方案A：初始化本地服务 (本地副存储) ★★★
             _localDataService = new FileDataService();
 
-            _aiService = new AiService();
+            _aiService = new Infrastructure.Services.AiService();
             _fabricService = new FabricService();
 
             // ★★★ 方案A：初始化本地热备份定时器 (2秒防抖) ★★★

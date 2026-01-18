@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Core.Models
 {
     public class AiModelConfig
     {

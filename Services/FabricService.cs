@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
+using PromptMasterv5.Core.Interfaces;
 
 namespace PromptMasterv5.Services
 {
@@ -35,7 +36,7 @@ namespace PromptMasterv5.Services
         /// <summary>
         /// 核心方法：根据用户输入，找出最匹配的模式，并读取其 system.md 内容
         /// </summary>
-        public async Task<string> FindBestPatternAndContentAsync(string userInput, AiService aiService, AppConfig config)
+        public async Task<string> FindBestPatternAndContentAsync(string userInput, IAiService aiService, AppConfig config)
         {
             if (_cachedPatternNames.Count == 0)
             {

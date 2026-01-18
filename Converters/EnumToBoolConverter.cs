@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -6,7 +6,7 @@ using System.Windows.Markup;
 // ★★★ 核心修复：显式指定 Binding 为 WPF 的 Binding，解决与 WinForms 的冲突 ★★★
 using Binding = System.Windows.Data.Binding;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Converters
 {
     public class EnumToBoolConverter : MarkupExtension, IValueConverter
     {

@@ -1,7 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Core.Models
 {
     public partial class FolderItem : ObservableObject
     {

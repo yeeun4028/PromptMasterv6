@@ -8,8 +8,9 @@ using PromptMasterv5.ViewModels;
 using System.Text;
 using System.Windows.Media;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
 using PromptMasterv5.Services;
+using PromptMasterv5.Infrastructure.Services;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using System.Linq; // 新增引用，用于查询子窗口状态
@@ -20,7 +21,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 
 // 引用自定义枚举和控件别名，解决命名冲突
-using InputMode = PromptMasterv5.Models.InputMode;
+using InputMode = PromptMasterv5.Core.Models.InputMode;
 using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
 using ListBox = System.Windows.Controls.ListBox;
@@ -1386,7 +1387,7 @@ namespace PromptMasterv5
                 statusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(102, 102, 102));
                 btn.IsEnabled = false;
 
-                var aiService = new AiService();
+                var aiService = new Infrastructure.Services.AiService();
                 (bool success, string message) = await aiService.TestConnectionAsync(ViewModel.Config);
 
                 if (success)

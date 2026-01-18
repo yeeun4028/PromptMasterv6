@@ -5,8 +5,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
 using PromptMasterv5.Services;
+using PromptMasterv5.Infrastructure.Services;
 using PromptMasterv5.ViewModels;
 using WinFormsCursor = System.Windows.Forms.Cursor;
 
@@ -229,7 +230,7 @@ namespace PromptMasterv5.Views
                 statusText.Foreground = new SolidColorBrush(Color.FromRgb(102, 102, 102));
                 btn.IsEnabled = false;
 
-                var aiService = new AiService();
+                var aiService = new Infrastructure.Services.AiService();
                 (bool success, string message) = await aiService.TestConnectionAsync(ViewModel.Config);
 
                 if (success)

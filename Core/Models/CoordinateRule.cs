@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Core.Models
 {
     public partial class CoordinateRule : ObservableObject
     {

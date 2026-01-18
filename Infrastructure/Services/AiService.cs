@@ -6,13 +6,13 @@ using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
+using PromptMasterv5.Core.Interfaces;
 
-namespace PromptMasterv5.Services
+namespace PromptMasterv5.Infrastructure.Services
 {
-    public class AiService
+    public class AiService : IAiService
     {
-        // ★★★ 修改：增加 systemPrompt 可选参数 ★★★
         public async Task<string> ChatAsync(string userContent, AppConfig config, string? systemPrompt = null)
         {
             if (string.IsNullOrWhiteSpace(config.AiApiKey))
@@ -28,8 +28,7 @@ namespace PromptMasterv5.Services
 
             var openAiService = new OpenAIService(options);
 
-            // 如果没有传入特定的系统提示词，则使用默认的“直接回答”模式
-            string finalSystemPrompt = systemPrompt ?? "You are a helpful assistant. Output the result directly without unnecessary conversational filler. IMPORTANT: Always answer in Simplified Chinese unless the user explicitly asks for another language.";
+            string finalSystemPrompt = systemPrompt ?? "You are a helpful assistant. Output result directly without unnecessary conversational filler. IMPORTANT: Always answer in Simplified Chinese unless the user explicitly asks for another language.";
 
             var messages = new List<ChatMessage>
             {

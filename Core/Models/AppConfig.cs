@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Core.Models
 {
     public partial class AppConfig : ObservableObject
     {

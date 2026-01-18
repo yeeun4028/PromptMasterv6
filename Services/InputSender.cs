@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
 using System.Windows.Automation;
 
 // 解决引用冲突

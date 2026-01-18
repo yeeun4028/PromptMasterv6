@@ -1,6 +1,6 @@
-﻿using GongSolutions.Wpf.DragDrop;
+using GongSolutions.Wpf.DragDrop;
 using System.Windows;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
 using DragDropEffects = System.Windows.DragDropEffects;
 using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
 

@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Core.Models
 {
     public partial class VariableItem : ObservableObject
     {

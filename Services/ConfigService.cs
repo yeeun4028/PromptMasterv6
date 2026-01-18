@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
 
 namespace PromptMasterv5.Services
 {

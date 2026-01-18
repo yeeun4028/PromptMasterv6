@@ -1,5 +1,4 @@
 ﻿using PromptMasterv5.Core.Models;
-using PromptMasterv5.Models;
 using System.Threading.Tasks;
 
 namespace PromptMasterv5.Core.Interfaces

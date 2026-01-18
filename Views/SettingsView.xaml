@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:dd="urn:gong-wpf-dragdrop"
-             xmlns:models="clr-namespace:PromptMasterv5.Models"
+             xmlns:models="clr-namespace:PromptMasterv5.Core.Models"
+             xmlns:converters="clr-namespace:PromptMasterv5.Converters"
              xmlns:utils="clr-namespace:PromptMasterv5.Utils"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="750">
@@ -520,7 +521,7 @@
                                         <TextBlock Text="输入发送模式" Style="{StaticResource FieldLabelTextStyle}"/>
 
                                         <RadioButton GroupName="InputMode"
-                                                     IsChecked="{Binding LocalConfig.Mode, Converter={models:EnumToBoolConverter}, ConverterParameter=SmartFocus}"
+                                                     IsChecked="{Binding LocalConfig.Mode, Converter={converters:EnumToBoolConverter}, ConverterParameter=SmartFocus}"
                                                      Content="智能回退模式 (推荐)"
                                                      FontSize="14" Cursor="Hand" Margin="0,0,0,5" VerticalContentAlignment="Center"/>
                                         <TextBlock Text="软件隐藏后，自动将焦点还给上一个活动的窗口 (如浏览器输入框)，然后发送内容。"
@@ -529,7 +530,7 @@
                                         <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,4,0,12"/>
 
                                         <RadioButton GroupName="InputMode"
-                                                     IsChecked="{Binding LocalConfig.Mode, Converter={models:EnumToBoolConverter}, ConverterParameter=CoordinateClick}"
+                                                     IsChecked="{Binding LocalConfig.Mode, Converter={converters:EnumToBoolConverter}, ConverterParameter=CoordinateClick}"
                                                      Content="坐标点击模式"
                                                      FontSize="14" Cursor="Hand" Margin="0,0,0,5" VerticalContentAlignment="Center"/>
                                         <TextBlock Text="软件隐藏后，强制点击屏幕上的指定位置来激活输入框。"

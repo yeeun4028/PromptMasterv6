@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace PromptMasterv5.Models
+namespace PromptMasterv5.Core.Models
 {
     public enum InputMode
     {

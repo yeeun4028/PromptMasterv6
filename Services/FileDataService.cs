@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using PromptMasterv5.Models;
+using PromptMasterv5.Core.Models;
+using PromptMasterv5.Core.Interfaces;
 
 namespace PromptMasterv5.Services
 {
