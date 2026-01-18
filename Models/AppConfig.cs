@@ -53,6 +53,14 @@ namespace PromptMasterv5.Models
         [ObservableProperty]
         private string activeApiProfileId = "";
 
+        // 独立的 OCR 配置 ID
+        [ObservableProperty]
+        private string ocrProfileId = "";
+
+        // 独立的 翻译 配置 ID
+        [ObservableProperty]
+        private string translateProfileId = "";
+
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }
 }

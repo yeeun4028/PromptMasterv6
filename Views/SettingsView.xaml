@@ -1087,55 +1087,84 @@
 
                                         <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,14"/>
 
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                            <TextBlock Text="API 配置管理 (百度)" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                            <Button Content="+ 新增配置" Command="{Binding AddApiProfileCommand}" Style="{StaticResource TextLinkButtonStyle}"/>
-                                        </StackPanel>
+                                        <!-- 功能绑定区域 -->
+                                        <TextBlock Text="功能绑定 (选择下方列表中的配置)" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
+                                        <Grid Margin="0,0,0,16">
+                                        <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                        <ListBox ItemsSource="{Binding Config.ApiProfiles}" 
-                                                 SelectedValue="{Binding Config.ActiveApiProfileId}"
-                                                 SelectedValuePath="Id"
-                                                 Background="Transparent" 
-                                                 BorderThickness="0">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10" BorderBrush="{DynamicResource DividerColor}" BorderThickness="1">
-                                                        <Grid>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition Height="Auto"/>
-                                                                <RowDefinition Height="Auto"/>
-                                                                <RowDefinition Height="Auto"/>
-                                                                <RowDefinition Height="Auto"/>
-                                                            </Grid.RowDefinitions>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="OCR 识别使用：" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                                        <ComboBox Grid.Row="0" Grid.Column="1" 
+                                                  ItemsSource="{Binding Config.ApiProfiles}" 
+                                                  SelectedValue="{Binding Config.OcrProfileId}"
+                                                  SelectedValuePath="Id"
+                                                  DisplayMemberPath="Name"
+                                                  Margin="0,0,0,10"
+                                                  Height="30"/>
 
-                                                            <RadioButton GroupName="ApiProfiles" IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" VerticalAlignment="Center" Grid.RowSpan="4" Margin="0,0,10,0"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="截图翻译使用：" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <ComboBox Grid.Row="1" Grid.Column="1" 
+                                                  ItemsSource="{Binding Config.ApiProfiles}" 
+                                                  SelectedValue="{Binding Config.TranslateProfileId}"
+                                                  SelectedValuePath="Id"
+                                                  DisplayMemberPath="Name"
+                                                  Height="30"/>
+                                    </Grid>
 
-                                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="配置名称" FontSize="10" Foreground="#999"/>
-                                                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="150" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+                                    <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,14"/>
 
-                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="API Key / AppID" FontSize="10" Foreground="#999"/>
-                                                            <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Key1, UpdateSourceTrigger=PropertyChanged}" Width="150" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+                                    <!-- 配置列表区域 -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <TextBlock Text="API 配置列表" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <Button Content="+ 新增配置" Command="{Binding AddApiProfileCommand}" Style="{StaticResource TextLinkButtonStyle}"/>
+                                    </StackPanel>
 
-                                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Secret Key" FontSize="10" Foreground="#999"/>
-                                                            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Key2, UpdateSourceTrigger=PropertyChanged}" Width="150" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+                                    <ListBox ItemsSource="{Binding Config.ApiProfiles}" 
+                                             Background="Transparent" 
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10" BorderBrush="{DynamicResource DividerColor}" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
 
-                                                            <Button Grid.Row="3" Grid.Column="2" Content="删除此配置" 
-                                                                    Command="{Binding DataContext.DeleteApiProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Style="{StaticResource DangerLinkButtonStyle}" HorizontalAlignment="Right" FontSize="11"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="名称：" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
 
-                                        <TextBlock Text="注意：OCR 功能需要百度智能云【通用文字识别】的 API Key 和 Secret Key；翻译功能需要百度翻译开放平台的 App ID 和 密钥。由于两者体系不同，请根据需求创建不同的配置并切换激活。" 
-                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
+                                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Key1：" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="OCR填API Key，翻译填AppID"/>
+                                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Key1, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+
+                                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Key2：" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="Secret Key"/>
+                                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Key2, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
+                                                        
+                                                        <Button Grid.Row="3" Grid.Column="1" Content="删除此配置" 
+                                                                Command="{Binding DataContext.DeleteApiProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource DangerLinkButtonStyle}" HorizontalAlignment="Right" FontSize="11"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    
+                                    <TextBlock Text="提示：Key1 对应 OCR 的 API Key 或翻译的 AppID；Key2 对应 Secret Key。请创建两份配置分别用于 OCR 和 翻译，并在上方进行绑定。" 
+                                               Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

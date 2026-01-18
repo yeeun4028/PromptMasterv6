@@ -492,13 +492,18 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
     [RelayCommand] 
     private async Task TriggerOcr() 
     { 
-        // 1. 检查配置 
-        var profile = GetActiveApiProfile(); 
-        if (profile == null) 
-        { 
-            MessageBox.Show("请先在设置中配置并激活 API 密钥。", "OCR 未配置"); 
-            return; 
-        } 
+        // 1. 检查配置 (使用独立的 OCR 配置)
+        var profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.OcrProfileId);
+        if (profile == null)
+        {
+            // 尝试默认使用第一个
+            profile = Config.ApiProfiles.FirstOrDefault();
+            if (profile == null)
+            {
+                MessageBox.Show("请先在设置 -> 外部工具中添加并绑定 OCR 配置。", "OCR 未配置");
+                return;
+            }
+        }
 
         // 2. 截图 
         var capture = new Views.CaptureWindow(); 
@@ -531,13 +536,18 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
     [RelayCommand] 
     private async Task TriggerTranslate() 
     { 
-        // 1. 检查配置 
-        var profile = GetActiveApiProfile(); 
-        if (profile == null) 
-        { 
-            MessageBox.Show("请先在设置中配置并激活 API 密钥。", "翻译未配置"); 
-            return; 
-        } 
+        // 1. 检查配置 (使用独立的翻译配置)
+        var profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.TranslateProfileId);
+        if (profile == null)
+        {
+            // 尝试默认使用第一个
+            profile = Config.ApiProfiles.FirstOrDefault();
+            if (profile == null)
+            {
+                MessageBox.Show("请先在设置 -> 外部工具中添加并绑定翻译配置。", "翻译未配置");
+                return;
+            }
+        }
 
         // 2. 截图 (优先截图，划词逻辑复杂暂且通过截图实现) 
         var capture = new Views.CaptureWindow(); 
@@ -579,29 +589,27 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
         } 
     } 
 
-    private ApiProfile? GetActiveApiProfile() 
-    { 
-        if (string.IsNullOrEmpty(Config.ActiveApiProfileId)) return Config.ApiProfiles.FirstOrDefault(); 
-        return Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.ActiveApiProfileId); 
-    } 
+    [RelayCommand]
+    private void AddApiProfile()
+    {
+        var p = new ApiProfile();
+        Config.ApiProfiles.Add(p);
+        // 如果当前没有选中任何配置，默认选中这个
+        if (string.IsNullOrEmpty(Config.OcrProfileId)) Config.OcrProfileId = p.Id;
+        if (string.IsNullOrEmpty(Config.TranslateProfileId)) Config.TranslateProfileId = p.Id;
+        ConfigService.Save(Config);
+    }
 
-    [RelayCommand] 
-    private void AddApiProfile() 
-    { 
-        var p = new ApiProfile(); 
-        Config.ApiProfiles.Add(p); 
-        Config.ActiveApiProfileId = p.Id; 
-        ConfigService.Save(Config); 
-    } 
-
-    [RelayCommand] 
-    private void DeleteApiProfile(ApiProfile p) 
-    { 
-        if (p == null) return; 
-        Config.ApiProfiles.Remove(p); 
-        if (Config.ActiveApiProfileId == p.Id) Config.ActiveApiProfileId = ""; 
-        ConfigService.Save(Config); 
-    } 
+    [RelayCommand]
+    private void DeleteApiProfile(ApiProfile p)
+    {
+        if (p == null) return;
+        Config.ApiProfiles.Remove(p);
+        // 如果删除的是当前选中的，清空ID
+        if (Config.OcrProfileId == p.Id) Config.OcrProfileId = "";
+        if (Config.TranslateProfileId == p.Id) Config.TranslateProfileId = "";
+        ConfigService.Save(Config);
+    }
 
     private void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
         {
