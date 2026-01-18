@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using PromptMasterv5.Core.Models;
 using PromptMasterv5.Core.Interfaces;
 
-namespace PromptMasterv5.Services
+namespace PromptMasterv5.Infrastructure.Services
 {
     public class FileDataService : IDataService
     {
@@ -24,13 +24,11 @@ namespace PromptMasterv5.Services
 
             try
             {
-                // 使用异步流写入，不卡界面
                 using FileStream createStream = File.Create(_filePath);
                 await JsonSerializer.SerializeAsync(createStream, data, options);
             }
             catch (Exception)
             {
-                // TODO: 记录日志
             }
         }
 
@@ -40,7 +38,6 @@ namespace PromptMasterv5.Services
 
             try
             {
-                // 异步读取
                 using FileStream openStream = File.OpenRead(_filePath);
                 return await JsonSerializer.DeserializeAsync<AppData>(openStream) ?? new AppData();
             }

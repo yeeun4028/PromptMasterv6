@@ -95,10 +95,10 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
             UpdateWindowHotkeys();
 
             // 2. 初始化所有服务
-            _dataService = new WebDavDataService(); // 默认使用 WebDav (云端主存储)
+            _dataService = new Infrastructure.Services.WebDavDataService(); // 默认使用 WebDav (云端主存储)
 
             // ★★★ 方案A：初始化本地服务 (本地副存储) ★★★
-            _localDataService = new FileDataService();
+            _localDataService = new Infrastructure.Services.FileDataService();
 
             _aiService = new Infrastructure.Services.AiService();
             _fabricService = new FabricService();

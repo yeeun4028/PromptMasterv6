@@ -6,13 +6,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PromptMasterv5.Core.Models;
 using PromptMasterv5.Core.Interfaces;
+using PromptMasterv5.Services;
 using WebDav;
 
-namespace PromptMasterv5.Services
+namespace PromptMasterv5.Infrastructure.Services
 {
     public class WebDavDataService : IDataService
     {
-        // 这里不再写死密码，而是去读配置
         private WebDavClient GetClient(AppConfig config)
         {
             return new WebDavClient(new WebDavClientParams
@@ -24,7 +24,6 @@ namespace PromptMasterv5.Services
 
         public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
         {
-            // 1. 读取最新配置
             var config = ConfigService.Load();
             if (string.IsNullOrEmpty(config.UserName) || string.IsNullOrEmpty(config.Password))
             {
@@ -34,7 +33,6 @@ namespace PromptMasterv5.Services
             var client = GetClient(config);
             string remotePath = $"{config.RemoteFolderName}/PromptMasterData.json";
 
-            // 2. 准备数据
             var data = new AppData
             {
                 Folders = new List<FolderItem>(folders),
@@ -44,7 +42,6 @@ namespace PromptMasterv5.Services
             string jsonString = JsonSerializer.Serialize(data, options);
             using var contentStream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
 
-            // 3. 上传
             var response = await client.PutFile(remotePath, contentStream);
 
             if (!response.IsSuccessful)
@@ -55,9 +52,7 @@ namespace PromptMasterv5.Services
 
         public async Task<AppData> LoadAsync()
         {
-            // 1. 读取配置
             var config = ConfigService.Load();
-            // 如果没填密码，直接返回空数据，不报错，以免软件启动崩溃
             if (string.IsNullOrEmpty(config.UserName) || string.IsNullOrEmpty(config.Password))
             {
                 return new AppData();
