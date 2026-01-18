@@ -54,21 +54,22 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private AppConfig config;
         [ObservableProperty] private LocalSettings localConfig = new LocalSettings();
         [ObservableProperty] private bool isFullMode = true;
-        [ObservableProperty] private string miniInputText = "";
-        [ObservableProperty] private bool isSearchPopupOpen = false;
-        [ObservableProperty] private ObservableCollection<PromptItem> searchResults = new();
-        [ObservableProperty] private PromptItem? selectedSearchItem;
+        public SidebarViewModel SidebarVM { get; }
+        public ChatViewModel ChatVM { get; }
+        public string MiniInputText { get => ChatVM.MiniInputText; set => ChatVM.MiniInputText = value; }
+        public bool IsSearchPopupOpen { get => ChatVM.IsSearchPopupOpen; set => ChatVM.IsSearchPopupOpen = value; }
+        public ObservableCollection<PromptItem> SearchResults => ChatVM.SearchResults;
+        public PromptItem? SelectedSearchItem { get => ChatVM.SelectedSearchItem; set => ChatVM.SelectedSearchItem = value; }
         [ObservableProperty] private bool isMiniVarsExpanded = false;
 
         [ObservableProperty] private bool isSettingsOpen = false;
         [ObservableProperty] private int selectedSettingsTab = 0;
         [ObservableProperty] private string syncTimeDisplay = "Now";
         [ObservableProperty] private ICollectionView? filesView;
-        public IDropTarget FolderDropHandler { get; private set; }
+        public IDropTarget FolderDropHandler => SidebarVM.FolderDropHandler;
         [ObservableProperty] private bool isNavigationVisible = true;
-        [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
-
-        [ObservableProperty] private FolderItem? selectedFolder;
+        public ObservableCollection<FolderItem> Folders => SidebarVM.Folders;
+        public FolderItem? SelectedFolder { get => SidebarVM.SelectedFolder; set => SidebarVM.SelectedFolder = value; }
 
         [ObservableProperty] private ObservableCollection<PromptItem> files = new();
         [ObservableProperty] private PromptItem? selectedFile;
@@ -77,12 +78,12 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private bool hasVariables;
         [ObservableProperty] private string additionalInput = "";
 
-        [ObservableProperty] private bool isAiProcessing = false;
+        public bool IsAiProcessing { get => ChatVM.IsAiProcessing; set => ChatVM.IsAiProcessing = value; }
         [ObservableProperty] private bool isAiResultDisplayed = false;
 
         [ObservableProperty] private bool isDirty = false; 
 
-public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
+        public ObservableCollection<PromptItem> MiniPinnedPrompts => ChatVM.MiniPinnedPrompts;
         public IDropTarget MiniPinnedPromptDropHandler { get; private set; }
 
         public MainViewModel(
@@ -92,8 +93,13 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
             GlobalKeyService keyService,
             BrowserAutomationService browserService,
             FabricService fabricService,
-            BaiduService baiduService)
+            BaiduService baiduService,
+            ChatViewModel chatVM,
+            SidebarViewModel sidebarVM)
         {
+            SidebarVM = sidebarVM;
+            ChatVM = chatVM;
+
             // 1. 初始化配置
             Config = ConfigService.Load();
             LocalConfig = LocalConfigService.Load();
@@ -119,8 +125,40 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
             _browserService.OnTargetSiteMatched += BrowserService_OnTargetSiteMatched;
             _browserService.Start();
 
+            SidebarVM.Files = Files;
+            SidebarVM.GetSelectedFile = () => SelectedFile;
+            SidebarVM.SelectFile = f => SelectedFile = f;
+            SidebarVM.SetEditMode = v => IsEditMode = v;
+            SidebarVM.RequestSave = RequestSave;
+            SidebarVM.MoveFileToFolder = MoveFileToFolder;
+
+            SidebarVM.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SidebarViewModel.Folders)) OnPropertyChanged(nameof(Folders));
+                if (e.PropertyName == nameof(SidebarViewModel.SelectedFolder))
+                {
+                    OnPropertyChanged(nameof(SelectedFolder));
+                    FilesView?.Refresh();
+                    SelectedFile = null;
+                }
+            };
+
+            ChatVM.ConfigProvider = () => Config;
+            ChatVM.LocalConfigProvider = () => LocalConfig;
+            ChatVM.FilesProvider = () => Files;
+            ChatVM.GetIsAiResultDisplayed = () => IsAiResultDisplayed;
+            ChatVM.SetIsAiResultDisplayed = v => IsAiResultDisplayed = v;
+            ChatVM.MiniInputTextChangedExternalHandler = HandleMiniInputTextChangedFromChat;
+
+            ChatVM.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ChatViewModel.MiniInputText)) OnPropertyChanged(nameof(MiniInputText));
+                if (e.PropertyName == nameof(ChatViewModel.IsSearchPopupOpen)) OnPropertyChanged(nameof(IsSearchPopupOpen));
+                if (e.PropertyName == nameof(ChatViewModel.SelectedSearchItem)) OnPropertyChanged(nameof(SelectedSearchItem));
+                if (e.PropertyName == nameof(ChatViewModel.IsAiProcessing)) OnPropertyChanged(nameof(IsAiProcessing));
+            };
+
             // 3. 初始化拖拽处理器
-            FolderDropHandler = new FolderDropHandler(this);
             MiniPinnedPromptDropHandler = new PinnedPromptDropHandler(this);
 
             // 4. 初始化定时器
@@ -206,15 +244,7 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
 
         public void AddMiniPinnedPromptFromCandidate()
         {
-            var id = LocalConfig.MiniPinnedPromptCandidateId ?? "";
-            if (string.IsNullOrWhiteSpace(id)) return;
-            if (LocalConfig.MiniPinnedPromptIds.Contains(id)) return;
-
-            var prompt = Files.FirstOrDefault(f => f.Id == id);
-            if (prompt == null) return;
-
-            LocalConfig.MiniPinnedPromptIds.Add(id);
-            MiniPinnedPrompts.Add(prompt);
+            ChatVM.AddMiniPinnedPromptFromCandidate(LocalConfig.MiniPinnedPromptIds, LocalConfig.MiniPinnedPromptCandidateId ?? "");
         }
 
         [RelayCommand]
@@ -226,61 +256,23 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
 
         public void RemoveMiniPinnedPromptById(string id)
         {
-            if (string.IsNullOrWhiteSpace(id)) return;
-
-            for (int i = MiniPinnedPrompts.Count - 1; i >= 0; i--)
-            {
-                if (MiniPinnedPrompts[i].Id == id) MiniPinnedPrompts.RemoveAt(i);
-            }
-
-            for (int i = LocalConfig.MiniPinnedPromptIds.Count - 1; i >= 0; i--)
-            {
-                if (LocalConfig.MiniPinnedPromptIds[i] == id) LocalConfig.MiniPinnedPromptIds.RemoveAt(i);
-            }
-
-            if (LocalConfig.MiniSelectedPinnedPromptId == id)
-            {
-                LocalConfig.MiniSelectedPinnedPromptId = "";
-            }
+            ChatVM.RemoveMiniPinnedPromptById(
+                LocalConfig.MiniPinnedPromptIds,
+                clearSelectedPinnedIfMatch: () =>
+                {
+                    if (LocalConfig.MiniSelectedPinnedPromptId == id) LocalConfig.MiniSelectedPinnedPromptId = "";
+                },
+                id: id);
         }
 
         public void ReorderMiniPinnedPrompts(int oldIndex, int newIndex)
         {
-            if (oldIndex < 0 || oldIndex >= MiniPinnedPrompts.Count) return;
-            if (newIndex < 0 || newIndex >= MiniPinnedPrompts.Count) return;
-            if (oldIndex == newIndex) return;
-
-            var moved = MiniPinnedPrompts[oldIndex];
-            MiniPinnedPrompts.Move(oldIndex, newIndex);
-
-            var id = moved.Id;
-            var oldIdIndex = LocalConfig.MiniPinnedPromptIds.IndexOf(id);
-            if (oldIdIndex < 0) return;
-            LocalConfig.MiniPinnedPromptIds.RemoveAt(oldIdIndex);
-            LocalConfig.MiniPinnedPromptIds.Insert(newIndex, id);
+            ChatVM.ReorderMiniPinnedPrompts(LocalConfig.MiniPinnedPromptIds, oldIndex, newIndex);
         }
 
         private void SyncMiniPinnedPrompts()
         {
-            if (LocalConfig.MiniPinnedPromptIds == null)
-            {
-                LocalConfig.MiniPinnedPromptIds = new();
-            }
-
-            var validIds = LocalConfig.MiniPinnedPromptIds.Where(id => Files.Any(f => f.Id == id)).ToList();
-            if (validIds.Count != LocalConfig.MiniPinnedPromptIds.Count)
-            {
-                LocalConfig.MiniPinnedPromptIds.Clear();
-                foreach (var id in validIds) LocalConfig.MiniPinnedPromptIds.Add(id);
-            }
-
-            MiniPinnedPrompts.Clear();
-            foreach (var id in LocalConfig.MiniPinnedPromptIds)
-            {
-                var p = Files.FirstOrDefault(f => f.Id == id);
-                if (p != null) MiniPinnedPrompts.Add(p);
-            }
-
+            ChatVM.SyncMiniPinnedPrompts(LocalConfig.MiniPinnedPromptIds, LocalConfig.MiniSelectedPinnedPromptId);
             if (!string.IsNullOrWhiteSpace(LocalConfig.MiniSelectedPinnedPromptId) && !LocalConfig.MiniPinnedPromptIds.Contains(LocalConfig.MiniSelectedPinnedPromptId))
             {
                 LocalConfig.MiniSelectedPinnedPromptId = "";
@@ -429,7 +421,7 @@ public ObservableCollection<PromptItem> MiniPinnedPrompts { get; } = new();
             }
         }
 
-        partial void OnMiniInputTextChanged(string value)
+        private void HandleMiniInputTextChangedFromChat(string value)
         {
             if (IsAiResultDisplayed && !string.IsNullOrWhiteSpace(value))
             {
@@ -646,59 +638,9 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
             }
         }
 
-        public async Task ExecuteAiQuery()
+        public Task ExecuteAiQuery()
         {
-            string inputText = MiniInputText.Trim();
-            string query = "";
-
-            bool needPrefix = !LocalConfig.MiniWindowUseAi;
-
-            if (needPrefix)
-            {
-                if (inputText.StartsWith("ai ", StringComparison.OrdinalIgnoreCase))
-                    query = inputText.Substring(3);
-                else if (inputText.StartsWith("ai　", StringComparison.OrdinalIgnoreCase))
-                    query = inputText.Substring(3);
-                else if (inputText.StartsWith("''"))
-                    query = inputText.Substring(2);
-                else if (inputText.StartsWith("''"))
-                    query = inputText.Substring(2);
-                else
-                    return;
-            }
-            else
-            {
-                query = inputText;
-            }
-
-            if (string.IsNullOrWhiteSpace(query)) return;
-
-            IsAiProcessing = true;
-            try
-            {
-                string patternContent = await _fabricService.FindBestPatternAndContentAsync(query, _aiService, Config);
-                if (!string.IsNullOrEmpty(patternContent))
-                {
-                    string assembledPrompt = $"{patternContent}\n\n---\n\nUSER INPUT:\n{query}";
-                    MiniInputText = assembledPrompt;
-                    IsAiResultDisplayed = true;
-                }
-                else
-                {
-                    string result = await _aiService.ChatAsync(query, Config);
-                    MiniInputText = result;
-                    IsAiResultDisplayed = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                MiniInputText = $"[AI 错误] {ex.Message}";
-                IsAiResultDisplayed = true;
-            }
-            finally
-            {
-                IsAiProcessing = false;
-            }
+            return ChatVM.ExecuteAiQuery();
         }
 
         private static char NormalizeSymbol(char c)
@@ -720,68 +662,15 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
             return new string((s ?? "").Select(NormalizeSymbol).ToArray());
         }
 
-        public async Task ExecuteMiniAiOrPatternAsync()
+        public Task ExecuteMiniAiOrPatternAsync()
         {
-            var inputText = MiniInputText.Trim();
-            if (string.IsNullOrWhiteSpace(inputText)) return;
-
-            IsAiProcessing = true;
-            try
-            {
-                var prefix = LocalConfig.MiniPatternPrefix ?? "";
-                var normalizedInput = NormalizeSymbols(inputText);
-                var normalizedPrefix = NormalizeSymbols(prefix);
-
-                if (!string.IsNullOrWhiteSpace(prefix) && normalizedInput.StartsWith(normalizedPrefix, StringComparison.Ordinal))
-                {
-                    var query = inputText.Substring(prefix.Length).TrimStart();
-                    if (string.IsNullOrWhiteSpace(query)) return;
-
-                    var patternContent = await _fabricService.FindBestPatternAndContentAsync(query, _aiService, Config);
-                    if (!string.IsNullOrEmpty(patternContent))
-                    {
-                        MiniInputText = $"{patternContent}\n\n---\n\nUSER INPUT:\n{query}";
-                    }
-                    else
-                    {
-                        MiniInputText = $"[提示词匹配失败] {query}";
-                    }
-                    IsAiResultDisplayed = true;
-                    return;
-                }
-
-                var result = await _aiService.ChatAsync(inputText, Config);
-                MiniInputText = result;
-                IsAiResultDisplayed = true;
-            }
-            catch (Exception ex)
-            {
-                MiniInputText = $"[AI 错误] {ex.Message}";
-                IsAiResultDisplayed = true;
-            }
-            finally
-            {
-                IsAiProcessing = false;
-            }
-        }
-
-        private void PerformSearch(string keyword)
-        {
-            SearchResults.Clear();
-            if (string.IsNullOrWhiteSpace(keyword)) { foreach (var file in Files.Take(10)) SearchResults.Add(file); }
-            else
-            {
-                var lowerKey = keyword.ToLower();
-                var matches = Files.Where(f => f.Title.ToLower().Contains(lowerKey)).Take(10);
-                foreach (var m in matches) SearchResults.Add(m);
-            }
-            if (SearchResults.Count > 0) SelectedSearchItem = SearchResults.FirstOrDefault();
+            return ChatVM.ExecuteMiniAiOrPatternAsync();
         }
 
         [RelayCommand]
         private void ConfirmSearchResult()
         {
-            if (SelectedSearchItem != null) { MiniInputText = SelectedSearchItem.Content ?? ""; IsSearchPopupOpen = false; }
+            ChatVM.ConfirmSearchResultCommand.Execute(null);
         }
 
         private void ParseVariablesRealTime(string content)
@@ -942,12 +831,6 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
             else await SendBySmartFocus();
         }
 
-        partial void OnSelectedFolderChanged(FolderItem? value)
-        {
-            FilesView?.Refresh();
-            SelectedFile = null;
-        }
-
         partial void OnSelectedFileChanged(PromptItem? oldValue, PromptItem? newValue)
         {
             if (oldValue != null) oldValue.PropertyChanged -= SelectedFile_PropertyChanged;
@@ -1077,43 +960,37 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
             if (handle != IntPtr.Zero) _previousWindowHandle = handle;
         }
 
-        [RelayCommand] private void CreateFolder() { var f = new FolderItem { Name = $"新建文件夹 {Folders.Count + 1}" }; Folders.Add(f); SelectedFolder = f; RequestSave(); }
-        [RelayCommand] private void CreateFile() { if (SelectedFolder == null) return; _isCreatingFile = true; var f = new PromptItem { Title = "", Content = "", FolderId = SelectedFolder.Id, LastModified = DateTime.Now }; Files.Add(f); SelectedFile = f; IsEditMode = true; RequestSave(); _isCreatingFile = false; }
+        [RelayCommand]
+        private void CreateFolder()
+        {
+            SidebarVM.CreateFolderCommand.Execute(null);
+        }
+
+        [RelayCommand]
+        private void CreateFile()
+        {
+            if (SelectedFolder == null) return;
+            _isCreatingFile = true;
+            SidebarVM.CreateFileCommand.Execute(null);
+            _isCreatingFile = false;
+        }
         [RelayCommand] private void DeleteFile(PromptItem? i) { var t = i ?? SelectedFile; if (t != null) { Files.Remove(t); if (SelectedFile == t) SelectedFile = null; RequestSave(); } }
         [RelayCommand]
         private void DeleteFolder(FolderItem? folder)
         {
-            if (folder == null) return;
-
-            var filesInFolder = Files.Where(f => f.FolderId == folder.Id).ToList();
-            foreach (var file in filesInFolder) Files.Remove(file);
-
-            if (SelectedFolder == folder) SelectedFolder = null;
-
-            Folders.Remove(folder);
-            RequestSave();
+            SidebarVM.DeleteFolderCommand.Execute(folder);
         }
+
         [RelayCommand]
         private void ChangeFolderIcon(FolderItem f)
         {
-            if (f == null) return;
-            var dialog = new IconInputDialog(f.IconGeometry);
-            if (dialog.ShowDialog() == true)
-            {
-                f.IconGeometry = dialog.ResultGeometry;
-                RequestSave();
-            }
+            SidebarVM.ChangeFolderIconCommand.Execute(f);
         }
+
         [RelayCommand]
         private void RenameFolder(FolderItem f)
         {
-            if (f == null) return;
-            var dialog = new NameInputDialog(f.Name);
-            if (dialog.ShowDialog() == true)
-            {
-                f.Name = dialog.ResultName;
-                RequestSave();
-            }
+            SidebarVM.RenameFolderCommand.Execute(f);
         }
         [RelayCommand]
         private void ChangeFileIcon(PromptItem f)
@@ -1165,7 +1042,7 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
             IsSettingsOpen = false;
         }
         [RelayCommand] private void SelectSettingsTab(string s) { if (int.TryParse(s, out int i)) SelectedSettingsTab = i; }
-        public void ReorderFolders(int o, int n) { Folders.Move(o, n); RequestSave(); }
+        public void ReorderFolders(int o, int n) { SidebarVM.ReorderFolders(o, n); }
         public void MoveFileToFolder(PromptItem f, FolderItem t) { if (f == null || t == null || f.FolderId == t.Id) return; f.FolderId = t.Id; FilesView?.Refresh(); if (SelectedFile == f) SelectedFile = null; RequestSave(); }
         [RelayCommand] private void ToggleNavigation() => IsNavigationVisible = !IsNavigationVisible;
         [RelayCommand] private void ToggleEditMode() { IsEditMode = !IsEditMode; if (!IsEditMode) RequestSave(); }
@@ -1459,8 +1336,11 @@ RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => To
                 }
 
                 if (data.Folders.Count == 0) data.Folders.Add(new FolderItem { Name = "我的提示词" });
-                Folders = new ObservableCollection<FolderItem>(data.Folders);
-                Files = new ObservableCollection<PromptItem>(data.Files);
+                SidebarVM.Folders.Clear();
+                foreach (var folder in data.Folders) SidebarVM.Folders.Add(folder);
+
+                Files.Clear();
+                foreach (var file in data.Files) Files.Add(file);
 
                 if (Folders.Count > 0)
                 {

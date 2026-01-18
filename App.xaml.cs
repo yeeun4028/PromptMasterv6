@@ -50,10 +50,13 @@ namespace PromptMasterv5
 
         private static void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<SidebarViewModel>();
+            services.AddSingleton<ChatViewModel>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>();
 
             services.AddSingleton<IAiService, AiService>();
+            services.AddSingleton<IDataService>(sp => sp.GetRequiredService<WebDavDataService>());
             services.AddSingleton<WebDavDataService>();
             services.AddSingleton<FileDataService>();
             services.AddSingleton<BrowserAutomationService>();
