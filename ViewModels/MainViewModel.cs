@@ -320,6 +320,48 @@ public partial class MainViewModel : ObservableObject
         RequestSave();
     }
 
+    [RelayCommand]
+    private void ToggleNavigation()
+    {
+        IsNavigationVisible = !IsNavigationVisible;
+    }
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        LocalConfig.Theme = LocalConfig.Theme == ThemeType.Dark ? ThemeType.Light : ThemeType.Dark;
+        ApplyTheme(LocalConfig.Theme);
+        LocalConfigService.Save(LocalConfig);
+    }
+
+    [RelayCommand]
+    private void ToggleEditMode()
+    {
+        if (SelectedFile == null)
+        {
+            IsEditMode = false;
+            return;
+        }
+
+        if (IsEditMode)
+        {
+            SelectedFile.LastModified = DateTime.Now;
+            IsEditMode = false;
+            RequestSave();
+            return;
+        }
+
+        IsEditMode = true;
+    }
+
+    [RelayCommand]
+    private void CopyCompiledText()
+    {
+        var text = CompileContent();
+        if (string.IsNullOrWhiteSpace(text)) return;
+        Clipboard.SetText(text);
+    }
+
     private void ToggleMainWindow()
     {
         var win = Application.Current.MainWindow;
@@ -357,26 +399,26 @@ public partial class MainViewModel : ObservableObject
             SetBrush(resources, "AppBackground", "#2E3033");
             SetBrush(resources, "SidebarBackground", "#363B40");
             SetBrush(resources, "CardBackground", "#363B40");
-            SetBrush(resources, "TextPrimary", "#E6E8EA");
-            SetBrush(resources, "TextSecondary", "#B0B4B8");
+            SetBrush(resources, "TextPrimary", "#ACBFBE");
+            SetBrush(resources, "TextSecondary", "#ACBFBE");
             SetBrush(resources, "DividerColor", "#4A4F55");
-            SetBrush(resources, "HintBrush", "#8A8F96");
+            SetBrush(resources, "HintBrush", "#ACBFBE");
             SetBrush(resources, "ListItemHoverBackgroundBrush", "#3A3F45");
             SetBrush(resources, "ListItemSelectedBackgroundBrush", "#444A52");
             SetBrush(resources, "InputFocusBackgroundBrush", "#2E3033");
 
-            SetBrush(resources, "Block1Background", "#363B40");
-            SetBrush(resources, "Block2Background", "#363B40");
-            SetBrush(resources, "Block3Background", "#2E3033");
+            SetBrush(resources, "Block1Background", "#2E3033");
+            SetBrush(resources, "Block2Background", "#2E3033");
+            SetBrush(resources, "Block3Background", "#363B40");
             SetBrush(resources, "Block4Background", "#363B40");
-            SetBrush(resources, "PrimaryTextBrush", "#E6E8EA");
-            SetBrush(resources, "SecondaryTextBrush", "#B0B4B8");
-            SetBrush(resources, "PlaceholderTextBrush", "#8A8F96");
+            SetBrush(resources, "PrimaryTextBrush", "#ACBFBE");
+            SetBrush(resources, "SecondaryTextBrush", "#ACBFBE");
+            SetBrush(resources, "PlaceholderTextBrush", "#ACBFBE");
             SetBrush(resources, "DividerBrush", "#4A4F55");
-            SetBrush(resources, "ActionIconBrush", "#B0B4B8");
-            SetBrush(resources, "ActionIconHoverBrush", "#E6E8EA");
-            SetBrush(resources, "HeaderIconBrush", "#B0B4B8");
-            SetBrush(resources, "HeaderIconHoverBrush", "#E6E8EA");
+            SetBrush(resources, "ActionIconBrush", "#ACBFBE");
+            SetBrush(resources, "ActionIconHoverBrush", "#ACBFBE");
+            SetBrush(resources, "HeaderIconBrush", "#ACBFBE");
+            SetBrush(resources, "HeaderIconHoverBrush", "#ACBFBE");
         }
         else
         {
@@ -392,10 +434,10 @@ public partial class MainViewModel : ObservableObject
             SetBrush(resources, "ListItemSelectedBackgroundBrush", "#E0E0E0");
             SetBrush(resources, "InputFocusBackgroundBrush", "#FFFFFF");
 
-            SetBrush(resources, "Block1Background", "#F7F7F7");
-            SetBrush(resources, "Block2Background", "#FFFFFF");
-            SetBrush(resources, "Block3Background", "#FFFFFF");
-            SetBrush(resources, "Block4Background", "#FFFFFF");
+            SetBrush(resources, "Block1Background", "#E8E7E7");
+            SetBrush(resources, "Block2Background", "#E8E7E7");
+            SetBrush(resources, "Block3Background", "#EDEDED");
+            SetBrush(resources, "Block4Background", "#EDEDED");
             SetBrush(resources, "PrimaryTextBrush", "#333333");
             SetBrush(resources, "SecondaryTextBrush", "#666666");
             SetBrush(resources, "PlaceholderTextBrush", "#999999");

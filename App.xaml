@@ -26,10 +26,10 @@
             <SolidColorBrush x:Key="SidebarBackground" Color="#363B40"/>
             <SolidColorBrush x:Key="CardBackground" Color="#363B40"/>
 
-            <SolidColorBrush x:Key="Block1Background" Color="#363B40"/>
-            <SolidColorBrush x:Key="Block2Background" Color="#363B40"/>
-            <SolidColorBrush x:Key="Block3Background" Color="#2E3033"/>
-            <SolidColorBrush x:Key="Block4Background" Color="#363B40"/>
+            <SolidColorBrush x:Key="Block1Background" Color="#E8E7E7"/>
+            <SolidColorBrush x:Key="Block2Background" Color="#E8E7E7"/>
+            <SolidColorBrush x:Key="Block3Background" Color="#EDEDED"/>
+            <SolidColorBrush x:Key="Block4Background" Color="#EDEDED"/>
 
             <SolidColorBrush x:Key="PrimaryTextBrush" Color="#E6E8EA"/>
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B0B4B8"/>
