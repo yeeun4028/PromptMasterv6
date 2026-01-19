@@ -265,7 +265,8 @@ namespace PromptMasterv5
                 if (focusUserInput)
                 {
                     MiniInputBox.Focus();
-                    MiniInputBox.CaretPosition = firstUserParagraph.ContentStart;
+                    MiniInputBox.CaretPosition = doc.ContentEnd;
+                    MiniInputBox.ScrollToEnd();
                 }
             }
             finally

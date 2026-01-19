@@ -445,10 +445,22 @@ namespace PromptMasterv5.ViewModels
                 if (!IsFullMode && mainWindow.Visibility == Visibility.Visible)
                 {
                     CaptureForegroundWindow();
+                    if (NativeMethods.IsKeyDown(0x01))
+                    {
+                        return;
+                    }
                     mainWindow.Activate();
                     mainWindow.Focus();
                     mainWindow.Topmost = true;
-                    if (mainWindow is MainWindow win) win.MiniInputBox.Focus();
+                    if (mainWindow is MainWindow win)
+                    {
+                        win.MiniInputBox.Focus();
+                        if (win.MiniInputBox.Document != null)
+                        {
+                            win.MiniInputBox.CaretPosition = win.MiniInputBox.Document.ContentEnd;
+                            win.MiniInputBox.ScrollToEnd();
+                        }
+                    }
                 }
             });
         }
