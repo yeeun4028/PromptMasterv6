@@ -20,6 +20,7 @@ namespace PromptMasterv5.Infrastructure.Services
         public event EventHandler? OnDoubleCtrlDetected;
         public event EventHandler? OnDoubleSemiColonDetected;
         public event EventHandler? OnAlwaysOnTopSequenceDetected;
+        public event EventHandler<KeyEventArgs>? OnAnyKeyDown;
 
         private static char NormalizeSymbol(char c)
         {
@@ -40,8 +41,14 @@ namespace PromptMasterv5.Infrastructure.Services
             if (_globalHook != null) return;
 
             _globalHook = Hook.GlobalEvents();
+            _globalHook.KeyDown += GlobalHook_KeyDown;
             _globalHook.KeyUp += GlobalHook_KeyUp;
             _globalHook.KeyPress += GlobalHook_KeyPress;
+        }
+
+        private void GlobalHook_KeyDown(object? sender, KeyEventArgs e)
+        {
+            OnAnyKeyDown?.Invoke(this, e);
         }
 
         private void GlobalHook_KeyUp(object? sender, KeyEventArgs e)
@@ -104,6 +111,7 @@ namespace PromptMasterv5.Infrastructure.Services
         {
             if (_globalHook != null)
             {
+                _globalHook.KeyDown -= GlobalHook_KeyDown;
                 _globalHook.KeyUp -= GlobalHook_KeyUp;
                 _globalHook.KeyPress -= GlobalHook_KeyPress;
                 _globalHook.Dispose();
