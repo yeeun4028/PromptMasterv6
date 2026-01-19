@@ -210,7 +210,66 @@ namespace PromptMasterv5.Views
         private void AddMiniPinnedPrompt_Click(object sender, RoutedEventArgs e)
         {
             if (ViewModel == null) return;
+            var selectedId = (MiniPinnedPromptCandidateCombo?.SelectedValue as string) ?? "";
+            if (!string.IsNullOrWhiteSpace(selectedId))
+            {
+                ViewModel.LocalConfig.MiniPinnedPromptCandidateId = selectedId;
+            }
+
             ViewModel.AddMiniPinnedPromptFromCandidate();
+        }
+
+        private void OcrHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+            CaptureHotkeyToString(e, value =>
+            {
+                ViewModel.LocalConfig.OcrHotkey = value;
+                LocalConfigService.Save(ViewModel.LocalConfig);
+                ViewModel.UpdateWindowHotkeys();
+            });
+        }
+
+        private void TranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+            CaptureHotkeyToString(e, value =>
+            {
+                ViewModel.LocalConfig.TranslateHotkey = value;
+                LocalConfigService.Save(ViewModel.LocalConfig);
+                ViewModel.UpdateWindowHotkeys();
+            });
+        }
+
+        private static void CaptureHotkeyToString(System.Windows.Input.KeyEventArgs e, Action<string> setValue)
+        {
+            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+
+            if (key == Key.Delete || key == Key.Back)
+            {
+                e.Handled = true;
+                setValue("");
+                return;
+            }
+
+            if (key == Key.LeftCtrl || key == Key.RightCtrl ||
+                key == Key.LeftAlt || key == Key.RightAlt ||
+                key == Key.LeftShift || key == Key.RightShift ||
+                key == Key.LWin || key == Key.RWin)
+            {
+                return;
+            }
+
+            e.Handled = true;
+
+            var sb = new StringBuilder();
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
+            if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
+            if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
+            sb.Append(key.ToString());
+
+            setValue(sb.ToString());
         }
 
         private async void TestAiConnection_Click(object sender, RoutedEventArgs e)

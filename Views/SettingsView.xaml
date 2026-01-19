@@ -966,9 +966,10 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <ComboBox Grid.Column="0"
+                                                          x:Name="MiniPinnedPromptCandidateCombo"
                                                           ItemsSource="{Binding FilesView}"
                                                           SelectedValuePath="Id"
-                                                          SelectedValue="{Binding LocalConfig.MiniPinnedPromptCandidateId}"
+                                                          SelectedValue="{Binding LocalConfig.MiniPinnedPromptCandidateId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                           DisplayMemberPath="Title"/>
                                                 <Button Grid.Column="1"
                                                         Width="34"
@@ -984,7 +985,7 @@
                                                        Margin="0,12,0,0"
                                                        VerticalAlignment="Top"/>
                                             <ListBox Grid.Row="4" Grid.Column="1"
-                                                     ItemsSource="{Binding MiniPinnedPrompts}"
+                                                     ItemsSource="{Binding ChatVM.MiniPinnedPrompts}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Margin="10,12,0,0"
@@ -1080,10 +1081,19 @@
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="截图 OCR (复制到剪贴板)" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LocalConfig.OcrHotkey}" Style="{StaticResource ModernTextBoxStyle}" IsReadOnly="True" Margin="0,0,0,10" ToolTip="直接修改配置文件 local_settings.json 生效"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1"
+                                                     Text="{Binding LocalConfig.OcrHotkey}"
+                                                     Style="{StaticResource ModernTextBoxStyle}"
+                                                     IsReadOnly="True"
+                                                     PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
+                                                     Margin="0,0,0,10"/>
 
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="截图 翻译 (显示结果)" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LocalConfig.TranslateHotkey}" Style="{StaticResource ModernTextBoxStyle}" IsReadOnly="True" ToolTip="直接修改配置文件 local_settings.json 生效"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1"
+                                                     Text="{Binding LocalConfig.TranslateHotkey}"
+                                                     Style="{StaticResource ModernTextBoxStyle}"
+                                                     IsReadOnly="True"
+                                                     PreviewKeyDown="TranslateHotkeyTextBox_PreviewKeyDown"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,14"/>
