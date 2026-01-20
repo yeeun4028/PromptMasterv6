@@ -828,6 +828,52 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void OpenLogFolder()
+    {
+        try
+        {
+            var logPath = Infrastructure.Services.LoggerService.Instance.GetLogDirectory();
+            if (System.IO.Directory.Exists(logPath))
+            {
+                System.Diagnostics.Process.Start("explorer.exe", logPath);
+            }
+            else
+            {
+                MessageBox.Show("日志文件夹不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to open log folder", "MainViewModel.OpenLogFolder");
+            MessageBox.Show($"无法打开日志文件夹: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
+    private void ClearLogs()
+    {
+        var result = MessageBox.Show(
+            "确定要清除所有日志文件吗？此操作不可撤销。",
+            "确认清除日志",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                Infrastructure.Services.LoggerService.Instance.ClearLogs();
+                MessageBox.Show("日志已清除", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to clear logs", "MainViewModel.ClearLogs");
+                MessageBox.Show($"清除日志失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
     private void UpdateTimeDisplay()
     {
         var now = DateTime.Now;

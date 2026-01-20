@@ -827,6 +827,30 @@
                                                        FontWeight="SemiBold"
                                                        TextWrapping="Wrap"/>
                                         </Border>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,14"/>
+
+                                        <!-- Log Management Section -->
+                                        <TextBlock Text="日志管理" 
+                                                   Style="{StaticResource FieldLabelTextStyle}" 
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"/>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Button Content="打开日志文件夹"
+                                                    Command="{Binding OpenLogFolderCommand}"
+                                                    Style="{StaticResource TextLinkButtonStyle}"
+                                                    Foreground="{DynamicResource TextSecondary}"
+                                                    Margin="0,0,14,0"/>
+                                            <Button Content="清除所有日志"
+                                                    Command="{Binding ClearLogsCommand}"
+                                                    Style="{StaticResource DangerLinkButtonStyle}"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="日志文件存储在 AppData\Local\PromptMasterv5\Logs 目录中"
+                                                   Style="{StaticResource HintTextStyle}"
+                                                   Margin="0,10,0,0"/>
                                     </StackPanel>
                                 </StackPanel>
 

@@ -19,6 +19,9 @@ namespace PromptMasterv5
 
         public App()
         {
+            // Log application start
+            LoggerService.Instance.LogInfo("Application starting...", "App");
+            
             // 注册全局异常捕获事件
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -36,6 +39,8 @@ namespace PromptMasterv5
             if (!createdNew)
             {
                 // Another instance is already running
+                LoggerService.Instance.LogInfo("Another instance is already running. Activating existing instance.", "App.OnStartup");
+                
                 // Try to find and activate the existing window
                 ActivateExistingInstance();
                 
@@ -44,17 +49,24 @@ namespace PromptMasterv5
                 return;
             }
 
+            LoggerService.Instance.LogInfo("Single instance mutex acquired successfully.", "App.OnStartup");
+
             try
             {
+                LoggerService.Instance.LogInfo("Configuring services...", "App.OnStartup");
                 var services = new ServiceCollection();
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
 
+                LoggerService.Instance.LogInfo("Creating main window...", "App.OnStartup");
                 MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 MainWindow.Show();
+                
+                LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
             }
             catch (Exception ex)
             {
+                LoggerService.Instance.LogException(ex, "Fatal error during application startup", "App.OnStartup");
                 MessageBox.Show($"应用程序启动严重错误:\n{ex.Message}\n\n{ex.StackTrace}", "启动失败", MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
             }
@@ -62,6 +74,8 @@ namespace PromptMasterv5
 
         protected override void OnExit(ExitEventArgs e)
         {
+            LoggerService.Instance.LogInfo($"Application exiting with code: {e.ApplicationExitCode}", "App.OnExit");
+            
             // Release the mutex
             _singleInstanceMutex?.ReleaseMutex();
             _singleInstanceMutex?.Dispose();
@@ -89,9 +103,10 @@ namespace PromptMasterv5
                     Infrastructure.Services.NativeMethods.SetForegroundWindow(hWnd);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // If activation fails, just continue - the new instance will exit anyway
+                LoggerService.Instance.LogException(ex, "Failed to activate existing instance", "App.ActivateExistingInstance");
             }
         }
 
@@ -117,6 +132,7 @@ namespace PromptMasterv5
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
+            LoggerService.Instance.LogException(e.Exception, "Unhandled dispatcher exception", "App.DispatcherUnhandledException");
             MessageBox.Show($"发生未处理异常: {e.Exception.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true; // 防止程序直接崩溃
         }
@@ -125,12 +141,18 @@ namespace PromptMasterv5
         {
             if (e.ExceptionObject is Exception ex)
             {
+                LoggerService.Instance.LogException(ex, $"Fatal unhandled exception. IsTerminating: {e.IsTerminating}", "App.CurrentDomain_UnhandledException");
                 MessageBox.Show($"发生致命错误: {ex.Message}", "致命错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                LoggerService.Instance.LogError($"Fatal unhandled non-exception object: {e.ExceptionObject}", "App.CurrentDomain_UnhandledException");
             }
         }
 
         private void TaskScheduler_UnobservedTaskException(object? sender, System.Threading.Tasks.UnobservedTaskExceptionEventArgs e)
         {
+            LoggerService.Instance.LogException(e.Exception, "Unobserved task exception", "App.TaskScheduler_UnobservedTaskException");
             System.Diagnostics.Debug.WriteLine($"后台任务异常: {e.Exception.Message}");
             e.SetObserved();
         }
