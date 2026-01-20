@@ -62,11 +62,5 @@ namespace PromptMasterv5.Views
         {
             ResultBox.Text = text;
         }
-
-        private void Window_Deactivated(object sender, System.EventArgs e)
-        {
-            // 失去焦点自动关闭
-            this.Close();
-        }
     }
 }

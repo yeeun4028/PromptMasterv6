@@ -3,12 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="翻译结果" 
         WindowStyle="None"
-        ResizeMode="NoResize"
+        ResizeMode="CanResize"
         Background="Transparent"
         AllowsTransparency="True"
         Topmost="True"
         ShowInTaskbar="False"
-        Deactivated="Window_Deactivated"
         SizeToContent="WidthAndHeight">
 
     <Border Background="#363B40" 

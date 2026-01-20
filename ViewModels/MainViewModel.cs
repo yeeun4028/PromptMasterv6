@@ -73,6 +73,10 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private bool isDirty;
 
+    [ObservableProperty] private bool isRestoreConfirmVisible;
+    [ObservableProperty] private string? restoreStatus;
+    [ObservableProperty] private System.Windows.Media.Brush restoreStatusColor = System.Windows.Media.Brushes.Green;
+
     public MainViewModel(
         IAiService aiService,
         WebDavDataService dataService,
@@ -743,6 +747,85 @@ public partial class MainViewModel : ObservableObject
             await _localDataService.SaveAsync(Folders, Files);
         }
         catch { }
+    }
+
+    [RelayCommand]
+    private void ShowRestoreConfirm()
+    {
+        IsRestoreConfirmVisible = true;
+        RestoreStatus = null;
+    }
+
+    [RelayCommand]
+    private void CancelRestoreConfirm()
+    {
+        IsRestoreConfirmVisible = false;
+    }
+
+    [RelayCommand]
+    private async Task ManualRestore()
+    {
+        IsRestoreConfirmVisible = false;
+        RestoreStatus = "正在从云端恢复数据...";
+        RestoreStatusColor = System.Windows.Media.Brushes.Orange;
+
+        try
+        {
+            var data = await _dataService.LoadAsync();
+            
+            if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))
+            {
+                RestoreStatus = "❌ 云端没有数据可恢复";
+                RestoreStatusColor = System.Windows.Media.Brushes.Red;
+                return;
+            }
+
+            // Clear current data
+            Files.Clear();
+            SidebarVM.Folders.Clear();
+
+            // Restore folders
+            if (data.Folders != null && data.Folders.Count > 0)
+            {
+                foreach (var folder in data.Folders)
+                {
+                    SidebarVM.Folders.Add(folder);
+                }
+                SidebarVM.SelectedFolder = SidebarVM.Folders.FirstOrDefault();
+            }
+            else
+            {
+                var defaultFolder = new FolderItem { Name = "默认" };
+                SidebarVM.Folders.Add(defaultFolder);
+                SidebarVM.SelectedFolder = defaultFolder;
+            }
+
+            // Restore files
+            if (data.Files != null && data.Files.Count > 0)
+            {
+                foreach (var file in data.Files)
+                {
+                    Files.Add(file);
+                }
+            }
+
+            // Update view
+            SidebarVM.Files = Files;
+            UpdateFilesViewFilter();
+            FilesView?.Refresh();
+            SyncMiniPinnedPrompts();
+
+            // Save to local
+            await PerformLocalBackup();
+
+            RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
+            RestoreStatusColor = System.Windows.Media.Brushes.Green;
+        }
+        catch (Exception ex)
+        {
+            RestoreStatus = $"❌ 恢复失败: {ex.Message}";
+            RestoreStatusColor = System.Windows.Media.Brushes.Red;
+        }
     }
 
     private void UpdateTimeDisplay()
