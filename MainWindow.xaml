@@ -1184,7 +1184,8 @@
                                              TextOptions.TextRenderingMode="ClearType"
                                              Padding="5"
                                              FontFamily="Segoe UI, Microsoft YaHei UI"
-                                             PreviewKeyDown="TextBox_PreviewKeyDown">
+                                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                                             LostFocus="Block3ContentEditor_LostFocus">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Setter Property="Visibility" Value="Collapsed"/>

@@ -102,6 +102,13 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<PromptItem> files = new();
     [ObservableProperty] private PromptItem? selectedFile;
 
+    partial void OnSelectedFileChanged(PromptItem? value)
+    {
+        OnPropertyChanged(nameof(HasVariables));
+        OnPropertyChanged(nameof(Variables));
+        IsEditMode = false; // Always default to preview mode when selecting a file
+    }
+
     [ObservableProperty] private bool isEditMode;
     [ObservableProperty] private ObservableCollection<VariableItem> variables = new();
     [ObservableProperty] private bool hasVariables;

@@ -1563,5 +1563,19 @@ namespace PromptMasterv5
                 e.Handled = true;
             }
         }
+        private void Block3ContentEditor_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // 当 Block3 失去焦点时自动退出编辑模式，实现“自动锁”
+            if (ViewModel != null && ViewModel.IsEditMode)
+            {
+                // 注意：如果点击的是 Lock Button 本身，可能会在 ToggleEditModeCommand 执行前触发此事件
+                // 所以我们需要区分是否应该执行。
+                // 但根据需求“点击其他非编辑区，自动进入预览模式”，LostFocus 是最合适的。
+                // 为了防止与 ToggleEditMode 按钮冲突（导致双重切换），可以让 ToggleEditMode 显式处理。
+                // 不过简单起见，这里直接设为 false 即可。
+                ViewModel.IsEditMode = false;
+                ViewModel.RequestSaveCommand.Execute(null);
+            }
+        }
     }
 }

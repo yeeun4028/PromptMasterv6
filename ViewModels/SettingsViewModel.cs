@@ -403,6 +403,7 @@ namespace PromptMasterv5.ViewModels
             try
             {
                 await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files);
+                _mainViewModel.IsEditMode = false; // Switch to preview mode on successful backup
                 MessageBox.Show("云端备份成功！", "备份", MessageBoxButton.OK, MessageBoxImage.Information);
                 LoggerService.Instance.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
             }
