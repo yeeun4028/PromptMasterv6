@@ -3,150 +3,191 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Nodes; // 必须引用: 用于解析 JSON
+using System.Text.Json;
 using System.Threading.Tasks;
+using PromptMasterv5.Core.Models;
 
 namespace PromptMasterv5.Services
 {
     public class BaiduService
     {
-        // 保持 HttpClient 单例，避免重复创建连接导致端口耗尽
-        private readonly HttpClient _client;
+        private string _transAppId = "";
+        private string _transSecretKey = "";
 
-        public BaiduService()
+        private string _ocrApiKey = "";
+        private string _ocrSecretKey = "";
+        private string _ocrAccessToken = "";
+        private DateTime _ocrTokenExpire = DateTime.MinValue;
+
+        private readonly HttpClient _httpClient;
+
+        public BaiduService(HttpClient httpClient)
         {
-            _client = new HttpClient();
-            // 设置超时，防止网络卡死
-            _client.Timeout = TimeSpan.FromSeconds(30);
+            _httpClient = httpClient;
+            _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
-        /// <summary>
-        /// 文本翻译 (修复版)
-        /// </summary>
-        /// <param name="appId">百度翻译 AppID</param>
-        /// <param name="secretKey">百度翻译 密钥</param>
-        /// <param name="text">待翻译文本</param>
-        /// <param name="from">源语言 (默认 auto)</param>
-        /// <param name="to">目标语言 (默认 zh)</param>
-        public async Task<string> TranslateAsync(string appId, string secretKey, string text, string from = "auto", string to = "zh")
+        public void Configure(string transAppId, string transSecretKey, string ocrApiKey = "", string ocrSecretKey = "")
         {
-            // 1. 基础校验
-            if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(secretKey))
-                return "请先在设置中配置百度翻译 AppID 和 密钥";
+            _transAppId = transAppId;
+            _transSecretKey = transSecretKey;
+            _ocrApiKey = ocrApiKey;
+            _ocrSecretKey = ocrSecretKey;
 
-            if (string.IsNullOrWhiteSpace(text))
-                return "翻译内容为空";
+            _ocrAccessToken = "";
+        }
+
+        #region 翻译功能 (Translate)
+
+        public Task<string> TranslateAsync(string content, ApiProfile profile, string from = "auto", string to = "zh")
+        {
+            if (profile == null) return Task.FromResult("错误: 未配置百度翻译 AppID 或 SecretKey");
+            _transAppId = (profile.Key1 ?? "").Trim();
+            _transSecretKey = (profile.Key2 ?? "").Trim();
+            if (!IsAllDigits(_transAppId)) return Task.FromResult("错误: 翻译配置 Key1 必须是 AppID（纯数字）");
+            return TranslateAsync(content, from, to);
+        }
+
+        public async Task<string> TranslateAsync(string content, string from = "auto", string to = "zh")
+        {
+            if (string.IsNullOrWhiteSpace(_transAppId) || string.IsNullOrWhiteSpace(_transSecretKey))
+                return "错误: 未配置百度翻译 AppID 或 SecretKey";
+
+            if (string.IsNullOrWhiteSpace(content)) return string.Empty;
 
             try
             {
-                // 2. 生成随机盐 (Salt)
-                string salt = DateTime.Now.Ticks.ToString();
+                string salt = new Random().Next(100000, 999999).ToString();
 
-                // 3. 生成签名 (Sign)
-                // ★★★ 关键点1：签名必须使用【未编码】的原始文本拼接 ★★★
-                string rawSignStr = appId + text + salt + secretKey;
-                string sign = EncryptString(rawSignStr);
+                string signStr = _transAppId + content + salt + _transSecretKey;
+                string sign = ComputeMd5(signStr);
 
-                // 4. 构造请求 URL
-                // ★★★ 关键点2：发送请求时，Query 参数中的文本必须经过 URL 编码 ★★★
-                // 百度通用翻译 API 地址
-                string url = $"https://fanyi-api.baidu.com/api/trans/vip/translate?q={Uri.EscapeDataString(text)}&from={from}&to={to}&appid={appId}&salt={salt}&sign={sign}";
+                string url = "https://fanyi-api.baidu.com/api/trans/vip/translate";
 
-                // 5. 发送请求
-                var response = await _client.GetAsync(url);
-                var json = await response.Content.ReadAsStringAsync();
-
-                // 6. 解析结果
-                var jsonNode = JsonNode.Parse(json);
-                if (jsonNode == null) return "翻译接口返回数据为空";
-
-                // 优先检查错误码 (52000 为成功)
-                var errorCode = jsonNode["error_code"]?.ToString();
-                if (!string.IsNullOrEmpty(errorCode) && errorCode != "52000")
+                var postData = new List<KeyValuePair<string, string>>
                 {
-                    var errorMsg = jsonNode["error_msg"]?.ToString() ?? "未知错误";
-                    return $"翻译失败 ({errorCode}): {errorMsg}";
-                }
+                    new KeyValuePair<string, string>("q", content),
+                    new KeyValuePair<string, string>("from", from),
+                    new KeyValuePair<string, string>("to", to),
+                    new KeyValuePair<string, string>("appid", _transAppId),
+                    new KeyValuePair<string, string>("salt", salt),
+                    new KeyValuePair<string, string>("sign", sign)
+                };
 
-                // 提取翻译结果 (处理多段文本)
-                if (jsonNode["trans_result"] is JsonArray transArray)
+                using (var requestContent = new FormUrlEncodedContent(postData))
                 {
-                    var sb = new StringBuilder();
-                    foreach (var item in transArray)
+                    var response = await _httpClient.PostAsync(url, requestContent);
+                    response.EnsureSuccessStatusCode();
+                    var jsonResult = await response.Content.ReadAsStringAsync();
+
+                    using (JsonDocument doc = JsonDocument.Parse(jsonResult))
                     {
-                        var dst = item?["dst"]?.ToString();
-                        if (!string.IsNullOrEmpty(dst))
+                        var root = doc.RootElement;
+
+                        if (root.TryGetProperty("error_code", out var errorCodeElement))
                         {
-                            sb.AppendLine(dst);
+                            string errorCode = errorCodeElement.ToString();
+                            if (errorCode != "52000")
+                            {
+                                string msg = root.TryGetProperty("error_msg", out var errorMsg) ? errorMsg.ToString() : "未知错误";
+                                return $"百度翻译错误 ({errorCode}): {msg}";
+                            }
+                        }
+
+                        if (root.TryGetProperty("trans_result", out var results))
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            foreach (var item in results.EnumerateArray())
+                            {
+                                if (item.TryGetProperty("dst", out var dst))
+                                    sb.AppendLine(dst.ToString());
+                            }
+                            return sb.ToString().TrimEnd();
                         }
                     }
-                    return sb.ToString().Trim();
                 }
-
-                return $"未解析到翻译结果。原始内容：{json}";
+                return "错误: 未能解析翻译结果";
             }
             catch (Exception ex)
             {
-                return $"翻译异常：{ex.Message}";
+                return $"翻译异常: {ex.Message}";
             }
         }
 
-        /// <summary>
-        /// 通用文字识别 (OCR) - 标准版
-        /// </summary>
-        public async Task<string> OcrAsync(string apiKey, string secretKey, byte[] imageBytes)
+        #endregion
+
+        #region OCR 功能 (OCR)
+
+        public Task<string> OcrAsync(byte[] imageBytes, ApiProfile profile, string languageType = "CHN_ENG")
         {
-            if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(secretKey))
-                return "请先在设置中配置百度 OCR API Key 和 Secret Key";
+            if (profile == null) return Task.FromResult("错误: 未配置百度 OCR API Key 或 Secret Key");
+            var nextApiKey = profile.Key1 ?? "";
+            var nextSecretKey = profile.Key2 ?? "";
+            if (!string.Equals(_ocrApiKey, nextApiKey, StringComparison.Ordinal) ||
+                !string.Equals(_ocrSecretKey, nextSecretKey, StringComparison.Ordinal))
+            {
+                _ocrApiKey = nextApiKey;
+                _ocrSecretKey = nextSecretKey;
+                _ocrAccessToken = "";
+                _ocrTokenExpire = DateTime.MinValue;
+            }
+            return OcrAsync(imageBytes, languageType);
+        }
+
+        public async Task<string> OcrAsync(byte[] imageBytes, string languageType = "CHN_ENG")
+        {
+            if (string.IsNullOrWhiteSpace(_ocrApiKey) || string.IsNullOrWhiteSpace(_ocrSecretKey))
+                return "错误: 未配置百度 OCR API Key 或 Secret Key";
+
+            if (imageBytes == null || imageBytes.Length == 0) return "错误: 图片数据为空";
 
             try
             {
-                // 1. 获取 Access Token
-                // 注意：OCR 的鉴权方式与翻译不同，需要先换取 Token
-                string tokenUrl = $"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={apiKey}&client_secret={secretKey}";
-                var tokenResponse = await _client.PostAsync(tokenUrl, null);
-                var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
+                string token = await GetOcrAccessTokenAsync();
+                if (string.IsNullOrEmpty(token)) return "错误: 无法获取 Access Token";
 
-                var tokenNode = JsonNode.Parse(tokenJson);
-                var accessToken = tokenNode?["access_token"]?.ToString();
+                string url = $"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={token}";
 
-                if (string.IsNullOrEmpty(accessToken))
-                    return "OCR 鉴权失败：无法获取 AccessToken，请检查 Key 是否正确";
+                string base64Image = Convert.ToBase64String(imageBytes);
 
-                // 2. 调用 OCR 接口
-                string ocrUrl = $"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={accessToken}";
-
-                string base64 = Convert.ToBase64String(imageBytes);
-                var postData = new List<KeyValuePair<string, string>>
+                var content = new FormUrlEncodedContent(new[]
                 {
-                    new("image", base64),
-                    new("language_type", "CHN_ENG") // 识别中英混合
-                };
+                    new KeyValuePair<string, string>("image", base64Image),
+                    new KeyValuePair<string, string>("language_type", languageType),
+                    new KeyValuePair<string, string>("detect_direction", "false"),
+                    new KeyValuePair<string, string>("detect_language", "false"),
+                    new KeyValuePair<string, string>("paragraph", "false"),
+                    new KeyValuePair<string, string>("probability", "false")
+                });
 
-                using var content = new FormUrlEncodedContent(postData);
-                var response = await _client.PostAsync(ocrUrl, content);
-                var json = await response.Content.ReadAsStringAsync();
+                var response = await _httpClient.PostAsync(url, content);
+                var jsonResult = await response.Content.ReadAsStringAsync();
 
-                // 3. 解析结果
-                var jsonNode = JsonNode.Parse(json);
-                if (jsonNode == null) return "OCR 接口返回为空";
-
-                if (jsonNode["error_code"] != null)
+                using (JsonDocument doc = JsonDocument.Parse(jsonResult))
                 {
-                    return $"OCR 失败: {jsonNode["error_msg"]}";
-                }
+                    var root = doc.RootElement;
 
-                if (jsonNode["words_result"] is JsonArray wordsArray)
-                {
-                    var sb = new StringBuilder();
-                    foreach (var item in wordsArray)
+                    if (root.TryGetProperty("error_code", out var errorCode) && errorCode.GetInt32() != 0)
                     {
-                        sb.AppendLine(item?["words"]?.ToString());
+                        string msg = root.TryGetProperty("error_msg", out var errorMsg) ? errorMsg.ToString() : "未知错误";
+                        return $"OCR 错误 ({errorCode}): {msg}";
                     }
-                    return sb.ToString().Trim();
-                }
 
-                return "未识别到文字";
+                    if (root.TryGetProperty("words_result", out var wordsResult))
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        foreach (var item in wordsResult.EnumerateArray())
+                        {
+                            if (item.TryGetProperty("words", out var words))
+                            {
+                                sb.AppendLine(words.ToString());
+                            }
+                        }
+                        string result = sb.ToString().Trim();
+                        return string.IsNullOrWhiteSpace(result) ? "未识别到文字" : result;
+                    }
+                }
+                return "错误: 解析 OCR 结果失败";
             }
             catch (Exception ex)
             {
@@ -154,24 +195,58 @@ namespace PromptMasterv5.Services
             }
         }
 
-        /// <summary>
-        /// MD5 加密工具方法
-        /// </summary>
-        private static string EncryptString(string str)
+        private async Task<string> GetOcrAccessTokenAsync()
         {
-            using (var md5 = MD5.Create())
+            if (!string.IsNullOrEmpty(_ocrAccessToken) && DateTime.Now < _ocrTokenExpire)
+                return _ocrAccessToken;
+
+            try
             {
-                var byteOld = Encoding.UTF8.GetBytes(str);
-                var byteNew = md5.ComputeHash(byteOld);
-                var sb = new StringBuilder();
-                foreach (var b in byteNew)
+                string url = $"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={_ocrApiKey}&client_secret={_ocrSecretKey}";
+                var response = await _httpClient.PostAsync(url, null);
+                var json = await response.Content.ReadAsStringAsync();
+
+                using (JsonDocument doc = JsonDocument.Parse(json))
                 {
-                    // ★★★ 关键点3：必须使用 "x2" 格式化为小写十六进制 ★★★
-                    // 如果使用 "X2" (大写)，百度 API 会提示签名错误 (54001)
-                    sb.Append(b.ToString("x2"));
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("access_token", out var tokenElement))
+                    {
+                        _ocrAccessToken = tokenElement.ToString();
+                        int expiresIn = root.TryGetProperty("expires_in", out var expireElement) ? expireElement.GetInt32() : 2592000;
+                        _ocrTokenExpire = DateTime.Now.AddSeconds(expiresIn - 60);
+                        return _ocrAccessToken;
+                    }
                 }
+            }
+            catch
+            {
+            }
+            return string.Empty;
+        }
+
+        private static string ComputeMd5(string source)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(source);
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hashBytes.Length; i++) sb.Append(hashBytes[i].ToString("x2"));
                 return sb.ToString();
             }
         }
+
+        private static bool IsAllDigits(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            for (int i = 0; i < value.Length; i++)
+            {
+                var c = value[i];
+                if (c < '0' || c > '9') return false;
+            }
+            return true;
+        }
+
+        #endregion
     }
 }

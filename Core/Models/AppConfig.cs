@@ -61,6 +61,36 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private string translateProfileId = "";
 
+        // ★★★ 新增：供应商启用状态 ★★★
+        [ObservableProperty]
+        private bool enableBaidu = true;
+
+        [ObservableProperty]
+        private bool enableTencentCloud = false;
+
+        [ObservableProperty]
+        private bool enableYoudao = false;
+
+        [ObservableProperty]
+        private bool enableAiTranslation = false;
+
+        // ★★★ 新增：AI 翻译配置 ★★★
+        [ObservableProperty]
+        private string aiTranslationPromptId = "";
+
+        [ObservableProperty]
+        private ObservableCollection<AiTranslationConfig> savedAiTranslationConfigs = new();
+
+        [ObservableProperty]
+        private string activeAiTranslationConfigId = "";
+
+        // External Tools Hotkeys
+        [ObservableProperty]
+        private string screenshotTranslateHotkey = "";
+
+        [ObservableProperty]
+        private string ocrHotkey = "";
+
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }
 }

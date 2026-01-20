@@ -54,10 +54,10 @@ namespace PromptMasterv5.Core.Models
  private string miniAlwaysOnTopHotkeyPrefix = ""; 
 
 [ObservableProperty] 
- private string ocrHotkey = "F9"; // 默认 F9 触发 OCR 
+ private string ocrHotkey = ""; // OCR 快捷键（从外部工具设置页面配置）
 
 [ObservableProperty] 
- private string translateHotkey = "Alt+D"; // 默认 Alt+D 触发翻译 
+ private string translateHotkey = ""; // 翻译快捷键（从外部工具设置页面配置） 
 
 [ObservableProperty] 
  [property: JsonIgnore] 

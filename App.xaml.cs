@@ -50,6 +50,8 @@ namespace PromptMasterv5
 
         private static void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpClient();
+
             services.AddSingleton<SidebarViewModel>();
             services.AddSingleton<ChatViewModel>();
             services.AddSingleton<MainViewModel>();
@@ -62,7 +64,7 @@ namespace PromptMasterv5
             services.AddSingleton<BrowserAutomationService>();
             services.AddSingleton<GlobalKeyService>();
             services.AddSingleton<FabricService>();
-            services.AddSingleton<BaiduService>();
+            services.AddHttpClient<BaiduService>();
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

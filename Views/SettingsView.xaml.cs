@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Net.Http;
 using PromptMasterv5.Core.Models;
 using PromptMasterv5.Infrastructure.Services;
 using PromptMasterv5.ViewModels;
@@ -21,10 +22,105 @@ namespace PromptMasterv5.Views
     public partial class SettingsView : System.Windows.Controls.UserControl
     {
         private int _activeCoordinateRuleIndex = 0;
+        private int _selectedExternalToolsSubTab = 0;
 
         public SettingsView()
         {
             InitializeComponent();
+            Loaded += SettingsView_Loaded;
+        }
+
+        private void SettingsView_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Initialize external tools sub-tab to Main tab
+            UpdateExternalToolsSubTab(0);
+            
+            // Load Baidu credentials from AppConfig
+            LoadBaiduCredentials();
+        }
+
+        private void LoadBaiduCredentials()
+        {
+            if (ViewModel == null) return;
+
+            // Find Baidu OCR and Translation profiles in ApiProfiles
+            var baiduOcrProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
+                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.OCR);
+            var baiduTransProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
+                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
+
+            // Load OCR credentials
+            if (baiduOcrProfile != null && BaiduOcrApiKey != null && BaiduOcrSecretKey != null)
+            {
+                BaiduOcrApiKey.Text = baiduOcrProfile.Key1;
+                BaiduOcrSecretKey.Text = baiduOcrProfile.Key2;
+            }
+
+            // Load Translation credentials
+            if (baiduTransProfile != null && BaiduTranslateAppId != null && BaiduTranslateSecretKey != null)
+            {
+                BaiduTranslateAppId.Text = baiduTransProfile.Key1;
+                BaiduTranslateSecretKey.Text = baiduTransProfile.Key2;
+            }
+        }
+
+        private void SaveBaiduCredentials()
+        {
+            if (ViewModel == null) return;
+
+            // Find or create Baidu OCR profile
+            var baiduOcrProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
+                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.OCR);
+            
+            if (baiduOcrProfile == null)
+            {
+                baiduOcrProfile = new ApiProfile
+                {
+                    Name = "百度 OCR",
+                    Provider = ApiProvider.Baidu,
+                    ServiceType = ServiceType.OCR
+                };
+                ViewModel.Config.ApiProfiles.Add(baiduOcrProfile);
+            }
+
+            if (BaiduOcrApiKey != null && BaiduOcrSecretKey != null)
+            {
+                baiduOcrProfile.Key1 = BaiduOcrApiKey.Text;
+                baiduOcrProfile.Key2 = BaiduOcrSecretKey.Text;
+            }
+
+            // Find or create Baidu Translation profile
+            var baiduTransProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
+                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
+            
+            if (baiduTransProfile == null)
+            {
+                baiduTransProfile = new ApiProfile
+                {
+                    Name = "百度翻译",
+                    Provider = ApiProvider.Baidu,
+                    ServiceType = ServiceType.Translation
+                };
+                ViewModel.Config.ApiProfiles.Add(baiduTransProfile);
+            }
+
+            if (BaiduTranslateAppId != null && BaiduTranslateSecretKey != null)
+            {
+                baiduTransProfile.Key1 = BaiduTranslateAppId.Text;
+                baiduTransProfile.Key2 = BaiduTranslateSecretKey.Text;
+            }
+
+            // Auto-set as active profiles if not already set
+            if (string.IsNullOrEmpty(ViewModel.Config.OcrProfileId))
+            {
+                ViewModel.Config.OcrProfileId = baiduOcrProfile.Id;
+            }
+            if (string.IsNullOrEmpty(ViewModel.Config.TranslateProfileId))
+            {
+                ViewModel.Config.TranslateProfileId = baiduTransProfile.Id;
+            }
+
+            ConfigService.Save(ViewModel.Config);
         }
 
         private MainViewModel? ViewModel => DataContext as MainViewModel;
@@ -219,16 +315,6 @@ namespace PromptMasterv5.Views
             ViewModel.AddMiniPinnedPromptFromCandidate();
         }
 
-        private void OcrHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (ViewModel == null) return;
-            CaptureHotkeyToString(e, value =>
-            {
-                ViewModel.LocalConfig.OcrHotkey = value;
-                LocalConfigService.Save(ViewModel.LocalConfig);
-                ViewModel.UpdateWindowHotkeys();
-            });
-        }
 
         private void TranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -270,6 +356,76 @@ namespace PromptMasterv5.Views
             sb.Append(key.ToString());
 
             setValue(sb.ToString());
+        }
+
+        private void ScreenshotTranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+
+            // Delete to clear
+            if (key == Key.Delete || key == Key.Back)
+            {
+                e.Handled = true;
+                ViewModel.Config.ScreenshotTranslateHotkey = "";
+                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.UpdateExternalToolsHotkeys();
+                return;
+            }
+
+            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || 
+                key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin) return;
+            
+            e.Handled = true;
+            var sb = new StringBuilder();
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
+            if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
+            if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
+            sb.Append(key.ToString());
+            
+            if (sender is TextBox tb)
+            {
+                ViewModel.Config.ScreenshotTranslateHotkey = sb.ToString();
+                tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.UpdateExternalToolsHotkeys();
+            }
+        }
+
+        private void OcrHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+
+            // Delete to clear
+            if (key == Key.Delete || key == Key.Back)
+            {
+                e.Handled = true;
+                ViewModel.Config.OcrHotkey = "";
+                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.UpdateExternalToolsHotkeys();
+                return;
+            }
+
+            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || 
+                key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin) return;
+            
+            e.Handled = true;
+            var sb = new StringBuilder();
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
+            if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
+            if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
+            sb.Append(key.ToString());
+            
+            if (sender is TextBox tb)
+            {
+                ViewModel.Config.OcrHotkey = sb.ToString();
+                tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.UpdateExternalToolsHotkeys();
+            }
         }
 
         private async void TestAiConnection_Click(object sender, RoutedEventArgs e)
@@ -326,6 +482,210 @@ namespace PromptMasterv5.Views
             {
                 ViewModel.ActivateAiModelCommand.Execute(selectedModel);
             }
+        }
+
+        // External Tools Sub-Tab Navigation
+        private void ExternalToolsSubTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
+            {
+                UpdateExternalToolsSubTab(tabIndex);
+            }
+        }
+
+        private void UpdateExternalToolsSubTab(int tabIndex)
+        {
+            var previousTab = _selectedExternalToolsSubTab;
+            _selectedExternalToolsSubTab = tabIndex;
+
+            // Update button states directly - much simpler!
+            if (BtnMainTab != null) BtnMainTab.Tag = tabIndex == 0 ? "Selected" : "0";
+            if (BtnBaiduTab != null) BtnBaiduTab.Tag = tabIndex == 1 ? "Selected" : "1";
+            if (BtnTencentTab != null) BtnTencentTab.Tag = tabIndex == 2 ? "Selected" : "2";
+            if (BtnYoudaoTab != null) BtnYoudaoTab.Tag = tabIndex == 3 ? "Selected" : "3";
+            if (BtnAiTab != null) BtnAiTab.Tag = tabIndex == 4 ? "Selected" : "4";
+
+            // Show/hide tab content
+            if (ExternalToolsMainTab != null) ExternalToolsMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsBaiduTab != null) ExternalToolsBaiduTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsTencentTab != null) ExternalToolsTencentTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsAITab != null) ExternalToolsAITab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
+
+            // Load credentials when switching to Baidu tab
+            if (tabIndex == 1)
+            {
+                LoadBaiduCredentials();
+            }
+
+            // Sync credentials when leaving Baidu tab
+            if (previousTab == 1 && tabIndex != 1)
+            {
+                SaveBaiduCredentials();
+            }
+        }
+
+        // AI Translation Prompt - Jump to Edit
+        private void JumpToEditPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            var promptId = ViewModel.Config.AiTranslationPromptId;
+            if (string.IsNullOrWhiteSpace(promptId)) return;
+
+            var prompt = ViewModel.Files.FirstOrDefault(f => f.Id == promptId);
+            if (prompt != null)
+            {
+                ViewModel.SelectedFile = prompt;
+                ViewModel.IsEditMode = true;
+                ViewModel.SaveSettingsCommand.Execute(null); // Close settings
+            }
+        }
+
+        // AI Translation Config - Save
+        private void SaveAiTranslationConfig_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            var promptId = ViewModel.Config.AiTranslationPromptId;
+            var promptTitle = "";
+            if (!string.IsNullOrWhiteSpace(promptId))
+            {
+                var prompt = ViewModel.Files.FirstOrDefault(f => f.Id == promptId);
+                promptTitle = prompt?.Title ?? "";
+            }
+
+            var config = new AiTranslationConfig
+            {
+                PromptId = promptId,
+                PromptTitle = promptTitle,
+                BaseUrl = ViewModel.Config.AiBaseUrl,
+                ApiKey = ViewModel.Config.AiApiKey,
+                Model = ViewModel.Config.AiModel
+            };
+
+            ViewModel.Config.SavedAiTranslationConfigs.Add(config);
+            ConfigService.Save(ViewModel.Config);
+        }
+
+        // AI Translation Config - Load from List
+        private void AiTranslationConfigList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (sender is not ListBox listBox) return;
+            if (listBox.SelectedItem is not AiTranslationConfig config) return;
+
+            // Load the configuration
+            ViewModel.Config.AiTranslationPromptId = config.PromptId;
+            ViewModel.Config.AiBaseUrl = config.BaseUrl;
+            ViewModel.Config.AiApiKey = config.ApiKey;
+            ViewModel.Config.AiModel = config.Model;
+
+            // Clear selection to allow re-selecting the same item
+            listBox.SelectedItem = null;
+        }
+
+        // AI Translation Config - Delete
+        private void DeleteAiTranslationConfig_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (sender is not Button btn) return;
+            if (btn.Tag is not string configId) return;
+
+            var config = ViewModel.Config.SavedAiTranslationConfigs.FirstOrDefault(c => c.Id == configId);
+            if (config != null)
+            {
+                ViewModel.Config.SavedAiTranslationConfigs.Remove(config);
+                ConfigService.Save(ViewModel.Config);
+            }
+        }
+
+        // Connection Test Methods
+        private async void TestBaiduOcr_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            // Save current inputs first
+            SaveBaiduCredentials();
+
+            // Find Baidu OCR profile
+            var profile = ViewModel.Config.ApiProfiles.FirstOrDefault(p =>
+                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.OCR);
+
+            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
+            {
+                System.Windows.MessageBox.Show("请先填写 API Key 和 Secret Key", "测试失败");
+                return;
+            }
+
+            // Create local Baidu service instance with HttpClient
+            using var httpClient = new HttpClient();
+            var baiduService = new BaiduService(httpClient);
+            
+            // Test with a minimal white 1x1 PNG image
+            byte[] testImage = CreateTestImage();
+            var result = await baiduService.OcrAsync(testImage, profile);
+
+            if (result.StartsWith("错误") || result.Contains("错误"))
+            {
+                System.Windows.MessageBox.Show($"连接失败：{result}", "OCR 测试结果");
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("连接成功！OCR API 配置正确。", "OCR 测试结果");
+            }
+        }
+
+        private async void TestBaiduTranslate_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            SaveBaiduCredentials();
+
+            var profile = ViewModel.Config.ApiProfiles.FirstOrDefault(p =>
+                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
+
+            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
+            {
+                System.Windows.MessageBox.Show("请先填写 App ID 和 Secret Key", "测试失败");
+                return;
+            }
+
+            // Create local Baidu service instance with HttpClient
+            using var httpClient = new HttpClient();
+            var baiduService = new BaiduService(httpClient);
+            
+            // Test with a simple English phrase
+            var result = await baiduService.TranslateAsync("Hello", profile, "en", "zh");
+
+            if (result.StartsWith("错误") || result.Contains("错误") || result.Contains("异常"))
+            {
+                System.Windows.MessageBox.Show($"连接失败：{result}", "翻译测试结果");
+            }
+            else
+            {
+                System.Windows.MessageBox.Show($"连接成功！\n\n测试翻译结果：{result}", "翻译测试结果");
+            }
+        }
+
+
+
+        private void TestTencentCloud_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("腾讯云连接测试功能将在未来版本中实现。", "提示");
+        }
+
+        private void TestYoudao_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("有道连接测试功能将在未来版本中实现。", "提示");
+        }
+
+        private byte[] CreateTestImage()
+        {
+            // Create a minimal 1x1 white PNG image for testing OCR
+            return Convert.FromBase64String(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+            );
         }
     }
 }

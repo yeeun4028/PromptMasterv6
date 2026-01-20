@@ -1065,115 +1065,450 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <StackPanel Margin="0,0,0,14">
-                                        <TextBlock Text="快捷键设置" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
-                                        <Grid Margin="0,0,0,12">
+                                    <!-- Sub-Tab Navigation -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                        <Button x:Name="BtnMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="0">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnBaiduTab" Content="百度" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="1">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnTencentTab" Content="腾讯云" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="2">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnYoudaoTab" Content="有道" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="3">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnAiTab" Content="AI" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="4">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <!-- Sub-Tab Content: Main Interface -->
+                                    <StackPanel x:Name="ExternalToolsMainTab">
+                                        <TextBlock Text="启用的供应商（同时控制翻译 + OCR）" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,12"/>
+                                        
+                                        <Grid Margin="0,0,0,20">
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="150"/>
                                             </Grid.ColumnDefinitions>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="截图 OCR (复制到剪贴板)" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1"
-                                                     Text="{Binding LocalConfig.OcrHotkey}"
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     IsReadOnly="True"
-                                                     PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
-                                                     Margin="0,0,0,10"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="百度" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                                            <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding Config.EnableBaidu}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center" Margin="0,0,0,12"/>
 
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="截图 翻译 (显示结果)" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1"
-                                                     Text="{Binding LocalConfig.TranslateHotkey}"
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     IsReadOnly="True"
-                                                     PreviewKeyDown="TranslateHotkeyTextBox_PreviewKeyDown"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="腾讯云" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                                            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding Config.EnableTencentCloud}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center" Margin="0,0,0,12"/>
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="有道" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                                            <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding Config.EnableYoudao}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center" Margin="0,0,0,12"/>
+
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="AI 翻译" VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding Config.EnableAiTranslation}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
                                         </Grid>
 
-                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,14"/>
+                                        <TextBlock Text="提示：启用的供应商将在翻译和 OCR 功能中可用。请在对应的供应商标签页中配置 API 密钥。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap"/>
 
-                                        <!-- 功能绑定区域 -->
-                                        <TextBlock Text="功能绑定 (选择下方列表中的配置)" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,20"/>
+
+                                        <!-- 快捷键设置 -->
+                                        <TextBlock Text="功能快捷键" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="截图翻译快捷键" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="ScreenshotTranslateHotkeyTextBox" 
+                                                     Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
+                                                     Style="{StaticResource ModernTextBoxStyle}"
+                                                     PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
+                                                     IsReadOnly="True"
+                                                     ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="OCR 识别快捷键" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="OcrHotkeyTextBox" 
+                                                     Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
+                                                     Style="{StaticResource ModernTextBoxStyle}"
+                                                     PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
+                                                     IsReadOnly="True"
+                                                     ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="提示：设置快捷键后会立即生效。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Sub-Tab Content: Baidu -->
+                                    <StackPanel x:Name="ExternalToolsBaiduTab" Visibility="Collapsed">
+                                        <TextBlock Text="百度 OCR 配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="BaiduOcrApiKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="BaiduOcrSecretKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Button Content="测试 OCR 连接" Click="TestBaiduOcr_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"/>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,20"/>
+
+                                        <TextBlock Text="百度翻译配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="App ID" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="BaiduTranslateAppId" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="BaiduTranslateSecretKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Button Content="测试翻译连接" Click="TestBaiduTranslate_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"/>
+
+                                        <TextBlock Text="配置已保存到主配置中，将在启用百度供应商时生效。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Sub-Tab Content: Tencent Cloud -->
+                                    <StackPanel x:Name="ExternalToolsTencentTab" Visibility="Collapsed">
+                                        <TextBlock Text="腾讯云 OCR 配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Secret Id" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="TencentOcrSecretId" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="TencentOcrSecretKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,20"/>
+
+                                        <TextBlock Text="腾讯云翻译配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Secret Id" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="TencentTranslateSecretId" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="TencentTranslateSecretKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Button Content="测试连接（暂未实现）" Click="TestTencentCloud_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"
+                                                IsEnabled="False"/>
+
+                                        <TextBlock Text="注意：腾讯云后端集成将在未来版本中实现。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" Foreground="#FFA500"/>
+                                    </StackPanel>
+
+                                    <!-- Sub-Tab Content: Youdao -->
+                                    <StackPanel x:Name="ExternalToolsYoudaoTab" Visibility="Collapsed">
+                                        <TextBlock Text="有道 OCR 配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="App Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="YoudaoOcrAppKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="App Secret" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="YoudaoOcrAppSecret" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,8,0,20"/>
+
+                                        <TextBlock Text="有道翻译配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="App Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="YoudaoTranslateAppKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="App Secret" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="YoudaoTranslateAppSecret" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Button Content="测试连接（暂未实现）" Click="TestYoudao_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"
+                                                IsEnabled="False"/>
+
+                                        <TextBlock Text="注意：有道后端集成将在未来版本中实现。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" Foreground="#FFA500"/>
+                                    </StackPanel>
+
+                                    <!-- Sub-Tab Content: AI -->
+                                    <StackPanel x:Name="ExternalToolsAITab" Visibility="Collapsed">
+                                        <!-- AI 模型配置 -->
+                                        <TextBlock Text="AI 模型配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Base URL" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox Text="{Binding Config.AiBaseUrl, Mode=TwoWay}" 
+                                                     Style="{StaticResource ModernTextBoxStyle}"
+                                                     ToolTip="例如: https://api.deepseek.com"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox Text="{Binding Config.AiApiKey, Mode=TwoWay}" 
+                                                     Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox Text="{Binding Config.AiModel, Mode=TwoWay}" 
+                                                     Style="{StaticResource ModernTextBoxStyle}"
+                                                     ToolTip="例如: deepseek-chat"/>
+                                        </StackPanel>
+
+                                        <Button Content="测试 AI 连接" Click="TestAiConnection_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"/>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
+
+                                        <TextBlock Text="AI 翻译提示词" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
                                         <Grid Margin="0,0,0,16">
-                                        <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <ComboBox Grid.Column="0" x:Name="AiTranslationPromptCombo" 
+                                                      ItemsSource="{Binding FilesView}"
+                                                      SelectedValuePath="Id"
+                                                      SelectedValue="{Binding Config.AiTranslationPromptId, Mode=TwoWay}"
+                                                      DisplayMemberPath="Title"
+                                                      Height="32"/>
+                                            
+                                            <Button Grid.Column="1" Content="跳转编辑" Margin="10,0,0,0" Padding="12,6"
+                                                    Click="JumpToEditPrompt_Click"
+                                                    Style="{StaticResource TextLinkButtonStyle}"/>
+                                        </Grid>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="OCR 识别使用：" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                                        <ComboBox Grid.Row="0" Grid.Column="1" 
-                                                  ItemsSource="{Binding Config.ApiProfiles}" 
-                                                  SelectedValue="{Binding Config.OcrProfileId}"
-                                                  SelectedValuePath="Id"
-                                                  DisplayMemberPath="Name"
-                                                  Margin="0,0,0,10"
-                                                  Height="30"/>
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="截图翻译使用：" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <ComboBox Grid.Row="1" Grid.Column="1" 
-                                                  ItemsSource="{Binding Config.ApiProfiles}" 
-                                                  SelectedValue="{Binding Config.TranslateProfileId}"
-                                                  SelectedValuePath="Id"
-                                                  DisplayMemberPath="Name"
-                                                  Height="30"/>
-                                    </Grid>
+                                        <TextBlock Text="AI 模型配置收藏" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        
+                                        <Button Content="保存当前配置为收藏" Click="SaveAiTranslationConfig_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"/>
 
-                                    <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,14"/>
+                                        <TextBlock Text="已收藏的配置" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,10"/>
+                                        
+                                        <ListBox x:Name="AiTranslationConfigsList"
+                                                 ItemsSource="{Binding Config.SavedAiTranslationConfigs}"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 SelectionMode="Single"
+                                                 SelectionChanged="AiTranslationConfigList_SelectionChanged">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource CardBackground}" 
+                                                            CornerRadius="6" 
+                                                            Padding="12,10" 
+                                                            Margin="0,0,0,8" 
+                                                            BorderBrush="{DynamicResource DividerColor}" 
+                                                            BorderThickness="1"
+                                                            Cursor="Hand">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            
+                                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" 
+                                                                       FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
+                                                            
+                                                            <Button Grid.Column="1" Content="删除" 
+                                                                    Click="DeleteAiTranslationConfig_Click"
+                                                                    Tag="{Binding Id}"
+                                                                    Style="{StaticResource DangerLinkButtonStyle}"
+                                                                    FontSize="11"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
 
-                                    <!-- 配置列表区域 -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                        <TextBlock Text="API 配置列表" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <Button Content="+ 新增配置" Command="{Binding AddApiProfileCommand}" Style="{StaticResource TextLinkButtonStyle}"/>
+                                        <TextBlock Text="提示：点击收藏项可快速加载该配置到当前 AI 模型设置。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
                                     </StackPanel>
 
-                                    <ListBox ItemsSource="{Binding Config.ApiProfiles}" 
-                                             Background="Transparent" 
-                                             BorderThickness="0"
-                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10" BorderBrush="{DynamicResource DividerColor}" BorderThickness="1">
-                                                    <Grid>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                        </Grid.RowDefinitions>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="名称：" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
-
-                                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Key1：" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="OCR填API Key，翻译填AppID"/>
-                                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Key1, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
-
-                                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Key2：" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="Secret Key"/>
-                                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Key2, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,5"/>
-                                                        
-                                                        <Button Grid.Row="3" Grid.Column="1" Content="删除此配置" 
-                                                                Command="{Binding DataContext.DeleteApiProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}"
-                                                                Style="{StaticResource DangerLinkButtonStyle}" HorizontalAlignment="Right" FontSize="11"/>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                    
-                                    <TextBlock Text="提示：Key1 对应 OCR 的 API Key 或翻译的 AppID；Key2 对应 Secret Key。请创建两份配置分别用于 OCR 和 翻译，并在上方进行绑定。" 
-                                               Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap"/>
-                                    </StackPanel>
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>

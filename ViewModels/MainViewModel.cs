@@ -601,8 +601,26 @@ public partial class MainViewModel : ObservableObject
         RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
         RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => ToggleWindowToMode(false));
 
-        RegisterWindowHotkey("TriggerOcrHotkey", LocalConfig.OcrHotkey, () => TriggerOcrCommand.Execute(null));
-        RegisterWindowHotkey("TriggerTranslateHotkey", LocalConfig.TranslateHotkey, () => TriggerTranslateCommand.Execute(null));
+        // 优先使用外部工具设置的快捷键，如果为空则使用 LocalConfig
+        string ocrKey = !string.IsNullOrWhiteSpace(Config.OcrHotkey) ? Config.OcrHotkey : LocalConfig.OcrHotkey;
+        string translateKey = !string.IsNullOrWhiteSpace(Config.ScreenshotTranslateHotkey) ? Config.ScreenshotTranslateHotkey : LocalConfig.TranslateHotkey;
+
+        RegisterWindowHotkey("TriggerOcrHotkey", ocrKey, () => TriggerOcrCommand.Execute(null));
+        RegisterWindowHotkey("TriggerTranslateHotkey", translateKey, () => TriggerTranslateCommand.Execute(null));
+    }
+
+    [SupportedOSPlatform("windows")]
+    public void UpdateExternalToolsHotkeys()
+    {
+        // Remove old hotkeys
+        try { HotkeyManager.Current.Remove("ScreenshotTranslate"); } catch { }
+        try { HotkeyManager.Current.Remove("OcrOnly"); } catch { }
+
+        // Register new hotkeys from external tools settings
+        RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => TriggerTranslateCommand.Execute(null));
+        RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => TriggerOcrCommand.Execute(null));
+
+        ConfigService.Save(Config);
     }
 
     private void ToggleWindowToMode(bool targetFull)
@@ -832,41 +850,155 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    // ==========================================================
+    //  🚀 核心修复区域：百度翻译与OCR集成
+    // ==========================================================
+
+    /// <summary>
+    /// 统一配置百度服务，防止参数传错或混淆
+    /// </summary>
+    private bool TryGetTranslateProfile(out ApiProfile transProfile)
+    {
+        // Check if AI translation is enabled
+        if (Config.EnableAiTranslation)
+        {
+            // AI translation doesn't use ApiProfile, return a dummy one
+            transProfile = new ApiProfile();
+            return true;
+        }
+
+        // Check if Baidu is enabled
+        if (!Config.EnableBaidu)
+        {
+            MessageBox.Show("百度翻译未启用。请在设置 → 外部工具 → 主界面中启用百度供应商或 AI 翻译。", "翻译未启用");
+            transProfile = null!;
+            return false;
+        }
+
+        // Try to find Baidu Translation profile
+        var t = Config.ApiProfiles.FirstOrDefault(p => 
+            p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
+        
+        if (t == null)
+        {
+            MessageBox.Show("请先在设置 → 外部工具 → 百度标签页中配置翻译 API 密钥。", "翻译未配置");
+            transProfile = null!;
+            return false;
+        }
+
+        transProfile = t;
+        return true;
+    }
+
+    private bool TryGetOcrProfile(out ApiProfile ocrProfile)
+    {
+        // Check if Baidu is enabled
+        if (!Config.EnableBaidu)
+        {
+            MessageBox.Show("百度 OCR 未启用。请在设置 → 外部工具 → 主界面中启用百度供应商。", "OCR 未启用");
+            ocrProfile = null!;
+            return false;
+        }
+
+        // Try to find Baidu OCR profile
+        var o = Config.ApiProfiles.FirstOrDefault(p => 
+            p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.OCR);
+        
+        if (o == null)
+        {
+            MessageBox.Show("请先在设置 → 外部工具 → 百度标签页中配置 OCR API 密钥。", "OCR 未配置");
+            ocrProfile = null!;
+            return false;
+        }
+
+        ocrProfile = o;
+        return true;
+    }
+
     [RelayCommand]
     private async Task TriggerOcr()
     {
-        var profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.OcrProfileId) ?? Config.ApiProfiles.FirstOrDefault();
-        if (profile == null)
-        {
-            MessageBox.Show("请先在设置 -> 外部工具中添加并绑定 OCR 配置。", "OCR 未配置");
-            return;
-        }
+        if (!TryGetOcrProfile(out var ocrProfile)) return;
 
         var capture = new Views.CaptureWindow();
         if (capture.ShowDialog() != true || capture.CapturedImageBytes == null) return;
 
-        var result = await _baiduService.OcrAsync(profile.Key1, profile.Key2, capture.CapturedImageBytes);
-        if (!string.IsNullOrWhiteSpace(result)) Clipboard.SetText(result);
+        // 执行 OCR
+        var result = await _baiduService.OcrAsync(capture.CapturedImageBytes, ocrProfile);
+
+        if (!string.IsNullOrWhiteSpace(result))
+        {
+            if (result.StartsWith("OCR 错误") || result.StartsWith("错误"))
+            {
+                MessageBox.Show(result, "OCR 失败");
+            }
+            else
+            {
+                Clipboard.SetText(result);
+            }
+        }
     }
 
     [RelayCommand]
     private async Task TriggerTranslate()
     {
-        var profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.TranslateProfileId) ?? Config.ApiProfiles.FirstOrDefault();
-        if (profile == null)
-        {
-            MessageBox.Show("请先在设置 -> 外部工具中添加并绑定 翻译 配置。", "翻译 未配置");
-            return;
-        }
+        if (!TryGetTranslateProfile(out var transProfile)) return;
+        if (!TryGetOcrProfile(out var ocrProfile)) return;
 
         var capture = new Views.CaptureWindow();
         if (capture.ShowDialog() != true || capture.CapturedImageBytes == null) return;
 
-        var text = await _baiduService.OcrAsync(profile.Key1, profile.Key2, capture.CapturedImageBytes);
-        if (string.IsNullOrWhiteSpace(text)) return;
+        // 1. 先进行 OCR 识别文字
+        var text = await _baiduService.OcrAsync(capture.CapturedImageBytes, ocrProfile);
+        if (string.IsNullOrWhiteSpace(text) || text.StartsWith("OCR 错误") || text.StartsWith("错误"))
+        {
+            MessageBox.Show(text, "文字识别失败");
+            return;
+        }
 
-        var translated = await _baiduService.TranslateAsync(profile.Key1, profile.Key2, text);
+        string translated;
+        
+        // 2. 判断使用哪种翻译方式
+        if (Config.EnableAiTranslation)
+        {
+            // 使用 AI 翻译
+            translated = await TranslateWithAiAsync(text);
+        }
+        else
+        {
+            // 使用百度翻译
+            translated = await _baiduService.TranslateAsync(text, transProfile);
+        }
+
+        // 3. 显示结果
         var popup = new Views.TranslationPopup(translated);
         popup.Show();
+    }
+
+    private async Task<string> TranslateWithAiAsync(string text)
+    {
+        try
+        {
+            // 获取选中的翻译提示词
+            string systemPrompt = "You are a professional translator. Translate the following text to Chinese.";
+            
+            if (!string.IsNullOrWhiteSpace(Config.AiTranslationPromptId))
+            {
+                var promptFile = Files.FirstOrDefault(f => f.Id == Config.AiTranslationPromptId);
+                if (promptFile != null && !string.IsNullOrWhiteSpace(promptFile.Content))
+                {
+                    systemPrompt = promptFile.Content;
+                }
+            }
+
+            // 调用 AI 服务
+            var result = await _aiService.ChatAsync(text, Config, systemPrompt);
+
+            return result ?? "AI 翻译失败：未返回结果";
+        }
+        catch (Exception ex)
+        {
+            return $"AI 翻译异常: {ex.Message}";
+        }
     }
 }
