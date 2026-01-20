@@ -469,7 +469,7 @@ namespace PromptMasterv5.Views
             var btn = sender as Button;
             if (btn == null) return;
 
-            var statusText = this.FindName("TestStatusText") as TextBlock;
+            var statusText = this.FindName("AiChatTestStatusText") as TextBlock ?? this.FindName("TestStatusText") as TextBlock;
             if (statusText == null) return;
 
             try
@@ -479,6 +479,49 @@ namespace PromptMasterv5.Views
                 btn.IsEnabled = false;
 
                 (bool success, string message) = await ViewModel.TestAiConnectionAsync();
+
+                if (success)
+                {
+                    statusText.Text = "✅ 成功连通";
+                    statusText.Foreground = new SolidColorBrush(Color.FromRgb(67, 160, 71));
+
+                    await Task.Delay(3000);
+                    statusText.Text = "";
+                }
+                else
+                {
+                    statusText.Text = "❌ 连通失败";
+                    statusText.Foreground = new SolidColorBrush(Color.FromRgb(229, 57, 53));
+                }
+            }
+            catch (Exception)
+            {
+                statusText.Text = "❌ 连接异常";
+                statusText.Foreground = new SolidColorBrush(Color.FromRgb(229, 57, 53));
+            }
+            finally
+            {
+                btn.IsEnabled = true;
+            }
+        }
+
+        private async void TestAiTranslationConnection_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            var btn = sender as Button;
+            if (btn == null) return;
+
+            var statusText = this.FindName("TestAiTranslationStatusText") as TextBlock;
+            if (statusText == null) return;
+
+            try
+            {
+                statusText.Text = "🔄 测试中...";
+                statusText.Foreground = new SolidColorBrush(Color.FromRgb(102, 102, 102));
+                btn.IsEnabled = false;
+
+                (bool success, string message) = await ViewModel.TestAiTranslationConnectionAsync();
 
                 if (success)
                 {

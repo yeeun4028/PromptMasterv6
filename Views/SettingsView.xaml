@@ -1281,6 +1281,7 @@
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="百度" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -1292,9 +1293,17 @@
                                             <TextBlock Grid.Row="2" Grid.Column="0" Text="有道" VerticalAlignment="Center" Margin="0,0,0,12"/>
                                             <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding Config.EnableYoudao}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center" Margin="0,0,0,12"/>
 
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="AI 翻译" VerticalAlignment="Center"/>
-                                            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding Config.EnableAiTranslation}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Google" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                                            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding Config.EnableGoogle}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center" Margin="0,0,0,12"/>
+
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="AI 翻译" VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding Config.EnableAiTranslation}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
                                         </Grid>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                            <TextBlock Text="翻译后自动复制结果" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                                            <CheckBox IsChecked="{Binding Config.AutoCopyTranslationResult}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
+                                        </StackPanel>
 
                                         <TextBlock Text="提示：启用的供应商将在翻译和 OCR 功能中可用。请在对应的供应商标签页中配置 API 密钥。" 
                                                    Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap"/>
@@ -1481,32 +1490,49 @@
 
                                     <!-- Sub-Tab Content: AI -->
                                     <StackPanel x:Name="ExternalToolsAITab" Visibility="Collapsed">
-                                        <!-- AI 模型配置 -->
-                                        <TextBlock Text="AI 模型配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                        <!-- AI 聊天配置 (Mini 窗口) -->
+                                        <TextBlock Text="AI 聊天配置 (Mini 窗口)" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
                                         
                                         <StackPanel Margin="0,0,0,12">
                                             <TextBlock Text="Base URL" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiBaseUrl, Mode=TwoWay}" 
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     ToolTip="例如: https://api.deepseek.com"/>
+                                            <TextBox Text="{Binding Config.AiBaseUrl, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: https://api.deepseek.com"/>
                                         </StackPanel>
-
                                         <StackPanel Margin="0,0,0,12">
                                             <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiApiKey, Mode=TwoWay}" 
-                                                     Style="{StaticResource ModernTextBoxStyle}"/>
+                                            <TextBox Text="{Binding Config.AiApiKey, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}"/>
                                         </StackPanel>
-
                                         <StackPanel Margin="0,0,0,12">
                                             <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiModel, Mode=TwoWay}" 
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     ToolTip="例如: deepseek-chat"/>
+                                            <TextBox Text="{Binding Config.AiModel, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: deepseek-chat"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                            <Button Content="测试聊天连接" Click="TestAiConnection_Click" HorizontalAlignment="Left" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,10,0"/>
+                                            <TextBlock x:Name="AiChatTestStatusText" VerticalAlignment="Center" FontSize="13"/>
                                         </StackPanel>
 
-                                        <Button Content="测试 AI 连接" Click="TestAiConnection_Click" 
-                                                HorizontalAlignment="Left" Margin="0,0,0,16"
-                                                Style="{StaticResource TextLinkButtonStyle}"/>
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
+
+                                        <!-- AI 翻译配置 (划词/截图) -->
+                                        <TextBlock Text="AI 翻译配置 (划词/截图)" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="Base URL" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox Text="{Binding Config.AiTranslateBaseUrl, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: https://api.deepseek.com"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox Text="{Binding Config.AiTranslateApiKey, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox Text="{Binding Config.AiTranslateModel, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: deepseek-chat"/>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                            <Button Content="测试翻译连接" Click="TestAiTranslationConnection_Click" HorizontalAlignment="Left" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,10,0"/>
+                                            <TextBlock x:Name="TestAiTranslationStatusText" VerticalAlignment="Center" FontSize="13"/>
+                                        </StackPanel>
 
                                         <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
 

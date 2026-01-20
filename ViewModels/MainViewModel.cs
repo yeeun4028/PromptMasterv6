@@ -43,6 +43,7 @@ public partial class MainViewModel : ObservableObject
     private DispatcherTimer _localBackupTimer;
     private bool _previousFullMode = true;
     private IntPtr _previousWindowHandle = IntPtr.Zero;
+    private bool _isSimulatingKeys;
 
     public SidebarViewModel SidebarVM { get; }
     public ChatViewModel ChatVM { get; }
@@ -131,7 +132,11 @@ public partial class MainViewModel : ObservableObject
             await PerformLocalBackup();
         };
 
-        _keyService.OnDoubleCtrlDetected += (_, __) => Application.Current.Dispatcher.Invoke(() => ToggleMainWindow());
+        _keyService.OnDoubleCtrlDetected += (_, __) => Application.Current.Dispatcher.Invoke(() => 
+        {
+            if (_isSimulatingKeys) return;
+            ToggleMainWindow();
+        });
         _keyService.OnDoubleSemiColonDetected += (_, __) => Application.Current.Dispatcher.Invoke(() =>
         {
             if (!IsFullMode) ChatVM.MiniInputText = "";
@@ -655,6 +660,9 @@ public partial class MainViewModel : ObservableObject
     public Task<(bool Success, string Message)> TestAiConnectionAsync() =>
         _aiService.TestConnectionAsync(Config);
 
+    public Task<(bool Success, string Message)> TestAiTranslationConnectionAsync() =>
+        _aiService.TestConnectionAsync(Config.AiTranslateApiKey, Config.AiTranslateBaseUrl, Config.AiTranslateModel);
+
     [RelayCommand]
     private void ActivateAiModel(AiModelConfig? model)
     {
@@ -959,45 +967,60 @@ public partial class MainViewModel : ObservableObject
             // IntPtr foreground = NativeMethods.GetForegroundWindow();
             // NativeMethods.SetForegroundWindow(foreground);
 
-            NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, 0, 0);
-            NativeMethods.keybd_event(NativeMethods.VK_C, 0, 0, 0);
-            NativeMethods.keybd_event(NativeMethods.VK_C, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
-            NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
-            
-            // 3. 循环检查剪贴板
-            string text = "";
-            for (int i = 0; i < 10; i++)
+            _isSimulatingKeys = true;
+            try 
             {
-                await Task.Delay(50);
-                try 
+                NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, 0, 0);
+                NativeMethods.keybd_event(NativeMethods.VK_C, 0, 0, 0);
+                NativeMethods.keybd_event(NativeMethods.VK_C, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
+                NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
+                
+                // 3. 循环检查剪贴板
+                string text = "";
+                for (int i = 0; i < 10; i++)
                 {
-                    if (System.Windows.Clipboard.ContainsText())
+                    await Task.Delay(50);
+                    try 
                     {
-                        text = System.Windows.Clipboard.GetText();
-                        if (!string.IsNullOrWhiteSpace(text)) break;
+                        if (System.Windows.Clipboard.ContainsText())
+                        {
+                            text = System.Windows.Clipboard.GetText();
+                            if (!string.IsNullOrWhiteSpace(text)) break;
+                        }
                     }
+                    catch { }
                 }
-                catch { }
+
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    // 如果获取失败，尝试通过弹窗提示用户（可能是权限问题）
+                    // MessageBox.Show("无法获取选中文本。如果目标软件以管理员身份运行，请尝试以管理员身份运行本程序。", "获取文本失败");
+                    return;
+                }
+
+                var translated = await PerformTranslation(text);
+
+                if (string.IsNullOrWhiteSpace(translated)) return;
+
+                if (Config.AutoCopyTranslationResult)
+                {
+                    try { await Application.Current.Dispatcher.InvokeAsync(() => Clipboard.SetText(translated)); } catch { }
+                }
+
+                // 4. 显示结果
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                        var popup = new Views.TranslationPopup(translated);
+                        popup.Show();
+                        popup.Activate();
+                });
             }
-
-            if (string.IsNullOrWhiteSpace(text))
+            finally
             {
-                // 如果获取失败，尝试通过弹窗提示用户（可能是权限问题）
-                // MessageBox.Show("无法获取选中文本。如果目标软件以管理员身份运行，请尝试以管理员身份运行本程序。", "获取文本失败");
-                return;
+                // 延迟一小段时间重置标志，确保所有钩子消息都处理完毕
+                await Task.Delay(200);
+                _isSimulatingKeys = false;
             }
-
-            var translated = await PerformTranslation(text);
-
-            if (string.IsNullOrWhiteSpace(translated)) return;
-
-            // 4. 显示结果
-            await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                    var popup = new Views.TranslationPopup(translated);
-                    popup.Show();
-                    popup.Activate();
-            });
         }
         catch (Exception ex)
         {
@@ -1049,6 +1072,11 @@ public partial class MainViewModel : ObservableObject
         // 2. 统一翻译逻辑
         var translated = await PerformTranslation(text);
 
+        if (Config.AutoCopyTranslationResult && !string.IsNullOrWhiteSpace(translated))
+        {
+            try { Clipboard.SetText(translated); } catch { }
+        }
+
         // 3. 显示结果
         var popup = new Views.TranslationPopup(translated);
         popup.Show();
@@ -1071,7 +1099,7 @@ public partial class MainViewModel : ObservableObject
             }
 
             // 调用 AI 服务
-            var result = await _aiService.ChatAsync(text, Config, systemPrompt);
+            var result = await _aiService.ChatAsync(text, Config.AiTranslateApiKey, Config.AiTranslateBaseUrl, Config.AiTranslateModel, systemPrompt);
 
             return result ?? "AI 翻译失败：未返回结果";
         }

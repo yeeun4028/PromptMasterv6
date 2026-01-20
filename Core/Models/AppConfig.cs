@@ -77,7 +77,19 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private bool enableAiTranslation = false;
 
+        [ObservableProperty]
+        private bool autoCopyTranslationResult = true;
+
         // ★★★ 新增：AI 翻译配置 ★★★
+        [ObservableProperty]
+        private string aiTranslateBaseUrl = "https://api.deepseek.com";
+
+        [ObservableProperty]
+        private string aiTranslateApiKey = "";
+
+        [ObservableProperty]
+        private string aiTranslateModel = "deepseek-chat";
+
         [ObservableProperty]
         private string aiTranslationPromptId = "";
 

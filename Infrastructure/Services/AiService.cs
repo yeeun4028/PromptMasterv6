@@ -13,17 +13,22 @@ namespace PromptMasterv5.Infrastructure.Services
 {
     public class AiService : IAiService
     {
-        public async Task<string> ChatAsync(string userContent, AppConfig config, string? systemPrompt = null)
+        public Task<string> ChatAsync(string userContent, AppConfig config, string? systemPrompt = null)
         {
-            if (string.IsNullOrWhiteSpace(config.AiApiKey))
+            return ChatAsync(userContent, config.AiApiKey, config.AiBaseUrl, config.AiModel, systemPrompt);
+        }
+
+        public async Task<string> ChatAsync(string userContent, string apiKey, string baseUrl, string model, string? systemPrompt = null)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
             {
-                return "[设置错误] 请先在设置中配置 AI API Key";
+                return "[设置错误] 请先在设置中配置 API Key";
             }
 
             var options = new OpenAiOptions
             {
-                ApiKey = config.AiApiKey,
-                BaseDomain = config.AiBaseUrl
+                ApiKey = apiKey,
+                BaseDomain = baseUrl
             };
 
             var openAiService = new OpenAIService(options);
@@ -39,7 +44,7 @@ namespace PromptMasterv5.Infrastructure.Services
             var request = new ChatCompletionCreateRequest
             {
                 Messages = messages,
-                Model = config.AiModel,
+                Model = model,
                 Temperature = 0.7f
             };
 
@@ -68,21 +73,26 @@ namespace PromptMasterv5.Infrastructure.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> TestConnectionAsync(AppConfig config)
+        public Task<(bool Success, string Message)> TestConnectionAsync(AppConfig config)
         {
-            if (string.IsNullOrWhiteSpace(config.AiApiKey))
+            return TestConnectionAsync(config.AiApiKey, config.AiBaseUrl, config.AiModel);
+        }
+
+        public async Task<(bool Success, string Message)> TestConnectionAsync(string apiKey, string baseUrl, string model)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
                 return (false, "API Key 为空");
-            if (string.IsNullOrWhiteSpace(config.AiBaseUrl))
+            if (string.IsNullOrWhiteSpace(baseUrl))
                 return (false, "API 地址为空");
-            if (string.IsNullOrWhiteSpace(config.AiModel))
+            if (string.IsNullOrWhiteSpace(model))
                 return (false, "模型名称为空");
 
             try
             {
                 var options = new OpenAiOptions
                 {
-                    ApiKey = config.AiApiKey,
-                    BaseDomain = config.AiBaseUrl
+                    ApiKey = apiKey,
+                    BaseDomain = baseUrl
                 };
 
                 var openAiService = new OpenAIService(options);
@@ -94,7 +104,7 @@ namespace PromptMasterv5.Infrastructure.Services
                         ChatMessage.FromSystem("Test"),
                         ChatMessage.FromUser("Hi")
                     },
-                    Model = config.AiModel,
+                    Model = model,
                     MaxTokens = 5
                 };
 
