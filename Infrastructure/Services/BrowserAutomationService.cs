@@ -57,8 +57,16 @@ namespace PromptMasterv5.Infrastructure.Services
             }
         }
 
+        private System.Collections.Concurrent.ConcurrentDictionary<IntPtr, AutomationElement> _elementCache = new System.Collections.Concurrent.ConcurrentDictionary<IntPtr, AutomationElement>();
+        private long _lastCheckTicks = 0;
+        private const long CheckIntervalTicks = 300 * 10000; // 300ms
+
         private void CheckActiveWindow(IntPtr hwnd)
         {
+            var now = DateTime.UtcNow.Ticks;
+            if (now - _lastCheckTicks < CheckIntervalTicks) return;
+            _lastCheckTicks = now;
+
             try
             {
                 NativeMethods.GetWindowThreadProcessId(hwnd, out uint pid);
@@ -85,11 +93,30 @@ namespace PromptMasterv5.Infrastructure.Services
         {
             try
             {
+                // 1. Try Cache
+                if (_elementCache.TryGetValue(hwnd, out var cachedElement))
+                {
+                    try
+                    {
+                        if (cachedElement.TryGetCurrentPattern(ValuePattern.Pattern, out object patternObj))
+                        {
+                            var valuePattern = (ValuePattern)patternObj;
+                            string value = valuePattern.Current.Value;
+                            if (!string.IsNullOrWhiteSpace(value)) return value;
+                        }
+                    }
+                    catch
+                    {
+                        // Element invalid, remove from cache
+                        _elementCache.TryRemove(hwnd, out _);
+                    }
+                }
+
+                // 2. Heavy Search
                 var root = AutomationElement.FromHandle(hwnd);
                 if (root == null) return string.Empty;
 
                 var editCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit);
-
                 var elementCollection = root.FindAll(TreeScope.Descendants, editCondition);
 
                 foreach (AutomationElement element in elementCollection)
@@ -101,6 +128,8 @@ namespace PromptMasterv5.Infrastructure.Services
 
                         if (!string.IsNullOrWhiteSpace(value))
                         {
+                            // Update Cache
+                            _elementCache[hwnd] = element;
                             return value;
                         }
                     }
