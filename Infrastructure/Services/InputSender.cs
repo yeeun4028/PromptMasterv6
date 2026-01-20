@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using PromptMasterv5.Core.Models;
 
+using System.Runtime.InteropServices;
+
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
 
@@ -50,29 +52,6 @@ namespace PromptMasterv5.Infrastructure.Services
         {
             if (string.IsNullOrEmpty(text)) return;
 
-            bool clipboardSuccess = false;
-            for (int i = 0; i < 5; i++)
-            {
-                try
-                {
-                    Clipboard.SetText(text);
-                    clipboardSuccess = true;
-                    break;
-                }
-                catch
-                {
-                    await Task.Delay(50);
-                }
-            }
-
-            if (!clipboardSuccess)
-            {
-                MessageBox.Show("写入剪贴板失败，无法发送。", "错误");
-                return;
-            }
-
-            await Task.Delay(200);
-
             if (targetMode == InputMode.SmartFocus)
             {
                 if (previousWindowHandle != IntPtr.Zero)
@@ -94,29 +73,64 @@ namespace PromptMasterv5.Infrastructure.Services
                 await Task.Delay(200);
             }
 
-            NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, 0, 0);
-            await Task.Delay(20);
-            NativeMethods.keybd_event(NativeMethods.VK_V, 0, 0, 0);
-            await Task.Delay(20);
-            NativeMethods.keybd_event(NativeMethods.VK_V, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
-            await Task.Delay(20);
-            NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
+            // Use SendInput for text injection
+            SendUnicodeString(text);
 
             await Task.Delay(120);
-            for (int i = 0; i < 30; i++)
-            {
-                if (!NativeMethods.IsKeyDown(NativeMethods.VK_CONTROL) &&
-                    !NativeMethods.IsKeyDown(NativeMethods.VK_SHIFT) &&
-                    !NativeMethods.IsKeyDown(NativeMethods.VK_MENU))
-                {
-                    break;
-                }
-                await Task.Delay(20);
-            }
 
             NativeMethods.keybd_event(NativeMethods.VK_RETURN, 0, 0, 0);
             await Task.Delay(20);
             NativeMethods.keybd_event(NativeMethods.VK_RETURN, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
         }
+
+        private static void SendUnicodeString(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+
+            var inputs = new NativeMethods.INPUT[text.Length * 2];
+            for (int i = 0; i < text.Length; i++)
+            {
+                var letter = text[i];
+
+                var keyDown = new NativeMethods.INPUT
+                {
+                    type = NativeMethods.INPUT_KEYBOARD,
+                    U = new NativeMethods.InputUnion
+                    {
+                        ki = new NativeMethods.KEYBDINPUT
+                        {
+                            wVk = 0,
+                            wScan = letter,
+                            dwFlags = NativeMethods.KEYEVENTF_UNICODE,
+                            time = 0,
+                            dwExtraInfo = IntPtr.Zero
+                        }
+                    }
+                };
+
+                var keyUp = new NativeMethods.INPUT
+                {
+                    type = NativeMethods.INPUT_KEYBOARD,
+                    U = new NativeMethods.InputUnion
+                    {
+                        ki = new NativeMethods.KEYBDINPUT
+                        {
+                            wVk = 0,
+                            wScan = letter,
+                            dwFlags = NativeMethods.KEYEVENTF_UNICODE | NativeMethods.KEYEVENTF_KEYUP,
+                            time = 0,
+                            dwExtraInfo = IntPtr.Zero
+                        }
+                    }
+                };
+
+                inputs[i * 2] = keyDown;
+                inputs[i * 2 + 1] = keyUp;
+            }
+
+            NativeMethods.SendInput((uint)inputs.Length, inputs, NativeMethods.INPUT.Size);
+        }
+
+
     }
 }
