@@ -13,6 +13,9 @@ namespace PromptMasterv5
     public partial class App : System.Windows.Application
     {
         private ServiceProvider? _serviceProvider;
+        private System.Threading.Mutex? _singleInstanceMutex;
+        private const string MutexName = "PromptMasterv5_SingleInstance_Mutex";
+        private const string WindowTitle = "PromptMaster v5";
 
         public App()
         {
@@ -25,6 +28,21 @@ namespace PromptMasterv5
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Check for existing instance
+            bool createdNew;
+            _singleInstanceMutex = new System.Threading.Mutex(true, MutexName, out createdNew);
+
+            if (!createdNew)
+            {
+                // Another instance is already running
+                // Try to find and activate the existing window
+                ActivateExistingInstance();
+                
+                // Exit this instance
+                Shutdown();
+                return;
+            }
 
             try
             {
@@ -44,8 +62,37 @@ namespace PromptMasterv5
 
         protected override void OnExit(ExitEventArgs e)
         {
+            // Release the mutex
+            _singleInstanceMutex?.ReleaseMutex();
+            _singleInstanceMutex?.Dispose();
+            
             _serviceProvider?.Dispose();
             base.OnExit(e);
+        }
+
+        private void ActivateExistingInstance()
+        {
+            try
+            {
+                // Try to find the existing window by title
+                IntPtr hWnd = Infrastructure.Services.NativeMethods.FindWindow(null, WindowTitle);
+                
+                if (hWnd != IntPtr.Zero)
+                {
+                    // If the window is minimized, restore it
+                    if (Infrastructure.Services.NativeMethods.IsIconic(hWnd))
+                    {
+                        Infrastructure.Services.NativeMethods.ShowWindow(hWnd, Infrastructure.Services.NativeMethods.SW_RESTORE);
+                    }
+                    
+                    // Bring the window to the foreground
+                    Infrastructure.Services.NativeMethods.SetForegroundWindow(hWnd);
+                }
+            }
+            catch
+            {
+                // If activation fails, just continue - the new instance will exit anyway
+            }
         }
 
         private static void ConfigureServices(IServiceCollection services)

@@ -51,6 +51,20 @@ namespace PromptMasterv5.Infrastructure.Services
 
         public const uint KEYEVENTF_KEYUP = 0x0002;
 
+        // Single Instance Support
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsIconic(IntPtr hWnd);
+
+        public const int SW_RESTORE = 9;
+
         public static bool IsKeyDown(int vKey) => (GetAsyncKeyState(vKey) & 0x8000) != 0;
     }
 }
