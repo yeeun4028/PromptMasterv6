@@ -24,6 +24,7 @@
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
     <PackageReference Include="MouseKeyHook" />
     <PackageReference Include="NHotkey.Wpf" />
+    <PackageReference Include="System.Reactive" />
     <PackageReference Include="WebDav.Client" />
   </ItemGroup>
 

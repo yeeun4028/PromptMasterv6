@@ -392,6 +392,98 @@ namespace PromptMasterv5.ViewModels
         }
 
         [RelayCommand]
+        private async Task ManualLocalRestore()
+        {
+            if (_mainViewModel == null)
+            {
+                MessageBox.Show("系统初始化未完成", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // 1. Get backups
+            var service = _localDataService as FileDataService;
+            if (service == null) return;
+
+            var backups = service.GetBackups();
+            LoggerService.Instance.LogInfo($"Found {backups.Count} backups in {service.BackupDirectory}", "SettingsViewModel.ManualLocalRestore");
+
+            if (backups.Count == 0)
+            {
+                MessageBox.Show($"在以下路径未找到本地备份文件：\n{service.BackupDirectory}\n\n请确保已进行过保存操作。", "未找到备份", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // 2. Show dialog
+            var dialog = new Views.BackupSelectionDialog(backups);
+            if (dialog.ShowDialog() != true || dialog.SelectedBackup == null) return;
+
+            // 3. Confirm
+            var selected = dialog.SelectedBackup;
+            if (MessageBox.Show($"确定要恢复到备份点：\n{selected.DisplayText} 吗？\n当前未保存的更改将会丢失。", 
+                "确认恢复", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            // 4. Perform Restore
+            RestoreStatus = "正在恢复本地数据...";
+            RestoreStatusColor = System.Windows.Media.Brushes.Orange;
+
+            try
+            {
+                var data = await service.RestoreLocalBackupAsync(selected.FilePath);
+                if (data == null)
+                {
+                    throw new Exception("读取备份文件失败");
+                }
+
+                // Restore logic (same as cloud restore basically)
+                // Clear current data
+                _mainViewModel.Files.Clear();
+                _mainViewModel.SidebarVM.Folders.Clear();
+
+                // Restore folders
+                if (data.Folders != null && data.Folders.Count > 0)
+                {
+                    foreach (var folder in data.Folders)
+                    {
+                        _mainViewModel.SidebarVM.Folders.Add(folder);
+                    }
+                    _mainViewModel.SidebarVM.SelectedFolder = _mainViewModel.SidebarVM.Folders.FirstOrDefault();
+                }
+                else
+                {
+                    var defaultFolder = new FolderItem { Name = "默认" };
+                    _mainViewModel.SidebarVM.Folders.Add(defaultFolder);
+                    _mainViewModel.SidebarVM.SelectedFolder = defaultFolder;
+                }
+
+                // Restore files
+                if (data.Files != null && data.Files.Count > 0)
+                {
+                    foreach (var file in data.Files)
+                    {
+                        _mainViewModel.Files.Add(file);
+                    }
+                }
+
+                // Update view
+                _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
+                _mainViewModel.UpdateFilesViewFilter();
+                _mainViewModel.FilesView?.Refresh();
+                _mainViewModel.SyncMiniPinnedPrompts();
+
+                RestoreStatus = $"✅ 本地恢复成功: {selected.FileName}";
+                RestoreStatusColor = System.Windows.Media.Brushes.Green;
+            }
+            catch (Exception ex)
+            {
+                RestoreStatus = $"❌ 恢复失败: {ex.Message}";
+                RestoreStatusColor = System.Windows.Media.Brushes.Red;
+            }
+        }
+
+        [RelayCommand]
         private async Task ManualBackup()
         {
             if (_mainViewModel == null)

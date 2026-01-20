@@ -27,6 +27,9 @@ using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
 using InputMode = PromptMasterv5.Core.Models.InputMode;
 using MessageBox = System.Windows.MessageBox;
 
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+
 namespace PromptMasterv5.ViewModels;
 
 public partial class MainViewModel : ObservableObject
@@ -39,7 +42,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IDialogService _dialogService;
 
     private DispatcherTimer _timer;
-    private DispatcherTimer _localBackupTimer;
+    private readonly Subject<System.Reactive.Unit> _saveSubject = new();
     private bool _previousFullMode = true;
     private IntPtr _previousWindowHandle = IntPtr.Zero;
     private bool _isSimulatingKeys;
@@ -204,12 +207,10 @@ public partial class MainViewModel : ObservableObject
         _timer.Tick += (_, __) => UpdateTimeDisplay();
         _timer.Start();
 
-        _localBackupTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-        _localBackupTimer.Tick += async (_, __) =>
-        {
-            _localBackupTimer.Stop();
-            await PerformLocalBackup();
-        };
+        _saveSubject
+            .Throttle(TimeSpan.FromSeconds(5))
+            .ObserveOn(System.Threading.SynchronizationContext.Current!)
+            .Subscribe(async _ => await PerformLocalBackup());
 
         _keyService.OnDoubleCtrlDetected += (_, __) => Application.Current.Dispatcher.Invoke(() => 
         {
@@ -822,8 +823,7 @@ public partial class MainViewModel : ObservableObject
     private void RequestSave()
     {
         if (!IsDirty) IsDirty = true;
-        _localBackupTimer.Stop();
-        _localBackupTimer.Start();
+        _saveSubject.OnNext(System.Reactive.Unit.Default);
     }
 
     public async Task PerformLocalBackup()
