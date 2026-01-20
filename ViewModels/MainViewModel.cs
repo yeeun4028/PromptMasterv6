@@ -47,6 +47,7 @@ public partial class MainViewModel : ObservableObject
 
     public SidebarViewModel SidebarVM { get; }
     public ChatViewModel ChatVM { get; }
+    public SettingsViewModel SettingsVM { get; }
 
     public IDropTarget MiniPinnedPromptDropHandler { get; private set; }
 
@@ -54,11 +55,46 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private LocalSettings localConfig;
     [ObservableProperty] private bool isFullMode = true;
     [ObservableProperty] private bool isMiniVarsExpanded;
-    [ObservableProperty] private bool isSettingsOpen;
-    [ObservableProperty] private int selectedSettingsTab;
+    
+    // 委托属性：转发到 SettingsViewModel（保持 XAML 兼容性）
+    public bool IsSettingsOpen
+    {
+        get => SettingsVM?.IsSettingsOpen ?? false;
+        set { if (SettingsVM != null) SettingsVM.IsSettingsOpen = value; }
+    }
+
+    public int SelectedSettingsTab
+    {
+        get => SettingsVM?.SelectedSettingsTab ?? 0;
+        set { if (SettingsVM != null) SettingsVM.SelectedSettingsTab = value; }
+    }
+
+    public bool IsNavigationVisible
+    {
+        get => SettingsVM?.IsNavigationVisible ?? true;
+        set { if (SettingsVM != null) SettingsVM.IsNavigationVisible = value; }
+    }
+
+    public bool IsRestoreConfirmVisible
+    {
+        get => SettingsVM?.IsRestoreConfirmVisible ?? false;
+        set { if (SettingsVM != null) SettingsVM.IsRestoreConfirmVisible = value; }
+    }
+
+    public string? RestoreStatus
+    {
+        get => SettingsVM?.RestoreStatus;
+        set { if (SettingsVM != null) SettingsVM.RestoreStatus = value; }
+    }
+
+    public System.Windows.Media.Brush RestoreStatusColor
+    {
+        get => SettingsVM?.RestoreStatusColor ?? System.Windows.Media.Brushes.Green;
+        set { if (SettingsVM != null) SettingsVM.RestoreStatusColor = value; }
+    }
+
     [ObservableProperty] private string syncTimeDisplay = "Now";
     [ObservableProperty] private ICollectionView? filesView;
-    [ObservableProperty] private bool isNavigationVisible = true;
 
     [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
     [ObservableProperty] private FolderItem? selectedFolder;
@@ -73,11 +109,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private bool isDirty;
 
-    [ObservableProperty] private bool isRestoreConfirmVisible;
-    [ObservableProperty] private string? restoreStatus;
-    [ObservableProperty] private System.Windows.Media.Brush restoreStatusColor = System.Windows.Media.Brushes.Green;
-
     public MainViewModel(
+        ISettingsService settingsService,
+        SettingsViewModel settingsVM,
         IAiService aiService,
         WebDavDataService dataService,
         FileDataService localDataService,
@@ -98,9 +132,41 @@ public partial class MainViewModel : ObservableObject
 
         SidebarVM = sidebarVM;
         ChatVM = chatVM;
+        SettingsVM = settingsVM;
 
-        Config = ConfigService.Load();
-        LocalConfig = LocalConfigService.Load();
+        // 通过 SettingsService 获取配置（而不是直接加载）
+        Config = settingsService.Config;
+        LocalConfig = settingsService.LocalConfig;
+
+        // 设置双向引用（SettingsVM 需要访问 MainVM 的一些数据）
+        SettingsVM.SetMainViewModel(this);
+
+        // 订阅 SettingsVM 的属性变更，传播到 MainVM 的委托属性
+        SettingsVM.PropertyChanged += (sender, e) =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(SettingsVM.IsSettingsOpen):
+                    OnPropertyChanged(nameof(IsSettingsOpen));
+                    break;
+                case nameof(SettingsVM.SelectedSettingsTab):
+                    OnPropertyChanged(nameof(SelectedSettingsTab));
+                    OnPropertyChanged(nameof(SelectedSettingsTabName));
+                    break;
+                case nameof(SettingsVM.IsNavigationVisible):
+                    OnPropertyChanged(nameof(IsNavigationVisible));
+                    break;
+                case nameof(SettingsVM.IsRestoreConfirmVisible):
+                    OnPropertyChanged(nameof(IsRestoreConfirmVisible));
+                    break;
+                case nameof(SettingsVM.RestoreStatus):
+                    OnPropertyChanged(nameof(RestoreStatus));
+                    break;
+                case nameof(SettingsVM.RestoreStatusColor):
+                    OnPropertyChanged(nameof(RestoreStatusColor));
+                    break;
+            }
+        };
 
         SidebarVM.Files = Files;
 
@@ -147,8 +213,10 @@ public partial class MainViewModel : ObservableObject
         });
         if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { }
 
-        ApplyTheme(LocalConfig.Theme);
-        UpdateWindowHotkeys();
+        // 委托给 SettingsViewModel 处理主题和快捷键
+        SettingsVM.SetMainViewModel(this);
+        SettingsVM.ApplyTheme();
+        UpdateWindowHotkeys(); // 使用 MainViewModel 的版本，因为它注册窗口切换快捷键
 
         _ = InitializeAsync();
     }
@@ -210,7 +278,7 @@ public partial class MainViewModel : ObservableObject
         SyncMiniPinnedPrompts();
     }
 
-    private void UpdateFilesViewFilter()
+    public void UpdateFilesViewFilter()
     {
         if (FilesView == null) return;
 
@@ -237,7 +305,25 @@ public partial class MainViewModel : ObservableObject
         _previousFullMode = false;
     }
 
-    public string SelectedSettingsTabName => SelectedSettingsTab switch
+    // Hotkey handlers (called by SettingsViewModel)
+    public void OnWindowHotkeyPressed()
+    {
+        ToggleMainWindow();
+    }
+
+    public void ToggleModeViaHotkey()
+    {
+        if (IsFullMode)
+        {
+            ExitFullMode();
+        }
+        else
+        {
+            EnterFullMode();
+        }
+    }
+
+    public string SelectedSettingsTabName =>SelectedSettingsTab switch
     {
         0 => "基础",
         1 => "发送方式",
@@ -248,24 +334,17 @@ public partial class MainViewModel : ObservableObject
         _ => "设置"
     };
 
-    partial void OnSelectedSettingsTabChanged(int value)
-    {
-        OnPropertyChanged(nameof(SelectedSettingsTabName));
-    }
-
     [RelayCommand]
     private void OpenSettings()
     {
-        IsSettingsOpen = true;
+        SettingsVM.OpenSettingsCommand.Execute(null);
     }
 
     [RelayCommand]
     private void SaveSettings()
     {
-        try { ConfigService.Save(Config); } catch { }
-        try { LocalConfigService.Save(LocalConfig); } catch { }
-        UpdateWindowHotkeys();
-        IsSettingsOpen = false;
+        SettingsVM.CloseSettingsCommand.Execute(null);
+        UpdateWindowHotkeys(); // 使用 MainViewModel 的版本
     }
 
     [RelayCommand]
@@ -341,16 +420,45 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ToggleNavigation()
     {
-        IsNavigationVisible = !IsNavigationVisible;
+        SettingsVM.ToggleNavigationCommand.Execute(null);
     }
 
     [RelayCommand]
     private void ToggleTheme()
     {
-        LocalConfig.Theme = LocalConfig.Theme == ThemeType.Dark ? ThemeType.Light : ThemeType.Dark;
-        ApplyTheme(LocalConfig.Theme);
-        LocalConfigService.Save(LocalConfig);
+        SettingsVM.ToggleThemeCommand.Execute(null);
     }
+
+    // Settings Configuration Delegates
+    public Task<(bool Success, string Message)> TestAiConnectionAsync() => SettingsVM.TestAiConnectionAsync();
+    public Task<(bool Success, string Message)> TestAiTranslationConnectionAsync() => SettingsVM.TestAiTranslationConnectionAsync();
+
+    [RelayCommand]
+    private void AddAiModel() => SettingsVM.AddAiModelCommand.Execute(null);
+
+    [RelayCommand]
+    private void DeleteAiModel(AiModelConfig? model) => SettingsVM.DeleteAiModelCommand.Execute(model);
+
+    [RelayCommand]
+    private void ActivateAiModel(AiModelConfig? model) => SettingsVM.ActivateAiModelCommand.Execute(model);
+
+    [RelayCommand]
+    private void ShowRestoreConfirm() => SettingsVM.ShowRestoreConfirmCommand.Execute(null);
+
+    [RelayCommand]
+    private void CancelRestoreConfirm() => SettingsVM.CancelRestoreConfirmCommand.Execute(null);
+
+    [RelayCommand]
+    private void ManualRestore() => SettingsVM.ManualRestoreCommand.Execute(null);
+
+    [RelayCommand]
+    private void ManualBackup() => SettingsVM.ManualBackupCommand.Execute(null);
+
+    [RelayCommand]
+    private void OpenLogFolder() => SettingsVM.OpenLogFolderCommand.Execute(null);
+
+    [RelayCommand]
+    private void ClearLogs() => SettingsVM.ClearLogsCommand.Execute(null);
 
     [RelayCommand]
     private void ToggleEditMode()
@@ -661,29 +769,7 @@ public partial class MainViewModel : ObservableObject
         win.Hide();
     }
 
-    public Task<(bool Success, string Message)> TestAiConnectionAsync() =>
-        _aiService.TestConnectionAsync(Config);
 
-    public Task<(bool Success, string Message)> TestAiTranslationConnectionAsync() =>
-        _aiService.TestConnectionAsync(Config.AiTranslateApiKey, Config.AiTranslateBaseUrl, Config.AiTranslateModel);
-
-    [RelayCommand]
-    private void ActivateAiModel(AiModelConfig? model)
-    {
-        if (model == null) return;
-        Config.ActiveModelId = model.Id;
-        ConfigService.Save(Config);
-    }
-
-    [RelayCommand]
-    private void DeleteAiModel(AiModelConfig? model)
-    {
-        if (model == null) return;
-        var idx = Config.SavedModels.IndexOf(model);
-        if (idx >= 0) Config.SavedModels.RemoveAt(idx);
-        if (Config.ActiveModelId == model.Id) Config.ActiveModelId = "";
-        ConfigService.Save(Config);
-    }
 
     public void AddMiniPinnedPromptFromCandidate()
     {
@@ -713,7 +799,7 @@ public partial class MainViewModel : ObservableObject
     public void ReorderMiniPinnedPrompts(int oldIndex, int newIndex) =>
         ChatVM.ReorderMiniPinnedPrompts(LocalConfig.MiniPinnedPromptIds, oldIndex, newIndex);
 
-    private void SyncMiniPinnedPrompts() =>
+    public void SyncMiniPinnedPrompts() =>
         ChatVM.SyncMiniPinnedPrompts(LocalConfig.MiniPinnedPromptIds, LocalConfig.MiniSelectedPinnedPromptId);
 
     public void MoveFileToFolder(PromptItem f, FolderItem t)
@@ -733,145 +819,13 @@ public partial class MainViewModel : ObservableObject
         _localBackupTimer.Start();
     }
 
-    [RelayCommand]
-    private async Task ManualBackup()
-    {
-        await PerformLocalBackup();
-        IsDirty = false;
-    }
-
-    private async Task PerformLocalBackup()
+    public async Task PerformLocalBackup()
     {
         try
         {
             await _localDataService.SaveAsync(Folders, Files);
         }
         catch { }
-    }
-
-    [RelayCommand]
-    private void ShowRestoreConfirm()
-    {
-        IsRestoreConfirmVisible = true;
-        RestoreStatus = null;
-    }
-
-    [RelayCommand]
-    private void CancelRestoreConfirm()
-    {
-        IsRestoreConfirmVisible = false;
-    }
-
-    [RelayCommand]
-    private async Task ManualRestore()
-    {
-        IsRestoreConfirmVisible = false;
-        RestoreStatus = "正在从云端恢复数据...";
-        RestoreStatusColor = System.Windows.Media.Brushes.Orange;
-
-        try
-        {
-            var data = await _dataService.LoadAsync();
-            
-            if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))
-            {
-                RestoreStatus = "❌ 云端没有数据可恢复";
-                RestoreStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
-            // Clear current data
-            Files.Clear();
-            SidebarVM.Folders.Clear();
-
-            // Restore folders
-            if (data.Folders != null && data.Folders.Count > 0)
-            {
-                foreach (var folder in data.Folders)
-                {
-                    SidebarVM.Folders.Add(folder);
-                }
-                SidebarVM.SelectedFolder = SidebarVM.Folders.FirstOrDefault();
-            }
-            else
-            {
-                var defaultFolder = new FolderItem { Name = "默认" };
-                SidebarVM.Folders.Add(defaultFolder);
-                SidebarVM.SelectedFolder = defaultFolder;
-            }
-
-            // Restore files
-            if (data.Files != null && data.Files.Count > 0)
-            {
-                foreach (var file in data.Files)
-                {
-                    Files.Add(file);
-                }
-            }
-
-            // Update view
-            SidebarVM.Files = Files;
-            UpdateFilesViewFilter();
-            FilesView?.Refresh();
-            SyncMiniPinnedPrompts();
-
-            // Save to local
-            await PerformLocalBackup();
-
-            RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
-            RestoreStatusColor = System.Windows.Media.Brushes.Green;
-        }
-        catch (Exception ex)
-        {
-            RestoreStatus = $"❌ 恢复失败: {ex.Message}";
-            RestoreStatusColor = System.Windows.Media.Brushes.Red;
-        }
-    }
-
-    [RelayCommand]
-    private void OpenLogFolder()
-    {
-        try
-        {
-            var logPath = Infrastructure.Services.LoggerService.Instance.GetLogDirectory();
-            if (System.IO.Directory.Exists(logPath))
-            {
-                System.Diagnostics.Process.Start("explorer.exe", logPath);
-            }
-            else
-            {
-                MessageBox.Show("日志文件夹不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-        catch (Exception ex)
-        {
-            Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to open log folder", "MainViewModel.OpenLogFolder");
-            MessageBox.Show($"无法打开日志文件夹: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    [RelayCommand]
-    private void ClearLogs()
-    {
-        var result = MessageBox.Show(
-            "确定要清除所有日志文件吗？此操作不可撤销。",
-            "确认清除日志",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-
-        if (result == MessageBoxResult.Yes)
-        {
-            try
-            {
-                Infrastructure.Services.LoggerService.Instance.ClearLogs();
-                MessageBox.Show("日志已清除", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to clear logs", "MainViewModel.ClearLogs");
-                MessageBox.Show($"清除日志失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
     }
 
     private void UpdateTimeDisplay()

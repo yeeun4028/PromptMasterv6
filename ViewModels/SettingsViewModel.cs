@@ -1,0 +1,468 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using NHotkey;
+using NHotkey.Wpf;
+using PromptMasterv5.Core.Interfaces;
+using PromptMasterv5.Core.Models;
+using PromptMasterv5.Infrastructure.Services;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using MessageBox = System.Windows.MessageBox;
+
+namespace PromptMasterv5.ViewModels
+{
+    /// <summary>
+    /// 设置相关的 ViewModel
+    /// 负责管理应用程序配置、AI模型、同步、主题、快捷键等设置功能
+    /// 从 MainViewModel 中拆分出来以降低耦合度
+    /// </summary>
+    public partial class SettingsViewModel : ObservableObject
+    {
+        private readonly ISettingsService _settingsService;
+        private readonly IAiService _aiService;
+        private readonly IDataService _dataService;
+        private readonly IDataService _localDataService;
+        private readonly GlobalKeyService _keyService;
+
+        // 引用 MainViewModel 以访问 Files、Folders 等数据（用于同步恢复）
+        // 这是暂时的依赖，后续可以通过消息总线进一步解耦
+        private MainViewModel? _mainViewModel;
+
+        public void SetMainViewModel(MainViewModel mainViewModel)
+        {
+            _mainViewModel = mainViewModel;
+        }
+
+        #region Observable Properties - UI State
+
+        [ObservableProperty] private bool isSettingsOpen;
+        [ObservableProperty] private int selectedSettingsTab;
+        [ObservableProperty] private bool isNavigationVisible = true;
+
+        #endregion
+
+        #region Observable Properties - AI Model Management
+
+        [ObservableProperty] private string? testStatus;
+
+        #endregion
+
+        #region Observable Properties - Sync & Restore
+
+        [ObservableProperty] private bool isRestoreConfirmVisible;
+        [ObservableProperty] private string? restoreStatus;
+        [ObservableProperty] private System.Windows.Media.Brush restoreStatusColor = System.Windows.Media.Brushes.Green;
+
+        #endregion
+
+        #region Configuration Access (通过 SettingsService)
+
+        public AppConfig Config => _settingsService.Config;
+        public LocalSettings LocalConfig => _settingsService.LocalConfig;
+
+        #endregion
+
+        public SettingsViewModel(
+            ISettingsService settingsService,
+            IAiService aiService,
+            IDataService dataService,
+            FileDataService localDataService,
+            GlobalKeyService keyService)
+        {
+            _settingsService = settingsService;
+            _aiService = aiService;
+            _dataService = dataService;
+            _localDataService = localDataService;
+            _keyService = keyService;
+
+            LoggerService.Instance.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
+        }
+
+        #region Commands - Settings UI
+
+        [RelayCommand]
+        private void OpenSettings()
+        {
+            IsSettingsOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseSettings()
+        {
+            IsSettingsOpen = false;
+            _settingsService.SaveConfig();
+            _settingsService.SaveLocalConfig();
+        }
+
+        [RelayCommand]
+        private void ToggleNavigation()
+        {
+            IsNavigationVisible = !IsNavigationVisible;
+        }
+
+        #endregion
+
+        #region Commands - Theme Management
+
+        [RelayCommand]
+        private void ToggleTheme()
+        {
+            LocalConfig.Theme = LocalConfig.Theme == ThemeType.Dark ? ThemeType.Light : ThemeType.Dark;
+            ApplyTheme();
+            _settingsService.SaveLocalConfig();
+        }
+
+        public void ApplyTheme()
+        {
+            var app = System.Windows.Application.Current;
+            if (app?.Resources == null) return;
+
+            ApplyTheme(LocalConfig.Theme);
+        }
+
+        private void ApplyTheme(ThemeType theme)
+        {
+            var resources = System.Windows.Application.Current?.Resources;
+            if (resources == null) return;
+
+            static void SetBrush(ResourceDictionary res, string key, string color)
+            {
+                static System.Windows.Media.Color ParseColor(string value) =>
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(value);
+                res[key] = new System.Windows.Media.SolidColorBrush(ParseColor(color));
+            }
+
+            if (theme == ThemeType.Dark)
+            {
+                SetBrush(resources, "ShellBackground", "#2E3033");
+                SetBrush(resources, "AppBackground", "#363B40");
+                SetBrush(resources, "SidebarBackground", "#2E3033");
+                SetBrush(resources, "CardBackground", "#363B40");
+                SetBrush(resources, "TextPrimary", "#ACBFBE");
+                SetBrush(resources, "TextSecondary", "#ACBFBE");
+                SetBrush(resources, "DividerColor", "#4A4F55");
+                SetBrush(resources, "HintBrush", "#ACBFBE");
+                SetBrush(resources, "ListItemHoverBackgroundBrush", "#3A3F45");
+                SetBrush(resources, "ListItemSelectedBackgroundBrush", "#444A52");
+                SetBrush(resources, "InputFocusBackgroundBrush", "#2E3033");
+
+                SetBrush(resources, "Block1Background", "#2E3033");
+                SetBrush(resources, "Block2Background", "#2E3033");
+                SetBrush(resources, "Block3Background", "#363B40");
+                SetBrush(resources, "Block4Background", "#363B40");
+                SetBrush(resources, "PrimaryTextBrush", "#ACBFBE");
+                SetBrush(resources, "SecondaryTextBrush", "#ACBFBE");
+                SetBrush(resources, "PlaceholderTextBrush", "#ACBFBE");
+                SetBrush(resources, "DividerBrush", "#4A4F55");
+                SetBrush(resources, "ActionIconBrush", "#ACBFBE");
+                SetBrush(resources, "ActionIconHoverBrush", "#ACBFBE");
+                SetBrush(resources, "HeaderIconBrush", "#ACBFBE");
+                SetBrush(resources, "HeaderIconHoverBrush", "#ACBFBE");
+
+                SetBrush(resources, "MiniCaretBrush", "#B8BFC6");
+                SetBrush(resources, "Block3EditorTextBrush", "#B8BFC6");
+                SetBrush(resources, "Block3EditorCaretBrush", "#B8BFC6");
+                SetBrush(resources, "Block3EditorSelectionBrush", "#4A89DC");
+            }
+            else
+            {
+                SetBrush(resources, "ShellBackground", "#FAFAFA");
+                SetBrush(resources, "AppBackground", "#F1F1EF");
+                SetBrush(resources, "SidebarBackground", "#F7F7F7");
+                SetBrush(resources, "CardBackground", "#FFFFFF");
+                SetBrush(resources, "TextPrimary", "#333333");
+                SetBrush(resources, "TextSecondary", "#666666");
+                SetBrush(resources, "DividerColor", "#E5E5E5");
+                SetBrush(resources, "HintBrush", "#999999");
+                SetBrush(resources, "ListItemHoverBackgroundBrush", "#EAEAEA");
+                SetBrush(resources, "ListItemSelectedBackgroundBrush", "#E0E0E0");
+                SetBrush(resources, "InputFocusBackgroundBrush", "#FFFFFF");
+
+                SetBrush(resources, "Block1Background", "#E8E7E7");
+                SetBrush(resources, "Block2Background", "#E8E7E7");
+                SetBrush(resources, "Block3Background", "#EDEDED");
+                SetBrush(resources, "Block4Background", "#EDEDED");
+                SetBrush(resources, "PrimaryTextBrush", "#333333");
+                SetBrush(resources, "SecondaryTextBrush", "#666666");
+                SetBrush(resources, "PlaceholderTextBrush", "#999999");
+                SetBrush(resources, "DividerBrush", "#E5E5E5");
+                SetBrush(resources, "ActionIconBrush", "#666666");
+                SetBrush(resources, "ActionIconHoverBrush", "#333333");
+                SetBrush(resources, "HeaderIconBrush", "#666666");
+                SetBrush(resources, "HeaderIconHoverBrush", "#333333");
+
+                SetBrush(resources, "MiniCaretBrush", "#333333");
+                SetBrush(resources, "Block3EditorTextBrush", "#333333");
+                SetBrush(resources, "Block3EditorCaretBrush", "#333333");
+                SetBrush(resources, "Block3EditorSelectionBrush", "#4A89DC");
+            }
+        }
+
+        #endregion
+
+        #region Commands - AI Model Management
+
+        public Task<(bool Success, string Message)> TestAiConnectionAsync() =>
+            _aiService.TestConnectionAsync(Config);
+
+        public Task<(bool Success, string Message)> TestAiTranslationConnectionAsync() =>
+            _aiService.TestConnectionAsync(Config.AiTranslateApiKey, Config.AiTranslateBaseUrl, Config.AiTranslateModel);
+
+        [RelayCommand]
+        private void ActivateAiModel(AiModelConfig? model)
+        {
+            if (model == null) return;
+            Config.ActiveModelId = model.Id;
+            _settingsService.SaveConfig();
+        }
+
+        [RelayCommand]
+        private void AddAiModel()
+        {
+            if (string.IsNullOrWhiteSpace(Config.AiModel))
+            {
+                MessageBox.Show("请输入模型名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var newModel = new AiModelConfig
+            {
+                Id = Guid.NewGuid().ToString(),
+                ModelName = Config.AiModel,
+                BaseUrl = Config.AiBaseUrl,
+                ApiKey = Config.AiApiKey
+            };
+
+            Config.SavedModels.Add(newModel);
+            Config.ActiveModelId = newModel.Id;
+            _settingsService.SaveConfig();
+        }
+
+        [RelayCommand]
+        private void DeleteAiModel(AiModelConfig? model)
+        {
+            if (model == null) return;
+            var idx = Config.SavedModels.IndexOf(model);
+            if (idx >= 0) Config.SavedModels.RemoveAt(idx);
+            if (Config.ActiveModelId == model.Id) Config.ActiveModelId = "";
+            _settingsService.SaveConfig();
+        }
+
+        #endregion
+
+        #region Commands - Hotkey Management
+
+        public void UpdateWindowHotkeys()
+        {
+            try
+            {
+                HotkeyManager.Current.Remove("ToggleWindow");
+                HotkeyManager.Current.Remove("ToggleWindowSingle");
+
+                // Register Full and Mini window hotkeys using helper method
+                RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
+                RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to update window hotkeys", "SettingsViewModel.UpdateWindowHotkeys");
+            }
+        }
+
+        private static void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(hotkeyStr))
+                {
+                    try { HotkeyManager.Current.Remove(name); } catch { }
+                    return;
+                }
+
+                ModifierKeys modifiers = ModifierKeys.None;
+                if (hotkeyStr.Contains("Ctrl", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Control;
+                if (hotkeyStr.Contains("Alt", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Alt;
+                if (hotkeyStr.Contains("Shift", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Shift;
+                if (hotkeyStr.Contains("Win", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Windows;
+
+                string keyStr = hotkeyStr.Split('+').Last().Trim();
+                if (Enum.TryParse(keyStr, true, out Key key))
+                {
+                    try { HotkeyManager.Current.Remove(name); } catch { }
+                    HotkeyManager.Current.AddOrReplace(name, key, modifiers, (_, __) => action());
+                }
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #region Commands - Sync & Restore
+
+        [RelayCommand]
+        private void ShowRestoreConfirm()
+        {
+            IsRestoreConfirmVisible = true;
+            RestoreStatus = null;
+        }
+
+        [RelayCommand]
+        private void CancelRestoreConfirm()
+        {
+            IsRestoreConfirmVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task ManualRestore()
+        {
+            if (_mainViewModel == null)
+            {
+                MessageBox.Show("系统初始化未完成", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            IsRestoreConfirmVisible = false;
+            RestoreStatus = "正在从云端恢复数据...";
+            RestoreStatusColor = System.Windows.Media.Brushes.Orange;
+
+            try
+            {
+                var data = await _dataService.LoadAsync();
+
+                if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))
+                {
+                    RestoreStatus = "❌ 云端没有数据可恢复";
+                    RestoreStatusColor = System.Windows.Media.Brushes.Red;
+                    return;
+                }
+
+                // Clear current data
+                _mainViewModel.Files.Clear();
+                _mainViewModel.SidebarVM.Folders.Clear();
+
+                // Restore folders
+                if (data.Folders != null && data.Folders.Count > 0)
+                {
+                    foreach (var folder in data.Folders)
+                    {
+                        _mainViewModel.SidebarVM.Folders.Add(folder);
+                    }
+                    _mainViewModel.SidebarVM.SelectedFolder = _mainViewModel.SidebarVM.Folders.FirstOrDefault();
+                }
+                else
+                {
+                    var defaultFolder = new FolderItem { Name = "默认" };
+                    _mainViewModel.SidebarVM.Folders.Add(defaultFolder);
+                    _mainViewModel.SidebarVM.SelectedFolder = defaultFolder;
+                }
+
+                // Restore files
+                if (data.Files != null && data.Files.Count > 0)
+                {
+                    foreach (var file in data.Files)
+                    {
+                        _mainViewModel.Files.Add(file);
+                    }
+                }
+
+                // Update view (调用 MainViewModel 的方法)
+                _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
+                _mainViewModel.UpdateFilesViewFilter();
+                _mainViewModel.FilesView?.Refresh();
+                _mainViewModel.SyncMiniPinnedPrompts();
+
+                // Save to local
+                await _mainViewModel.PerformLocalBackup();
+
+                RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
+                RestoreStatusColor = System.Windows.Media.Brushes.Green;
+
+                LoggerService.Instance.LogInfo($"Restored {data.Folders?.Count ?? 0} folders and {data.Files?.Count ?? 0} files", "SettingsViewModel.ManualRestore");
+            }
+            catch (Exception ex)
+            {
+                RestoreStatus = $"❌ 恢复失败: {ex.Message}";
+                RestoreStatusColor = System.Windows.Media.Brushes.Red;
+                LoggerService.Instance.LogException(ex, "Failed to restore from cloud", "SettingsViewModel.ManualRestore");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ManualBackup()
+        {
+            if (_mainViewModel == null)
+            {
+                MessageBox.Show("系统初始化未完成", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files);
+                MessageBox.Show("云端备份成功！", "备份", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoggerService.Instance.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"备份失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LoggerService.Instance.LogException(ex, "Failed to manual backup", "SettingsViewModel.ManualBackup");
+            }
+        }
+
+        #endregion
+
+        #region Commands - Log Management
+
+        [RelayCommand]
+        private void OpenLogFolder()
+        {
+            try
+            {
+                var logPath = LoggerService.Instance.GetLogDirectory();
+                if (System.IO.Directory.Exists(logPath))
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", logPath);
+                }
+                else
+                {
+                    MessageBox.Show("日志文件夹不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to open log folder", "SettingsViewModel.OpenLogFolder");
+                MessageBox.Show($"无法打开日志文件夹: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private void ClearLogs()
+        {
+            var result = MessageBox.Show(
+                "确定要清除所有日志文件吗？此操作不可撤销。",
+                "确认清除日志",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    LoggerService.Instance.ClearLogs();
+                    MessageBox.Show("日志已清除", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.Instance.LogException(ex, "Failed to clear logs", "SettingsViewModel.ClearLogs");
+                    MessageBox.Show($"清除日志失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        #endregion
+    }
+}
