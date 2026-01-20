@@ -36,6 +36,7 @@ public partial class MainViewModel : ObservableObject
     private readonly GlobalKeyService _keyService;
     private readonly IAiService _aiService;
     private readonly FabricService _fabricService;
+    private readonly IDialogService _dialogService;
 
     private DispatcherTimer _timer;
     private DispatcherTimer _localBackupTimer;
@@ -126,7 +127,8 @@ public partial class MainViewModel : ObservableObject
         FabricService fabricService,
         ChatViewModel chatVM,
         SidebarViewModel sidebarVM,
-        ExternalToolsViewModel externalToolsVM)
+        ExternalToolsViewModel externalToolsVM,
+        IDialogService dialogService)
     {
         _aiService = aiService;
         _dataService = dataService;
@@ -139,6 +141,7 @@ public partial class MainViewModel : ObservableObject
         SettingsVM = settingsVM;
         ExternalToolsVM = externalToolsVM;
         ExternalToolsVM.SetMainViewModel(this);
+        _dialogService = dialogService;
 
         // 通过 SettingsService 获取配置（而不是直接加载）
         Config = settingsService.Config;
@@ -360,15 +363,13 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+
     private void ImportMarkdownFiles()
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "Markdown 文件 (*.md;*.markdown)|*.md;*.markdown|所有文件 (*.*)|*.*",
-            Multiselect = true
-        };
+        string filter = "Markdown 文件 (*.md;*.markdown)|*.md;*.markdown|所有文件 (*.*)|*.*";
+        var files = _dialogService.ShowOpenFilesDialog(filter);
 
-        if (dialog.ShowDialog() != true) return;
+        if (files == null || files.Length == 0) return;
 
         var targetFolder = SidebarVM.SelectedFolder;
         if (targetFolder == null)
@@ -378,7 +379,7 @@ public partial class MainViewModel : ObservableObject
             SidebarVM.SelectedFolder = targetFolder;
         }
 
-        foreach (var filePath in dialog.FileNames)
+        foreach (var filePath in files)
         {
             try
             {

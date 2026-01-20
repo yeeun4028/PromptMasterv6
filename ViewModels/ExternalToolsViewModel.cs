@@ -29,36 +29,45 @@ namespace PromptMasterv5.ViewModels
         public AppConfig Config => _settingsService.Config;
         public LocalSettings LocalConfig => _settingsService.LocalConfig;
 
+        private readonly IDialogService _dialogService;
+        private readonly IWindowManager _windowManager;
+
         public ExternalToolsViewModel(
             ISettingsService settingsService,
             IAiService aiService,
             BaiduService baiduService,
-            GoogleService googleService)
+            GoogleService googleService,
+            IDialogService dialogService,
+            IWindowManager windowManager)
         {
             _settingsService = settingsService;
             _aiService = aiService;
             _baiduService = baiduService;
             _googleService = googleService;
+            _dialogService = dialogService;
+            _windowManager = windowManager;
             
             LoggerService.Instance.LogInfo("ExternalToolsViewModel initialized", "ExternalToolsViewModel.ctor");
         }
 
         [RelayCommand]
+
         private async Task TriggerOcr()
         {
             if (!TryGetOcrProfile(out var ocrProfile)) return;
 
-            var capture = new Views.CaptureWindow();
-            if (capture.ShowDialog() != true || capture.CapturedImageBytes == null) return;
+            // Use WindowManager
+            var capturedBytes = _windowManager.ShowCaptureWindow();
+            if (capturedBytes == null) return;
 
             // Execute OCR
-            var result = await _baiduService.OcrAsync(capture.CapturedImageBytes, ocrProfile!); // Suppress warning, TryGet ensures not null if true
+            var result = await _baiduService.OcrAsync(capturedBytes, ocrProfile!); // Suppress warning, TryGet ensures not null if true
 
             if (!string.IsNullOrWhiteSpace(result))
             {
                 if (result.StartsWith("OCR 错误") || result.StartsWith("错误"))
                 {
-                    System.Windows.MessageBox.Show(result, "OCR 失败");
+                    _dialogService.ShowAlert(result, "OCR 失败");
                 }
                 else
                 {
@@ -73,14 +82,14 @@ namespace PromptMasterv5.ViewModels
             // OcrProfile is needed to extract text from image first
             if (!TryGetOcrProfile(out var ocrProfile)) return;
 
-            var capture = new Views.CaptureWindow();
-            if (capture.ShowDialog() != true || capture.CapturedImageBytes == null) return;
+            var capturedBytes = _windowManager.ShowCaptureWindow();
+            if (capturedBytes == null) return;
 
             // 1. OCR to extract text
-            var text = await _baiduService.OcrAsync(capture.CapturedImageBytes, ocrProfile!); // Suppress warning
+            var text = await _baiduService.OcrAsync(capturedBytes, ocrProfile!); // Suppress warning
             if (string.IsNullOrWhiteSpace(text) || text.StartsWith("OCR 错误") || text.StartsWith("错误"))
             {
-                System.Windows.MessageBox.Show(text, "文字识别失败");
+                _dialogService.ShowAlert(text, "文字识别失败");
                 return;
             }
 
@@ -93,12 +102,7 @@ namespace PromptMasterv5.ViewModels
             }
 
             // 3. Show Result
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                var popup = new Views.TranslationPopup(translated);
-                popup.Show();
-                popup.Activate();
-            });
+            _windowManager.ShowTranslationPopup(translated);
         }
 
         [RelayCommand]
@@ -151,12 +155,7 @@ namespace PromptMasterv5.ViewModels
                 }
 
                 // 4. Show Result
-                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    var popup = new Views.TranslationPopup(translated);
-                    popup.Show();
-                    popup.Activate();
-                });
+                _windowManager.ShowTranslationPopup(translated);
             }
             finally
             {
@@ -167,7 +166,7 @@ namespace PromptMasterv5.ViewModels
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"划词翻译出错: {ex.Message}", "错误");
+            _dialogService.ShowAlert($"划词翻译出错: {ex.Message}", "错误");
         }
     }
 

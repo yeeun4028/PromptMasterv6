@@ -132,6 +132,8 @@ namespace PromptMasterv5
             services.AddSingleton<BrowserAutomationService>();
             services.AddSingleton<GlobalKeyService>();
             services.AddSingleton<FabricService>();
+            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IWindowManager, WindowManager>();
             services.AddHttpClient<BaiduService>();
             services.AddHttpClient<GoogleService>();
         }
