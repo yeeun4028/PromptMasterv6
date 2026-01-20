@@ -72,6 +72,9 @@ namespace PromptMasterv5.Core.Models
         private bool enableYoudao = false;
 
         [ObservableProperty]
+        private bool enableGoogle = false;
+
+        [ObservableProperty]
         private bool enableAiTranslation = false;
 
         // ★★★ 新增：AI 翻译配置 ★★★
@@ -87,6 +90,9 @@ namespace PromptMasterv5.Core.Models
         // External Tools Hotkeys
         [ObservableProperty]
         private string screenshotTranslateHotkey = "";
+
+        [ObservableProperty]
+        private string selectedTextTranslateHotkey = "";
 
         [ObservableProperty]
         private string ocrHotkey = "";

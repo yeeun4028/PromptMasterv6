@@ -357,7 +357,6 @@ namespace PromptMasterv5.Views
 
             setValue(sb.ToString());
         }
-
         private void ScreenshotTranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (ViewModel == null) return;
@@ -388,6 +387,41 @@ namespace PromptMasterv5.Views
             if (sender is TextBox tb)
             {
                 ViewModel.Config.ScreenshotTranslateHotkey = sb.ToString();
+                tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.UpdateExternalToolsHotkeys();
+            }
+        }
+
+        private void SelectedTextTranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+
+            // Delete to clear
+            if (key == Key.Delete || key == Key.Back)
+            {
+                e.Handled = true;
+                ViewModel.Config.SelectedTextTranslateHotkey = "";
+                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.UpdateExternalToolsHotkeys();
+                return;
+            }
+
+            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || 
+                key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin) return;
+            
+            e.Handled = true;
+            var sb = new StringBuilder();
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
+            if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
+            if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
+            sb.Append(key.ToString());
+            
+            if (sender is TextBox tb)
+            {
+                ViewModel.Config.SelectedTextTranslateHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
                 ViewModel.UpdateExternalToolsHotkeys();
             }
@@ -503,25 +537,105 @@ namespace PromptMasterv5.Views
             if (BtnBaiduTab != null) BtnBaiduTab.Tag = tabIndex == 1 ? "Selected" : "1";
             if (BtnTencentTab != null) BtnTencentTab.Tag = tabIndex == 2 ? "Selected" : "2";
             if (BtnYoudaoTab != null) BtnYoudaoTab.Tag = tabIndex == 3 ? "Selected" : "3";
-            if (BtnAiTab != null) BtnAiTab.Tag = tabIndex == 4 ? "Selected" : "4";
+            if (BtnGoogleTab != null) BtnGoogleTab.Tag = tabIndex == 4 ? "Selected" : "4";
+            if (BtnAiTab != null) BtnAiTab.Tag = tabIndex == 5 ? "Selected" : "5";
 
             // Show/hide tab content
             if (ExternalToolsMainTab != null) ExternalToolsMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsBaiduTab != null) ExternalToolsBaiduTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsTencentTab != null) ExternalToolsTencentTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
-            if (ExternalToolsAITab != null) ExternalToolsAITab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsGoogleTab != null) ExternalToolsGoogleTab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsAITab != null) ExternalToolsAITab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
 
             // Load credentials when switching to Baidu tab
-            if (tabIndex == 1)
-            {
-                LoadBaiduCredentials();
-            }
+            if (tabIndex == 1) LoadBaiduCredentials();
+            if (tabIndex == 4) LoadGoogleCredentials();
 
             // Sync credentials when leaving Baidu tab
-            if (previousTab == 1 && tabIndex != 1)
+            if (previousTab == 1 && tabIndex != 1) SaveBaiduCredentials();
+            if (previousTab == 4 && tabIndex != 4) SaveGoogleCredentials();
+        }
+
+        private void LoadGoogleCredentials()
+        {
+            if (ViewModel == null) return;
+
+            var googleProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
+                p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
+            
+            if (googleProfile != null && GoogleBaseUrl != null && GoogleApiKey != null)
             {
-                SaveBaiduCredentials();
+                GoogleBaseUrl.Text = googleProfile.BaseUrl;
+                GoogleApiKey.Text = googleProfile.Key1;
+            }
+        }
+
+        private void SaveGoogleCredentials()
+        {
+            if (ViewModel == null) return;
+
+            var googleProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
+                p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
+            
+            if (googleProfile == null)
+            {
+                googleProfile = new ApiProfile
+                {
+                    Name = "Google 翻译",
+                    Provider = ApiProvider.Google,
+                    ServiceType = ServiceType.Translation
+                };
+                ViewModel.Config.ApiProfiles.Add(googleProfile);
+            }
+
+            if (GoogleBaseUrl != null && GoogleApiKey != null)
+            {
+                googleProfile.BaseUrl = GoogleBaseUrl.Text;
+                googleProfile.Key1 = GoogleApiKey.Text;
+            }
+
+            ConfigService.Save(ViewModel.Config);
+        }
+
+        private async void TestGoogle_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+
+            try
+            {
+                SaveGoogleCredentials();
+                var profile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
+                
+                if (profile == null || string.IsNullOrWhiteSpace(profile.Key1))
+                {
+                    System.Windows.MessageBox.Show("请先填写 API Key", "参数错误");
+                    return;
+                }
+
+                using (var client = new HttpClient())
+                {
+                    var service = new PromptMasterv5.Infrastructure.Services.GoogleService(client);
+                    var result = await service.TranslateAsync("Hello World", profile);
+                    if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("Google"))
+                    {
+                         System.Windows.MessageBox.Show("连接成功！\n翻译结果：" + result, "测试通过");
+                    }
+                    else
+                    {
+                         System.Windows.MessageBox.Show("测试结果：\n" + result, "提示");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"测试出错: {ex.Message}", "错误");
+            }
+            finally
+            {
+                if (btn != null) btn.IsEnabled = true;
             }
         }
 

@@ -1199,7 +1199,40 @@
                                                 </Style>
                                             </Button.Style>
                                         </Button>
-                                        <Button x:Name="BtnAiTab" Content="AI" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="4">
+                                        <Button x:Name="BtnGoogleTab" Content="Google" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="4">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnAiTab" Content="AI" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="5">
                                             <Button.Style>
                                                 <Style TargetType="Button">
                                                     <Setter Property="Background" Value="Transparent"/>
@@ -1277,6 +1310,16 @@
                                                      Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
                                                      Style="{StaticResource ModernTextBoxStyle}"
                                                      PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
+                                                     IsReadOnly="True"
+                                                     ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="划词翻译快捷键 (选中文字后按键)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="SelectedTextTranslateHotkeyTextBox"
+                                                     Text="{Binding Config.SelectedTextTranslateHotkey, Mode=TwoWay}" 
+                                                     PreviewKeyDown="SelectedTextTranslateHotkeyTextBox_PreviewKeyDown"
+                                                     Style="{StaticResource ModernTextBoxStyle}"
                                                      IsReadOnly="True"
                                                      ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
                                         </StackPanel>
@@ -1407,6 +1450,33 @@
 
                                         <TextBlock Text="注意：有道后端集成将在未来版本中实现。" 
                                                    Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" Foreground="#FFA500"/>
+                                    </StackPanel>
+
+                                    <!-- Sub-Tab Content: Google -->
+                                    <StackPanel x:Name="ExternalToolsGoogleTab" Visibility="Collapsed">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                            <CheckBox IsChecked="{Binding Config.EnableGoogle, Mode=TwoWay}"
+                                                          Style="{StaticResource ToggleSwitchStyle}"/>
+                                            <TextBlock Text="启用 Google 翻译" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="API Base URL (可选, 支持 Cloudflare 代理)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="GoogleBaseUrl" Style="{StaticResource ModernTextBoxStyle}"
+                                                     ToolTip="默认为 https://translation.googleapis.com。自定义地址示例：https://my-proxy.workers.dev"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,12">
+                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <TextBox x:Name="GoogleApiKey" Style="{StaticResource ModernTextBoxStyle}"/>
+                                        </StackPanel>
+
+                                        <Button Content="测试连接" Click="TestGoogle_Click" 
+                                                HorizontalAlignment="Left" Margin="0,0,0,16"
+                                                Style="{StaticResource TextLinkButtonStyle}"/>
+                                        
+                                        <TextBlock Text="说明：Google 翻译只需要 API Key，不需要 Secret。" 
+                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: AI -->

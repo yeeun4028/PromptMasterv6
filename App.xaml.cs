@@ -65,6 +65,7 @@ namespace PromptMasterv5
             services.AddSingleton<GlobalKeyService>();
             services.AddSingleton<FabricService>();
             services.AddHttpClient<BaiduService>();
+            services.AddHttpClient<GoogleService>();
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

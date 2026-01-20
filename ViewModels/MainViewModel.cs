@@ -37,6 +37,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAiService _aiService;
     private readonly FabricService _fabricService;
     private readonly BaiduService _baiduService;
+    private readonly GoogleService _googleService;
 
     private DispatcherTimer _timer;
     private DispatcherTimer _localBackupTimer;
@@ -78,6 +79,7 @@ public partial class MainViewModel : ObservableObject
         GlobalKeyService keyService,
         FabricService fabricService,
         BaiduService baiduService,
+        GoogleService googleService,
         ChatViewModel chatVM,
         SidebarViewModel sidebarVM)
     {
@@ -87,6 +89,7 @@ public partial class MainViewModel : ObservableObject
         _keyService = keyService;
         _fabricService = fabricService;
         _baiduService = baiduService;
+        _googleService = googleService;
 
         SidebarVM = sidebarVM;
         ChatVM = chatVM;
@@ -618,6 +621,7 @@ public partial class MainViewModel : ObservableObject
 
         // Register new hotkeys from external tools settings
         RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => TriggerTranslateCommand.Execute(null));
+        RegisterWindowHotkey("SelectedTextTranslate", Config.SelectedTextTranslateHotkey, () => TriggerSelectedTextTranslateCommand.Execute(null));
         RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => TriggerOcrCommand.Execute(null));
 
         ConfigService.Save(Config);
@@ -915,6 +919,92 @@ public partial class MainViewModel : ObservableObject
         return true;
     }
 
+    private async Task<string> PerformTranslation(string text)
+    {
+        if (Config.EnableAiTranslation)
+        {
+            return await TranslateWithAiAsync(text);
+        }
+        else if (Config.EnableGoogle)
+        {
+            var profile = Config.ApiProfiles.FirstOrDefault(p => p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
+            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1))
+            {
+                 MessageBox.Show("请先在外部工具设置中配置 Google 翻译 API Key", "配置错误");
+                 return "";
+            }
+            return await _googleService.TranslateAsync(text, profile);
+        }
+        else
+        {
+             if (!TryGetTranslateProfile(out var transProfile)) 
+             {
+                 MessageBox.Show("请先配置百度翻译或启用其他翻译服务", "未配置翻译服务");
+                 return "";
+             }
+             return await _baiduService.TranslateAsync(text, transProfile);
+        }
+    }
+
+    [RelayCommand]
+    private async Task TriggerSelectedTextTranslate()
+    {
+        try
+        {
+            // 1. 清空剪贴板
+            try { System.Windows.Clipboard.Clear(); } catch { }
+
+            // 2. 模拟 Ctrl+C
+            // 确保当前窗口是前台窗口（通常按下快捷键时是的，但为了保险）
+            // IntPtr foreground = NativeMethods.GetForegroundWindow();
+            // NativeMethods.SetForegroundWindow(foreground);
+
+            NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, 0, 0);
+            NativeMethods.keybd_event(NativeMethods.VK_C, 0, 0, 0);
+            NativeMethods.keybd_event(NativeMethods.VK_C, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
+            NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
+            
+            // 3. 循环检查剪贴板
+            string text = "";
+            for (int i = 0; i < 10; i++)
+            {
+                await Task.Delay(50);
+                try 
+                {
+                    if (System.Windows.Clipboard.ContainsText())
+                    {
+                        text = System.Windows.Clipboard.GetText();
+                        if (!string.IsNullOrWhiteSpace(text)) break;
+                    }
+                }
+                catch { }
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                // 如果获取失败，尝试通过弹窗提示用户（可能是权限问题）
+                // MessageBox.Show("无法获取选中文本。如果目标软件以管理员身份运行，请尝试以管理员身份运行本程序。", "获取文本失败");
+                return;
+            }
+
+            var translated = await PerformTranslation(text);
+
+            if (string.IsNullOrWhiteSpace(translated)) return;
+
+            // 4. 显示结果
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                    var popup = new Views.TranslationPopup(translated);
+                    popup.Show();
+                    popup.Activate();
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"划词翻译出错: {ex.Message}", "错误");
+        }
+    }
+
     [RelayCommand]
     private async Task TriggerOcr()
     {
@@ -942,7 +1032,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task TriggerTranslate()
     {
-        if (!TryGetTranslateProfile(out var transProfile)) return;
+        // if (!TryGetTranslateProfile(out var transProfile)) return; // 移除此检查，因为可能使用 Google 或 AI
         if (!TryGetOcrProfile(out var ocrProfile)) return;
 
         var capture = new Views.CaptureWindow();
@@ -956,19 +1046,8 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        string translated;
-        
-        // 2. 判断使用哪种翻译方式
-        if (Config.EnableAiTranslation)
-        {
-            // 使用 AI 翻译
-            translated = await TranslateWithAiAsync(text);
-        }
-        else
-        {
-            // 使用百度翻译
-            translated = await _baiduService.TranslateAsync(text, transProfile);
-        }
+        // 2. 统一翻译逻辑
+        var translated = await PerformTranslation(text);
 
         // 3. 显示结果
         var popup = new Views.TranslationPopup(translated);

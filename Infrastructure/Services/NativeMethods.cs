@@ -46,6 +46,7 @@ namespace PromptMasterv5.Infrastructure.Services
         public const byte VK_SHIFT = 0x10;
         public const byte VK_MENU = 0x12;
         public const byte VK_RETURN = 0x0D;
+        public const byte VK_C = 0x43;
         public const byte VK_V = 0x56;
 
         public const uint KEYEVENTF_KEYUP = 0x0002;
