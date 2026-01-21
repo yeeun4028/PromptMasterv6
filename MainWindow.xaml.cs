@@ -697,6 +697,12 @@ namespace PromptMasterv5
             // 取消之前的定时器
             StopHideTimer();
 
+            // 如果是完整模式，不执行自动隐藏
+            if (ViewModel != null && ViewModel.IsFullMode)
+            {
+                return;
+            }
+
             // 2. 需求实现：失去焦点自动隐藏
             // 创建新的定时器，延迟200毫秒后检查并隐藏窗口
             // 延迟是为了防止在应用内部切换焦点（如点击弹出菜单、对话框）时误判为失焦
