@@ -50,6 +50,14 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private string activeModelId = "";
 
+        // Model selection for Mini Window (empty = use default active model)
+        [ObservableProperty]
+        private string miniWindowModelId = "";
+
+        // Model selection for Translation (empty = use default active model)
+        [ObservableProperty]
+        private string translationModelId = "";
+
         // ★★★ 新增：外部工具 API 配置 ★★★
         [ObservableProperty]
         private System.Collections.ObjectModel.ObservableCollection<ApiProfile> apiProfiles = new();

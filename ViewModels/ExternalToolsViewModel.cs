@@ -209,7 +209,12 @@ namespace PromptMasterv5.ViewModels
         }
         
         // Fallback: If no dedicated translation enabled, maybe try AI if configured
-             if (!string.IsNullOrWhiteSpace(Config.AiTranslateApiKey))
+            // Check if AI Translation is possible (either via new Model ID or old manual keys)
+            bool hasAiConfig = !string.IsNullOrWhiteSpace(Config.TranslationModelId) || 
+                               !string.IsNullOrWhiteSpace(Config.ActiveModelId) ||
+                               !string.IsNullOrWhiteSpace(Config.AiTranslateApiKey);
+
+            if (hasAiConfig)
             {
                  return await TranslateWithAiAsync(text);
             }
@@ -256,7 +261,37 @@ namespace PromptMasterv5.ViewModels
                     }
                 }
 
-                return await _aiService.ChatAsync(text, Config.AiTranslateApiKey, Config.AiTranslateBaseUrl, Config.AiTranslateModel, systemPrompt) 
+                // Resolve Model Configuration
+                string apiKey = Config.AiTranslateApiKey;
+                string baseUrl = Config.AiTranslateBaseUrl;
+                string modelId = Config.AiTranslateModel;
+
+                // 1. Try Specific Translation Model
+                if (!string.IsNullOrWhiteSpace(Config.TranslationModelId))
+                {
+                    var model = Config.SavedModels.FirstOrDefault(m => m.Id == Config.TranslationModelId);
+                    if (model != null)
+                    {
+                        apiKey = model.ApiKey;
+                        baseUrl = model.BaseUrl;
+                        modelId = model.ModelName;
+                    }
+                }
+                // 2. Fallback to Active Model (if manual keys are empty)
+                else if (string.IsNullOrWhiteSpace(apiKey) && !string.IsNullOrWhiteSpace(Config.ActiveModelId))
+                {
+                    var model = Config.SavedModels.FirstOrDefault(m => m.Id == Config.ActiveModelId);
+                    if (model != null)
+                    {
+                        apiKey = model.ApiKey;
+                        baseUrl = model.BaseUrl;
+                        modelId = model.ModelName;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(apiKey)) return "AI 翻译失败：未配置有效的 API Key";
+
+                return await _aiService.ChatAsync(text, apiKey, baseUrl, modelId, systemPrompt) 
                        ?? "AI 翻译失败：未返回结果";
             }
             catch (Exception ex)

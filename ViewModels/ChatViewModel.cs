@@ -94,7 +94,22 @@ namespace PromptMasterv5.ViewModels
                 }
                 else
                 {
-                    string result = await _aiService.ChatAsync(query, config);
+                    string apiKey = config.AiApiKey;
+                    string baseUrl = config.AiBaseUrl;
+                    string modelId = config.AiModel;
+
+                    if (!string.IsNullOrWhiteSpace(config.MiniWindowModelId))
+                    {
+                        var model = config.SavedModels.FirstOrDefault(m => m.Id == config.MiniWindowModelId);
+                        if (model != null)
+                        {
+                            apiKey = model.ApiKey;
+                            baseUrl = model.BaseUrl;
+                            modelId = model.ModelName;
+                        }
+                    }
+
+                    string result = await _aiService.ChatAsync(query, apiKey, baseUrl, modelId);
                     MiniInputText = result;
                     IsAiResultDisplayed = true;
                 }
@@ -163,7 +178,22 @@ namespace PromptMasterv5.ViewModels
                     return;
                 }
 
-                var result = await _aiService.ChatAsync(inputText, config);
+                string apiKey = config.AiApiKey;
+                string baseUrl = config.AiBaseUrl;
+                string modelId = config.AiModel;
+
+                if (!string.IsNullOrWhiteSpace(config.MiniWindowModelId))
+                {
+                    var model = config.SavedModels.FirstOrDefault(m => m.Id == config.MiniWindowModelId);
+                    if (model != null)
+                    {
+                        apiKey = model.ApiKey;
+                        baseUrl = model.BaseUrl;
+                        modelId = model.ModelName;
+                    }
+                }
+
+                var result = await _aiService.ChatAsync(inputText, apiKey, baseUrl, modelId);
                 MiniInputText = result;
                 IsAiResultDisplayed = true;
             }

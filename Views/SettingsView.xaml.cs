@@ -24,6 +24,7 @@ namespace PromptMasterv5.Views
         private int _activeCoordinateRuleIndex = 0;
         private int _selectedExternalToolsSubTab = 0;
         private int _selectedMiniWindowSubTab = 0;
+        private int _selectedAiSubTab = 0;
 
         public SettingsView()
         {
@@ -38,6 +39,9 @@ namespace PromptMasterv5.Views
             
             // Initialize mini window sub-tab to Prompt tab
             UpdateMiniWindowSubTab(0);
+
+            // Initialize AI sub-tab to Main tab
+            UpdateAiSubTab(0);
 
             // Load Baidu credentials from AppConfig
             LoadBaiduCredentials();
@@ -373,7 +377,7 @@ namespace PromptMasterv5.Views
                 e.Handled = true;
                 ViewModel.Config.ScreenshotTranslateHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateExternalToolsHotkeys();
+                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
                 return;
             }
 
@@ -392,7 +396,7 @@ namespace PromptMasterv5.Views
             {
                 ViewModel.Config.ScreenshotTranslateHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateExternalToolsHotkeys();
+                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
             }
         }
 
@@ -408,7 +412,7 @@ namespace PromptMasterv5.Views
                 e.Handled = true;
                 ViewModel.Config.SelectedTextTranslateHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateExternalToolsHotkeys();
+                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
                 return;
             }
 
@@ -427,7 +431,7 @@ namespace PromptMasterv5.Views
             {
                 ViewModel.Config.SelectedTextTranslateHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateExternalToolsHotkeys();
+                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
             }
         }
 
@@ -443,7 +447,7 @@ namespace PromptMasterv5.Views
                 e.Handled = true;
                 ViewModel.Config.OcrHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateExternalToolsHotkeys();
+                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
                 return;
             }
 
@@ -462,7 +466,7 @@ namespace PromptMasterv5.Views
             {
                 ViewModel.Config.OcrHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateExternalToolsHotkeys();
+                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
             }
         }
 
@@ -608,7 +612,7 @@ namespace PromptMasterv5.Views
             if (BtnTencentTab != null) BtnTencentTab.Tag = tabIndex == 2 ? "Selected" : "2";
             if (BtnYoudaoTab != null) BtnYoudaoTab.Tag = tabIndex == 3 ? "Selected" : "3";
             if (BtnGoogleTab != null) BtnGoogleTab.Tag = tabIndex == 4 ? "Selected" : "4";
-            if (BtnAiTab != null) BtnAiTab.Tag = tabIndex == 5 ? "Selected" : "5";
+
 
             // Show/hide tab content
             if (ExternalToolsMainTab != null) ExternalToolsMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -616,7 +620,7 @@ namespace PromptMasterv5.Views
             if (ExternalToolsTencentTab != null) ExternalToolsTencentTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsGoogleTab != null) ExternalToolsGoogleTab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
-            if (ExternalToolsAITab != null) ExternalToolsAITab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
+
 
             // Load credentials when switching to Baidu tab
             if (tabIndex == 1) LoadBaiduCredentials();
@@ -625,6 +629,79 @@ namespace PromptMasterv5.Views
             // Sync credentials when leaving Baidu tab
             if (previousTab == 1 && tabIndex != 1) SaveBaiduCredentials();
             if (previousTab == 4 && tabIndex != 4) SaveGoogleCredentials();
+        }
+
+        // AI Sub-Tab Navigation
+        private void AiSubTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tagStr)
+            {
+                int tabIndex = tagStr == "Selected" ? _selectedAiSubTab : (int.TryParse(tagStr, out int idx) ? idx : 0);
+                UpdateAiSubTab(tabIndex);
+            }
+        }
+
+        private void UpdateAiSubTab(int tabIndex)
+        {
+            _selectedAiSubTab = tabIndex;
+
+            // Update button states
+            if (BtnAiMainTab != null) BtnAiMainTab.Tag = tabIndex == 0 ? "Selected" : "0";
+            if (BtnAiMiniTab != null) BtnAiMiniTab.Tag = tabIndex == 1 ? "Selected" : "1";
+            if (BtnAiTranslateTab != null) BtnAiTranslateTab.Tag = tabIndex == 2 ? "Selected" : "2";
+            if (BtnAiQuickActionTab != null) BtnAiQuickActionTab.Tag = tabIndex == 3 ? "Selected" : "3";
+
+            // Show/hide tab content
+            if (AiMainTab != null) AiMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (AiMiniTab != null) AiMiniTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (AiTranslateTab != null) AiTranslateTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+            if (AiQuickActionTab != null) AiQuickActionTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // Quick Action Handlers
+        private void AddQuickAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            var selectedId = (QuickActionCandidateCombo?.SelectedValue as string) ?? "";
+            if (string.IsNullOrWhiteSpace(selectedId)) return;
+
+            var selectedFile = ViewModel.Files.FirstOrDefault(f => f.Id == selectedId);
+            if (selectedFile == null) return;
+
+            // Check if already exists
+            if (ViewModel.LocalConfig.QuickActionPrompts.Any(qa => qa.Id == selectedId))
+            {
+                System.Windows.MessageBox.Show("该提示词已经在列表中", "提示");
+                return;
+            }
+
+            // Add to quick actions list
+            var quickAction = new QuickActionPrompt
+            {
+                Id = selectedFile.Id,
+                Title = selectedFile.Title,
+                BoundModelId = "" // Empty means use global default
+            };
+
+            ViewModel.LocalConfig.QuickActionPrompts.Add(quickAction);
+            LocalConfigService.Save(ViewModel.LocalConfig);
+        }
+
+        private void RemoveQuickAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (sender is not Button btn) return;
+            if (btn.Tag is not QuickActionPrompt quickAction) return;
+
+            ViewModel.LocalConfig.QuickActionPrompts.Remove(quickAction);
+            LocalConfigService.Save(ViewModel.LocalConfig);
+        }
+
+        private void QuickActionModel_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            // Selection is bound via TwoWay binding, just save the config
+            LocalConfigService.Save(ViewModel.LocalConfig);
         }
 
         private void LoadGoogleCredentials()

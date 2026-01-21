@@ -227,6 +227,7 @@ public partial class MainViewModel : ObservableObject
         SettingsVM.SetMainViewModel(this);
         SettingsVM.ApplyTheme();
         UpdateWindowHotkeys(); // 使用 MainViewModel 的版本，因为它注册窗口切换快捷键
+        SettingsVM.UpdateExternalToolsHotkeys(); // Initialize external tool hotkeys
 
         _ = InitializeAsync();
     }
@@ -739,29 +740,6 @@ public partial class MainViewModel : ObservableObject
 
         RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
         RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => ToggleWindowToMode(false));
-
-        // 优先使用外部工具设置的快捷键，如果为空则使用 LocalConfig
-        string ocrKey = !string.IsNullOrWhiteSpace(Config.OcrHotkey) ? Config.OcrHotkey : LocalConfig.OcrHotkey;
-        string translateKey = !string.IsNullOrWhiteSpace(Config.ScreenshotTranslateHotkey) ? Config.ScreenshotTranslateHotkey : LocalConfig.TranslateHotkey;
-
-        RegisterWindowHotkey("TriggerOcrHotkey", ocrKey, () => ExternalToolsVM.TriggerOcrCommand.Execute(null));
-        RegisterWindowHotkey("TriggerTranslateHotkey", translateKey, () => ExternalToolsVM.TriggerTranslateCommand.Execute(null));
-    }
-
-    [SupportedOSPlatform("windows")]
-    public void UpdateExternalToolsHotkeys()
-    {
-        // Remove old hotkeys
-        try { HotkeyManager.Current.Remove("ScreenshotTranslate"); } catch { }
-        try { HotkeyManager.Current.Remove("OcrOnly"); } catch { }
-
-        // Register new hotkeys from external tools settings
-        RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => ExternalToolsVM.TriggerTranslateCommand.Execute(null));
-        RegisterWindowHotkey("SelectedTextTranslate", Config.SelectedTextTranslateHotkey, () => ExternalToolsVM.TriggerSelectedTextTranslateCommand.Execute(null));
-        RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => ExternalToolsVM.TriggerOcrCommand.Execute(null));
-        RegisterWindowHotkey("GlobalQuickAction", Config.QuickActionHotkey, () => TriggerQuickActionCommand.Execute(null));
-
-        ConfigService.Save(Config);
     }
 
     private void ToggleWindowToMode(bool targetFull)

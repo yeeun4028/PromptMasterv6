@@ -12,7 +12,7 @@ namespace PromptMasterv5.Infrastructure.Services
             // Must be run on UI thread
             if (Application.Current.Dispatcher.CheckAccess())
             {
-                var capture = new CaptureWindow();
+                var capture = new ScreenCaptureOverlay();
                 if (capture.ShowDialog() == true)
                 {
                     return capture.CapturedImageBytes;
@@ -23,7 +23,7 @@ namespace PromptMasterv5.Infrastructure.Services
             {
                 return Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var capture = new CaptureWindow();
+                    var capture = new ScreenCaptureOverlay();
                     if (capture.ShowDialog() == true)
                     {
                         return capture.CapturedImageBytes;

@@ -274,6 +274,36 @@
             </Setter>
         </Style>
 
+        <Style x:Key="SubTabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" 
+                                Background="{TemplateBinding Background}" 
+                                BorderThickness="0,0,0,2" 
+                                BorderBrush="Transparent" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentColor}"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Selected">
+                                <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentColor}"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
             <Setter Property="Template">
                 <Setter.Value>
@@ -556,6 +586,9 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Row 1: Double Ctrl -->
@@ -583,7 +616,7 @@
                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
 
                                         <!-- Row 3: Mini Window -->
-                                        <StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">
+                                        <StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
                                             <TextBlock Text="迷你窗口" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
                                         </StackPanel>
                                         <TextBox Grid.Row="2" Grid.Column="1" 
@@ -594,6 +627,51 @@
                                                  Cursor="IBeam"
                                                  VerticalAlignment="Center"
                                                  PreviewKeyDown="MiniWindowHotkeyTextBox_PreviewKeyDown"
+                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+
+                                        <!-- Row 4: Screenshot Translate -->
+                                        <StackPanel Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
+                                            <TextBlock Text="截图翻译" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Row="3" Grid.Column="1" 
+                                                 x:Name="ScreenshotTranslateHotkeyTextBox" 
+                                                 Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
+                                                 Style="{StaticResource ModernTextBoxStyle}"
+                                                 Width="140"
+                                                 IsReadOnly="True"
+                                                 Cursor="IBeam"
+                                                 VerticalAlignment="Center"
+                                                 PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
+                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+
+                                        <!-- Row 5: Selected Text Translate -->
+                                        <StackPanel Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
+                                            <TextBlock Text="划词翻译" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Row="4" Grid.Column="1" 
+                                                 x:Name="SelectedTextTranslateHotkeyTextBox"
+                                                 Text="{Binding Config.SelectedTextTranslateHotkey, Mode=TwoWay}"
+                                                 Style="{StaticResource ModernTextBoxStyle}"
+                                                 Width="140"
+                                                 IsReadOnly="True"
+                                                 Cursor="IBeam"
+                                                 VerticalAlignment="Center"
+                                                 PreviewKeyDown="SelectedTextTranslateHotkeyTextBox_PreviewKeyDown"
+                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+
+                                        <!-- Row 6: OCR -->
+                                        <StackPanel Grid.Row="5" Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="OCR 识别" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Row="5" Grid.Column="1" 
+                                                 x:Name="OcrHotkeyTextBox" 
+                                                 Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
+                                                 Style="{StaticResource ModernTextBoxStyle}"
+                                                 Width="140"
+                                                 IsReadOnly="True"
+                                                 Cursor="IBeam"
+                                                 VerticalAlignment="Center"
+                                                 PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
                                     </Grid>
                                 </StackPanel>
@@ -691,94 +769,245 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <StackPanel Margin="0,0,0,14">
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="API 地址 (Base URL)" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiBaseUrl}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                        </StackPanel>
 
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiApiKey}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                        </StackPanel>
-
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiModel}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                        </StackPanel>
-
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                            <TextBlock x:Name="TestStatusText"
-                                                       Text=""
-                                                       VerticalAlignment="Center"
-                                                       Margin="0,0,10,0"
-                                                       Style="{StaticResource HintTextStyle}"/>
-                                            <Button Content="测试连接" Click="TestAiConnection_Click" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,14,0"/>
-                                            <Button Content="保存模型" Command="{Binding AddAiModelCommand}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}"/>
-                                        </StackPanel>
+                                    <!-- AI Sub-Tab Navigation -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                        <Button x:Name="BtnAiMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnAiMiniTab" Content="迷你" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnAiTranslateTab" Content="翻译" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnAiQuickActionTab" Content="划词" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="3" Style="{StaticResource SubTabButtonStyle}"/>
                                     </StackPanel>
 
-                                    <TextBlock Text="已保存的模型" Style="{StaticResource FieldLabelTextStyle}" Margin="0,6,0,10"/>
+                                    <!-- Sub-Tab Content Container -->
+                                    <StackPanel>
+                                        <!-- 1. 主界面 Tab: Model Management -->
+                                        <StackPanel x:Name="AiMainTab" Visibility="Visible">
+                                            <StackPanel Margin="0,0,0,14">
+                                                <StackPanel Margin="0,0,0,12">
+                                                    <TextBlock Text="API 地址 (Base URL)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                    <TextBox Text="{Binding Config.AiBaseUrl}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                                </StackPanel>
 
-                                    <ListBox ItemsSource="{Binding Config.SavedModels}"
-                                             SelectedValue="{Binding Config.ActiveModelId}"
-                                             SelectedValuePath="Id"
-                                             BorderThickness="0"
-                                             Background="Transparent"
-                                             SelectionMode="Single"
-                                             SelectionChanged="AiModelList_SelectionChanged">
-                                        <ListBox.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel Orientation="Horizontal"/>
-                                            </ItemsPanelTemplate>
-                                        </ListBox.ItemsPanel>
-                                        <ListBox.ItemContainerStyle>
-                                            <Style TargetType="ListBoxItem">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="ListBoxItem">
-                                                            <Border x:Name="Chip"
-                                                                    Background="{DynamicResource ShellBackground}"
-                                                                    BorderBrush="{DynamicResource DividerBrush}"
-                                                                    BorderThickness="1"
-                                                                    CornerRadius="6"
-                                                                    Padding="12,10"
-                                                                    Margin="0,0,10,10"
-                                                                    Width="180"
-                                                                    Cursor="Hand">
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
-                                                                        <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <StackPanel Margin="0,0,0,12">
+                                                    <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                    <TextBox Text="{Binding Config.AiApiKey}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                </StackPanel>
+
+                                                <StackPanel Margin="0,0,0,12">
+                                                    <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                    <TextBox Text="{Binding Config.AiModel}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                                </StackPanel>
+
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <TextBlock x:Name="TestStatusText"
+                                                               Text=""
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,10,0"
+                                                               Style="{StaticResource HintTextStyle}"/>
+                                                    <Button Content="测试连接" Click="TestAiConnection_Click" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,14,0"/>
+                                                    <Button Content="保存模型" Command="{Binding AddAiModelCommand}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <TextBlock Text="已保存的模型" Style="{StaticResource FieldLabelTextStyle}" Margin="0,6,0,10"/>
+
+                                            <ListBox ItemsSource="{Binding Config.SavedModels}"
+                                                     SelectedValue="{Binding Config.ActiveModelId}"
+                                                     SelectedValuePath="Id"
+                                                     BorderThickness="0"
+                                                     Background="Transparent"
+                                                     SelectionMode="Single"
+                                                     SelectionChanged="AiModelList_SelectionChanged">
+                                                <ListBox.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ListBox.ItemsPanel>
+                                                <ListBox.ItemContainerStyle>
+                                                    <Style TargetType="ListBoxItem">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ListBoxItem">
+                                                                    <Border x:Name="Chip"
+                                                                            Background="{DynamicResource ShellBackground}"
+                                                                            BorderBrush="{DynamicResource DividerBrush}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="6"
+                                                                            Padding="12,10"
+                                                                            Margin="0,0,10,10"
+                                                                            Width="180"
+                                                                            Cursor="Hand">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                                                <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                            <TextBlock Grid.Column="1" Text="{Binding ModelName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                                                        </Grid>
+
+                                                                        <Border.ContextMenu>
+                                                                            <ContextMenu>
+                                                                                <MenuItem Header="删除" Command="{Binding DataContext.DeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+                                                                            </ContextMenu>
+                                                                        </Border.ContextMenu>
                                                                     </Border>
-                                                                    <TextBlock Grid.Column="1" Text="{Binding ModelName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
-                                                                </Grid>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsSelected" Value="True">
+                                                                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                                                            <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
+                                                                        </Trigger>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </ListBox.ItemContainerStyle>
+                                            </ListBox>
+                                        </StackPanel>
 
-                                                                <Border.ContextMenu>
-                                                                    <ContextMenu>
-                                                                        <MenuItem Header="删除" Command="{Binding DataContext.DeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
-                                                                    </ContextMenu>
-                                                                </Border.ContextMenu>
-                                                            </Border>
-                                                            <ControlTemplate.Triggers>
-                                                                <Trigger Property="IsSelected" Value="True">
-                                                                    <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
-                                                                    <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
-                                                                </Trigger>
-                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                    <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                </Trigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </ListBox.ItemContainerStyle>
-                                    </ListBox>
+                                        <!-- 2. 迷你 Tab: Mini Window Model Selection -->
+                                        <StackPanel x:Name="AiMiniTab" Visibility="Collapsed">
+                                            <TextBlock Text="迷你窗口 AI 模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                            <TextBlock Text="选择迷你窗口使用的 AI 模型。留空则使用主界面的默认模型。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,12"/>
+                                            
+                                            <ComboBox ItemsSource="{Binding Config.SavedModels}"
+                                                      SelectedValuePath="Id"
+                                                      SelectedValue="{Binding Config.MiniWindowModelId, Mode=TwoWay}"
+                                                      DisplayMemberPath="ModelName"
+                                                      Height="32"
+                                                      MinWidth="250"/>
+                                        </StackPanel>
+
+                                        <!-- 3. 翻译 Tab: Translation Model Selection -->
+                                        <StackPanel x:Name="AiTranslateTab" Visibility="Collapsed">
+                                            <TextBlock Text="翻译功能 AI 模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                            <TextBlock Text="选择翻译功能使用的 AI 模型。留空则使用主界面的默认模型。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,12"/>
+                                            
+                                            <ComboBox ItemsSource="{Binding Config.SavedModels}"
+                                                      SelectedValuePath="Id"
+                                                      SelectedValue="{Binding Config.TranslationModelId, Mode=TwoWay}"
+                                                      DisplayMemberPath="ModelName"
+                                                      Height="32"
+                                                      MinWidth="250"
+                                                      Margin="0,0,0,12"/>
+
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                                <Button Content="测试翻译连接" Click="TestAiTranslationConnection_Click" HorizontalAlignment="Left" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,10,0"/>
+                                                <TextBlock x:Name="TestAiTranslationStatusText" VerticalAlignment="Center" FontSize="13"/>
+                                            </StackPanel>
+
+                                            <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
+
+                                            <TextBlock Text="AI 翻译提示词" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                            
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <ComboBox Grid.Column="0" x:Name="AiTranslationPromptCombo2" 
+                                                          ItemsSource="{Binding FilesView}"
+                                                          SelectedValuePath="Id"
+                                                          SelectedValue="{Binding Config.AiTranslationPromptId, Mode=TwoWay}"
+                                                          DisplayMemberPath="Title"
+                                                          Height="32"/>
+                                                
+                                                <Button Grid.Column="1" Content="跳转编辑" Margin="10,0,0,0" Padding="12,6"
+                                                        Click="JumpToEditPrompt_Click"
+                                                        Style="{StaticResource TextLinkButtonStyle}"/>
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <!-- 4. 划词 Tab: Quick Actions with Model Selection -->
+                                        <StackPanel x:Name="AiQuickActionTab" Visibility="Collapsed">
+                                            <TextBlock Text="划词助手配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                            <TextBlock Text="添加 BLOCK2 提示词到划词菜单，并为每个提示词指定专用模型。留空则使用主界面的默认模型。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,16"/>
+                                            
+                                            <TextBlock Text="添加提示词" Style="{StaticResource FieldLabelTextStyle}"/>
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <ComboBox Grid.Column="0" x:Name="QuickActionCandidateCombo" 
+                                                          ItemsSource="{Binding FilesView}"
+                                                          SelectedValuePath="Id"
+                                                          DisplayMemberPath="Title"
+                                                          Height="32"/>
+                                                
+                                                <Button Grid.Column="1" Content="添加" Margin="10,0,0,0" Padding="12,6"
+                                                        Click="AddQuickAction_Click"
+                                                        Style="{StaticResource TextLinkButtonStyle}"/>
+                                            </Grid>
+
+                                            <TextBlock Text="已配置的划词指令" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,10"/>
+                                            
+                                            <ListBox x:Name="QuickActionsListBox"
+                                                     ItemsSource="{Binding LocalConfig.QuickActionPrompts}"
+                                                     BorderThickness="0"
+                                                     Background="Transparent"
+                                                     SelectionMode="Single">
+                                                <ListBox.ItemContainerStyle>
+                                                    <Style TargetType="ListBoxItem">
+                                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ListBoxItem">
+                                                                    <Border Background="{DynamicResource CardBackground}" 
+                                                                            CornerRadius="6" 
+                                                                            Padding="12,10" 
+                                                                            Margin="0,0,0,8" 
+                                                                            BorderBrush="{DynamicResource DividerColor}" 
+                                                                            BorderThickness="1">
+                                                                        <ContentPresenter/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </ListBox.ItemContainerStyle>
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="150"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            
+                                                            <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+                                                            
+                                                            <!-- Model Selector for each quick action -->
+                                                            <ComboBox Grid.Column="1" 
+                                                                      ItemsSource="{Binding DataContext.Config.SavedModels, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                      SelectedValuePath="Id"
+                                                                      SelectedValue="{Binding BoundModelId, Mode=TwoWay}"
+                                                                      DisplayMemberPath="ModelName"
+                                                                      SelectionChanged="QuickActionModel_SelectionChanged"
+                                                                      Margin="10,0"
+                                                                      VerticalAlignment="Center"
+                                                                      ToolTip="选择专用模型 (留空则使用全局默认)"/>
+                                                            
+                                                            <Button Grid.Column="2" Content="移除" 
+                                                                    Click="RemoveQuickAction_Click"
+                                                                    Tag="{Binding}"
+                                                                    Style="{StaticResource DangerLinkButtonStyle}"
+                                                                    FontSize="12"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </StackPanel>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- Tab 3: Sync -->
@@ -1524,39 +1753,6 @@
                                                 </Style>
                                             </Button.Style>
                                         </Button>
-                                        <Button x:Name="BtnAiTab" Content="AI" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="5">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Main Interface -->
@@ -1610,55 +1806,6 @@
                                         <TextBlock Text="提示：启用的供应商将在翻译和 OCR 功能中可用。请在对应的供应商标签页中配置 API 密钥。" 
                                                    Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap"/>
 
-                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,20"/>
-
-                                        <!-- 快捷键设置 -->
-                                        <TextBlock Text="功能快捷键" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-
-                                        <Grid Margin="0,0,0,12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="截图翻译" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,20,0"/>
-                                            <TextBox Grid.Column="1" x:Name="ScreenshotTranslateHotkeyTextBox" 
-                                                     Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
-                                                     IsReadOnly="True"
-                                                     ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
-                                        </Grid>
-
-                                        <Grid Margin="0,0,0,12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="划词翻译" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,20,0"/>
-                                            <TextBox Grid.Column="1" x:Name="SelectedTextTranslateHotkeyTextBox"
-                                                     Text="{Binding Config.SelectedTextTranslateHotkey, Mode=TwoWay}" 
-                                                     PreviewKeyDown="SelectedTextTranslateHotkeyTextBox_PreviewKeyDown"
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     IsReadOnly="True"
-                                                     ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
-                                        </Grid>
-
-                                        <Grid Margin="0,0,0,12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="OCR 识别" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="0,0,20,0"/>
-                                            <TextBox Grid.Column="1" x:Name="OcrHotkeyTextBox" 
-                                                     Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
-                                                     Style="{StaticResource ModernTextBoxStyle}"
-                                                     PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
-                                                     IsReadOnly="True"
-                                                     ToolTip="按下组合键设置快捷键，按 Delete 清除"/>
-                                        </Grid>
-
-                                        <TextBlock Text="提示：设置快捷键后会立即生效。" 
-                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Baidu -->
@@ -1802,122 +1949,6 @@
                                                    Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Sub-Tab Content: AI -->
-                                    <StackPanel x:Name="ExternalToolsAITab" Visibility="Collapsed">
-                                        <!-- AI 聊天配置 (Mini 窗口) -->
-                                        <TextBlock Text="AI 聊天配置 (Mini 窗口)" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                                        
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="Base URL" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiBaseUrl, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: https://api.deepseek.com"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiApiKey, Mode=TwoWay}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiModel, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: deepseek-chat"/>
-                                        </StackPanel>
-                                        
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                            <Button Content="测试聊天连接" Click="TestAiConnection_Click" HorizontalAlignment="Left" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,10,0"/>
-                                            <TextBlock x:Name="AiChatTestStatusText" VerticalAlignment="Center" FontSize="13"/>
-                                        </StackPanel>
-
-                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
-
-                                        <!-- AI 翻译配置 (划词/截图) -->
-                                        <TextBlock Text="AI 翻译配置 (划词/截图)" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="Base URL" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiTranslateBaseUrl, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: https://api.deepseek.com"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiTranslateApiKey, Mode=TwoWay}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,0,12">
-                                            <TextBlock Text="模型名称" Style="{StaticResource FieldLabelTextStyle}"/>
-                                            <TextBox Text="{Binding Config.AiTranslateModel, Mode=TwoWay}" Style="{StaticResource ModernTextBoxStyle}" ToolTip="例如: deepseek-chat"/>
-                                        </StackPanel>
-
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                            <Button Content="测试翻译连接" Click="TestAiTranslationConnection_Click" HorizontalAlignment="Left" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,10,0"/>
-                                            <TextBlock x:Name="TestAiTranslationStatusText" VerticalAlignment="Center" FontSize="13"/>
-                                        </StackPanel>
-
-                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
-
-                                        <TextBlock Text="AI 翻译提示词" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                                        
-                                        <Grid Margin="0,0,0,16">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            
-                                            <ComboBox Grid.Column="0" x:Name="AiTranslationPromptCombo" 
-                                                      ItemsSource="{Binding FilesView}"
-                                                      SelectedValuePath="Id"
-                                                      SelectedValue="{Binding Config.AiTranslationPromptId, Mode=TwoWay}"
-                                                      DisplayMemberPath="Title"
-                                                      Height="32"/>
-                                            
-                                            <Button Grid.Column="1" Content="跳转编辑" Margin="10,0,0,0" Padding="12,6"
-                                                    Click="JumpToEditPrompt_Click"
-                                                    Style="{StaticResource TextLinkButtonStyle}"/>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
-
-                                        <TextBlock Text="AI 模型配置收藏" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                                        
-                                        <Button Content="保存当前配置为收藏" Click="SaveAiTranslationConfig_Click" 
-                                                HorizontalAlignment="Left" Margin="0,0,0,16"
-                                                Style="{StaticResource TextLinkButtonStyle}"/>
-
-                                        <TextBlock Text="已收藏的配置" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,10"/>
-                                        
-                                        <ListBox x:Name="AiTranslationConfigsList"
-                                                 ItemsSource="{Binding Config.SavedAiTranslationConfigs}"
-                                                 BorderThickness="0"
-                                                 Background="Transparent"
-                                                 SelectionMode="Single"
-                                                 SelectionChanged="AiTranslationConfigList_SelectionChanged">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="{DynamicResource CardBackground}" 
-                                                            CornerRadius="6" 
-                                                            Padding="12,10" 
-                                                            Margin="0,0,0,8" 
-                                                            BorderBrush="{DynamicResource DividerColor}" 
-                                                            BorderThickness="1"
-                                                            Cursor="Hand">
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            
-                                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" 
-                                                                       FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
-                                                            
-                                                            <Button Grid.Column="1" Content="删除" 
-                                                                    Click="DeleteAiTranslationConfig_Click"
-                                                                    Tag="{Binding Id}"
-                                                                    Style="{StaticResource DangerLinkButtonStyle}"
-                                                                    FontSize="11"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-
-                                        <TextBlock Text="提示：点击收藏项可快速加载该配置到当前 AI 模型设置。" 
-                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
-                                    </StackPanel>
 
                                 </StackPanel>
                             </Grid>

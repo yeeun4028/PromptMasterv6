@@ -209,8 +209,37 @@ namespace PromptMasterv5.ViewModels
         public Task<(bool Success, string Message)> TestAiConnectionAsync() =>
             _aiService.TestConnectionAsync(Config);
 
-        public Task<(bool Success, string Message)> TestAiTranslationConnectionAsync() =>
-            _aiService.TestConnectionAsync(Config.AiTranslateApiKey, Config.AiTranslateBaseUrl, Config.AiTranslateModel);
+        public Task<(bool Success, string Message)> TestAiTranslationConnectionAsync()
+        {
+            string apiKey = Config.AiTranslateApiKey;
+            string baseUrl = Config.AiTranslateBaseUrl;
+            string modelId = Config.AiTranslateModel;
+
+            // 1. Try Specific Translation Model
+            if (!string.IsNullOrWhiteSpace(Config.TranslationModelId))
+            {
+                var model = Config.SavedModels.FirstOrDefault(m => m.Id == Config.TranslationModelId);
+                if (model != null)
+                {
+                    apiKey = model.ApiKey;
+                    baseUrl = model.BaseUrl;
+                    modelId = model.ModelName;
+                }
+            }
+            // 2. Fallback to Active Model (if manual keys are empty)
+            else if (string.IsNullOrWhiteSpace(apiKey) && !string.IsNullOrWhiteSpace(Config.ActiveModelId))
+            {
+                var model = Config.SavedModels.FirstOrDefault(m => m.Id == Config.ActiveModelId);
+                if (model != null)
+                {
+                    apiKey = model.ApiKey;
+                    baseUrl = model.BaseUrl;
+                    modelId = model.ModelName;
+                }
+            }
+            
+            return _aiService.TestConnectionAsync(apiKey, baseUrl, modelId);
+        }
 
         [RelayCommand]
         private void ActivateAiModel(AiModelConfig? model)
@@ -270,6 +299,32 @@ namespace PromptMasterv5.ViewModels
             catch (Exception ex)
             {
                 LoggerService.Instance.LogException(ex, "Failed to update window hotkeys", "SettingsViewModel.UpdateWindowHotkeys");
+            }
+        }
+
+        public void UpdateExternalToolsHotkeys()
+        {
+            if (_mainViewModel == null) return;
+
+            try 
+            {
+                // Remove old hotkeys
+                try { HotkeyManager.Current.Remove("ScreenshotTranslate"); } catch { }
+                try { HotkeyManager.Current.Remove("SelectedTextTranslate"); } catch { }
+                try { HotkeyManager.Current.Remove("OcrOnly"); } catch { }
+                try { HotkeyManager.Current.Remove("GlobalQuickAction"); } catch { }
+
+                // Register new hotkeys from external tools settings
+                RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null));
+                RegisterWindowHotkey("SelectedTextTranslate", Config.SelectedTextTranslateHotkey, () => _mainViewModel.ExternalToolsVM.TriggerSelectedTextTranslateCommand.Execute(null));
+                RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null));
+                RegisterWindowHotkey("GlobalQuickAction", Config.QuickActionHotkey, () => _mainViewModel.TriggerQuickActionCommand.Execute(null));
+                
+                _settingsService.SaveConfig();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to update external tools hotkeys", "SettingsViewModel.UpdateExternalToolsHotkeys");
             }
         }
 
