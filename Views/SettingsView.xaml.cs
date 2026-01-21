@@ -23,6 +23,7 @@ namespace PromptMasterv5.Views
     {
         private int _activeCoordinateRuleIndex = 0;
         private int _selectedExternalToolsSubTab = 0;
+        private int _selectedMiniWindowSubTab = 0;
 
         public SettingsView()
         {
@@ -35,6 +36,9 @@ namespace PromptMasterv5.Views
             // Initialize external tools sub-tab to Main tab
             UpdateExternalToolsSubTab(0);
             
+            // Initialize mini window sub-tab to Prompt tab
+            UpdateMiniWindowSubTab(0);
+
             // Load Baidu credentials from AppConfig
             LoadBaiduCredentials();
         }
@@ -568,6 +572,29 @@ namespace PromptMasterv5.Views
             {
                 UpdateExternalToolsSubTab(tabIndex);
             }
+        }
+
+        private void MiniWindowSubTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
+            {
+                UpdateMiniWindowSubTab(tabIndex);
+            }
+        }
+
+        private void UpdateMiniWindowSubTab(int tabIndex)
+        {
+            _selectedMiniWindowSubTab = tabIndex;
+
+            // Update button states
+            if (BtnMiniPromptTab != null) BtnMiniPromptTab.Tag = tabIndex == 0 ? "Selected" : "0";
+            if (BtnMiniHotkeyTab != null) BtnMiniHotkeyTab.Tag = tabIndex == 1 ? "Selected" : "1";
+            if (BtnMiniLocationTab != null) BtnMiniLocationTab.Tag = tabIndex == 2 ? "Selected" : "2";
+
+            // Show/hide tab content
+            if (MiniWindowPromptTab != null) MiniWindowPromptTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (MiniWindowHotkeyTab != null) MiniWindowHotkeyTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (MiniWindowLocationTab != null) MiniWindowLocationTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void UpdateExternalToolsSubTab(int tabIndex)

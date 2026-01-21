@@ -958,9 +958,191 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <StackPanel Margin="0,0,0,14">
+                                    <!-- Sub-Tab Navigation -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                        <Button x:Name="BtnMiniPromptTab" Content="提示词" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="0">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnMiniHotkeyTab" Content="热键" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="1">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="BtnMiniLocationTab" Content="位置" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="2">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="Tag" Value="Selected">
+                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <!-- [提示词] 标签页内容 -->
+                                    <StackPanel x:Name="MiniWindowPromptTab">
                                         <Grid>
                                             <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="260"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                                       Text="预选提示词（BLOCK2 列表）"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,0,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <Grid Grid.Row="0" Grid.Column="1" Margin="10,0,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ComboBox Grid.Column="0"
+                                                          x:Name="MiniPinnedPromptCandidateCombo"
+                                                          ItemsSource="{Binding FilesView}"
+                                                          SelectedValuePath="Id"
+                                                          SelectedValue="{Binding LocalConfig.MiniPinnedPromptCandidateId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          DisplayMemberPath="Title"/>
+                                                <Button Grid.Column="1"
+                                                        Width="34"
+                                                        Height="28"
+                                                        Margin="8,0,0,0"
+                                                        Content="+"
+                                                        Click="AddMiniPinnedPrompt_Click"/>
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                                       Text="已添加提示词（可拖拽排序）"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Top"/>
+                                            <ListBox Grid.Row="1" Grid.Column="1"
+                                                     ItemsSource="{Binding ChatVM.MiniPinnedPrompts}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Margin="10,12,0,0"
+                                                     dd:DragDrop.IsDragSource="True"
+                                                     dd:DragDrop.IsDropTarget="True"
+                                                     dd:DragDrop.DropHandler="{Binding MiniPinnedPromptDropHandler}">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="{Binding Title}"
+                                                                       Foreground="{DynamicResource TextPrimary}"
+                                                                       FontSize="13"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <Button Grid.Column="1"
+                                                                    Content="删除"
+                                                                    Margin="10,0,0,0"
+                                                                    Command="{Binding DataContext.RemoveMiniPinnedPromptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- [热键] 标签页内容 -->
+                                    <StackPanel x:Name="MiniWindowHotkeyTab" Visibility="Collapsed">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
@@ -991,17 +1173,54 @@
                                                      FontSize="14"
                                                      Background="#2E3033"
                                                      Margin="10,12,0,0"/>
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                                       Text="AI回复后输入清空"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="2" Grid.Column="1"
+                                                      IsChecked="{Binding LocalConfig.MiniClearAiResultOnTyping}"
+                                                      Style="{StaticResource ToggleSwitchStyle}"
+                                                      Content="输入新内容时清空AI回复（保留本次输入）"
+                                                      Margin="10,12,0,0"
+                                                      Cursor="Hand"/>
+
+                                            <TextBlock Grid.Row="3" Grid.Column="0"
+                                                       Text="迷你窗口底部显示提示词方式"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="3" Grid.Column="1"
+                                                      IsChecked="{Binding LocalConfig.MiniPinnedPromptShowIcons}"
+                                                      Style="{StaticResource ToggleSwitchStyle}"
+                                                      Content="显示图标（关闭则显示名称）"
+                                                      Margin="10,12,0,0"
+                                                      Cursor="Hand"/>
+
+                                            <TextBlock Grid.Row="4" Grid.Column="0"
+                                                       Text="点击提示词展示"
+                                                       Style="{StaticResource FieldLabelTextStyle}"
+                                                       Margin="0,12,0,0"
+                                                       VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="4" Grid.Column="1"
+                                                      IsChecked="{Binding LocalConfig.MiniPinnedPromptClickShowsFullContent}"
+                                                      Style="{StaticResource ToggleSwitchStyle}"
+                                                      Content="点击后填入完整内容（关闭则组合发送）"
+                                                      Margin="10,12,0,0"
+                                                      Cursor="Hand"/>
                                         </Grid>
 
-                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,16,0,16"/>
+                                        <TextBlock Text="说明：Enter=AI查询/匹配提示词（AI关闭时 Enter=发送到网页输入框）；Shift+Enter=换行；Ctrl+Enter/双击Enter=发送到网页输入框"
+                                                   Style="{StaticResource HintTextStyle}"
+                                                   Margin="0,16,0,0"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
 
+                                    <!-- [位置] 标签页内容 -->
+                                    <StackPanel x:Name="MiniWindowLocationTab" Visibility="Collapsed">
                                         <Grid>
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
@@ -1065,107 +1284,7 @@
                                                          Background="#2E3033"
                                                          Style="{StaticResource ModernTextBoxStyle}"/>
                                             </StackPanel>
-
-                                            <TextBlock Grid.Row="3" Grid.Column="0"
-                                                       Text="预选提示词（BLOCK2 列表）"
-                                                       Style="{StaticResource FieldLabelTextStyle}"
-                                                       Margin="0,12,0,0"
-                                                       VerticalAlignment="Center"/>
-                                            <Grid Grid.Row="3" Grid.Column="1" Margin="10,12,0,0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <ComboBox Grid.Column="0"
-                                                          x:Name="MiniPinnedPromptCandidateCombo"
-                                                          ItemsSource="{Binding FilesView}"
-                                                          SelectedValuePath="Id"
-                                                          SelectedValue="{Binding LocalConfig.MiniPinnedPromptCandidateId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                          DisplayMemberPath="Title"/>
-                                                <Button Grid.Column="1"
-                                                        Width="34"
-                                                        Height="28"
-                                                        Margin="8,0,0,0"
-                                                        Content="+"
-                                                        Click="AddMiniPinnedPrompt_Click"/>
-                                            </Grid>
-
-                                            <TextBlock Grid.Row="4" Grid.Column="0"
-                                                       Text="已添加提示词（可拖拽排序）"
-                                                       Style="{StaticResource FieldLabelTextStyle}"
-                                                       Margin="0,12,0,0"
-                                                       VerticalAlignment="Top"/>
-                                            <ListBox Grid.Row="4" Grid.Column="1"
-                                                     ItemsSource="{Binding ChatVM.MiniPinnedPrompts}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
-                                                     Margin="10,12,0,0"
-                                                     dd:DragDrop.IsDragSource="True"
-                                                     dd:DragDrop.IsDropTarget="True"
-                                                     dd:DragDrop.DropHandler="{Binding MiniPinnedPromptDropHandler}">
-                                                <ListBox.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0"
-                                                                       Text="{Binding Title}"
-                                                                       Foreground="{DynamicResource TextPrimary}"
-                                                                       FontSize="13"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                            <Button Grid.Column="1"
-                                                                    Content="删除"
-                                                                    Margin="10,0,0,0"
-                                                                    Command="{Binding DataContext.RemoveMiniPinnedPromptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}"/>
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </ListBox.ItemTemplate>
-                                            </ListBox>
-
-                                            <TextBlock Grid.Row="5" Grid.Column="0"
-                                                       Text="迷你窗口底部显示提示词方式"
-                                                       Style="{StaticResource FieldLabelTextStyle}"
-                                                       Margin="0,12,0,0"
-                                                       VerticalAlignment="Center"/>
-                                            <CheckBox Grid.Row="5" Grid.Column="1"
-                                                      IsChecked="{Binding LocalConfig.MiniPinnedPromptShowIcons}"
-                                                      Style="{StaticResource ToggleSwitchStyle}"
-                                                      Content="显示图标（关闭则显示名称）"
-                                                      Margin="10,12,0,0"
-                                                      Cursor="Hand"/>
-
-                                            <TextBlock Grid.Row="6" Grid.Column="0"
-                                                       Text="点击提示词展示"
-                                                       Style="{StaticResource FieldLabelTextStyle}"
-                                                       Margin="0,12,0,0"
-                                                       VerticalAlignment="Center"/>
-                                            <CheckBox Grid.Row="6" Grid.Column="1"
-                                                      IsChecked="{Binding LocalConfig.MiniPinnedPromptClickShowsFullContent}"
-                                                      Style="{StaticResource ToggleSwitchStyle}"
-                                                      Content="点击后填入完整内容（关闭则组合发送）"
-                                                      Margin="10,12,0,0"
-                                                      Cursor="Hand"/>
-
-                                            <TextBlock Grid.Row="7" Grid.Column="0"
-                                                       Text="AI回复后输入清空"
-                                                       Style="{StaticResource FieldLabelTextStyle}"
-                                                       Margin="0,12,0,0"
-                                                       VerticalAlignment="Center"/>
-                                            <CheckBox Grid.Row="7" Grid.Column="1"
-                                                      IsChecked="{Binding LocalConfig.MiniClearAiResultOnTyping}"
-                                                      Style="{StaticResource ToggleSwitchStyle}"
-                                                      Content="输入新内容时清空AI回复（保留本次输入）"
-                                                      Margin="10,12,0,0"
-                                                      Cursor="Hand"/>
                                         </Grid>
-
-                                        <TextBlock Text="说明：Enter=AI查询/匹配提示词（AI关闭时 Enter=发送到网页输入框）；Shift+Enter=换行；Ctrl+Enter/双击Enter=发送到网页输入框"
-                                                   Style="{StaticResource HintTextStyle}"
-                                                   Margin="0,10,0,0"
-                                                   TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </StackPanel>
 
