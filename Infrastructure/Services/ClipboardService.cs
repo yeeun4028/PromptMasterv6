@@ -99,8 +99,12 @@ namespace PromptMasterv5.Infrastructure.Services
         {
             try
             {
-                // 1. 清空剪贴板
-                try { FormsClipboard.Clear(); } catch { }
+                // 1. 清空剪贴板 (必须在 UI 线程执行)
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    try { FormsClipboard.Clear(); } catch { }
+                });
+                
                 await Task.Delay(50).ConfigureAwait(false);
 
                 // 2. 模拟按键 (使用 SendInput 以确保原子性)
@@ -220,14 +224,21 @@ namespace PromptMasterv5.Infrastructure.Services
                 {
                     try
                     {
-                        if (FormsClipboard.ContainsText())
+                        string? text = null;
+                        
+                        // 必须在 UI 线程访问 Clipboard
+                        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                         {
-                            string text = FormsClipboard.GetText();
-                            if (!string.IsNullOrWhiteSpace(text))
+                            if (FormsClipboard.ContainsText())
                             {
-                                LoggerService.Instance.LogInfo($"剪贴板方式成功（第{j+1}次尝试）: {text.Substring(0, Math.Min(50, text.Length))}...", "ClipboardService");
-                                return text;
+                                text = FormsClipboard.GetText();
                             }
+                        });
+
+                        if (!string.IsNullOrWhiteSpace(text))
+                        {
+                            LoggerService.Instance.LogInfo($"剪贴板方式成功（第{j+1}次尝试）: {text.Substring(0, Math.Min(50, text.Length))}...", "ClipboardService");
+                            return text;
                         }
                     }
                     catch (Exception ex)
@@ -255,7 +266,18 @@ namespace PromptMasterv5.Infrastructure.Services
         {
             try
             {
-                FormsClipboard.SetText(text);
+                // 确保在 UI 线程执行
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        FormsClipboard.SetText(text);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerService.Instance.LogError($"设置剪贴板失败内部错误: {ex.Message}", "ClipboardService.SetClipboard");
+                    }
+                });
             }
             catch (Exception ex)
             {
