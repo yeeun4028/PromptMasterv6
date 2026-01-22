@@ -791,7 +791,7 @@
                                         <Button x:Name="BtnAiMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
                                         <Button x:Name="BtnAiMiniTab" Content="迷你" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
                                         <Button x:Name="BtnAiTranslateTab" Content="翻译" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnAiQuickActionTab" Content="划词" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="3" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnAiQuickActionTab" Content="划词助手" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="3" Style="{StaticResource SubTabButtonStyle}"/>
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content Container -->
