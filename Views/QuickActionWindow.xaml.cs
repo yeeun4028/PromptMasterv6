@@ -208,5 +208,14 @@ namespace PromptMasterv5.Views
                 this.Close();
             }
         }
+
+        private void ModelSelectorBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (ModelSelectorBtn.ContextMenu != null)
+            {
+                ModelSelectorBtn.ContextMenu.PlacementTarget = ModelSelectorBtn;
+                ModelSelectorBtn.ContextMenu.IsOpen = true;
+            }
+        }
     }
 }

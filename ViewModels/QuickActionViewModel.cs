@@ -50,6 +50,13 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty]
         private bool isWindowLocked = false;
 
+        // Model Selection
+        [ObservableProperty]
+        private ObservableCollection<AiModelConfig> availableModels = new();
+
+        [ObservableProperty]
+        private AiModelConfig? selectedOverrideModel;
+
         // Store model configuration from first execution to maintain consistency
         private string? _lastUsedApiKey;
         private string? _lastUsedBaseUrl;
@@ -73,6 +80,9 @@ namespace PromptMasterv5.ViewModels
             _settingsService = settingsService;
             SelectedText = selectedText;
             QuickActions = quickActions;
+            
+            // Load available models
+            LoadAvailableModels();
         }
 
         [RelayCommand]
@@ -250,31 +260,8 @@ namespace PromptMasterv5.ViewModels
             string model = config.AiModel;
             string systemPrompt = "";
 
-            AiModelConfig? selectedModel = null;
-
-            // Priority 1: Check if prompt has bound model
-            if (!string.IsNullOrEmpty(prompt.BoundModelId))
-            {
-                selectedModel = config.SavedModels.FirstOrDefault(m => m.Id == prompt.BoundModelId);
-                if (selectedModel != null)
-                {
-                    LoggerService.Instance.LogInfo($"Using bound model for prompt '{prompt.Title}': {selectedModel.ModelName}", "QuickActionViewModel.ResolveModel");
-                }
-                else
-                {
-                    LoggerService.Instance.LogWarning($"Bound model ID '{prompt.BoundModelId}' not found for prompt '{prompt.Title}', falling back to active model", "QuickActionViewModel.ResolveModel");
-                }
-            }
-
-            // Priority 2: Fallback to active model if no bound model or bound model not found
-            if (selectedModel == null && !string.IsNullOrEmpty(config.ActiveModelId))
-            {
-                selectedModel = config.SavedModels.FirstOrDefault(m => m.Id == config.ActiveModelId);
-                if (selectedModel != null)
-                {
-                    LoggerService.Instance.LogInfo($"Using active model: {selectedModel.ModelName}", "QuickActionViewModel.ResolveModel");
-                }
-            }
+            // Use GetEffectiveModel which implements 3-tier priority
+            var selectedModel = GetEffectiveModel(prompt);
 
             // Apply selected model if found
             if (selectedModel != null)
@@ -285,7 +272,7 @@ namespace PromptMasterv5.ViewModels
             }
             else
             {
-                LoggerService.Instance.LogInfo($"Using default config values: {model}", "QuickActionViewModel.ResolveModel");
+                LoggerService.Instance.LogInfo($"No model found, using default config values: {model}", "QuickActionViewModel.ResolveModel");
             }
 
             return (apiKey, baseUrl, model, systemPrompt);
@@ -302,6 +289,13 @@ namespace PromptMasterv5.ViewModels
         private void CloseWindow()
         {
             OnCloseWindow?.Invoke();
+        }
+
+        [RelayCommand]
+        private void SelectModel(AiModelConfig? model)
+        {
+            SelectedOverrideModel = model;
+            LoggerService.Instance.LogInfo($"Model override changed to: {model?.ModelName ?? "默认"}", "QuickActionViewModel");
         }
 
         private int CountLines(string text)
@@ -402,6 +396,55 @@ namespace PromptMasterv5.ViewModels
             }
 
             return fileName.Trim();
+        }
+        
+        private void LoadAvailableModels()
+        {
+            AvailableModels.Clear();
+            
+            // Add "默认" option as first item (null value represents no override)
+            var defaultOption = new AiModelConfig
+            {
+                Id = Guid.Empty.ToString(),
+                ModelName = "默认 (不选择)",
+                ApiKey = "",
+                BaseUrl = ""
+            };
+            AvailableModels.Add(defaultOption);
+            
+            // Add all saved models
+            foreach (var model in _settingsService.Config.SavedModels)
+            {
+                AvailableModels.Add(model);
+            }
+        }
+
+        private AiModelConfig? GetEffectiveModel(PromptItem? prompt)
+        {
+            // Priority 1: Window-level override (if not "默认")
+            if (SelectedOverrideModel != null && SelectedOverrideModel.Id != Guid.Empty.ToString())
+            {
+                LoggerService.Instance.LogInfo($"Using window override model: {SelectedOverrideModel.ModelName}", "QuickActionViewModel");
+                return SelectedOverrideModel;
+            }
+
+            // Priority 2: Prompt-specific model
+            if (prompt?.BoundModelId != null && prompt.BoundModelId != Guid.Empty.ToString())
+            {
+                var promptModel = _settingsService.Config.SavedModels
+                    .FirstOrDefault(m => m.Id == prompt.BoundModelId);
+                if (promptModel != null)
+                {
+                    LoggerService.Instance.LogInfo($"Using prompt-specific model: {promptModel.ModelName}", "QuickActionViewModel");
+                    return promptModel;
+                }
+            }
+
+            // Priority 3: Default model
+            var defaultModel = _settingsService.Config.SavedModels
+                .FirstOrDefault(m => m.Id == _settingsService.Config.ActiveModelId);
+            LoggerService.Instance.LogInfo($"Using default model: {defaultModel?.ModelName ?? "None"}", "QuickActionViewModel");
+            return defaultModel;
         }
     }
 }
