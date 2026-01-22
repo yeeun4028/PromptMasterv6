@@ -11,6 +11,7 @@
              d:DesignHeight="600" d:DesignWidth="750">
     <UserControl.Resources>
         <converters:ApiKeyMaskConverter x:Key="ApiKeyMaskConverter"/>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
         <Color x:Key="AccentColorValue">#4183C4</Color>
         <SolidColorBrush x:Key="AccentColor" Color="{StaticResource AccentColorValue}"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#E53935"/>
@@ -1820,8 +1821,46 @@
                                             <CheckBox IsChecked="{Binding Config.AutoCopyTranslationResult}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
                                         </StackPanel>
 
-                                        <TextBlock Text="提示：启用的供应商将在翻译和 OCR 功能中可用。请在对应的供应商标签页中配置 API 密钥。" 
-                                                   Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                        <!-- QuickAction Settings -->
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,10,0,20"/>
+                                        
+                                        <TextBlock Text="划词助手 (QuickAction)" 
+                                                   Style="{StaticResource FieldLabelTextStyle}" 
+                                                   FontSize="14" 
+                                                   FontWeight="SemiBold" 
+                                                   Margin="0,0,0,12"/>
+
+                                        <StackPanel Margin="0,0,0,16">
+                                            <TextBlock Text="长文本处理方式" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
+                                            
+                                            <RadioButton GroupName="LongTextMode" 
+                                                        Content="外部编辑器打开 (默认)" 
+                                                        IsChecked="{Binding Config.QuickActionLongTextMode, 
+                                                                   Converter={StaticResource EnumToBoolConverter}, 
+                                                                   ConverterParameter=ExternalEditor}"
+                                                        Margin="0,0,0,8"/>
+                                            
+                                            <RadioButton GroupName="LongTextMode" 
+                                                        Content="应用内大屏展开"
+                                                        IsChecked="{Binding Config.QuickActionLongTextMode, 
+                                                                   Converter={StaticResource EnumToBoolConverter}, 
+                                                                   ConverterParameter=InternalExpand}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,16">
+                                            <TextBlock Text="触发阈值（AI 回复超过此行数时触发长文本处理）" 
+                                                      Style="{StaticResource FieldLabelTextStyle}" 
+                                                      Margin="0,0,0,8"/>
+                                            <TextBox Text="{Binding Config.QuickActionLineThreshold, Mode=TwoWay}" 
+                                                    Style="{StaticResource ModernTextBoxStyle}" 
+                                                    Width="100" 
+                                                    HorizontalAlignment="Left"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="提示：在外部编辑器模式下，长文本will be saved to QuickAction_Archive folder and opened automatically." 
+                                                   Style="{StaticResource HintTextStyle}" 
+                                                   Margin="0,10,0,0" 
+                                                   TextWrapping="Wrap"/>
 
                                     </StackPanel>
 

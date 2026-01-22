@@ -38,6 +38,18 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty]
         private string currentResult = "";
 
+        [ObservableProperty]
+        private bool isRightToolbarVisible = false;
+
+        [ObservableProperty]
+        private bool isLargeMode = false;
+
+        [ObservableProperty]
+        private int currentLineCount = 0;
+
+        [ObservableProperty]
+        private bool isWindowLocked = false;
+
         // Store model configuration from first execution to maintain consistency
         private string? _lastUsedApiKey;
         private string? _lastUsedBaseUrl;
@@ -46,6 +58,8 @@ namespace PromptMasterv5.ViewModels
         // Window reference for expanding animation
         public Action? OnExpandWindow { get; set; }
         public Action? OnCloseWindow { get; set; }
+        public Action? OnToggleLargeMode { get; set; }
+        public Action<string>? OnSaveAndOpenMarkdown { get; set; }
 
         public QuickActionViewModel(
             IAiService aiService,
@@ -88,6 +102,8 @@ namespace PromptMasterv5.ViewModels
             // Start AI streaming
             IsProcessing = true;
             CurrentResult = "";
+            CurrentLineCount = 0;
+            _longTextHandled = false; // Reset for new action
 
             try
             {
@@ -101,9 +117,16 @@ namespace PromptMasterv5.ViewModels
                 await foreach (var chunk in _aiService.ChatStreamAsync(apiMessages, apiKey, baseUrl, model))
                 {
                     CurrentResult += chunk;
+                    CurrentLineCount = CountLines(CurrentResult);
+                    
+                    // Check for long text threshold
+                    CheckLongTextThreshold();
                 }
 
                 Messages.Add(new ChatMessage("assistant", CurrentResult));
+                
+                // Show right toolbar buttons after first response
+                IsRightToolbarVisible = true;
             }
             catch (Exception ex)
             {
@@ -129,6 +152,8 @@ namespace PromptMasterv5.ViewModels
 
             IsProcessing = true;
             CurrentResult = "";
+            CurrentLineCount = 0;
+            _longTextHandled = false; // Reset for new message
 
             try
             {
@@ -144,6 +169,10 @@ namespace PromptMasterv5.ViewModels
                 await foreach (var chunk in _aiService.ChatStreamAsync(apiMessages, apiKey, baseUrl, model))
                 {
                     CurrentResult += chunk;
+                    CurrentLineCount = CountLines(CurrentResult);
+                    
+                    // Check for long text threshold
+                    CheckLongTextThreshold();
                 }
 
                 Messages.Add(new ChatMessage("assistant", CurrentResult));
@@ -260,6 +289,113 @@ namespace PromptMasterv5.ViewModels
             }
 
             return (apiKey, baseUrl, model, systemPrompt);
+        }
+
+        [RelayCommand]
+        private void ToggleWindowSize()
+        {
+            IsLargeMode = !IsLargeMode;
+            OnToggleLargeMode?.Invoke();
+        }
+
+        [RelayCommand]
+        private void CloseWindow()
+        {
+            OnCloseWindow?.Invoke();
+        }
+
+        private int CountLines(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return 0;
+
+            return text.Split('\n').Length;
+        }
+
+        private bool _longTextHandled = false;
+
+        private void CheckLongTextThreshold()
+        {
+            if (_longTextHandled) return;
+
+            var config = _settingsService.Config;
+            if (CurrentLineCount >= config.QuickActionLineThreshold)
+            {
+                _longTextHandled = true;
+
+                if (config.QuickActionLongTextMode == Core.Models.QuickActionLongTextMode.ExternalEditor)
+                {
+                    // Save to markdown and open externally
+                    string content = CurrentResult;
+                    SaveAndOpenMarkdownFile(content);
+                    
+                    // Lock window to prevent auto-close
+                    IsWindowLocked = true;
+                    
+                    LoggerService.Instance.LogInfo($"Long text detected ({CurrentLineCount} lines), saved to external editor", "QuickActionViewModel");
+                }
+                else
+                {
+                    // Expand window to large mode
+                    IsLargeMode = true;
+                    OnToggleLargeMode?.Invoke();
+                    
+                    LoggerService.Instance.LogInfo($"Long text detected ({CurrentLineCount} lines), expanded to large mode", "QuickActionViewModel");
+                }
+            }
+        }
+
+        private void SaveAndOpenMarkdownFile(string content)
+        {
+            try
+            {
+                // Create archive directory
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string archiveDir = System.IO.Path.Combine(appDir, "QuickAction_Archive");
+                
+                if (!System.IO.Directory.Exists(archiveDir))
+                {
+                    System.IO.Directory.CreateDirectory(archiveDir);
+                }
+
+                // Generate filename: yyyyMMdd_HHmmss_first10chars.md
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string preview = content.Length > 10 ? content.Substring(0, 10) : content;
+                preview = SanitizeFileName(preview);
+                
+                string fileName = $"{timestamp}_{preview}.md";
+                string filePath = System.IO.Path.Combine(archiveDir, fileName);
+
+                // Write file
+                System.IO.File.WriteAllText(filePath, content, System.Text.Encoding.UTF8);
+
+                // Open with system default editor
+                var processInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = filePath,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(processInfo);
+
+                LoggerService.Instance.LogInfo($"Saved and opened markdown file: {fileName}", "QuickActionViewModel");
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"Failed to save/open markdown file: {ex.Message}", "QuickActionViewModel");
+            }
+        }
+
+        private string SanitizeFileName(string fileName)
+        {
+            // Replace illegal characters with underscore
+            char[] illegalChars = new[] { '<', '>', ':', '"', '/', '\\', '|', '?', '*', '\r', '\n', '\t' };
+            
+            foreach (char c in illegalChars)
+            {
+                fileName = fileName.Replace(c, '_');
+            }
+
+            return fileName.Trim();
         }
     }
 }
