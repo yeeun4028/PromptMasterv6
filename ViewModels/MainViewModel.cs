@@ -40,6 +40,9 @@ public partial class MainViewModel : ObservableObject
     private readonly IAiService _aiService;
     private readonly FabricService _fabricService;
     private readonly IDialogService _dialogService;
+    private readonly ClipboardService _clipboardService;
+    private readonly WindowPositionService _windowPositionService;
+    private readonly ISettingsService _settingsService;
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
@@ -131,20 +134,25 @@ public partial class MainViewModel : ObservableObject
         ChatViewModel chatVM,
         SidebarViewModel sidebarVM,
         ExternalToolsViewModel externalToolsVM,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        ClipboardService clipboardService,
+        WindowPositionService windowPositionService)
     {
         _aiService = aiService;
         _dataService = dataService;
         _localDataService = localDataService;
         _keyService = keyService;
         _fabricService = fabricService;
+        _dialogService = dialogService;
+        _clipboardService = clipboardService;
+        _windowPositionService = windowPositionService;
+        _settingsService = settingsService;
         
         SidebarVM = sidebarVM;
         ChatVM = chatVM;
         SettingsVM = settingsVM;
         ExternalToolsVM = externalToolsVM;
         ExternalToolsVM.SetMainViewModel(this);
-        _dialogService = dialogService;
 
         // 通过 SettingsService 获取配置（而不是直接加载）
         Config = settingsService.Config;
@@ -221,6 +229,7 @@ public partial class MainViewModel : ObservableObject
         {
             if (!IsFullMode) ChatVM.MiniInputText = "";
         });
+        _keyService.OnQuickActionTriggered += async (_, __) => await HandleQuickActionTriggered();
         if (Config.EnableDoubleCtrl) try { _keyService.Start(); } catch { }
 
         // 委托给 SettingsViewModel 处理主题和快捷键
@@ -953,5 +962,103 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void TriggerTranslate() => ExternalToolsVM.TriggerTranslateCommand.Execute(null);
+
+    // ========== 全局划词助手 ==========
+    private async Task HandleQuickActionTriggered()
+    {
+        try
+        {
+            // 1. 获取选中文本
+            var selectedText = await _clipboardService.GetSelectedTextAsync();
+            
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                // Toast 提示用户选中文本
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    _dialogService.ShowAlert("请先选中文本", "提示");
+                });
+                return;
+            }
+
+            // 2. 获取带有 IsQuickAction 标记的提示词
+            var quickActions = Files.Where(f => f.IsQuickAction).ToList();
+            
+            // 如果为空，尝试自动初始化默认指令
+            if (quickActions.Count == 0)
+            {
+                InitializeQuickActions();
+                quickActions = Files.Where(f => f.IsQuickAction).ToList();
+            }
+
+            if (quickActions.Count == 0)
+            {
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    _dialogService.ShowAlert("未配置快捷指令。\n请在设置中将提示词标记为快捷操作。", "提示");
+                });
+                return;
+            }
+
+            // 3. 创建 ViewModel 和窗口
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                var viewModel = new QuickActionViewModel(
+                    _aiService,
+                    _clipboardService,
+                    _settingsService,
+                    selectedText,
+                    new ObservableCollection<PromptItem>(quickActions));
+
+                var window = new Views.QuickActionWindow
+                {
+                    DataContext = viewModel
+                };
+
+                // 定位窗口
+                _windowPositionService.PositionWindowNearMouse(window);
+
+                // 显示窗口
+                window.Show();
+                window.Activate();
+            });
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Instance.LogError($"快捷助手触发失败: {ex.Message}", "MainViewModel.HandleQuickActionTriggered");
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleQuickAction(PromptItem? file)
+    {
+        if (file == null) return;
+        file.IsQuickAction = !file.IsQuickAction;
+        RequestSave();
+    }
+
+    private void InitializeQuickActions()
+    {
+        // 如果已经有配置的快捷指令，直接返回
+        if (Files.Any(f => f.IsQuickAction)) return;
+
+        // 尝试自动标记一些常用指令
+        bool modified = false;
+        var commonKeywords = new[] { "润色", "Polish", "翻译", "Translate", "解释", "Explain", "摘要", "Summarize" };
+
+        foreach (var keyword in commonKeywords)
+        {
+            var match = Files.FirstOrDefault(f => f.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+            if (match != null && !match.IsQuickAction)
+            {
+                match.IsQuickAction = true;
+                modified = true;
+            }
+        }
+
+        // 如果没有找到匹配的，或者列表为空，我们什么都不做，等待用户手动添加
+        // 但如果有修改，保存
+        if (modified) RequestSave();
+    }
 
 }

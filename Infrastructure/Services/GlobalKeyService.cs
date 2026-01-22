@@ -21,6 +21,9 @@ namespace PromptMasterv5.Infrastructure.Services
         public event EventHandler? OnDoubleSemiColonDetected;
         public event EventHandler? OnAlwaysOnTopSequenceDetected;
         public event EventHandler<KeyEventArgs>? OnAnyKeyDown;
+        public event EventHandler? OnQuickActionTriggered; // Alt+Q 快捷键
+
+        private bool _altPressed = false;
 
         private static char NormalizeSymbol(char c)
         {
@@ -48,11 +51,31 @@ namespace PromptMasterv5.Infrastructure.Services
 
         private void GlobalHook_KeyDown(object? sender, KeyEventArgs e)
         {
+            // Track Alt key state
+            if (e.KeyCode == Keys.Menu || e.KeyCode == Keys.LMenu || e.KeyCode == Keys.RMenu)
+            {
+                _altPressed = true;
+            }
+
+            // Detect Alt+Q
+            if (_altPressed && e.KeyCode == Keys.Q)
+            {
+                OnQuickActionTriggered?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+
             OnAnyKeyDown?.Invoke(this, e);
         }
 
         private void GlobalHook_KeyUp(object? sender, KeyEventArgs e)
         {
+            // Reset Alt key state
+            if (e.KeyCode == Keys.Menu || e.KeyCode == Keys.LMenu || e.KeyCode == Keys.RMenu)
+            {
+                _altPressed = false;
+            }
+
             if (e.KeyCode == Keys.LControlKey || e.KeyCode == Keys.RControlKey || e.KeyCode == Keys.ControlKey)
             {
                 var now = DateTime.Now;

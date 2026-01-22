@@ -140,6 +140,10 @@ namespace PromptMasterv5
             services.AddSingleton<IWindowManager, WindowManager>();
             services.AddHttpClient<BaiduService>();
             services.AddHttpClient<GoogleService>();
+            
+            // 全局划词助手服务
+            services.AddSingleton<WindowPositionService>();
+            services.AddSingleton<ClipboardService>();
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
