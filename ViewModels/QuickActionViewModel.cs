@@ -45,6 +45,9 @@ namespace PromptMasterv5.ViewModels
         private bool isLargeMode = false;
 
         [ObservableProperty]
+        private PromptItem? currentPrompt;
+
+        [ObservableProperty]
         private int currentLineCount = 0;
 
         [ObservableProperty]
@@ -93,6 +96,9 @@ namespace PromptMasterv5.ViewModels
             // Trigger window expansion
             IsExpanded = true;
             OnExpandWindow?.Invoke();
+
+            // Save current prompt for retry
+            CurrentPrompt = prompt;
 
             // Assembly prompt with selected text
             string assembledPrompt = AssemblePrompt(prompt.Content ?? "", SelectedText);
@@ -231,8 +237,13 @@ namespace PromptMasterv5.ViewModels
 
                 // Re-execute with same prompt
                 var lastUserMessage = Messages.LastOrDefault(m => m.Role == "user");
-                if (lastUserMessage != null)
+                if (lastUserMessage != null && CurrentPrompt != null)
                 {
+                    await ExecuteAction(CurrentPrompt);
+                }
+                else if (QuickActions.Any())
+                {
+                    // Fallback
                     await ExecuteAction(QuickActions.First());
                 }
             }
