@@ -3,6 +3,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Controls;
+using System.Windows.Controls;
+using System.ComponentModel;
+using System.Collections.Specialized;
 using PromptMasterv5.ViewModels;
 
 namespace PromptMasterv5.Views
@@ -17,6 +20,73 @@ namespace PromptMasterv5.Views
         public QuickActionWindow()
         {
             InitializeComponent();
+            this.DataContextChanged += QuickActionWindow_DataContextChanged;
+        }
+
+        private void QuickActionWindow_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is QuickActionViewModel oldVm)
+            {
+                oldVm.Messages.CollectionChanged -= OnMessagesChanged;
+            }
+
+            if (e.NewValue is QuickActionViewModel newVm)
+            {
+                newVm.Messages.CollectionChanged += OnMessagesChanged;
+                // Attach to existing messages
+                foreach (var msg in newVm.Messages)
+                {
+                    if (msg is INotifyPropertyChanged notifyMsg)
+                    {
+                        notifyMsg.PropertyChanged += OnMessagePropertyChanged;
+                    }
+                }
+            }
+        }
+
+        private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (var item in e.NewItems)
+                {
+                    if (item is INotifyPropertyChanged notifyMsg)
+                    {
+                        notifyMsg.PropertyChanged += OnMessagePropertyChanged;
+                    }
+                }
+                
+                // When a new message is added (start of response), scroll to bottom immediately
+                ScrollToBottom();
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (var item in e.OldItems)
+                {
+                    if (item is INotifyPropertyChanged notifyMsg)
+                    {
+                        notifyMsg.PropertyChanged -= OnMessagePropertyChanged;
+                    }
+                }
+            }
+        }
+
+        private void OnMessagePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // When content updates (streaming), scroll to bottom
+            if (e.PropertyName == "Content")
+            {
+                ScrollToBottom();
+            }
+        }
+
+        private void ScrollToBottom()
+        {
+            Dispatcher.InvokeAsync(() => 
+            {
+                MessageArea.ScrollToEnd();
+            });
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
