@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using PromptMasterv5.Infrastructure.Services;
 
 namespace PromptMasterv5.Views
 {
@@ -140,14 +141,42 @@ namespace PromptMasterv5.Views
                     CapturedImageBytes = ms.ToArray();
                     return;
                 }
+                // Get DPI scale factor
+                var source = PresentationSource.FromVisual(this);
+                double dpiX = 1.0;
+                double dpiY = 1.0;
+                if (source?.CompositionTarget != null) 
+                {
+                    dpiX = source.CompositionTarget.TransformToDevice.M11;
+                    dpiY = source.CompositionTarget.TransformToDevice.M22;
+                }
 
-                // Crop from pre-captured screen
-                using var croppedBmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                int physX = (int)(x * dpiX);
+                int physY = (int)(y * dpiY);
+                int physWidth = (int)(width * dpiX);
+                int physHeight = (int)(height * dpiY);
+
+                LoggerService.Instance.LogInfo($"Capture Region: Logical [{x},{y} {width}x{height}] -> Physical [{physX},{physY} {physWidth}x{physHeight}] (DPI: {dpiX}x{dpiY})", "ScreenCaptureOverlay");
+
+                // Ensure bounds
+                physX = Math.Max(0, physX);
+                physY = Math.Max(0, physY);
+                if (physX + physWidth > _screenBitmap.Width) physWidth = _screenBitmap.Width - physX;
+                if (physY + physHeight > _screenBitmap.Height) physHeight = _screenBitmap.Height - physY;
+
+                if (physWidth <= 0 || physHeight <= 0)
+                {
+                    LoggerService.Instance.LogError($"Invalid Capture Dimensions after DPI scaling: {physWidth}x{physHeight}", "ScreenCaptureOverlay");
+                    CapturedImageBytes = null;
+                    return;
+                }
+
+                using var croppedBmp = new Bitmap(physWidth, physHeight, PixelFormat.Format32bppArgb);
                 using (var g = Graphics.FromImage(croppedBmp))
                 {
                     g.DrawImage(_screenBitmap, 
-                        new Rectangle(0, 0, width, height),
-                        new Rectangle(x, y, width, height),
+                        new Rectangle(0, 0, physWidth, physHeight),
+                        new Rectangle(physX, physY, physWidth, physHeight),
                         GraphicsUnit.Pixel);
                 }
 

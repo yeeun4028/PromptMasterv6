@@ -128,5 +128,14 @@ namespace PromptMasterv5.Infrastructure.Services
 
         public const uint KEYEVENTF_UNICODE = 0x0004;
         public const uint KEYEVENTF_SCANCODE = 0x0008;
+
+        // System Metrics for Screen Capture
+        [DllImport("user32.dll")]
+        public static extern int GetSystemMetrics(int nIndex);
+
+        public const int SM_XVIRTUALSCREEN = 76;
+        public const int SM_YVIRTUALSCREEN = 77;
+        public const int SM_CXVIRTUALSCREEN = 78;
+        public const int SM_CYVIRTUALSCREEN = 79;
     }
 }
