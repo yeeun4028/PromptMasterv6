@@ -12,6 +12,9 @@ namespace PromptMasterv5.Views
             
             // 使用 Loaded 事件确保窗口尺寸已经计算完成
             this.Loaded += TranslationPopup_Loaded;
+            
+            // 失去焦点自动关闭
+            this.Deactivated += (s, e) => this.Close();
         }
 
         private void TranslationPopup_Loaded(object sender, RoutedEventArgs e)
@@ -63,9 +66,6 @@ namespace PromptMasterv5.Views
             ResultBox.Text = text;
         }
 
-        private void CloseButton_Click(object sender, System.EventArgs e)
-        {
-            this.Close();
-        }
+
     }
 }
