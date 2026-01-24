@@ -1799,80 +1799,44 @@
                                     <!-- Sub-Tab Content: Main Interface -->
                                     <StackPanel x:Name="ExternalToolsMainTab">
                                         
-                                        <!-- Profile Selection Area -->
+                                        <!-- OCR Providers Selection -->
+                                        <TextBlock Text="OCR 引擎选择 (OCR Providers)" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,12"/>
                                         <Border Background="{DynamicResource CardBackground}" CornerRadius="8" Padding="15" Margin="0,0,0,20">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="20"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <!-- OCR Profile Selection -->
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="默认 OCR 供应商" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
-                                                    <ComboBox ItemsSource="{Binding ExternalToolsVM.OcrProfiles}"
-                                                              DisplayMemberPath="Name"
-                                                              SelectedValuePath="Id"
-                                                              SelectedValue="{Binding Config.OcrProfileId, Mode=TwoWay}"
-                                                             />
-                                                    <TextBlock Text="选择用于截图文字识别的服务商" Style="{StaticResource HintTextStyle}" Margin="0,4,0,0"/>
-                                                </StackPanel>
-
-                                                <!-- Translation Profile Selection -->
-                                                <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="默认翻译供应商" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
-                                                    <ComboBox ItemsSource="{Binding ExternalToolsVM.TranslateProfiles}"
-                                                              DisplayMemberPath="Name"
-                                                              SelectedValuePath="Id"
-                                                              SelectedValue="{Binding Config.TranslateProfileId, Mode=TwoWay}"
-                                                             />
-                                                    <TextBlock Text="选择用于截图/划词翻译的服务商" Style="{StaticResource HintTextStyle}" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                            </Grid>
+                                            <ItemsControl ItemsSource="{Binding ExternalToolsVM.OcrProfiles}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                                                            <CheckBox IsChecked="{Binding IsEnabled}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource TextPrimary}"/>
+                                                            <TextBlock Text="{Binding ProviderDisplayName, StringFormat='({0})'}" VerticalAlignment="Center" Margin="5,0,0,0" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </Border>
 
-                                        <TextBlock Text="启用的供应商（勾选以启用相应服务）" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,12"/>
+                                        <!-- Separator -->
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,20" Opacity="0.5"/>
+
+                                        <!-- Translation Providers Selection -->
+                                        <TextBlock Text="翻译引擎选择 (Translation Providers)" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,12"/>
+                                        <Border Background="{DynamicResource CardBackground}" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                                            <ItemsControl ItemsSource="{Binding ExternalToolsVM.TranslateProfiles}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                                                            <CheckBox IsChecked="{Binding IsEnabled}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource TextPrimary}"/>
+                                                            <TextBlock Text="{Binding ProviderDisplayName, StringFormat='({0})'}" VerticalAlignment="Center" Margin="5,0,0,0" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Border>
+
+                                        <!-- Divider and Auto Copy -->
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,20" Opacity="0.5"/>
                                         
-                                        <Grid Margin="0,0,0,20">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <!-- Row 1 -->
-                                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,12">
-                                                <CheckBox IsChecked="{Binding Config.EnableBaidu}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
-                                                <TextBlock Text="百度" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                                                <CheckBox IsChecked="{Binding Config.EnableTencentCloud}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
-                                                <TextBlock Text="腾讯云" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
-                                                <CheckBox IsChecked="{Binding Config.EnableYoudao}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
-                                                <TextBlock Text="有道" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            </StackPanel>
-
-                                            <!-- Row 2 -->
-                                            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,0">
-                                                <CheckBox IsChecked="{Binding Config.EnableGoogle}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Google" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,0">
-                                                <CheckBox IsChecked="{Binding Config.EnableAiTranslation}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
-                                                <TextBlock Text="AI 翻译" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            </StackPanel>
-                                        </Grid>
-
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                             <TextBlock Text="翻译后自动复制结果" VerticalAlignment="Center" Margin="0,0,20,0"/>
                                             <CheckBox IsChecked="{Binding Config.AutoCopyTranslationResult}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>

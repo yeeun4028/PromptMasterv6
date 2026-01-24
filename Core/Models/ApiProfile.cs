@@ -25,6 +25,10 @@ namespace PromptMasterv5.Core.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [ObservableProperty]
+        [property: JsonPropertyName("isEnabled")]
+        private bool isEnabled = true;
+
+        [ObservableProperty]
         [property: JsonPropertyName("name")]
         private string name = "新的配置";
 

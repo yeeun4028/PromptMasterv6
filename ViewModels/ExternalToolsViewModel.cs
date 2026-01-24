@@ -85,17 +85,21 @@ namespace PromptMasterv5.ViewModels
         }
 
         [RelayCommand]
-
         private async Task TriggerOcr()
         {
-            if (!TryGetOcrProfile(out var ocrProfile)) return;
+            var enabledProfiles = OcrProfiles.Where(p => p.IsEnabled).ToList();
+            if (enabledProfiles.Count == 0)
+            {
+                _dialogService.ShowAlert("请先在设置中勾选至少一个 OCR 服务商。", "未配置 OCR");
+                return;
+            }
 
             // Use WindowManager
             var capturedBytes = _windowManager.ShowCaptureWindow();
             if (capturedBytes == null) return;
 
-            // Execute OCR
-            var result = await _baiduService.OcrAsync(capturedBytes, ocrProfile!); // Suppress warning, TryGet ensures not null if true
+            // Execute OCR Racing
+            var result = await RaceOcrAsync(capturedBytes, enabledProfiles);
 
             if (!string.IsNullOrWhiteSpace(result))
             {
@@ -106,6 +110,7 @@ namespace PromptMasterv5.ViewModels
                 else
                 {
                     System.Windows.Clipboard.SetText(result);
+                    Growl.SuccessGlobal("文字识别成功，已复制到剪贴板。");
                 }
             }
         }
@@ -113,22 +118,34 @@ namespace PromptMasterv5.ViewModels
         [RelayCommand]
         private async Task TriggerTranslate()
         {
-            // OcrProfile is needed to extract text from image first
-            if (!TryGetOcrProfile(out var ocrProfile)) return;
+            var enabledOcrProfiles = OcrProfiles.Where(p => p.IsEnabled).ToList();
+            var enabledTransProfiles = TranslateProfiles.Where(p => p.IsEnabled).ToList();
+
+            if (enabledOcrProfiles.Count == 0)
+            {
+                _dialogService.ShowAlert("请先在设置中勾选至少一个 OCR 服务商。", "未配置 OCR");
+                return;
+            }
+            if (enabledTransProfiles.Count == 0)
+            {
+                _dialogService.ShowAlert("请先在设置中勾选至少一个翻译服务商。", "未配置翻译");
+                return;
+            }
 
             var capturedBytes = _windowManager.ShowCaptureWindow();
             if (capturedBytes == null) return;
 
-            // 1. OCR to extract text
-            var text = await _baiduService.OcrAsync(capturedBytes, ocrProfile!); // Suppress warning
+            // 1. OCR Racing
+            var text = await RaceOcrAsync(capturedBytes, enabledOcrProfiles);
+            
             if (string.IsNullOrWhiteSpace(text) || text.StartsWith("OCR 错误") || text.StartsWith("错误"))
             {
-                _dialogService.ShowAlert(text, "文字识别失败");
+                _dialogService.ShowAlert(text ?? "无法识别文字", "文字识别失败");
                 return;
             }
 
-            // 2. Translate Logic
-            var translated = await PerformTranslation(text);
+            // 2. Translation Racing
+            var translated = await RaceTranslateAsync(text, enabledTransProfiles);
 
             if (Config.AutoCopyTranslationResult && !string.IsNullOrWhiteSpace(translated))
             {
@@ -136,12 +153,20 @@ namespace PromptMasterv5.ViewModels
             }
 
             // 3. Show Result
-            _windowManager.ShowTranslationPopup(translated);
+            _windowManager.ShowTranslationPopup(translated ?? "翻译失败");
         }
 
         [RelayCommand]
         private async Task TriggerSelectedTextTranslate()
         {
+            var enabledTransProfiles = TranslateProfiles.Where(p => p.IsEnabled).ToList();
+            if (enabledTransProfiles.Count == 0)
+            {
+                 // Check if it's just a misconfiguration or intended fallback
+                 // But for selected text translate, we need at least one translator.
+                 // Unless we fallback to screenshot mode which needs OCR.
+            }
+
             try
             {
                 // 1. Clear clipboard
@@ -191,17 +216,32 @@ namespace PromptMasterv5.ViewModels
 
                     if (string.IsNullOrWhiteSpace(text))
                     {
-                        // 5. Fallback Notification
-                        Growl.WarningGlobal(new GrowlInfo
+                        // 5. Auto-Screenshot Fallback (Perfect Solution)
+                        // If text copy fails, seamlessly assume it's non-selectable text and switch to screenshot mode.
+                        
+                        Growl.InfoGlobal(new GrowlInfo
                         {
-                            Message = "无法获取选中文本 (复制失败)。\n建议：请尝试使用截图翻译 (Alt+S)。",
+                            Message = "无法直接取词，已自动切换至截图模式...",
                             ShowDateTime = false,
-                            WaitTime = 4
+                            WaitTime = 2
                         });
+
+                        await Task.Delay(200);
+
+                        if (TriggerTranslateCommand.CanExecute(null))
+                        {
+                            TriggerTranslateCommand.Execute(null);
+                        }
                         return;
                     }
 
-                    var translated = await PerformTranslation(text);
+                    if (enabledTransProfiles.Count == 0)
+                    {
+                        _dialogService.ShowAlert("请先在设置中勾选至少一个翻译服务商。", "未配置翻译");
+                        return;
+                    }
+
+                    var translated = await RaceTranslateAsync(text, enabledTransProfiles);
 
                     if (string.IsNullOrWhiteSpace(translated)) return;
 
@@ -226,46 +266,84 @@ namespace PromptMasterv5.ViewModels
             }
         }
 
-
-
-        private async Task<string> PerformTranslation(string text)
+        private async Task<string> RaceOcrAsync(byte[] imageBytes, List<ApiProfile> profiles)
         {
-            if (string.IsNullOrWhiteSpace(text)) return "";
+            if (profiles == null || profiles.Count == 0) return "未启用 OCR 服务";
 
-            // 1. Get Selected Profile
-            if (TryGetTranslateProfile(out var profile))
+            // Create a task for each profile
+            var tasks = profiles.Select(async profile =>
             {
-                // Dispatch based on provider
-                switch (profile!.Provider)
+                try
                 {
-                    case ApiProvider.Google:
-                        if (Config.EnableGoogle)
-                            return await _googleService.TranslateAsync(text, profile);
-                        return "Google 翻译未启用";
+                    return profile!.Provider switch
+                    {
+                        ApiProvider.Baidu => await _baiduService.OcrAsync(imageBytes, profile),
+                        // Add other providers here when implemented
+                        // ApiProvider.TencentCloud => await _tencentService.OcrAsync(...),
+                        _ => ""
+                    };
+                }
+                catch
+                {
+                    return ""; // Swallow individual errors
+                }
+            }).ToList();
 
-                    case ApiProvider.Baidu:
-                        if (Config.EnableBaidu)
-                            return await _baiduService.TranslateAsync(text, profile, "auto", "zh");
-                        return "百度翻译未启用";
-                    
-                    // Add other providers here...
-                    case ApiProvider.AI:
-                        if (Config.EnableAiTranslation)
-                            return await TranslateWithAiAsync(text);
-                        return "AI 翻译未启用 (请在 AI 选项卡中开启)";
+            // Racing Logic: Return first non-empty result
+            while (tasks.Count > 0)
+            {
+                var finishedTask = await Task.WhenAny(tasks);
+                tasks.Remove(finishedTask);
+
+                var result = await finishedTask;
+                if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("OCR 错误") && !result.StartsWith("错误"))
+                {
+                    return result; // Winner!
                 }
             }
 
-            // 2. AI Translation (Fallback or if enabled separately)
-            if (Config.EnableAiTranslation)
-            {
-                return await TranslateWithAiAsync(text);
-            }
-
-            return "请先在设置中选择有效的翻译配置 (AI / Google / 百度)";
+            return "OCR 失败：所有服务均未能识别文字";
         }
 
-         private async Task<string> TranslateWithAiAsync(string text)
+        private async Task<string> RaceTranslateAsync(string text, List<ApiProfile> profiles)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+            if (profiles == null || profiles.Count == 0) return "未启用翻译服务";
+
+            var tasks = profiles.Select(async profile =>
+            {
+                try
+                {
+                    return profile!.Provider switch
+                    {
+                        ApiProvider.Google => await _googleService.TranslateAsync(text, profile),
+                        ApiProvider.Baidu => await _baiduService.TranslateAsync(text, profile, "auto", "zh"),
+                        ApiProvider.AI => await TranslateWithAiAsync(text),
+                        _ => ""
+                    };
+                }
+                catch
+                {
+                    return "";
+                }
+            }).ToList();
+
+            while (tasks.Count > 0)
+            {
+                var finishedTask = await Task.WhenAny(tasks);
+                tasks.Remove(finishedTask);
+
+                var result = await finishedTask;
+                if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("翻译失败") && !result.StartsWith("错误"))
+                {
+                    return result; // Winner!
+                }
+            }
+
+            return "翻译失败：所有服务均无响应";
+        }
+
+        private async Task<string> TranslateWithAiAsync(string text)
         {
             try
             {
@@ -341,52 +419,6 @@ namespace PromptMasterv5.ViewModels
             {
                 return $"AI 翻译异常: {ex.Message}";
             }
-        }
-
-        private bool TryGetOcrProfile(out ApiProfile? profile)
-        {
-            profile = null;
-            if (!string.IsNullOrWhiteSpace(Config.OcrProfileId))
-            {
-                profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.OcrProfileId);
-            }
-            
-            if (profile == null)
-            {
-                _dialogService.ShowAlert("请在设置中选择有效的 OCR 配置。", "配置缺失");
-                return false;
-            }
-
-            // Check if provider is enabled
-            bool isEnabled = profile.Provider switch
-            {
-                ApiProvider.Baidu => Config.EnableBaidu,
-                ApiProvider.TencentCloud => Config.EnableTencentCloud,
-                ApiProvider.Youdao => Config.EnableYoudao,
-                _ => false
-            };
-
-            if (!isEnabled)
-            {
-                 _dialogService.ShowAlert($"请先开启 {profile.ProviderDisplayName} 服务。", "服务未启用");
-                 return false;
-            }
-
-            return true;
-        }
-
-        private bool TryGetTranslateProfile(out ApiProfile? profile)
-        {
-            profile = null;
-            if (!string.IsNullOrWhiteSpace(Config.TranslateProfileId))
-            {
-                profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.TranslateProfileId);
-            }
-            if (profile == null && !string.IsNullOrWhiteSpace(Config.ActiveApiProfileId))
-            {
-                profile = Config.ApiProfiles.FirstOrDefault(p => p.Id == Config.ActiveApiProfileId);
-            }
-            return profile != null;
         }
     }
 }
