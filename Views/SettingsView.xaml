@@ -791,7 +791,6 @@
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                         <Button x:Name="BtnAiMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
                                         <Button x:Name="BtnAiMiniTab" Content="迷你" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnAiTranslateTab" Content="翻译" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
                                         <Button x:Name="BtnAiQuickActionTab" Content="划词助手" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="3" Style="{StaticResource SubTabButtonStyle}"/>
                                     </StackPanel>
 
@@ -903,46 +902,7 @@
                                                       MinWidth="250"/>
                                         </StackPanel>
 
-                                        <!-- 3. 翻译 Tab: Translation Model Selection -->
-                                        <StackPanel x:Name="AiTranslateTab" Visibility="Collapsed">
-                                            <TextBlock Text="翻译功能 AI 模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                                            <TextBlock Text="选择翻译功能使用的 AI 模型。留空则使用主界面的默认模型。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,12"/>
-                                            
-                                            <ComboBox ItemsSource="{Binding Config.SavedModels}"
-                                                      SelectedValuePath="Id"
-                                                      SelectedValue="{Binding Config.TranslationModelId, Mode=TwoWay}"
-                                                      DisplayMemberPath="ModelName"
-                                                      Height="32"
-                                                      MinWidth="250"
-                                                      Margin="0,0,0,12"/>
 
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                                <Button Content="测试翻译连接" Click="TestAiTranslationConnection_Click" HorizontalAlignment="Left" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,10,0"/>
-                                                <TextBlock x:Name="TestAiTranslationStatusText" VerticalAlignment="Center" FontSize="13"/>
-                                            </StackPanel>
-
-                                            <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,0,0,20"/>
-
-                                            <TextBlock Text="AI 翻译提示词" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                                            
-                                            <Grid Margin="0,0,0,16">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <ComboBox Grid.Column="0" x:Name="AiTranslationPromptCombo2" 
-                                                          ItemsSource="{Binding FilesView}"
-                                                          SelectedValuePath="Id"
-                                                          SelectedValue="{Binding Config.AiTranslationPromptId, Mode=TwoWay}"
-                                                          DisplayMemberPath="Title"
-                                                          Height="32"/>
-                                                
-                                                <Button Grid.Column="1" Content="跳转编辑" Margin="10,0,0,0" Padding="12,6"
-                                                        Click="JumpToEditPrompt_Click"
-                                                        Style="{StaticResource TextLinkButtonStyle}"/>
-                                            </Grid>
-                                        </StackPanel>
 
                                         <!-- 4. 划词 Tab: Quick Actions with Model Selection -->
                                         <StackPanel x:Name="AiQuickActionTab" Visibility="Collapsed">
@@ -1628,172 +1588,14 @@
                                     </StackPanel.Style>
 
                                     <!-- Sub-Tab Navigation -->
+                                    <!-- Sub-Tab Navigation -->
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <Button x:Name="BtnMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="0">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button x:Name="BtnBaiduTab" Content="百度" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="1">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button x:Name="BtnTencentTab" Content="腾讯云" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="2">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button x:Name="BtnYoudaoTab" Content="有道" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="3">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button x:Name="BtnGoogleTab" Content="Google" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="4">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
+                                        <Button x:Name="BtnMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="0" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnBaiduTab" Content="百度" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnTencentTab" Content="腾讯" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnYoudaoTab" Content="有道" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="3" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnGoogleTab" Content="Google" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="4" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnExternalAiTranslateTab" Content="AI 翻译配置" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="5" Style="{StaticResource SubTabButtonStyle}"/>
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Main Interface -->
@@ -1983,6 +1785,80 @@
                                         
                                         <TextBlock Text="说明：Google 翻译只需要 API Key，不需要 Secret。" 
                                                    Style="{StaticResource HintTextStyle}" Margin="0,10,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- 6. AI 翻译配置 Tab (Migrated) -->
+                                    <StackPanel x:Name="ExternalToolsAiTranslateTab" Visibility="Collapsed">
+                                        <TextBlock Text="AI 辅助翻译设置" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                        <TextBlock Text="利用大模型进行高质量的上下文感知翻译。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,20"/>
+                                        
+                                        <!-- Base URL & API Key -->
+                                        <Grid Margin="0,0,0,15">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="API 地址 (Base URL)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                <TextBox Text="{Binding Config.AiTranslateBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                <TextBox Text="{Binding Config.AiTranslateApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Model & Prompt -->
+                                        <Grid Margin="0,0,0,15">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="模型名称 (Model)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                <TextBox Text="{Binding Config.AiTranslateModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="预设提示词 (Prompt)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                  <ComboBox ItemsSource="{Binding FilesView}"
+                                                          DisplayMemberPath="Title"
+                                                          SelectedValuePath="Id"
+                                                          SelectedValue="{Binding Config.AiTranslationPromptId, Mode=TwoWay}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <TextBlock Text="如果未设置 Prompt，将使用内置的【翻译专家】系统提示词。" Style="{StaticResource HintTextStyle}" Margin="0,-10,0,20"/>
+
+                                        <!-- 保存 & 测试 -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
+                                            <TextBlock x:Name="TestAiTranslationStatusText" Text="" VerticalAlignment="Center" Margin="0,0,15,0" FontWeight="Bold"/>
+                                            <Button Content="测试连接" Click="TestAiTranslationConnection_Click" Width="100" Height="34">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="{StaticResource AccentColor}"/>
+                                                        <Setter Property="Foreground" Value="White"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter Property="Opacity" Value="0.9"/>
+                                                                        </Trigger>
+                                                                        <Trigger Property="IsEnabled" Value="False">
+                                                                            <Setter Property="Opacity" Value="0.5"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
                                     </StackPanel>
 
 

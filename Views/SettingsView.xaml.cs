@@ -664,6 +664,7 @@ namespace PromptMasterv5.Views
             if (BtnTencentTab != null) BtnTencentTab.Tag = tabIndex == 2 ? "Selected" : "2";
             if (BtnYoudaoTab != null) BtnYoudaoTab.Tag = tabIndex == 3 ? "Selected" : "3";
             if (BtnGoogleTab != null) BtnGoogleTab.Tag = tabIndex == 4 ? "Selected" : "4";
+            if (BtnExternalAiTranslateTab != null) BtnExternalAiTranslateTab.Tag = tabIndex == 5 ? "Selected" : "5";
 
 
             // Show/hide tab content
@@ -672,6 +673,7 @@ namespace PromptMasterv5.Views
             if (ExternalToolsTencentTab != null) ExternalToolsTencentTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsGoogleTab != null) ExternalToolsGoogleTab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
+            if (ExternalToolsAiTranslateTab != null) ExternalToolsAiTranslateTab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
 
 
             // Load credentials when switching to Baidu tab
@@ -700,13 +702,13 @@ namespace PromptMasterv5.Views
             // Update button states
             if (BtnAiMainTab != null) BtnAiMainTab.Tag = tabIndex == 0 ? "Selected" : "0";
             if (BtnAiMiniTab != null) BtnAiMiniTab.Tag = tabIndex == 1 ? "Selected" : "1";
-            if (BtnAiTranslateTab != null) BtnAiTranslateTab.Tag = tabIndex == 2 ? "Selected" : "2";
+            // Tab 2 (Translations) removed
             if (BtnAiQuickActionTab != null) BtnAiQuickActionTab.Tag = tabIndex == 3 ? "Selected" : "3";
 
             // Show/hide tab content
             if (AiMainTab != null) AiMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (AiMiniTab != null) AiMiniTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
-            if (AiTranslateTab != null) AiTranslateTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+            // if (AiTranslateTab != null) AiTranslateTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed; // Removed
             if (AiQuickActionTab != null) AiQuickActionTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
         }
 
