@@ -1762,11 +1762,7 @@
 
                                     <!-- Sub-Tab Content: Google -->
                                     <StackPanel x:Name="ExternalToolsGoogleTab" Visibility="Collapsed">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                            <CheckBox IsChecked="{Binding Config.EnableGoogle, Mode=TwoWay}"
-                                                          Style="{StaticResource ToggleSwitchStyle}"/>
-                                            <TextBlock Text="启用 Google 翻译" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                                        </StackPanel>
+
 
                                         <StackPanel Margin="0,0,0,12">
                                             <TextBlock Text="API Base URL (可选, 支持 Cloudflare 代理)" Style="{StaticResource FieldLabelTextStyle}"/>
