@@ -20,6 +20,17 @@ namespace PromptMasterv5.Views
         public QuickActionWindow()
         {
             InitializeComponent();
+            
+            // Initialize WindowChrome via code to avoid XAML namespace issues (MC3074)
+            var chrome = new System.Windows.Shell.WindowChrome
+            {
+                CaptionHeight = 0,
+                ResizeBorderThickness = new Thickness(0),
+                GlassFrameThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(0)
+            };
+            System.Windows.Shell.WindowChrome.SetWindowChrome(this, chrome);
+
             this.DataContextChanged += QuickActionWindow_DataContextChanged;
         }
 
