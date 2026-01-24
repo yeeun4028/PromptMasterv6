@@ -7,6 +7,7 @@
         WindowStyle="None"
         ResizeMode="NoResize"
         Background="#363B40"
+        FontFamily="Microsoft YaHei UI, Segoe UI"
         AllowsTransparency="False"
         Topmost="True"
         ShowInTaskbar="False"
