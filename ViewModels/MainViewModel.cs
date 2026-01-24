@@ -1191,8 +1191,19 @@ public partial class MainViewModel : ObservableObject
         if (prompt == null) return;
         
         IsGlobalPromptListOpen = false;
-        // Insert prompt content to mini window input
-        WeakReferenceMessenger.Default.Send(new InsertTextToMiniInputMessage(prompt.Content ?? ""));
+
+        // 1. Set as Selected Pinned Prompt (Chip)
+        LocalConfig.MiniSelectedPinnedPromptId = prompt.Id;
+
+        // 2. Determine Text based on configuration
+        string textToInsert = ChatVM.MiniInputText ?? ""; 
+        if (LocalConfig.MiniPinnedPromptClickShowsFullContent)
+        {
+             textToInsert = prompt.Content ?? "";
+        }
+
+        // 3. Insert prompt content/chip to mini window input
+        WeakReferenceMessenger.Default.Send(new InsertTextToMiniInputMessage(textToInsert));
     }
 
     private void UpdateGlobalPromptList(string filterText = "")
