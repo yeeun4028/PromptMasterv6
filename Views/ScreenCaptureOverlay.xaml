@@ -12,8 +12,8 @@
         Cursor="Cross">
     
     <Grid>
-        <!-- Semi-transparent overlay -->
-        <Rectangle x:Name="DimOverlay" Fill="#80000000"/>
+        <!-- Semi-transparent overlay (technically almost transparent to keep hit-test visible) -->
+        <Rectangle x:Name="DimOverlay" Fill="#01000000"/>
         
         <!-- Selection rectangle (drawn dynamically) -->
         <Canvas x:Name="SelectionCanvas" Background="Transparent"
@@ -26,14 +26,5 @@
                        Fill="Transparent"
                        Visibility="Collapsed"/>
         </Canvas>
-        
-        <!-- Instructions -->
-        <TextBlock Text="拖动选择区域，按 ESC 取消" 
-                   Foreground="White" 
-                   FontSize="16" 
-                   HorizontalAlignment="Center" 
-                   VerticalAlignment="Top" 
-                   Margin="0,20,0,0"
-                   Opacity="0.8"/>
     </Grid>
 </Window>
