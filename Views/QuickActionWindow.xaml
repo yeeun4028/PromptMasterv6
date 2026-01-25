@@ -257,7 +257,7 @@
                 </StackPanel>
             </Grid>
             
-            <!-- Row 2: Input Area (Appears after first response) -->
+            <!-- Row 2: Input Area -->
             <Grid Grid.Row="2" 
                   x:Name="InputArea"
                   Visibility="Collapsed">
@@ -265,16 +265,16 @@
                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                         AcceptsReturn="True"
                         TextWrapping="Wrap"
-                        Background="#2E3033"
-                        Foreground="#E0E0E0"
-                        BorderBrush="#4A4F55"
-                        BorderThickness="1"
+                        Background="{StaticResource WindowBackBrush}"
+                        Foreground="{StaticResource TextMainBrush}"
+                        BorderThickness="0"
                         Padding="10"
                         FontSize="14"
                         MinHeight="60"
                         MaxHeight="120"
                         VerticalScrollBarVisibility="Auto"
-                        PreviewKeyDown="InputTextBox_PreviewKeyDown">
+                        PreviewKeyDown="InputTextBox_PreviewKeyDown"
+                        CaretBrush="{StaticResource HighlightBrush}">
                 </TextBox>
             </Grid>
         </Grid>
