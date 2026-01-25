@@ -226,8 +226,15 @@ namespace PromptMasterv5.Views
             }
         }
 
+        private void Window_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
         protected override void OnClosed(EventArgs e)
         {
+            Mouse.OverrideCursor = null; // Reset cursor
             _screenBitmap?.Dispose();
             base.OnClosed(e);
         }
