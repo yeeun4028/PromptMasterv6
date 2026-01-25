@@ -331,8 +331,8 @@
 
         <Style x:Key="MiniRichTextBoxStyle" TargetType="RichTextBox">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="Foreground" Value="#B8BFC6"/>
+            <Setter Property="CaretBrush" Value="#B8BFC6"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="FontSize" Value="16"/>
