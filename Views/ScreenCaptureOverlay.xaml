@@ -26,6 +26,41 @@
             <Line x:Name="HorizontalGuide" Stroke="#00BFFF" StrokeThickness="1" SnapsToDevicePixels="True" IsHitTestVisible="False"/>
             <Line x:Name="VerticalGuide" Stroke="#00BFFF" StrokeThickness="1" SnapsToDevicePixels="True" IsHitTestVisible="False"/>
 
+            <!-- Loading Animation -->
+            <Grid x:Name="LoadingSpinner" Width="24" Height="24" Visibility="Collapsed">
+                <Grid.RenderTransform>
+                    <RotateTransform x:Name="SpinnerRotate" CenterX="12" CenterY="12"/>
+                </Grid.RenderTransform>
+                <Grid.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="SpinnerRotate"
+                                                 Storyboard.TargetProperty="Angle"
+                                                 From="0" To="360" Duration="0:0:1"
+                                                 RepeatBehavior="Forever"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Grid.Triggers>
+                
+                <!-- Blue Arc -->
+                <Path Data="M 12,2 A 10,10 0 0 1 22,12" 
+                      Stroke="#87CEFA" StrokeThickness="3" StrokeEndLineCap="Round" StrokeStartLineCap="Round">
+                    <Path.Effect>
+                        <DropShadowEffect Color="#87CEFA" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                    </Path.Effect>
+                </Path>
+                
+                <!-- Red Arc -->
+                <Path Data="M 12,22 A 10,10 0 0 1 2,12" 
+                      Stroke="#F08080" StrokeThickness="3" StrokeEndLineCap="Round" StrokeStartLineCap="Round">
+                    <Path.Effect>
+                        <DropShadowEffect Color="#F08080" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                    </Path.Effect>
+                </Path>
+            </Grid>
+
             <Rectangle x:Name="SelectionRect" 
                        Stroke="#00BFFF" 
                        StrokeThickness="1"

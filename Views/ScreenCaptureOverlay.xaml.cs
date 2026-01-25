@@ -163,12 +163,24 @@ namespace PromptMasterv5.Views
 
         private void EnterProcessingState()
         {
+            // Calculate final selection bounds before hiding
+            double rectX = Canvas.GetLeft(SelectionRect);
+            double rectY = Canvas.GetTop(SelectionRect);
+            double rectW = SelectionRect.Width;
+            double rectH = SelectionRect.Height;
+
             // Hide UI elements to show "Processing" state (clean feedback)
             SelectionRect.Visibility = Visibility.Collapsed;
             HorizontalGuide.Visibility = Visibility.Collapsed;
             VerticalGuide.Visibility = Visibility.Collapsed;
             // Cursor remains None as per requirement
             
+            // Show Loading Spinner at bottom-right of selection
+            // Align center of spinner (24x24) to the corner
+            Canvas.SetLeft(LoadingSpinner, rectX + rectW - 12);
+            Canvas.SetTop(LoadingSpinner, rectY + rectH - 12);
+            LoadingSpinner.Visibility = Visibility.Visible;
+
             // Force redraw/update
             System.Windows.Forms.Application.DoEvents(); // Optional but helps update UI immediately before async task
         }
