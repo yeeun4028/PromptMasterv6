@@ -1301,7 +1301,7 @@ namespace PromptMasterv5
 
             if (e.Key == Key.Enter)
             {
-                    if (ViewModel.ChatVM.IsSearchPopupOpen)
+                if (ViewModel.ChatVM.IsSearchPopupOpen)
                 {
                         ViewModel.ChatVM.ConfirmSearchResultCommand.Execute(null);
                     e.Handled = true;
@@ -1324,6 +1324,58 @@ namespace PromptMasterv5
                             RebuildMiniInputDocument(ViewModel.ChatVM.MiniInputText ?? "", focusUserInput: true);
                     }), System.Windows.Threading.DispatcherPriority.ContextIdle);
                     return;
+                }
+
+                // Auto-Numbering Logic for Enter key (No modifiers)
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                {
+                    var paragraph = box.CaretPosition?.Paragraph;
+                    if (paragraph != null)
+                    {
+                        var selected = GetMiniSelectedPrompt();
+                        var chipParagraph = selected != null ? box.Document?.Blocks.FirstBlock as Paragraph : null;
+                        var inChip = chipParagraph != null && ReferenceEquals(paragraph, chipParagraph);
+
+                        if (!inChip)
+                        {
+                            var full = new TextRange(paragraph.ContentStart, paragraph.ContentEnd).Text ?? "";
+                            full = full.TrimEnd('\r', '\n');
+
+                            // Case 1: Empty List Item (e.g. "2. ") -> Exit List
+                            var emptyMatch = Regex.Match(full, @"^\s*\d+\.\s*$");
+                            if (emptyMatch.Success)
+                            {
+                                e.Handled = true;
+                                paragraph.Inlines.Clear(); // Remove the number
+                                return; // Handled, no send. Next Enter will be empty line -> Send (if logic permits) or just newline
+                            }
+
+                            // Case 2: Content List Item (e.g. "1. Text") -> Continue List
+                            var match = Regex.Match(full, @"^\s*(\d+)\.\s");
+                            if (match.Success && int.TryParse(match.Groups[1].Value, out var n))
+                            {
+                                e.Handled = true;
+                                EditingCommands.EnterParagraphBreak.Execute(null, box);
+                                var prefix = $"{n + 1}. ";
+                                var newParagraph = box.CaretPosition?.Paragraph;
+                                if (newParagraph != null)
+                                {
+                                    var run = new Run(prefix);
+                                    var firstInline = newParagraph.Inlines.FirstInline;
+                                    if (firstInline != null)
+                                    {
+                                        newParagraph.Inlines.InsertBefore(firstInline, run);
+                                    }
+                                    else
+                                    {
+                                        newParagraph.Inlines.Add(run);
+                                    }
+                                    box.CaretPosition = run.ContentEnd;
+                                }
+                                return;
+                            }
+                        }
+                    }
                 }
 
                 bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
