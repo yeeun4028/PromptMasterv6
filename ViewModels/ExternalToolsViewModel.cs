@@ -22,6 +22,7 @@ namespace PromptMasterv5.ViewModels
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
         private readonly GoogleService _googleService;
+        private readonly IAudioService _audioService;
 
         public ObservableCollection<ApiProfile> OcrProfiles => 
             new(Config.ApiProfiles.Where(p => p.ServiceType == ServiceType.OCR));
@@ -56,7 +57,8 @@ namespace PromptMasterv5.ViewModels
             TencentService tencentService,
             GoogleService googleService,
             IDialogService dialogService,
-            IWindowManager windowManager)
+            IWindowManager windowManager,
+            IAudioService audioService)
         {
             _settingsService = settingsService;
             _aiService = aiService;
@@ -65,6 +67,7 @@ namespace PromptMasterv5.ViewModels
             _googleService = googleService;
             _dialogService = dialogService;
             _windowManager = windowManager;
+            _audioService = audioService;
             
             LoggerService.Instance.LogInfo("ExternalToolsViewModel initialized", "ExternalToolsViewModel.ctor");
             
@@ -119,7 +122,7 @@ namespace PromptMasterv5.ViewModels
                 // Use WindowManager with callback for Processing State
                 string? ocrResult = null;
                 
-                var capturedBytes = _windowManager.ShowCaptureWindow(async (bytes) => 
+                var capturedBytes = _windowManager.ShowCaptureWindow(async (byte[] bytes, System.Windows.Point point) => 
                 {
                     // Execute OCR Racing inside the Processing State
                     ocrResult = await RaceOcrAsync(bytes, enabledProfiles);
@@ -137,6 +140,8 @@ namespace PromptMasterv5.ViewModels
                     {
                         System.Windows.Clipboard.SetText(ocrResult);
                         Growl.SuccessGlobal("文字识别成功，已复制到剪贴板。");
+                        // Play Shutter Sound
+                        await _audioService.PlayShutterSoundAsync();
                     }
                 }
             }
@@ -169,9 +174,11 @@ namespace PromptMasterv5.ViewModels
                 }
 
                 string? translatedResult = null;
+                System.Windows.Point? actionLocation = null;
 
-                var capturedBytes = _windowManager.ShowCaptureWindow(async (bytes) =>
+                var capturedBytes = _windowManager.ShowCaptureWindow(async (byte[] bytes, System.Windows.Point point) =>
                 {
+                    actionLocation = point;
                     // 1. OCR Racing
                     var text = await RaceOcrAsync(bytes, enabledOcrProfiles);
                     
@@ -210,8 +217,11 @@ namespace PromptMasterv5.ViewModels
                     try { System.Windows.Clipboard.SetText(translatedResult); } catch { }
                 }
 
+                // Play Shutter Sound
+                await _audioService.PlayShutterSoundAsync();
+
                 // 3. Show Result
-                _windowManager.ShowTranslationPopup(translatedResult ?? "翻译失败");
+                _windowManager.ShowTranslationPopup(translatedResult ?? "翻译失败", actionLocation);
             }
             finally
             {

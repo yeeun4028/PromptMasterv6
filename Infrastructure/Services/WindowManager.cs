@@ -10,7 +10,7 @@ namespace PromptMasterv5.Infrastructure.Services
 {
     public class WindowManager : IWindowManager
     {
-        public byte[]? ShowCaptureWindow(Func<byte[], Task>? onCaptureProcessing = null)
+        public byte[]? ShowCaptureWindow(Func<byte[], System.Windows.Point, Task>? onCaptureProcessing = null)
         {
             // 1. Capture screen cleanly (before showing any overlay)
             // Note: Use a helper that uses System.Drawing so we don't block UI thread logic excessively
@@ -49,11 +49,19 @@ namespace PromptMasterv5.Infrastructure.Services
             }
         }
 
-        public void ShowTranslationPopup(string text)
+        public void ShowTranslationPopup(string text, System.Windows.Point? location = null)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var popup = new TranslationPopup(text);
+                if (location.HasValue)
+                {
+                    popup.Left = location.Value.X;
+                    popup.Top = location.Value.Y;
+                    
+                    // Basic boundary check to ensure it doesn't spawn partially off-screen
+                    // (Optional, but good UX. We can rely on user dragging if needed for now)
+                }
                 popup.Show();
                 popup.Activate();
             });

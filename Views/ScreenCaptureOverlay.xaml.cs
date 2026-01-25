@@ -17,11 +17,11 @@ namespace PromptMasterv5.Views
         private System.Windows.Point _startPoint;
         private bool _isSelecting;
         private Bitmap? _screenBitmap;
-        private readonly Func<byte[], Task>? _processingCallback;
+        private readonly Func<byte[], System.Windows.Point, Task>? _processingCallback;
         
         public byte[]? CapturedImageBytes { get; private set; }
 
-        public ScreenCaptureOverlay(Bitmap? capturedScreen = null, Func<byte[], Task>? processingCallback = null)
+        public ScreenCaptureOverlay(Bitmap? capturedScreen = null, Func<byte[], System.Windows.Point, Task>? processingCallback = null)
         {
             InitializeComponent();
             _processingCallback = processingCallback;
@@ -152,9 +152,17 @@ namespace PromptMasterv5.Views
             if (_processingCallback != null && CapturedImageBytes != null)
             {
                 EnterProcessingState();
+                
+                // Calculate spinner position (Action Point)
+                double rectX = Canvas.GetLeft(SelectionRect);
+                double rectY = Canvas.GetTop(SelectionRect);
+                double rectW = SelectionRect.Width;
+                double rectH = SelectionRect.Height;
+                var actionPoint = new System.Windows.Point(rectX + rectW, rectY + rectH); // Bottom-Right corner
+                
                 // We use Dispatcher to ensure UI update logic happens before we await (EnterProcessingState is sync)
                 // But we act async here.
-                await _processingCallback(CapturedImageBytes);
+                await _processingCallback(CapturedImageBytes, actionPoint);
             }
 
             DialogResult = true;

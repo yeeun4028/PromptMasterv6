@@ -161,6 +161,7 @@ namespace PromptMasterv5
             // 全局划词助手服务
             services.AddSingleton<WindowPositionService>();
             services.AddSingleton<ClipboardService>();
+            services.AddSingleton<IAudioService, AudioService>();
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
