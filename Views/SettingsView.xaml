@@ -601,6 +601,7 @@
                                                   IsChecked="{Binding Config.EnableDoubleCtrl}" 
                                                   Style="{StaticResource ToggleSwitchStyle}"
                                                   Cursor="Hand"
+                                                  Margin="0,0,0,20"
                                                   VerticalAlignment="Center"/>
 
                                         <!-- Row 2: Full Window -->
@@ -608,73 +609,78 @@
                                             <TextBlock Text="完整窗口" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
                                         </StackPanel>
                                         <TextBox Grid.Row="1" Grid.Column="1" 
-                                                 Text="{Binding Config.FullWindowHotkey}" 
-                                                 Style="{StaticResource ModernTextBoxStyle}"
-                                                 Width="140"
-                                                 IsReadOnly="True"
-                                                 Cursor="IBeam"
-                                                 VerticalAlignment="Center"
-                                                 PreviewKeyDown="FullWindowHotkeyTextBox_PreviewKeyDown"
-                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                                  Text="{Binding Config.FullWindowHotkey}" 
+                                                  Style="{StaticResource ModernTextBoxStyle}"
+                                                  Width="140"
+                                                  IsReadOnly="True"
+                                                  Cursor="IBeam"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,0,20"
+                                                  PreviewKeyDown="FullWindowHotkeyTextBox_PreviewKeyDown"
+                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
 
                                         <!-- Row 3: Mini Window -->
                                         <StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
                                             <TextBlock Text="迷你窗口" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
                                         </StackPanel>
                                         <TextBox Grid.Row="2" Grid.Column="1" 
-                                                 Text="{Binding Config.MiniWindowHotkey}"
-                                                 Style="{StaticResource ModernTextBoxStyle}"
-                                                 Width="140"
-                                                 IsReadOnly="True"
-                                                 Cursor="IBeam"
-                                                 VerticalAlignment="Center"
-                                                 PreviewKeyDown="MiniWindowHotkeyTextBox_PreviewKeyDown"
-                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                                  Text="{Binding Config.MiniWindowHotkey}"
+                                                  Style="{StaticResource ModernTextBoxStyle}"
+                                                  Width="140"
+                                                  IsReadOnly="True"
+                                                  Cursor="IBeam"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,0,20"
+                                                  PreviewKeyDown="MiniWindowHotkeyTextBox_PreviewKeyDown"
+                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
 
                                         <!-- Row 4: Screenshot Translate -->
                                         <StackPanel Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
                                             <TextBlock Text="截图翻译" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
                                         </StackPanel>
                                         <TextBox Grid.Row="3" Grid.Column="1" 
-                                                 x:Name="ScreenshotTranslateHotkeyTextBox" 
-                                                 Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
-                                                 Style="{StaticResource ModernTextBoxStyle}"
-                                                 Width="140"
-                                                 IsReadOnly="True"
-                                                 Cursor="IBeam"
-                                                 VerticalAlignment="Center"
-                                                 PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
-                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                                  x:Name="ScreenshotTranslateHotkeyTextBox" 
+                                                  Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
+                                                  Style="{StaticResource ModernTextBoxStyle}"
+                                                  Width="140"
+                                                  IsReadOnly="True"
+                                                  Cursor="IBeam"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,0,20"
+                                                  PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
+                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
 
                                         <!-- Row 5: Selected Text Translate -->
                                         <StackPanel Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
                                             <TextBlock Text="划词翻译" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
                                         </StackPanel>
                                         <TextBox Grid.Row="4" Grid.Column="1" 
-                                                 x:Name="SelectedTextTranslateHotkeyTextBox"
-                                                 Text="{Binding Config.SelectedTextTranslateHotkey, Mode=TwoWay}"
-                                                 Style="{StaticResource ModernTextBoxStyle}"
-                                                 Width="140"
-                                                 IsReadOnly="True"
-                                                 Cursor="IBeam"
-                                                 VerticalAlignment="Center"
-                                                 PreviewKeyDown="SelectedTextTranslateHotkeyTextBox_PreviewKeyDown"
-                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                                  x:Name="SelectedTextTranslateHotkeyTextBox"
+                                                  Text="{Binding Config.SelectedTextTranslateHotkey, Mode=TwoWay}"
+                                                  Style="{StaticResource ModernTextBoxStyle}"
+                                                  Width="140"
+                                                  IsReadOnly="True"
+                                                  Cursor="IBeam"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,0,20"
+                                                  PreviewKeyDown="SelectedTextTranslateHotkeyTextBox_PreviewKeyDown"
+                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
 
                                         <!-- Row 6: OCR -->
                                         <StackPanel Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,20">
                                             <TextBlock Text="OCR 识别" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,4"/>
                                         </StackPanel>
                                         <TextBox Grid.Row="5" Grid.Column="1" 
-                                                 x:Name="OcrHotkeyTextBox" 
-                                                 Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
-                                                 Style="{StaticResource ModernTextBoxStyle}"
-                                                 Width="140"
-                                                 IsReadOnly="True"
-                                                 Cursor="IBeam"
-                                                 VerticalAlignment="Center"
-                                                 PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
-                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                                  x:Name="OcrHotkeyTextBox" 
+                                                  Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
+                                                  Style="{StaticResource ModernTextBoxStyle}"
+                                                  Width="140"
+                                                  IsReadOnly="True"
+                                                  Cursor="IBeam"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,0,20"
+                                                  PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
+                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
 
                                         <!-- Row 7: Quick Action (Selected Text Extension) -->
                                         <StackPanel Grid.Row="6" Grid.Column="0" VerticalAlignment="Center">
