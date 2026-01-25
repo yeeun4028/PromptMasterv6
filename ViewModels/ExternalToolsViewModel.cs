@@ -116,22 +116,26 @@ namespace PromptMasterv5.ViewModels
                     return;
                 }
 
-                // Use WindowManager
-                var capturedBytes = _windowManager.ShowCaptureWindow();
+                // Use WindowManager with callback for Processing State
+                string? ocrResult = null;
+                
+                var capturedBytes = _windowManager.ShowCaptureWindow(async (bytes) => 
+                {
+                    // Execute OCR Racing inside the Processing State
+                    ocrResult = await RaceOcrAsync(bytes, enabledProfiles);
+                });
+
                 if (capturedBytes == null) return;
 
-                // Execute OCR Racing
-                var result = await RaceOcrAsync(capturedBytes, enabledProfiles);
-
-                if (!string.IsNullOrWhiteSpace(result))
+                if (!string.IsNullOrWhiteSpace(ocrResult))
                 {
-                    if (result.StartsWith("OCR 错误") || result.StartsWith("错误") || result.StartsWith("OCR 失败"))
+                    if (ocrResult.StartsWith("OCR 错误") || ocrResult.StartsWith("错误") || ocrResult.StartsWith("OCR 失败"))
                     {
-                        _dialogService.ShowAlert(result, "OCR 失败");
+                        _dialogService.ShowAlert(ocrResult, "OCR 失败");
                     }
                     else
                     {
-                        System.Windows.Clipboard.SetText(result);
+                        System.Windows.Clipboard.SetText(ocrResult);
                         Growl.SuccessGlobal("文字识别成功，已复制到剪贴板。");
                     }
                 }
@@ -164,28 +168,50 @@ namespace PromptMasterv5.ViewModels
                     return;
                 }
 
-                var capturedBytes = _windowManager.ShowCaptureWindow();
+                string? translatedResult = null;
+
+                var capturedBytes = _windowManager.ShowCaptureWindow(async (bytes) =>
+                {
+                    // 1. OCR Racing
+                    var text = await RaceOcrAsync(bytes, enabledOcrProfiles);
+                    
+                    if (string.IsNullOrWhiteSpace(text) || text.StartsWith("OCR 错误") || text.StartsWith("错误"))
+                    {
+                        // We can't show alert here easily if it blocks, but we can store error or just return.
+                        // Let's store error message in result to show later
+                        translatedResult = text ?? "无法识别文字";
+                        return; // Stop translation
+                    }
+
+                    // 2. Translation Racing
+                    translatedResult = await RaceTranslateAsync(text, enabledTransProfiles);
+                });
+
                 if (capturedBytes == null) return;
 
-                // 1. OCR Racing
-                var text = await RaceOcrAsync(capturedBytes, enabledOcrProfiles);
-                
-                if (string.IsNullOrWhiteSpace(text) || text.StartsWith("OCR 错误") || text.StartsWith("错误"))
+                // Handle Results
+                if (string.IsNullOrWhiteSpace(translatedResult) || translatedResult.StartsWith("OCR 错误") || translatedResult.StartsWith("错误"))
                 {
-                    _dialogService.ShowAlert(text ?? "无法识别文字", "文字识别失败");
-                    return;
+                     // If it was an error message from OCR step
+                     if (translatedResult != null && (translatedResult.StartsWith("OCR 错误") || translatedResult.StartsWith("错误") || translatedResult == "无法识别文字"))
+                     {
+                         _dialogService.ShowAlert(translatedResult, "文字识别失败");
+                     }
+                     else
+                     {
+                         // Or translation failed but returned null/empty?
+                         _windowManager.ShowTranslationPopup(translatedResult ?? "翻译失败");
+                     }
+                     return;
                 }
 
-                // 2. Translation Racing
-                var translated = await RaceTranslateAsync(text, enabledTransProfiles);
-
-                if (Config.AutoCopyTranslationResult && !string.IsNullOrWhiteSpace(translated))
+                if (Config.AutoCopyTranslationResult && !string.IsNullOrWhiteSpace(translatedResult))
                 {
-                    try { System.Windows.Clipboard.SetText(translated); } catch { }
+                    try { System.Windows.Clipboard.SetText(translatedResult); } catch { }
                 }
 
                 // 3. Show Result
-                _windowManager.ShowTranslationPopup(translated ?? "翻译失败");
+                _windowManager.ShowTranslationPopup(translatedResult ?? "翻译失败");
             }
             finally
             {

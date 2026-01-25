@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -16,12 +17,14 @@ namespace PromptMasterv5.Views
         private System.Windows.Point _startPoint;
         private bool _isSelecting;
         private Bitmap? _screenBitmap;
+        private readonly Func<byte[], Task>? _processingCallback;
         
         public byte[]? CapturedImageBytes { get; private set; }
 
-        public ScreenCaptureOverlay(Bitmap? capturedScreen = null)
+        public ScreenCaptureOverlay(Bitmap? capturedScreen = null, Func<byte[], Task>? processingCallback = null)
         {
             InitializeComponent();
+            _processingCallback = processingCallback;
             
             if (capturedScreen != null)
             {
@@ -122,7 +125,7 @@ namespace PromptMasterv5.Views
             SelectionRect.Height = height;
         }
 
-        private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private async void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (!_isSelecting) return;
             
@@ -146,8 +149,28 @@ namespace PromptMasterv5.Views
             // Capture the selected region
             CaptureSelectedRegion((int)x, (int)y, (int)width, (int)height);
             
+            if (_processingCallback != null && CapturedImageBytes != null)
+            {
+                EnterProcessingState();
+                // We use Dispatcher to ensure UI update logic happens before we await (EnterProcessingState is sync)
+                // But we act async here.
+                await _processingCallback(CapturedImageBytes);
+            }
+
             DialogResult = true;
             Close();
+        }
+
+        private void EnterProcessingState()
+        {
+            // Hide UI elements to show "Processing" state (clean feedback)
+            SelectionRect.Visibility = Visibility.Collapsed;
+            HorizontalGuide.Visibility = Visibility.Collapsed;
+            VerticalGuide.Visibility = Visibility.Collapsed;
+            // Cursor remains None as per requirement
+            
+            // Force redraw/update
+            System.Windows.Forms.Application.DoEvents(); // Optional but helps update UI immediately before async task
         }
 
         private void CaptureSelectedRegion(int x, int y, int width, int height)

@@ -3,12 +3,14 @@ using PromptMasterv5.Views;
 using System.Windows;
 using Application = System.Windows.Application;
 using PromptMasterv5.Infrastructure.Helpers;
+using System;
+using System.Threading.Tasks;
 
 namespace PromptMasterv5.Infrastructure.Services
 {
     public class WindowManager : IWindowManager
     {
-        public byte[]? ShowCaptureWindow()
+        public byte[]? ShowCaptureWindow(Func<byte[], Task>? onCaptureProcessing = null)
         {
             // 1. Capture screen cleanly (before showing any overlay)
             // Note: Use a helper that uses System.Drawing so we don't block UI thread logic excessively
@@ -17,7 +19,7 @@ namespace PromptMasterv5.Infrastructure.Services
             // 2. Show Overlay on UI thread
             if (Application.Current.Dispatcher.CheckAccess())
             {
-                var capture = new ScreenCaptureOverlay(screenBmp);
+                var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
                 if (capture.ShowDialog() == true)
                 {
                     return capture.CapturedImageBytes;
@@ -37,7 +39,7 @@ namespace PromptMasterv5.Infrastructure.Services
                     // Bitmap needs to be used carefully.
                     
                     // Actually, GDI+ objects can be passed, but let's be safe.
-                    var capture = new ScreenCaptureOverlay(screenBmp);
+                    var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
                     if (capture.ShowDialog() == true)
                     {
                         return capture.CapturedImageBytes;
