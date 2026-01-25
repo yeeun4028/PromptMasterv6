@@ -15,6 +15,10 @@
         Height="60"
         Loaded="Window_Loaded"
         Deactivated="Window_Deactivated">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="1" CornerRadius="0" />
+    </WindowChrome.WindowChrome>
     
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
@@ -88,7 +92,7 @@
     
     <Border x:Name="MainBorder"
             Background="#E6363B40" 
-            CornerRadius="12"
+            CornerRadius="4"
             Padding="15">
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="3" Opacity="0.3"/>
@@ -148,8 +152,7 @@
                                           TextWrapping="Wrap"
                                           Foreground="#E0E0E0"
                                           FontSize="14"
-                                          LineHeight="22"
-                                          FontFamily="Consolas, Segoe UI, Microsoft YaHei UI, Sans-Serif"/>
+                                          LineHeight="22"/>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
