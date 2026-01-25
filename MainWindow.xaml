@@ -456,7 +456,7 @@
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Height="1" Background="#656565"/>
 
-                                    <Grid Grid.Row="1" Margin="30,1,30,1">
+                                    <Grid Grid.Row="1" Margin="10,1,10,1">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
