@@ -247,6 +247,35 @@
                            Orientation="Horizontal"
                            Visibility="{Binding IsRightToolbarVisible, Converter={StaticResource BoolToVisibility}}">
                     
+                    <!-- Loading Spinner -->
+                    <Grid Width="16" Height="16" Margin="0,0,8,0" Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibility}}">
+                        <Grid.RenderTransform>
+                            <RotateTransform x:Name="SpinnerRotate" CenterX="8" CenterY="8"/>
+                        </Grid.RenderTransform>
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SpinnerRotate"
+                                                         Storyboard.TargetProperty="Angle"
+                                                         From="0" To="360" Duration="0:0:0.8"
+                                                         RepeatBehavior="Forever"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Grid.Triggers>
+                        <!-- Blue Arc -->
+                        <Path Data="M 10,2.5 A 6,6 0 0 1 10,13.5" 
+                              Stroke="#007ACC" StrokeThickness="1.5" StrokeEndLineCap="Round" StrokeStartLineCap="Round"/>
+                        <!-- Red Arc -->
+                        <Path Data="M 6,13.5 A 6,6 0 0 1 6,2.5" 
+                              Stroke="#DC143C" StrokeThickness="1.5" StrokeEndLineCap="Round" StrokeStartLineCap="Round"/>
+                        <!-- Blue Arrow -->
+                        <Polygon Points="10,13.5 12,11.5 8.5,12" Fill="#007ACC"/>
+                        <!-- Red Arrow -->
+                        <Polygon Points="6,2.5 4,4.5 7.5,4" Fill="#DC143C"/>
+                    </Grid>
+
                     <!-- Model Selector -->
                     <Button x:Name="ModelSelectorBtn" ToolTip="选择模型" Click="ModelSelectorBtn_Click" Style="{StaticResource WireframeIconButton}">
                         <Button.ContextMenu>
