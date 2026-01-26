@@ -17,8 +17,17 @@ namespace PromptMasterv5.Core.Models
         private string apiKey = "";
 
         [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+        [CommunityToolkit.Mvvm.ComponentModel.NotifyPropertyChangedFor(nameof(DisplayName))]
         [property: JsonPropertyName("modelName")]
         private string modelName = "";
+
+        [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+        [CommunityToolkit.Mvvm.ComponentModel.NotifyPropertyChangedFor(nameof(DisplayName))]
+        [property: JsonPropertyName("remark")]
+        private string remark = "";
+
+        [JsonIgnore]
+        public string DisplayName => string.IsNullOrWhiteSpace(Remark) ? ModelName : Remark;
 
         [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
         [property: JsonPropertyName("isEnableForTranslation")]

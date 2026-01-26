@@ -869,7 +869,7 @@
                                                                             <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
                                                                                 <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                             </Border>
-                                                                            <TextBlock Grid.Column="1" Text="{Binding ModelName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
                                                                         </Grid>
 
                                                                         <Border.ContextMenu>
@@ -904,7 +904,7 @@
                                             <ComboBox ItemsSource="{Binding Config.SavedModels}"
                                                       SelectedValuePath="Id"
                                                       SelectedValue="{Binding Config.MiniWindowModelId, Mode=TwoWay}"
-                                                      DisplayMemberPath="ModelName"
+                                                      DisplayMemberPath="DisplayName"
                                                       Height="32"
                                                       MinWidth="250"/>
                                         </StackPanel>
@@ -976,7 +976,7 @@
                                                                       ItemsSource="{Binding DataContext.Config.SavedModels, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                       SelectedValuePath="Id"
                                                                       SelectedValue="{Binding BoundModelId, Mode=TwoWay}"
-                                                                      DisplayMemberPath="ModelName"
+                                                                      DisplayMemberPath="DisplayName"
                                                                       SelectionChanged="QuickActionModel_SelectionChanged"
                                                                       Margin="10,0"
                                                                       VerticalAlignment="Center"

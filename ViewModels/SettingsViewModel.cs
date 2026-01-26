@@ -298,10 +298,11 @@ namespace PromptMasterv5.ViewModels
         {
             if (model == null) return;
 
-            var dialog = new NameInputDialog(model.ModelName);
+            string initialName = string.IsNullOrWhiteSpace(model.Remark) ? model.ModelName : model.Remark;
+            var dialog = new NameInputDialog(initialName);
             if (dialog.ShowDialog() == true)
             {
-                model.ModelName = dialog.ResultName;
+                model.Remark = dialog.ResultName;
                 _settingsService.SaveConfig();
             }
         }
