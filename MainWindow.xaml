@@ -187,12 +187,7 @@
                                 <Path Data="{StaticResource IconDelete}" Fill="{DynamicResource PrimaryTextBrush}" Stretch="Uniform" Width="12"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="设为快捷操作" 
-                                  IsCheckable="True"
-                                  IsChecked="{Binding IsQuickAction}"
-                                  Command="{Binding PlacementTarget.Tag.ToggleQuickActionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding}"/>
+
                     </ContextMenu>
                 </Setter.Value>
             </Setter>
