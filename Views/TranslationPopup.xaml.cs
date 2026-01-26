@@ -52,17 +52,17 @@ namespace PromptMasterv5.Views
                 windowHeight = this.DesiredSize.Height;
             }
             
-            // 默认显示在鼠标右下方，偏移一点距离
+            // 默认显示在鼠标右下方
             double left = mouseX + 15;
             double top = mouseY + 15;
-            
-            // 检查右边界，如果超出则显示在鼠标左侧
+
+            // 独立检查水平方向：如果超出右边界，则显示在鼠标左侧
             if (left + windowWidth > workArea.Right)
             {
                 left = mouseX - windowWidth - 15;
             }
-            
-            // 检查下边界，如果超出则显示在鼠标上方
+
+            // 独立检查垂直方向：如果超出下边界，则显示在鼠标上方
             if (top + windowHeight > workArea.Bottom)
             {
                 top = mouseY - windowHeight - 15;
