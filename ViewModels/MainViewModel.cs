@@ -316,6 +316,16 @@ public partial class MainViewModel : ObservableObject
         UpdateFilesViewFilter();
         FilesView?.Refresh();
 
+        // 自动选择第一个文件，以便 Block3 默认显示内容
+        if (FilesView != null && !FilesView.IsEmpty)
+        {
+            var firstItem = FilesView.Cast<PromptItem>().FirstOrDefault();
+            if (firstItem != null)
+            {
+                SelectedFile = firstItem;
+            }
+        }
+
         SyncMiniPinnedPrompts();
     }
 
