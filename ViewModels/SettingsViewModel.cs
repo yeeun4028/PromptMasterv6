@@ -640,5 +640,71 @@ namespace PromptMasterv5.ViewModels
         }
 
         #endregion
+
+        #region Commands - Config Export/Import
+
+        [RelayCommand]
+        private void ExportConfig()
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "导出配置",
+                Filter = "配置文件压缩包 (*.zip)|*.zip",
+                FileName = $"PromptMaster_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _settingsService.ExportSettings(dialog.FileName);
+                    MessageBox.Show("配置导出成功！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"配置导出失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void ImportConfig()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "导入配置",
+                Filter = "配置文件压缩包 (*.zip)|*.zip"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                if (MessageBox.Show("导入配置将覆盖当前的设置，确定要继续吗？\n(操作后将自动重启生效)",
+                    "确认导入", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        _settingsService.ImportSettings(dialog.FileName);
+                        
+                        // 尝试重新应用设置
+                        ApplyTheme();
+                        UpdateWindowHotkeys();
+                        UpdateExternalToolsHotkeys();
+                        
+                        // 由于配置可能发生彻底变化，建议用户重启或重新初始化一些状态
+                        // 这里我们刷新一下当前 ViewState
+                        OnPropertyChanged(nameof(Config));
+                        OnPropertyChanged(nameof(LocalConfig));
+
+                        MessageBox.Show("配置导入成功！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"配置导入失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 }

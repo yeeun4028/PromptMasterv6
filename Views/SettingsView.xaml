@@ -1154,6 +1154,33 @@
 
                                         <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,14"/>
 
+                                        <!-- Config Export/Import -->
+                                        <TextBlock Text="配置迁移" 
+                                                   Style="{StaticResource FieldLabelTextStyle}" 
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"/>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Button Content="导出配置"
+                                                    Command="{Binding SettingsVM.ExportConfigCommand}"
+                                                    ToolTip="导出当前配置到文件 (config.json + local_settings.json)"
+                                                    Style="{StaticResource TextLinkButtonStyle}"
+                                                    Margin="0,0,20,0"/>
+
+                                            <Button Content="导入配置"
+                                                    Command="{Binding SettingsVM.ImportConfigCommand}"
+                                                    ToolTip="从配置文件恢复设置 (覆盖当前配置)"
+                                                    Style="{StaticResource TextLinkButtonStyle}"
+                                                    Margin="0,0,0,0"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="仅导出配置信息 (Keys, URL, 快捷键等)，不包含提示词库。"
+                                                   Style="{StaticResource HintTextStyle}"
+                                                   Margin="0,10,0,0"/>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,14"/>
+
                                         <!-- Log Management Section -->
                                         <TextBlock Text="日志管理" 
                                                    Style="{StaticResource FieldLabelTextStyle}" 

@@ -79,7 +79,7 @@ namespace PromptMasterv5.Services
                          }
                          if (resp.TryGetProperty("TargetText", out var text))
                          {
-                             return text.GetString();
+                             return text.GetString() ?? string.Empty;
                          }
                      }
                      return "Error: Invalid Response Structure";
