@@ -166,6 +166,11 @@ namespace PromptMasterv5.ViewModels
 
             Messages.Add(new ChatMessage("user", userInput));
 
+            await ContinueChat();
+        }
+
+        private async Task ContinueChat()
+        {
             IsProcessing = true;
             CurrentResult = "";
             CurrentLineCount = 0;
@@ -173,12 +178,36 @@ namespace PromptMasterv5.ViewModels
 
             try
             {
-                // Use the same model as the first execution to maintain conversation context
-                string apiKey = _lastUsedApiKey ?? _settingsService.Config.AiApiKey;
-                string baseUrl = _lastUsedBaseUrl ?? _settingsService.Config.AiBaseUrl;
-                string model = _lastUsedModel ?? _settingsService.Config.AiModel;
+                // Resolve model priority: 
+                // 1. Override Model (if set)
+                // 2. Last Used Model (continuation)
+                // 3. Default Config
+                
+                string apiKey = _settingsService.Config.AiApiKey;
+                string baseUrl = _settingsService.Config.AiBaseUrl;
+                string model = _settingsService.Config.AiModel;
 
-                LoggerService.Instance.LogInfo($"Continuing conversation with model: {model}", "QuickActionViewModel.SendMessage");
+                // Check Override
+                if (SelectedOverrideModel != null && SelectedOverrideModel.Id != Guid.Empty.ToString())
+                {
+                    apiKey = SelectedOverrideModel.ApiKey;
+                    baseUrl = SelectedOverrideModel.BaseUrl;
+                    model = SelectedOverrideModel.ModelName;
+                    LoggerService.Instance.LogInfo($"Continuing chat with override model: {model}", "QuickActionViewModel.ContinueChat");
+                }
+                else if (_lastUsedModel != null)
+                {
+                    // Fallback to last used if no override
+                    apiKey = _lastUsedApiKey ?? apiKey;
+                    baseUrl = _lastUsedBaseUrl ?? baseUrl;
+                    model = _lastUsedModel ?? model;
+                    LoggerService.Instance.LogInfo($"Continuing chat with last used model: {model}", "QuickActionViewModel.ContinueChat");
+                }
+
+                // Update last used for future turns
+                _lastUsedApiKey = apiKey;
+                _lastUsedBaseUrl = baseUrl;
+                _lastUsedModel = model;
 
                 var apiMessages = Messages.ToList();
 
@@ -230,22 +259,30 @@ namespace PromptMasterv5.ViewModels
         [RelayCommand]
         private async Task Retry()
         {
-            if (Messages.Count >= 2)
-            {
-                // Remove last AI response
-                Messages.RemoveAt(Messages.Count - 1);
+            if (Messages.Count < 2) return;
 
-                // Re-execute with same prompt
-                var lastUserMessage = Messages.LastOrDefault(m => m.Role == "user");
-                if (lastUserMessage != null && CurrentPrompt != null)
+            // Remove last AI response
+            Messages.RemoveAt(Messages.Count - 1);
+
+            // Determine if we are retrying the INITIAL prompt (Single Turn) or a specific Chat Message (Multi Turn)
+            // Logic: If we only have 1 message left (the User's initial Selected Text), we assume it's a Prompt Retry.
+            if (Messages.Count == 1)
+            {
+                // Single Turn Retry: Re-run ExecuteAction to ensure System Prompt & Template are applied
+                if (CurrentPrompt != null)
                 {
                     await ExecuteAction(CurrentPrompt);
                 }
                 else if (QuickActions.Any())
                 {
-                    // Fallback
-                    await ExecuteAction(QuickActions.First());
+                    await ExecuteAction(QuickActions.First()); // Fallback
                 }
+            }
+            else
+            {
+                // Multi Turn Retry: Continue the chat from the last user message
+                // This preserves the conversation history
+                await ContinueChat();
             }
         }
 
