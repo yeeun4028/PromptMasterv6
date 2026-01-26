@@ -48,6 +48,22 @@ namespace PromptMasterv5.ViewModels
         #region Observable Properties - AI Model Management
 
         [ObservableProperty] private string? testStatus;
+        
+        [ObservableProperty] private AiModelConfig? selectedSavedModel;
+
+        partial void OnSelectedSavedModelChanged(AiModelConfig? value)
+        {
+            if (value != null)
+            {
+                // Sync fields (do NOT overwrite if they are somehow bound to something else, but here they are simple strings)
+                Config.AiBaseUrl = value.BaseUrl;
+                Config.AiApiKey = value.ApiKey;
+                Config.AiModel = value.ModelName;
+                
+                // Also set active model ID if that's the desired behavior (it is currently)
+                ActivateAiModelCommand.Execute(value);
+            }
+        }
 
         #endregion
 

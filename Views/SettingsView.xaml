@@ -836,10 +836,10 @@
                                             <ListBox ItemsSource="{Binding Config.SavedModels}"
                                                      SelectedValue="{Binding Config.ActiveModelId}"
                                                      SelectedValuePath="Id"
+                                                     SelectedItem="{Binding SettingsVM.SelectedSavedModel, Mode=TwoWay}"
                                                      BorderThickness="0"
                                                      Background="Transparent"
-                                                     SelectionMode="Single"
-                                                     SelectionChanged="AiModelList_SelectionChanged">
+                                                     SelectionMode="Single">
                                                 <ListBox.ItemsPanel>
                                                     <ItemsPanelTemplate>
                                                         <WrapPanel Orientation="Horizontal"/>
