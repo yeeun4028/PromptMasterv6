@@ -406,6 +406,10 @@ namespace PromptMasterv5.ViewModels
                 return;
             }
 
+            // Ensure current config (especially WebDAV credentials) is saved to disk
+            // because DataService reads from disk
+            _settingsService.SaveConfig();
+
             IsRestoreConfirmVisible = false;
             RestoreStatus = "正在从云端恢复数据...";
             RestoreStatusColor = System.Windows.Media.Brushes.Orange;
@@ -416,7 +420,9 @@ namespace PromptMasterv5.ViewModels
 
                 if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))
                 {
-                    RestoreStatus = "❌ 云端没有数据可恢复";
+                    // It's possible it's really empty, or it failed silently (WebDavDataService swallows errors)
+                    // But if it's empty, we treat it as "No data found"
+                    RestoreStatus = "❌ 云端没有数据可恢复 (或连接失败)";
                     RestoreStatusColor = System.Windows.Media.Brushes.Red;
                     return;
                 }
@@ -446,6 +452,11 @@ namespace PromptMasterv5.ViewModels
                 {
                     foreach (var file in data.Files)
                     {
+                        // Ensure FolderId integrity
+                        if (string.IsNullOrWhiteSpace(file.FolderId) && _mainViewModel.SidebarVM.SelectedFolder != null)
+                        {
+                            file.FolderId = _mainViewModel.SidebarVM.SelectedFolder.Id;
+                        }
                         _mainViewModel.Files.Add(file);
                     }
                 }
