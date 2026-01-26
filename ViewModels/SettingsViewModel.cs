@@ -579,6 +579,7 @@ namespace PromptMasterv5.ViewModels
                 _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now; // Update sync time
                 _mainViewModel.IsDirty = false; // Reset dirty state indicator
                 _mainViewModel.IsEditMode = false; // Switch to preview mode on successful backup
+                _settingsService.SaveLocalConfig(); // Persist the sync time
                 LoggerService.Instance.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
             }
             catch (Exception ex)
