@@ -20,7 +20,22 @@ namespace PromptMasterv5.Views
         private void TranslationPopup_Loaded(object sender, RoutedEventArgs e)
         {
             // 跟随鼠标位置显示，但确保不超出屏幕
-            var mouse = System.Windows.Forms.Cursor.Position;
+            // 获取当前屏幕的 DPI 缩放比例
+            var source = PresentationSource.FromVisual(this);
+            double dpiX = 1.0;
+            double dpiY = 1.0;
+            if (source?.CompositionTarget != null)
+            {
+                dpiX = source.CompositionTarget.TransformToDevice.M11;
+                dpiY = source.CompositionTarget.TransformToDevice.M22;
+            }
+
+            // 获取鼠标物理坐标
+            var mousePhysical = System.Windows.Forms.Cursor.Position;
+
+            // 转换为逻辑坐标 (WPF 使用的坐标系)
+            double mouseX = mousePhysical.X / dpiX;
+            double mouseY = mousePhysical.Y / dpiY;
             
             // 获取工作区域（排除任务栏）
             var workArea = SystemParameters.WorkArea;
@@ -38,19 +53,19 @@ namespace PromptMasterv5.Views
             }
             
             // 默认显示在鼠标右下方，偏移一点距离
-            double left = mouse.X + 15;
-            double top = mouse.Y + 15;
+            double left = mouseX + 15;
+            double top = mouseY + 15;
             
             // 检查右边界，如果超出则显示在鼠标左侧
             if (left + windowWidth > workArea.Right)
             {
-                left = mouse.X - windowWidth - 15;
+                left = mouseX - windowWidth - 15;
             }
             
             // 检查下边界，如果超出则显示在鼠标上方
             if (top + windowHeight > workArea.Bottom)
             {
-                top = mouse.Y - windowHeight - 15;
+                top = mouseY - windowHeight - 15;
             }
             
             // 最终确保窗口完全在工作区域内
