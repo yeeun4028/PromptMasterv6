@@ -220,7 +220,7 @@ namespace PromptMasterv5.Services
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
