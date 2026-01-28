@@ -204,7 +204,9 @@
             </ScrollViewer>
             
             <!-- Row 1: Toolbar (Central Anchor, Always Visible) -->
-            <Grid Grid.Row="1" Margin="0,0,0,10">
+            <StackPanel Grid.Row="1" Margin="0,0,0,10">
+
+                <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>    <!-- Left: Preset Actions -->
                     <ColumnDefinition Width="Auto"/> <!-- Right: Operation Buttons -->
@@ -344,7 +346,9 @@
                               Stretch="Uniform" Width="14" Height="14"/>
                     </Button>
                 </StackPanel>
-            </Grid>
+                </Grid>
+                <Border Height="1" Background="#656565" Margin="-15,5,-15,0" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
             
             <!-- Row 2: Input Area -->
             <Grid Grid.Row="2" 
