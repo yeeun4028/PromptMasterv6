@@ -14,7 +14,9 @@
         Width="600"
         Height="60"
         Loaded="Window_Loaded"
-        Deactivated="Window_Deactivated">
+        Deactivated="Window_Deactivated"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="0" />
@@ -347,7 +349,7 @@
                     </Button>
                 </StackPanel>
                 </Grid>
-                <Border Height="1" Background="#656565" Margin="-15,5,-15,0" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibility}}"/>
+                <Border Height="1" Background="#656565" Margin="-15,5,-15,0" SnapsToDevicePixels="True" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibility}}"/>
             </StackPanel>
             
             <!-- Row 2: Input Area -->
