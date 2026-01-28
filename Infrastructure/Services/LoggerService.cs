@@ -20,9 +20,9 @@ namespace PromptMasterv5.Infrastructure.Services
 
         private LoggerService()
         {
-            // Store logs in AppData/Local/PromptMasterv5/Logs
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            _logDirectory = Path.Combine(appDataPath, "PromptMasterv5", "Logs");
+            // Store logs in application directory/Logs
+            var appPath = AppDomain.CurrentDomain.BaseDirectory;
+            _logDirectory = Path.Combine(appPath, "Logs");
             _logFileName = "app.log";
 
             // Create log directory if it doesn't exist
