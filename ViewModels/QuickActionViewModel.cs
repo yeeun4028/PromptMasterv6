@@ -24,7 +24,7 @@ namespace PromptMasterv5.ViewModels
         private string selectedText = "";
 
         [ObservableProperty]
-        private ObservableCollection<ChatMessage> messages = new();
+        private ObservableCollection<ObservableChatMessage> messages = new();
 
         [ObservableProperty]
         private string inputText = "";
@@ -138,7 +138,11 @@ namespace PromptMasterv5.ViewModels
 
                 // Add user message
                 Messages.Clear();
-                Messages.Add(new ChatMessage("user", SelectedText));
+                Messages.Add(new ObservableChatMessage("user", SelectedText));
+
+                // Initialize assistant message for streaming
+                var assistantMessage = new ObservableChatMessage("assistant", "");
+                Messages.Add(assistantMessage);
 
                 // Start AI streaming
                 IsProcessing = true;
@@ -156,18 +160,19 @@ namespace PromptMasterv5.ViewModels
                 await foreach (var chunk in _aiService.ChatStreamAsync(apiMessages, apiKey, baseUrl, model))
                 {
                     CurrentResult += chunk;
-                    CurrentLineCount = CountLines(CurrentResult);
+                    assistantMessage.Content = CurrentResult; // Real-time update
+                    
+                    // Optimized line counting (simple approximation for perf during streaming)
+                    CurrentLineCount = CurrentResult.Count(c => c == '\n') + 1;
                     
                     // Check for long text threshold
                     CheckLongTextThreshold();
                 }
-
-                Messages.Add(new ChatMessage("assistant", CurrentResult));
             }
             catch (Exception ex)
             {
                 CurrentResult = $"[错误] {ex.Message}";
-                Messages.Add(new ChatMessage("assistant", CurrentResult));
+                Messages.Add(new ObservableChatMessage("assistant", CurrentResult));
                 LoggerService.Instance.LogError($"快捷指令执行失败: {ex.Message}", "QuickActionViewModel.ExecuteAction");
             }
             finally
@@ -184,7 +189,7 @@ namespace PromptMasterv5.ViewModels
             string userInput = InputText.Trim();
             InputText = "";
 
-            Messages.Add(new ChatMessage("user", userInput));
+            Messages.Add(new ObservableChatMessage("user", userInput));
 
             await ContinueChat();
         }
@@ -195,6 +200,10 @@ namespace PromptMasterv5.ViewModels
             CurrentResult = "";
             CurrentLineCount = 0;
             _longTextHandled = false; // Reset for new message
+
+            // Initialize assistant message for streaming
+            var assistantMessage = new ObservableChatMessage("assistant", "");
+            Messages.Add(assistantMessage);
 
             try
             {
@@ -229,23 +238,32 @@ namespace PromptMasterv5.ViewModels
                 _lastUsedBaseUrl = baseUrl;
                 _lastUsedModel = model;
 
-                var apiMessages = Messages.ToList();
+                var apiMessages = Messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
 
                 await foreach (var chunk in _aiService.ChatStreamAsync(apiMessages, apiKey, baseUrl, model))
                 {
                     CurrentResult += chunk;
-                    CurrentLineCount = CountLines(CurrentResult);
+                    assistantMessage.Content = CurrentResult; // Real-time update
+
+                    // Optimized line count
+                    CurrentLineCount = CurrentResult.Count(c => c == '\n') + 1;
                     
                     // Check for long text threshold
                     CheckLongTextThreshold();
                 }
-
-                Messages.Add(new ChatMessage("assistant", CurrentResult));
             }
             catch (Exception ex)
             {
                 CurrentResult = $"[错误] {ex.Message}";
-                Messages.Add(new ChatMessage("assistant", CurrentResult));
+                // If we already added the message, update it. If failed before adding, add it.
+                if (assistantMessage != null)
+                {
+                    assistantMessage.Content += $"\n{CurrentResult}";
+                }
+                else
+                {
+                    Messages.Add(new ObservableChatMessage("assistant", CurrentResult));
+                }
             }
             finally
             {
