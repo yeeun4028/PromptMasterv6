@@ -139,7 +139,7 @@ namespace PromptMasterv5.ViewModels
                     else
                     {
                         System.Windows.Clipboard.SetText(ocrResult);
-                        Growl.SuccessGlobal("文字识别成功，已复制到剪贴板。");
+                        // Growl.SuccessGlobal("文字识别成功，已复制到剪贴板。");
                         // Play Shutter Sound
                         await _audioService.PlayShutterSoundAsync();
                     }
