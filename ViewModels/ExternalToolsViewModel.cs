@@ -163,18 +163,26 @@ namespace PromptMasterv5.ViewModels
             try
             {
                 _isCapturing = true;
+
+                // 0. Check for Vision Translation Models first
+                var enabledVisionModels = Config.SavedModels.Where(m => m.IsEnableForScreenshotTranslate).ToList();
+                bool useVisionTranslate = enabledVisionModels.Any();
+
                 var enabledOcrProfiles = OcrProfiles.Where(p => p.IsEnabled).ToList();
                 var enabledTransProfiles = TranslateProfiles.Where(p => p.IsEnabled).ToList();
 
-                if (enabledOcrProfiles.Count == 0)
+                if (!useVisionTranslate)
                 {
-                    _dialogService.ShowAlert("请先在设置中勾选至少一个 OCR 服务商。", "未配置 OCR");
-                    return;
-                }
-                if (enabledTransProfiles.Count == 0)
-                {
-                    _dialogService.ShowAlert("请先在设置中勾选至少一个翻译服务商。", "未配置翻译");
-                    return;
+                    if (enabledOcrProfiles.Count == 0)
+                    {
+                        _dialogService.ShowAlert("请先在设置中勾选至少一个 OCR 服务商，或者启用 AI 截图翻译模型。", "未配置");
+                        return;
+                    }
+                    if (enabledTransProfiles.Count == 0)
+                    {
+                        _dialogService.ShowAlert("请先在设置中勾选至少一个翻译服务商，或者启用 AI 截图翻译模型。", "未配置");
+                        return;
+                    }
                 }
 
                 string? translatedResult = null;
@@ -183,15 +191,37 @@ namespace PromptMasterv5.ViewModels
                 var capturedBytes = await _windowManager.ShowCaptureWindowAsync(async (byte[] bytes, System.Windows.Rect rect) =>
                 {
                     actionRect = rect;
+
+                    // A. Vision Translation Path (Priority)
+                    if (useVisionTranslate)
+                    {
+                        translatedResult = await RaceVisionTranslateAsync(bytes, enabledVisionModels);
+                        
+                        // If Vision Translate succeeds, we are done.
+                        if (!string.IsNullOrWhiteSpace(translatedResult) && !translatedResult.StartsWith("API Error") && !translatedResult.StartsWith("Vision Error") && !translatedResult.StartsWith("错误"))
+                        {
+                            return;
+                        }
+                        // If it fails, fall through to OCR path? 
+                        // For now, let's treat it as the primary attempt. If it fails, maybe we should let it fail or fallback?
+                        // Let's fallback to OCR if Vision fails, provided OCR is configured.
+                        if (enabledOcrProfiles.Count == 0 || enabledTransProfiles.Count == 0)
+                        {
+                            // No backup configured
+                            return; 
+                        }
+                    }
+
+                    // B. Standard OCR + Translate Path (Fallback or Primary)
+                    
                     // 1. OCR Racing
                     var text = await RaceOcrAsync(bytes, enabledOcrProfiles);
                     
                     if (string.IsNullOrWhiteSpace(text) || text.StartsWith("OCR 错误") || text.StartsWith("错误"))
                     {
-                        // We can't show alert here easily if it blocks, but we can store error or just return.
-                        // Let's store error message in result to show later
-                        translatedResult = text ?? "无法识别文字";
-                        return; // Stop translation
+                        if (translatedResult == null) // Only overwrite if we didn't already have a (failed) vision result
+                            translatedResult = text ?? "无法识别文字";
+                        return;
                     }
 
                     // 2. Translation Racing
@@ -201,16 +231,15 @@ namespace PromptMasterv5.ViewModels
                 if (capturedBytes == null) return;
 
                 // Handle Results
-                if (string.IsNullOrWhiteSpace(translatedResult) || translatedResult.StartsWith("OCR 错误") || translatedResult.StartsWith("错误"))
+                if (string.IsNullOrWhiteSpace(translatedResult) || translatedResult.StartsWith("OCR 错误") || translatedResult.StartsWith("错误") || translatedResult.StartsWith("Vision Error"))
                 {
-                     // If it was an error message from OCR step
-                     if (translatedResult != null && (translatedResult.StartsWith("OCR 错误") || translatedResult.StartsWith("错误") || translatedResult == "无法识别文字"))
+                     // If it was an error message
+                     if (translatedResult != null && (translatedResult.StartsWith("OCR 错误") || translatedResult.StartsWith("错误") || translatedResult == "无法识别文字" || translatedResult.StartsWith("Vision Error")))
                      {
-                         _dialogService.ShowAlert(translatedResult, "文字识别失败");
+                         _dialogService.ShowAlert(translatedResult, "识别/翻译失败");
                      }
                      else
                      {
-                         // Or translation failed but returned null/empty?
                          _windowManager.ShowTranslationPopup(translatedResult ?? "翻译失败");
                      }
                      return;
@@ -515,6 +544,59 @@ namespace PromptMasterv5.ViewModels
                 // Optionally log error
                 return "";
             }
+        }
+
+        private async Task<string> RaceVisionTranslateAsync(byte[] imageBytes, List<AiModelConfig> models)
+        {
+            if (models == null || models.Count == 0) return "未启用 Vision 模型";
+
+            string systemPrompt = GetAiVisionTranslationSystemPrompt();
+            var tasks = new List<Task<string>>();
+
+            tasks.AddRange(models.Select(async model =>
+            {
+                try
+                {
+                    return await _aiService.ChatWithImageAsync(imageBytes, model.ApiKey, model.BaseUrl, model.ModelName, systemPrompt).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    return $"Vision Error: {ex.Message}";
+                }
+            }));
+
+            while (tasks.Count > 0)
+            {
+                var finishedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+                tasks.Remove(finishedTask);
+
+                try
+                {
+                    var result = await finishedTask.ConfigureAwait(false);
+                    if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("Vision Error") && !result.StartsWith("错误"))
+                    {
+                        return result; // Winner
+                    }
+                }
+                catch { }
+            }
+
+            return "Vision Error: 所有 Vision 模型均请求失败";
+        }
+
+        private string GetAiVisionTranslationSystemPrompt()
+        {
+            // Similar to text translation but adapted for Vision
+            return @"# 角色任务
+您是一个能看懂图片的翻译专家。
+您的任务是识别图片中的所有文字，并将其翻译成**简体中文**。
+
+# 输出要求
+1. **只输出翻译后的内容**。
+2. 保持原文的段落结构。
+3. 不要输出“图片中的文字是...”之类的废话。
+4. 如果图片中没有文字，或者文字无法识别，请输出“无文字”。
+5. 如果原文已经是中文，请直接输出原文。";
         }
     }
 }

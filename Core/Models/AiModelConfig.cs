@@ -33,8 +33,13 @@ namespace PromptMasterv5.Core.Models
         [property: JsonPropertyName("isEnableForTranslation")]
         private bool isEnableForTranslation;
 
+
         [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
         [property: JsonPropertyName("isEnableForOcr")]
         private bool isEnableForOcr;
+
+        [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+        [property: JsonPropertyName("isEnableForScreenshotTranslate")]
+        private bool isEnableForScreenshotTranslate;
     }
 }

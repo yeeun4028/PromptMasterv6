@@ -515,7 +515,7 @@
                                     <Viewbox Width="16" Height="16" Margin="0,1,12,1">
                                         <Path Data="{StaticResource IconMiniWindow}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Stretch="Uniform"/>
                                     </Viewbox>
-                                    <TextBlock Text="极简窗口" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="mini窗口" FontSize="14" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
 
@@ -533,7 +533,7 @@
                                     <Viewbox Width="16" Height="16" Margin="0,1,12,1">
                                         <TextBlock Text="🛠️" FontSize="16" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                     </Viewbox>
-                                    <TextBlock Text="外部工具" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="翻译" FontSize="14" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -889,7 +889,8 @@
                                                     </Style>
                                                 </ListBox.ItemContainerStyle>
                                             </ListBox>
-                                        </StackPanel>
+
+                                    </StackPanel>
 
                                         <!-- 2. 迷你 Tab: Mini Window Model Selection -->
                                         <StackPanel x:Name="AiMiniTab" Visibility="Collapsed">
@@ -1673,6 +1674,34 @@
                                             <CheckBox IsChecked="{Binding Config.AutoCopyTranslationResult}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
                                         </StackPanel>
 
+                                        <!-- Separator -->
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,20" Opacity="0.5"/>
+
+                                        <!-- AI Vision Translate Models Checklist -->
+                                        <TextBlock Text="AI 截图翻译 (AI Vision Translate)" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,12"/>
+                                        <Border Background="{DynamicResource CardBackground}" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                                            <ItemsControl ItemsSource="{Binding Config.SavedModels}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,6">
+                                                            <CheckBox IsChecked="{Binding IsEnableForScreenshotTranslate}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center" ToolTip="启用截图直译 (跳过 OCR，直接发送图片给 AI)"/>
+                                                            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource TextPrimary}" FontWeight="Medium"/>
+                                                            <TextBlock Text="[Vision-to-Text]" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource HintBrush}" FontSize="11"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Config.SavedModels.Count}" Value="0">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
+
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Baidu -->
@@ -1876,6 +1905,8 @@
                                                 </Style>
                                             </Border.Style>
                                         </Border>
+
+
                                         
                                         <!-- Empty State Hint -->
                                         <TextBlock Text="暂无可用模型，请前往“模型”设置页添加。" 
