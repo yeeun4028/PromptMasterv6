@@ -1367,6 +1367,7 @@
                                                 <Button Command="{Binding DataContext.OpenWebTargetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip="{Binding Name}"
+                                                        Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVis}}"
                                                         Margin="0,0,8,0"
                                                         Padding="6,4"
                                                         Cursor="Hand"

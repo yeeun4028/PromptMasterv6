@@ -15,5 +15,10 @@ namespace PromptMasterv5.Core.Models
 
         [ObservableProperty]
         private bool isEnabled = true;
+
+        partial void OnIsEnabledChanged(bool value)
+        {
+            // Optional: Trigger save or update logic if needed, but binding to Config should verify auto-save if implemented
+        }
     }
 }

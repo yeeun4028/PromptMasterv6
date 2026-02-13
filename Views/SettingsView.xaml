@@ -778,6 +778,34 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
+
+                                    <!-- Block4 Icons Visibility -->
+                                    <StackPanel Margin="20,20,0,0">
+                                        <TextBlock Text="BLOCK4 快捷图标显示" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,10"/>
+                                        <Border Background="{DynamicResource ShellBackground}" CornerRadius="4" Padding="10">
+                                            <ItemsControl ItemsSource="{Binding Config.WebDirectTargets}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,0,20,8" Width="140">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}" TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                            <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Border>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- Tab 2: AI Models -->
