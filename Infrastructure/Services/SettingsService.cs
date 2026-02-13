@@ -69,6 +69,10 @@ namespace PromptMasterv5.Infrastructure.Services
             AddIfMissing("Doubao", "https://www.doubao.com/chat/?q={0}", 
                 "M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,18c-4.41,0-8-3.59-8-8s3.59-8 8-8 8,3.59 8,8-3.59,8-8,8z M12,8c-2.21,0-4,1.79-4,4s1.79,4 4,4 4-1.79 4-4-1.79-4-4-4z");
 
+            // 9. AI Studio (Google)
+            AddIfMissing("AI Studio", "https://aistudio.google.com/prompts/new_chat?q={0}", 
+                "M12,2L14.5,9.5L22,12L14.5,14.5L12,22L9.5,14.5L2,12L9.5,9.5Z M12,8L13,10.5L15.5,11.5L13,12.5L12,15L11,12.5L8.5,11.5L11,10.5Z");
+
             // Save updates
             SaveConfig();
 
@@ -77,7 +81,7 @@ namespace PromptMasterv5.Infrastructure.Services
             foreach (var target in Config.WebDirectTargets)
             {
                 // List of targets that should have query params now
-                var scriptTargets = new[] { "Gemini", "DeepSeek", "GLM", "Qwen", "Doubao" };
+                var scriptTargets = new[] { "Gemini", "DeepSeek", "GLM", "Qwen", "Doubao", "AI Studio" };
                 
                 if (scriptTargets.Contains(target.Name, StringComparer.OrdinalIgnoreCase) && !target.UrlTemplate.Contains("{0}"))
                 {
@@ -86,6 +90,7 @@ namespace PromptMasterv5.Infrastructure.Services
                     if (target.Name == "GLM") target.UrlTemplate = "https://chatglm.cn/main/all?q={0}";
                     if (target.Name == "Qwen") target.UrlTemplate = "https://tongyi.aliyun.com/qianwen?q={0}";
                     if (target.Name == "Doubao") target.UrlTemplate = "https://www.doubao.com/chat/?q={0}";
+                    if (target.Name == "AI Studio") target.UrlTemplate = "https://aistudio.google.com/prompts/new_chat?q={0}";
                     needsSave = true;
                 }
             }

@@ -2,10 +2,11 @@
 // @name         PromptMaster Auto-Fill (Universal AI)
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  自动将 URL 中的 ?q= 参数填入 DeepSeek/Gemini/GLM/Qwen/Doubao 的输入框并发送。
+// @description  自动将 URL 中的 ?q= 参数填入 DeepSeek/Gemini/AI Studio/GLM/Qwen/Doubao 的输入框并发送。
 // @author       PromptMaster
 // @match        *://chat.deepseek.com/*
 // @match        *://gemini.google.com/*
+// @match        *://aistudio.google.com/*
 // @match        *://chatglm.cn/*
 // @match        *://tongyi.aliyun.com/*
 // @match        *://www.doubao.com/*
@@ -57,8 +58,9 @@
         // 查找输入框 (优先匹配 textarea)
         let inputEl = null;
 
-        if (window.location.hostname.includes('gemini.google.com')) {
-            // Gemini 专用逻辑
+        const isGoogleAI = window.location.hostname.includes('gemini.google.com') || window.location.hostname.includes('aistudio.google.com');
+        if (isGoogleAI) {
+            // Gemini / AI Studio 专用逻辑
             inputEl = document.querySelector('rich-textarea div[contenteditable="true"]');
             if (!inputEl) inputEl = document.querySelector('div[role="textbox"]');
             if (!inputEl) inputEl = document.querySelector('div[contenteditable="true"]');
@@ -78,8 +80,8 @@
             inputEl.click();
 
             // 2. 填入内容
-            if (window.location.hostname.includes('gemini.google.com')) {
-                // Gemini 必须用 execCommand 才能模拟真实输入，否则发送按钮可能不亮
+            if (isGoogleAI) {
+                // Gemini / AI Studio 必须用 execCommand 才能模拟真实输入，否则发送按钮可能不亮
                 document.execCommand('insertText', false, prompt);
             }
             else if (inputEl.tagName.toLowerCase() === 'div' || inputEl.isContentEditable) {
@@ -92,10 +94,11 @@
             // 3. 延迟发送
             setTimeout(() => {
                 let btn = null;
-                if (window.location.hostname.includes('gemini.google.com')) {
+                if (isGoogleAI) {
                     btn = document.querySelector('button[aria-label*="Send"]'); // EN
                     if (!btn) btn = document.querySelector('button[aria-label*="发送"]'); // CN
                     if (!btn) btn = document.querySelector('button.send-button'); // Fallback class
+                    if (!btn) btn = document.querySelector('button[aria-label*="Run"]'); // AI Studio
                 } else {
                     btn = document.querySelector('button[aria-label*="Send"]');
                     if (!btn) btn = document.querySelector('button[aria-label*="发送"]');
