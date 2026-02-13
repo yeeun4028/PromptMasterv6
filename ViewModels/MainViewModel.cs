@@ -550,8 +550,87 @@ public partial class MainViewModel : ObservableObject
     {
         var text = CompileContent();
         if (string.IsNullOrWhiteSpace(text)) return;
-        Clipboard.SetText(text);
+        _clipboardService.SetClipboard(text);
     }
+
+    [RelayCommand]
+    private void OpenWebTarget(WebTarget? target)
+    {
+        if (target == null || SelectedFile == null) return;
+
+        // 1. Check Variables (if any are empty, stop)
+        if (HasVariables)
+        {
+            foreach (var v in Variables)
+            {
+                if (string.IsNullOrWhiteSpace(v.Value))
+                {
+                    _dialogService.ShowAlert("请先填写所有变量值。", "变量未填");
+                    return;
+                }
+            }
+        }
+
+        // 2. Compile Content
+        var content = CompileContent();
+        if (string.IsNullOrWhiteSpace(content))
+        {
+             _dialogService.ShowAlert("提示词内容为空。", "无法打开");
+             return;
+        }
+
+        // 3. Length Check & Clipboard Fallback
+        // URL limit is roughly 2000 chars for safety in some browsers, though modern ones support more.
+        bool useClipboard = content.Length > 2000;
+        string url;
+
+        try
+        {
+            if (useClipboard)
+            {
+                // Copy to clipboard
+                _clipboardService.SetClipboard(content);
+                
+                // Use base URL (remove query param part)
+                // Simple heuristic: take substring before '?' or just replace {0} with empty
+                try 
+                {
+                    url = string.Format(target.UrlTemplate, "");
+                }
+                catch
+                {
+                    url = target.UrlTemplate.Split('?')[0];
+                }
+
+                _dialogService.ShowAlert("提示词过长，已复制到剪贴板，请手动粘贴。", "提示");
+            }
+            else
+            {
+                // URL Encode and format
+                url = string.Format(target.UrlTemplate, System.Uri.EscapeDataString(content));
+            }
+
+            // 4. Open Browser
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+
+            // 5. Minimize Window
+            if (Application.Current.MainWindow != null)
+            {
+                Application.Current.MainWindow.WindowState = WindowState.Minimized;
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Infrastructure.Services.LoggerService.Instance.LogException(ex, "OpenWebTarget Failed", "MainViewModel");
+            _dialogService.ShowAlert($"打开网页失败: {ex.Message}", "错误");
+        }
+    }
+
+
 
     private void ToggleMainWindow()
     {

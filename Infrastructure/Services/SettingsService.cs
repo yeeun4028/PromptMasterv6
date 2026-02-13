@@ -20,7 +20,48 @@ namespace PromptMasterv5.Infrastructure.Services
             Config = ConfigService.Load();
             LocalConfig = LocalConfigService.Load();
 
+            InitializeDefaultWebTargets();
+
             LoggerService.Instance.LogInfo("Settings loaded successfully", "SettingsService.ctor");
+        }
+
+        private void InitializeDefaultWebTargets()
+        {
+            if (Config.WebDirectTargets == null) Config.WebDirectTargets = new();
+            
+            if (Config.WebDirectTargets.Count == 0)
+            {
+                // ChatGPT (Hexagon-like)
+                Config.WebDirectTargets.Add(new WebTarget { 
+                    Name = "ChatGPT", 
+                    UrlTemplate = "https://chat.openai.com/?q={0}", 
+                    IconData = "M12,2L20.66,7V17L12,22L3.34,17V7L12,2Z" 
+                });
+                
+                // Claude (C shape)
+                Config.WebDirectTargets.Add(new WebTarget { 
+                    Name = "Claude", 
+                    UrlTemplate = "https://claude.ai/new?q={0}", 
+                    IconData = "M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M17,15.5L15.5,17A8,8 0 1,1 15.5,7L17,8.5A6,6 0 1,0 17,15.5Z" 
+                });
+                
+                // Gemini (Sparkle)
+                Config.WebDirectTargets.Add(new WebTarget { 
+                    Name = "Gemini", 
+                    UrlTemplate = "https://gemini.google.com/app?q={0}", 
+                    IconData = "M12,2L14.5,9.5L22,12L14.5,14.5L12,22L9.5,14.5L2,12L9.5,9.5Z" 
+                });
+                
+                // Perplexity (Asterisk)
+                Config.WebDirectTargets.Add(new WebTarget { 
+                    Name = "Perplexity", 
+                    UrlTemplate = "https://www.perplexity.ai/?q={0}", 
+                    IconData = "M12,2V6M12,18V22M4.93,4.93L7.76,7.76M16.24,16.24L19.07,19.07M2,12H6M18,12H22M4.93,19.07L7.76,16.24M16.24,7.76L19.07,4.93" 
+                });
+                
+                // Save immediately to persist defaults
+                SaveConfig();
+            }
         }
 
         public void SaveConfig()

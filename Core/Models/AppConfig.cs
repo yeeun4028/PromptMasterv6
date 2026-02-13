@@ -139,6 +139,10 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private bool quickActionShowIcons = true;
 
+
+        [ObservableProperty]
+        private ObservableCollection<WebTarget> webDirectTargets = new();
+
         public string RemoteFolderName { get; set; } = "PromptMaster";
     }
 }
