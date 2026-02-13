@@ -1442,6 +1442,8 @@
                                     </ScrollViewer>
 
                                     <TextBox Grid.Row="1" Text="{Binding AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
+                                             Foreground="{DynamicResource MiniTextBrush}"
+                                             CaretBrush="{DynamicResource MiniCaretBrush}"
                                              PreviewKeyDown="AdditionalInputBox_PreviewKeyDown"
                                              AcceptsReturn="True" 
                                              TextWrapping="Wrap" 
@@ -1450,7 +1452,6 @@
                                              Background="Transparent" 
                                              VerticalContentAlignment="Top" 
                                              FontSize="14" 
-                                             Foreground="{DynamicResource PrimaryTextBrush}" 
                                              FontFamily="Segoe UI, Microsoft YaHei UI">
                                         <TextBox.Style>
                                             <Style TargetType="TextBox">
