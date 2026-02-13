@@ -619,10 +619,10 @@ public partial class MainViewModel : ObservableObject
                 UseShellExecute = true
             });
 
-            // 5. Minimize Window
+            // 5. Hide Window (to Tray)
             if (Application.Current.MainWindow != null)
             {
-                Application.Current.MainWindow.WindowState = WindowState.Minimized;
+                Application.Current.MainWindow.Hide();
             }
 
             // 6. Auto-paste is no longer needed as we use Userscript to handle ?q= parameter
