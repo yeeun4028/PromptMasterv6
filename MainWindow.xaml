@@ -1021,7 +1021,7 @@
                                             </Style>
                                         </TextBox.Style>
                                     </TextBox>
-                                        <TextBlock Text="文件名称"
+                                        <TextBlock Text="未命名提示词"
                                                    FontSize="18"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource PlaceholderTextBrush}"
@@ -1074,7 +1074,7 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                     <TextBlock Grid.Column="0"
-                                               Text="文件名称"
+                                               Text="未命名提示词"
                                                FontSize="18"
                                                FontWeight="Bold"
                                                VerticalAlignment="Center"
@@ -1254,7 +1254,7 @@
                                         </Style>
                                     </TextBox.Style>
                                 </TextBox>
-                                    <TextBlock Text="提示词内容"
+                                    <TextBlock Text="在此处键入内容..."
                                                Foreground="{DynamicResource PlaceholderTextBrush}"
                                                FontFamily="Segoe UI, Microsoft YaHei UI"
                                                FontSize="14"
@@ -1319,7 +1319,7 @@
                                     <!-- 此处移除了 <md:MarkdownViewer.Resources> 块，从而自动应用全局 GitHub 主题 -->
                                 </md:MarkdownViewer>
                                 <TextBlock Grid.Row="1"
-                                           Text="提示词内容"
+                                           Text="在此处键入内容..."
                                            Foreground="{DynamicResource PlaceholderTextBrush}"
                                            FontFamily="Segoe UI, Microsoft YaHei UI"
                                            FontSize="14"

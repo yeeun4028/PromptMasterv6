@@ -67,7 +67,7 @@
 
             <SolidColorBrush x:Key="PrimaryTextBrush" Color="#E6E8EA"/>
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B0B4B8"/>
-            <SolidColorBrush x:Key="PlaceholderTextBrush" Color="#8A8F96"/>
+            <SolidColorBrush x:Key="PlaceholderTextBrush" Color="#ABB0B6"/>
             <SolidColorBrush x:Key="DividerBrush" Color="#4A4F55"/>
             <SolidColorBrush x:Key="ListItemHoverBackgroundBrush" Color="#3A3F45"/>
             <SolidColorBrush x:Key="ListItemSelectedBackgroundBrush" Color="#444A52"/>
