@@ -107,7 +107,15 @@ namespace PromptMasterv5.Core.Models
         public double FullWindowTop { get; set; } = 100;
         public double FullWindowLeft { get; set; } = 100;
         public double FullWindowWidth { get; set; } = 1000;
+
         public double FullWindowHeight { get; set; } = 600;
+
+        // 侧边栏和列表栏宽度记忆
+        [ObservableProperty]
+        private double block1Width = 60;
+
+        [ObservableProperty]
+        private double block2Width = 250;
 
         // 存储按钮自定义图标（SVG Path Data）
         // Key: 按钮标识符（"CreateFile", "CreateFolder", "Import", "Settings"）

@@ -47,6 +47,7 @@ public partial class MainViewModel : ObservableObject
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
+    private readonly Subject<System.Reactive.Unit> _saveLocalSettingsSubject = new();
     private bool _previousFullMode = true;
     private IntPtr _previousWindowHandle = IntPtr.Zero;
     private bool _isSimulatingKeys;
@@ -232,6 +233,20 @@ public partial class MainViewModel : ObservableObject
             .Throttle(TimeSpan.FromSeconds(5))
             .ObserveOn(System.Threading.SynchronizationContext.Current!)
             .Subscribe(async _ => await PerformLocalBackup());
+
+        _saveLocalSettingsSubject
+            .Throttle(TimeSpan.FromSeconds(2))
+            .ObserveOn(System.Threading.SynchronizationContext.Current!)
+            .Subscribe(_ => _settingsService.SaveLocalConfig());
+
+        LocalConfig.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(LocalSettings.Block1Width) || 
+                e.PropertyName == nameof(LocalSettings.Block2Width))
+            {
+                _saveLocalSettingsSubject.OnNext(System.Reactive.Unit.Default);
+            }
+        };
 
         _keyService.OnDoubleCtrlDetected += (_, __) => Application.Current.Dispatcher.Invoke(() => 
         {

@@ -61,6 +61,7 @@
         <Geometry x:Key="IconLoading">M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 1 1 4 12A8 8 0 0 1 12 4Z</Geometry>
 
         <utils:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
+        <utils:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
 
         <Style x:Key="Block1ToolTipStyle" TargetType="ToolTip">
             <Setter Property="Background" Value="{DynamicResource Block1Background}"/>
@@ -789,8 +790,8 @@
             <Border Background="{DynamicResource ShellBackground}" CornerRadius="5">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="{Binding LocalConfig.Block1Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}"/>
+                        <ColumnDefinition Width="{Binding LocalConfig.Block2Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
@@ -801,7 +802,6 @@
                     </Border>
 
                     <Border Grid.Column="0" 
-                            Width="60"
                             Visibility="{Binding IsNavigationVisible, Converter={StaticResource BoolToVis}}"
                             Background="{DynamicResource Block1Background}" 
                             CornerRadius="5,0,0,5">
