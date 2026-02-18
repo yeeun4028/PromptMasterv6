@@ -11,11 +11,6 @@ namespace PromptMasterv5.Views
         {
             InitializeComponent();
             Closing += (s, e) => _isClosing = true;
-            Loaded += (s, e) => 
-            { 
-                SearchBox.Focus(); 
-                Keyboard.Focus(SearchBox); 
-            };
         }
 
         private void Window_Deactivated(object sender, EventArgs e)

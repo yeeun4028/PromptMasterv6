@@ -26,16 +26,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="快捷启动" FontWeight="Bold" FontSize="18" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15"/>
-
-            <TextBox x:Name="SearchBox" Grid.Row="1"
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     Style="{StaticResource ModernTextBoxStyle}"
-                     Margin="0,0,0,20"
-                     FontSize="16"
-                     Tag="搜索应用或命令..."/>
-
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding FilteredItems}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -46,7 +37,7 @@
                         <DataTemplate>
                             <Button Command="{Binding DataContext.ExecuteItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
                                     CommandParameter="{Binding}"
-                                    Margin="5" Width="100" Height="100"
+                                    Margin="5" Width="70" Height="70"
                                     Background="Transparent" BorderThickness="0" Cursor="Hand">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
@@ -72,7 +63,7 @@
                                     </Grid.RowDefinitions>
                                     
                                     <!-- Icon based on type -->
-                                    <Grid Width="40" Height="40" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <Grid Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
                                         <Path Data="{Binding IconGeometry}" 
                                               Visibility="{Binding IconGeometry, Converter={StaticResource StringToVis}}"
                                               Fill="{DynamicResource ActionIconBrush}" 
@@ -87,8 +78,8 @@
 
                                     <TextBlock Grid.Row="1" Text="{Binding Title}" Margin="2,5,2,2" 
                                                TextAlignment="Center" TextWrapping="Wrap"
-                                               Foreground="{DynamicResource TextPrimary}" FontSize="11"
-                                               MaxHeight="32" TextTrimming="CharacterEllipsis"/>
+                                               Foreground="{DynamicResource TextPrimary}" FontSize="10"
+                                               MaxHeight="28" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Button>
                         </DataTemplate>
