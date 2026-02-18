@@ -260,6 +260,9 @@ public partial class MainViewModel : ObservableObject
         });
         _keyService.OnQuickActionTriggered += async (_, __) => await HandleQuickActionTriggered();
         _keyService.OnLauncherTriggered += (_, __) => HandleLauncherTriggered();
+        // Initialize hotkeys from config before starting
+        _keyService.LauncherHotkeyString = Config.LauncherHotkey;
+        _keyService.QuickActionHotkeyString = Config.QuickActionHotkey;
         // Initialize GlobalKeyService unconditionally to support Launcher
         try { _keyService.Start(); } catch { }
 

@@ -21,10 +21,68 @@ namespace PromptMasterv5.Infrastructure.Services
         public event EventHandler? OnDoubleSemiColonDetected;
         public event EventHandler? OnAlwaysOnTopSequenceDetected;
         public event EventHandler<KeyEventArgs>? OnAnyKeyDown;
-        public event EventHandler? OnQuickActionTriggered; // Alt+Q 快捷键
-        public event EventHandler? OnLauncherTriggered; // Alt+S 快捷键
+        public event EventHandler? OnQuickActionTriggered;
+        public event EventHandler? OnLauncherTriggered;
 
         private bool _altPressed = false;
+        private bool _ctrlPressed = false;
+        private bool _shiftPressed = false;
+        private bool _winPressed = false;
+
+        // Configurable launcher hotkey
+        private Keys _launcherKey = Keys.S;
+        private bool _launcherNeedAlt = true;
+        private bool _launcherNeedCtrl = false;
+        private bool _launcherNeedShift = false;
+        private bool _launcherNeedWin = false;
+        private bool _launcherEnabled = true;
+
+        // Configurable quick action hotkey
+        private Keys _quickActionKey = Keys.Q;
+        private bool _quickActionNeedAlt = true;
+        private bool _quickActionNeedCtrl = false;
+        private bool _quickActionNeedShift = false;
+        private bool _quickActionNeedWin = false;
+        private bool _quickActionEnabled = true;
+
+        public string LauncherHotkeyString
+        {
+            set => ParseHotkey(value, out _launcherKey, out _launcherNeedCtrl, out _launcherNeedAlt, out _launcherNeedShift, out _launcherNeedWin, out _launcherEnabled);
+        }
+
+        public string QuickActionHotkeyString
+        {
+            set => ParseHotkey(value, out _quickActionKey, out _quickActionNeedCtrl, out _quickActionNeedAlt, out _quickActionNeedShift, out _quickActionNeedWin, out _quickActionEnabled);
+        }
+
+        private void ParseHotkey(string hotkeyStr, out Keys key, out bool needCtrl, out bool needAlt, out bool needShift, out bool needWin, out bool enabled)
+        {
+            key = Keys.None;
+            needCtrl = false;
+            needAlt = false;
+            needShift = false;
+            needWin = false;
+            enabled = false;
+
+            if (string.IsNullOrWhiteSpace(hotkeyStr)) return;
+
+            var parts = hotkeyStr.Split('+');
+            foreach (var part in parts)
+            {
+                var p = part.Trim();
+                if (p.Equals("Ctrl", StringComparison.OrdinalIgnoreCase)) needCtrl = true;
+                else if (p.Equals("Alt", StringComparison.OrdinalIgnoreCase)) needAlt = true;
+                else if (p.Equals("Shift", StringComparison.OrdinalIgnoreCase)) needShift = true;
+                else if (p.Equals("Win", StringComparison.OrdinalIgnoreCase)) needWin = true;
+                else if (Enum.TryParse<Keys>(p, true, out var k)) key = k;
+            }
+            enabled = key != Keys.None;
+        }
+
+        private bool CheckModifiers(bool needCtrl, bool needAlt, bool needShift, bool needWin)
+        {
+            return _ctrlPressed == needCtrl && _altPressed == needAlt && _shiftPressed == needShift && _winPressed == needWin;
+        }
 
         private static char NormalizeSymbol(char c)
         {
@@ -32,8 +90,8 @@ namespace PromptMasterv5.Infrastructure.Services
             {
                 '；' => ';',
                 '＇' => '\'',
-                '‘' => '\'',
-                '’' => '\'',
+                '\u2018' => '\'',
+                '\u2019' => '\'',
                 '`' => '\'',
                 '´' => '\'',
                 _ => c
@@ -52,22 +110,26 @@ namespace PromptMasterv5.Infrastructure.Services
 
         private void GlobalHook_KeyDown(object? sender, KeyEventArgs e)
         {
-            // Track Alt key state
+            // Track modifier key states
             if (e.KeyCode == Keys.Menu || e.KeyCode == Keys.LMenu || e.KeyCode == Keys.RMenu)
-            {
                 _altPressed = true;
-            }
+            if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.LControlKey || e.KeyCode == Keys.RControlKey)
+                _ctrlPressed = true;
+            if (e.KeyCode == Keys.ShiftKey || e.KeyCode == Keys.LShiftKey || e.KeyCode == Keys.RShiftKey)
+                _shiftPressed = true;
+            if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
+                _winPressed = true;
 
-            // Detect Alt+Q
-            if (_altPressed && e.KeyCode == Keys.Q)
+            // Detect Quick Action hotkey
+            if (_quickActionEnabled && e.KeyCode == _quickActionKey && CheckModifiers(_quickActionNeedCtrl, _quickActionNeedAlt, _quickActionNeedShift, _quickActionNeedWin))
             {
                 OnQuickActionTriggered?.Invoke(this, EventArgs.Empty);
                 e.Handled = true;
                 e.SuppressKeyPress = true;
             }
 
-            // Detect Alt+S (Launcher)
-            if (_altPressed && e.KeyCode == Keys.S)
+            // Detect Launcher hotkey
+            if (_launcherEnabled && e.KeyCode == _launcherKey && CheckModifiers(_launcherNeedCtrl, _launcherNeedAlt, _launcherNeedShift, _launcherNeedWin))
             {
                 OnLauncherTriggered?.Invoke(this, EventArgs.Empty);
                 e.Handled = true;
@@ -79,11 +141,15 @@ namespace PromptMasterv5.Infrastructure.Services
 
         private void GlobalHook_KeyUp(object? sender, KeyEventArgs e)
         {
-            // Reset Alt key state
+            // Reset modifier key states
             if (e.KeyCode == Keys.Menu || e.KeyCode == Keys.LMenu || e.KeyCode == Keys.RMenu)
-            {
                 _altPressed = false;
-            }
+            if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.LControlKey || e.KeyCode == Keys.RControlKey)
+                _ctrlPressed = false;
+            if (e.KeyCode == Keys.ShiftKey || e.KeyCode == Keys.LShiftKey || e.KeyCode == Keys.RShiftKey)
+                _shiftPressed = false;
+            if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
+                _winPressed = false;
 
             if (e.KeyCode == Keys.LControlKey || e.KeyCode == Keys.RControlKey || e.KeyCode == Keys.ControlKey)
             {

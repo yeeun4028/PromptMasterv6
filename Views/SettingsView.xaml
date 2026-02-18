@@ -879,7 +879,16 @@
                                                     <TextBlock Text="唤醒快捷键" Style="{StaticResource FieldLabelTextStyle}"/>
                                                     <TextBlock Text="全局呼出启动面板" Style="{StaticResource HintTextStyle}"/>
                                                 </StackPanel>
-                                                <TextBox Grid.Column="1" Text="{Binding Config.LauncherHotkey}" Style="{StaticResource ModernTextBoxStyle}" Width="140" HorizontalAlignment="Right"/>
+                                                <TextBox Grid.Column="1" 
+                                                         x:Name="LauncherHotkeyTextBox"
+                                                         Text="{Binding Config.LauncherHotkey, Mode=TwoWay}" 
+                                                         Style="{StaticResource ModernTextBoxStyle}" 
+                                                         Width="140" 
+                                                         HorizontalAlignment="Right"
+                                                         IsReadOnly="True"
+                                                         Cursor="IBeam"
+                                                         PreviewKeyDown="LauncherHotkeyTextBox_PreviewKeyDown"
+                                                         ToolTip="点击按下按键设置，按 Delete 清除"/>
                                             </Grid>
 
                                             <Grid Margin="0,0,0,20">

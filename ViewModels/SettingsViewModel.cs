@@ -387,16 +387,8 @@ namespace PromptMasterv5.ViewModels
         {
             try
             {
-                // Register Launcher Hotkey
-                // Note: GlobalKeyService manages this internally, but if we want to change it via settings...
-                // Wait, GlobalKeyService reads from Config? No, currently it's hardcoded to Alt+S in GlobalKeyService.cs
-                // We need to update GlobalKeyService to respect the config!
-                // For now, let's just trigger the update on GlobalKeyService if exposed
-                
-                // The current implementation of GlobalKeyService listens to Alt+S hardcoded.
-                // We should probably update GlobalKeyService to be configurable.
-                // But for now, let's just add the commands for the UI.
-                // The actual hotkey update will be handled by GlobalKeyService reading the config or being updated.
+                _keyService.LauncherHotkeyString = Config.LauncherHotkey;
+                _settingsService.SaveConfig();
             }
             catch (Exception ex)
             {

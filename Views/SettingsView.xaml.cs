@@ -322,6 +322,40 @@ namespace PromptMasterv5.Views
             }
         }
 
+        private void LauncherHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+
+            // Delete to clear
+            if (key == Key.Delete || key == Key.Back)
+            {
+                e.Handled = true;
+                ViewModel.Config.LauncherHotkey = "";
+                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.SettingsVM.UpdateLauncherHotkey();
+                return;
+            }
+
+            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin) return;
+            e.Handled = true;
+
+            if (sender is TextBox tb)
+            {
+                var sb = new StringBuilder();
+                if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
+                if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
+                if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
+                sb.Append(key.ToString());
+
+                ViewModel.Config.LauncherHotkey = sb.ToString();
+                tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                ViewModel.SettingsVM.UpdateLauncherHotkey();
+            }
+        }
+
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
         private async void PickCoordinate_Click(object sender, RoutedEventArgs e)
         {
