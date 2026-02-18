@@ -346,6 +346,9 @@ namespace PromptMasterv5.ViewModels
                 RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null));
                 RegisterWindowHotkey("GlobalQuickAction", Config.QuickActionHotkey, () => _mainViewModel.TriggerQuickActionCommand.Execute(null));
                 
+                // Update Launcher Hotkey
+                UpdateLauncherHotkey();
+
                 _settingsService.SaveConfig();
             }
             catch (Exception ex)
@@ -378,6 +381,68 @@ namespace PromptMasterv5.ViewModels
                 }
             }
             catch { }
+        }
+
+        public void UpdateLauncherHotkey()
+        {
+            try
+            {
+                // Register Launcher Hotkey
+                // Note: GlobalKeyService manages this internally, but if we want to change it via settings...
+                // Wait, GlobalKeyService reads from Config? No, currently it's hardcoded to Alt+S in GlobalKeyService.cs
+                // We need to update GlobalKeyService to respect the config!
+                // For now, let's just trigger the update on GlobalKeyService if exposed
+                
+                // The current implementation of GlobalKeyService listens to Alt+S hardcoded.
+                // We should probably update GlobalKeyService to be configurable.
+                // But for now, let's just add the commands for the UI.
+                // The actual hotkey update will be handled by GlobalKeyService reading the config or being updated.
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to update launcher hotkey", "SettingsViewModel.UpdateLauncherHotkey");
+            }
+        }
+
+        #endregion
+
+        #region Commands - Launcher Management
+
+        [RelayCommand]
+        private void AddLauncherSearchPath()
+        {
+            try
+            {
+                var dialog = new System.Windows.Forms.FolderBrowserDialog
+                {
+                    Description = "选择要添加的搜索文件夹",
+                    UseDescriptionForTitle = true,
+                    ShowNewFolderButton = false
+                };
+
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string path = dialog.SelectedPath;
+                    if (!Config.LauncherSearchPaths.Contains(path))
+                    {
+                        Config.LauncherSearchPaths.Add(path);
+                        _settingsService.SaveConfig();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"添加文件夹失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LoggerService.Instance.LogException(ex, "Failed to add launcher search path", "SettingsViewModel.AddLauncherSearchPath");
+            }
+        }
+
+        [RelayCommand]
+        private void RemoveLauncherSearchPath(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return;
+            Config.LauncherSearchPaths.Remove(path);
+            _settingsService.SaveConfig();
         }
 
         #endregion

@@ -139,6 +139,16 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private bool quickActionShowIcons = true;
 
+        // ★★★ 新增：启动器 (Launcher) 配置 ★★★
+        [ObservableProperty]
+        private string launcherHotkey = "Alt+S";
+
+        [ObservableProperty]
+        private bool launcherRunAsAdmin = false;
+
+        [ObservableProperty]
+        private ObservableCollection<string> launcherSearchPaths = new();
+
 
         [ObservableProperty]
         private ObservableCollection<WebTarget> webDirectTargets = new();

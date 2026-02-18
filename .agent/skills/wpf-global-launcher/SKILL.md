@@ -1,120 +1,180 @@
 ---
 name: wpf-global-launcher
-description: Use when implementing global hotkeys or launcher overlays in WPF applications
+description: Use when implementing advanced global launchers with auto-discovery, scripting, and admin privileges in WPF.
 ---
 
 # WPF Global Launcher Pattern
 
 ## Overview
 
-This skill provides patterns for creating global hotkey-triggered overlay windows (launchers, docks, quick actions) in WPF. It covers global hooks, window management, and common pitfalls.
+This skill provides patterns for creating a sophisticated, "Spotlight-like" or "Alfred-like" launcher in WPF. It covers global hotkeys (Alt+Space), auto-discovery of scripts/apps, hybrid scripting support, and admin privilege management.
 
 ## When to Use
 
-- Adding a global shortcut (e.g., `Alt+Space`) to open an app window.
-- Creating "spotlight-like" or "launcher" interfaces.
-- Implementing "Quick Action" popups.
+- Creating a central command center for an application.
+- Replacing simple button clicks with keyboard-driven workflows.
+- Enabling users to extend functionality via scripts or configuration files without recompiling.
 
-## Core Pattern
+## Core Architecture
 
-### 1. Global Hook Service
-
-Use `Gma.System.MouseKeyHook` (or similar low-level hook library) to detect keys even when the app is not focused.
-
-**Important:** Always dispose hooks to prevent memory leaks and ghost inputs.
+### 1. Auto-Discovery Service
+Instead of hardcoding items, scan a directory for plugins, scripts, or shortcuts.
 
 ```csharp
-public class GlobalKeyService : IDisposable
+public class LauncherItem
 {
-    private IKeyboardMouseEvents _globalHook;
-    public event EventHandler OnLauncherTriggered;
+    public string Title { get; set; }
+    public string IconPath { get; set; }
+    public string ExecutePath { get; set; }
+    public bool RunAsAdmin { get; set; }
+    public Action ExecuteAction { get; set; }
+}
 
-    public void Start()
+public IEnumerable<LauncherItem> DiscoverItems(string rootPath)
+{
+    // 1. Scan Shortcuts (.lnk)
+    foreach (var file in Directory.GetFiles(rootPath, "*.lnk"))
     {
-        _globalHook = Hook.GlobalEvents();
-        _globalHook.KeyDown += GlobalHook_KeyDown;
+        yield return new LauncherItem { 
+            Title = Path.GetFileNameWithoutExtension(file),
+            ExecutePath = file,
+            IconPath = file // Extract later
+        };
     }
 
-    private void GlobalHook_KeyDown(object sender, KeyEventArgs e)
+    // 2. Scan Scripts (.cs, .ps1)
+    foreach (var file in Directory.GetFiles(rootPath, "*.cs"))
     {
-        if (e.Alt && e.KeyCode == Keys.Space) // Example
-        {
-            OnLauncherTriggered?.Invoke(this, EventArgs.Empty);
-            e.Handled = true; // Suppress system handling
-        }
-    }
-    
-    public void Stop()
-    {
-        _globalHook?.Dispose();
+        yield return new LauncherItem {
+            Title = Path.GetFileNameWithoutExtension(file),
+            ExecuteAction = () => ExecuteScript(file)
+        };
     }
 }
 ```
 
-### 2. The Launcher Window (View)
+### 2. Hybrid Scripting (CS-Script / PowerShell)
+Support both inline scripts and external files.
 
-The window should be borderless, topmost, and handle focus loss.
+**Dependencies:** `CS-Script` (for C#), `System.Management.Automation` (for PowerShell).
+
+```csharp
+// Fire & Forget Execution
+public void ExecuteScript(string filePath)
+{
+    if (filePath.EndsWith(".cs"))
+    {
+        // Use CS-Script to compile and run
+        CSScript.Evaluator.LoadFile(filePath);
+    }
+    else if (filePath.EndsWith(".ps1"))
+    {
+        Process.Start(new ProcessStartInfo("pwsh", $"-File \"{filePath}\"") { 
+            UseShellExecute = false, 
+            CreateNoWindow = true 
+        });
+    }
+}
+```
+
+### 3. Global Hotkey (Gma.System.MouseKeyHook)
+Use `GlobalKeyService` to listen for `Alt+Space` or user-defined hotkeys.
+
+**(See `Implementation` section below for full service code)**
+
+### 4. Admin Privileges
+To run items as Administrator:
+
+```csharp
+var info = new ProcessStartInfo(exePath)
+{
+    UseShellExecute = true,
+    Verb = "runas" // Triggers UAC prompt
+};
+try { Process.Start(info); }
+catch (Win32Exception) { /* User cancelled UAC */ }
+```
+
+### 5. Icon Extraction
+Use `System.Drawing.Icon.ExtractAssociatedIcon` for files. For high-res icons from .exe/.lnk, use Windows API (`Shell32.SHGetFileInfo`).
+
+```csharp
+// Simple (Low Res)
+var icon = System.Drawing.Icon.ExtractAssociatedIcon(path);
+var bitmap = icon.ToBitmap(); // Convert to WPF ImageSource
+```
+
+## UI Patterns: App Grid & Keyboard Nav
+
+### XAML Layout
+Use an `ItemsControl` with a `WrapPanel` or `UniformGrid`.
 
 ```xml
-<Window ...
-    WindowStyle="None" 
-    AllowsTransparency="True" 
-    Background="Transparent"
-    Topmost="True"
-    ShowInTaskbar="False"
-    Deactivated="Window_Deactivated" 
-    KeyDown="Window_KeyDown">
+<ItemsControl ItemsSource="{Binding FilteredItems}">
+    <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+            <UniformGrid Columns="4" /> <!-- Or WrapPanel -->
+        </ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+    <ItemsControl.ItemTemplate>
+        <DataTemplate>
+            <Button Command="{Binding ExecuteCommand}" ...>
+                <StackPanel>
+                    <Image Source="{Binding Icon}" Width="32"/>
+                    <TextBlock Text="{Binding Title}"/>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+    </ItemsControl.ItemTemplate>
+</ItemsControl>
 ```
 
-**Handling Close:**
+### Keyboard Navigation
+To support Arrow Keys + Enter:
+1.  Focus the first item when window opens.
+2.  Use `FocusManager.FocusedElement` to track selection.
+3.  Handle `PreviewKeyDown` on the Window to navigate grid if default Tab navigation isn't enough.
 
+## Window Management (Critical)
+
+**Prevent Crashing on Close:**
+Launcher windows often crash due to race conditions between `Deactivated` (blur) and explicit `Close()` calls.
+
+**Pattern:**
 ```csharp
-private void Window_Deactivated(object sender, EventArgs e)
+public partial class LauncherWindow : Window
 {
-    Close(); // Close on focus loss
-}
-
-private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-{
-    if (e.Key == Key.Escape) Close();
-}
-```
-
-**Ambiguity Warning:**
-When mixing Forms (GlobalHook) and WPF, `KeyEventArgs` and `MessageBox` become ambiguous. Always use fully qualified names:
-- `System.Windows.Input.KeyEventArgs` (WPF) vs `System.Windows.Forms.KeyEventArgs` (Forms)
-- `System.Windows.MessageBox` vs `System.Windows.Forms.MessageBox`
-
-### 3. ViewModel & Execution
-
-Use `Process.Start` with `UseShellExecute = true` for modern Windows compatibility.
-
-```csharp
-Process.Start(new ProcessStartInfo("https://google.com") { UseShellExecute = true });
-Process.Start(new ProcessStartInfo("excel.exe") { UseShellExecute = true });
-```
-
-### 4. Triggering from MainViewModel
-
-Ensure you handle the UI thread properly when the event fires from a hook (which may be on a different thread, though `MouseKeyHook` usually marshals to UI thread, verify it).
-
-```csharp
-_keyService.OnLauncherTriggered += (s, e) => 
-{
-    Application.Current.Dispatcher.Invoke(() => 
+    private bool _isClosing = false;
+    
+    public LauncherWindow()
     {
-        var win = new LauncherWindow();
-        win.Show();
-        win.Activate();
-        win.Focus();
-    });
-};
+        InitializeComponent();
+        Closing += (s, e) => _isClosing = true; // Mark as closing immediately
+    }
+
+    private void Window_Deactivated(object sender, EventArgs e)
+    {
+        SafeClose();
+    }
+
+    private void SafeClose()
+    {
+        if (_isClosing) return;
+        _isClosing = true;
+        try { Close(); } catch { } // Swallow race condition errors
+    }
+}
 ```
 
 ## Common Pitfalls
 
-1.  **Ghost Windows**: If you `Hide()` instead of `Close()`, ensure you don't leak resources or keep hooks active unnecessarily.
-2.  **Focus Stealing**: Use `win.Activate()` and `win.Focus()` immediately after `Show()`.
-3.  **Ambiguous Types**: `KeyEventArgs`, `MessageBox`, `Application` exist in both `System.Windows` and `System.Windows.Forms`. Explicitly qualify them.
-4.  **Process.Start**: On .NET Core/5+, `UseShellExecute` defaults to `false`. Set it to `true` to open URLs or documents.
+1.  **File Locks**: Scanning folders while files are being written can crash. Use `try-catch` inside discovery loops.
+2.  **UI Freezing**: **NEVER** run discovery or script execution on the UI thread. Use `Task.Run`.
+3.  **DPI Awareness**: Ensure `app.manifest` enables per-monitor DPI awareness, otherwise the launcher may appear blurry or off-center on multi-monitor setups.
+4.  **Admin Rights**: If part of the app needs Admin (e.g., modifying system hosts), the *entire* launcher might need to run as Admin, or it must launch a separate elevated process.
 
+## Recommended Libraries
+- **Gma.System.MouseKeyHook**: Global hotkeys.
+- **HandyControl / MahApps.Metro**: Modern UI styles (Glass, Dark Mode).
+- **CS-Script**: Runtime C# compilation.
+- **GongSolutions.WPF.DragDrop**: Drag & drop support for adding items.
