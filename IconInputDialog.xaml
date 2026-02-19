@@ -6,7 +6,34 @@
         Style="{DynamicResource ModernDialogWindowStyle}">
 
     <Grid>
+        <!-- Entry Animation: Fade-in + Slide-up -->
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="SlideTransform" Y="10"/>
+        </Grid.RenderTransform>
+        <Grid.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                         From="0" To="1" Duration="0:0:0.22">
+                            <DoubleAnimation.EasingFunction>
+                                <CubicEase EasingMode="EaseOut"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="SlideTransform"
+                                         Storyboard.TargetProperty="Y"
+                                         From="10" To="0" Duration="0:0:0.22">
+                            <DoubleAnimation.EasingFunction>
+                                <CubicEase EasingMode="EaseOut"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Grid.Triggers>
+
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -14,38 +41,63 @@
 
         <TextBlock Text="设置图标 (SVG Path)" Style="{StaticResource SectionHeaderTextStyle}"/>
 
-        <Grid Grid.Row="1">
+        <!-- Helper hint text -->
+        <TextBlock Grid.Row="1" Text="粘贴 SVG Path 数据，右侧实时预览图标效果"
+                   Style="{StaticResource HintTextStyle}"
+                   Margin="0,-8,0,12"/>
+
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="InputBox" 
-                     AcceptsReturn="True" 
-                     TextWrapping="Wrap" 
+            <TextBox x:Name="InputBox"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
                      Style="{StaticResource ModernTextBoxStyle}"
                      VerticalContentAlignment="Top"
                      TextChanged="InputBox_TextChanged"
                      ToolTip="例如: M10,10 L50,50..."
-                     Margin="0,0,20,0"/>
+                     Margin="0,0,16,0"/>
 
-            <Border Grid.Column="1" Width="100" Height="100" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerBrush}" Background="{DynamicResource CardBackground}" VerticalAlignment="Top">
+            <!-- Preview area with validation feedback border -->
+            <Border x:Name="PreviewBorder"
+                    Grid.Column="1"
+                    Width="120" Height="120"
+                    CornerRadius="10"
+                    BorderThickness="1.5"
+                    BorderBrush="{DynamicResource DividerBrush}"
+                    Background="{DynamicResource CardBackground}"
+                    VerticalAlignment="Top">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="3" Opacity="0.15"/>
+                </Border.Effect>
                 <Grid>
-                    <TextBlock Text="预览" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" Opacity="0.3" FontSize="14" FontWeight="Bold"/>
-                    <Path x:Name="PreviewPath" 
-                          Fill="{DynamicResource TextPrimary}" 
-                          Stretch="Uniform" 
-                          Width="48" 
-                          Height="48" 
-                          HorizontalAlignment="Center" 
+                    <TextBlock x:Name="PreviewHint"
+                               Text="预览"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondary}"
+                               Opacity="0.3" FontSize="13"/>
+                    <TextBlock x:Name="ErrorHint"
+                               Text="⚠ 无效路径"
+                               Foreground="#E53935"
+                               HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                               Margin="0,0,0,8" FontSize="11"
+                               Visibility="Collapsed"/>
+                    <Path x:Name="PreviewPath"
+                          Fill="{DynamicResource TextPrimary}"
+                          Stretch="Uniform"
+                          Width="56" Height="56"
+                          HorizontalAlignment="Center"
                           VerticalAlignment="Center"/>
                 </Grid>
             </Border>
         </Grid>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="清除图标" Click="Clear_Click" Style="{StaticResource DangerLinkButtonStyle}" Margin="0,0,16,0"/>
-            <Button Content="取消" IsCancel="True" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,16,0"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="清除图标" Click="Clear_Click" Style="{StaticResource DangerLinkButtonStyle}" Margin="0,0,12,0"/>
+            <Button Content="取消" IsCancel="True" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,12,0"/>
             <Button Content="确定" IsDefault="True" Click="Ok_Click" Style="{StaticResource PrimaryButtonStyle}"/>
         </StackPanel>
     </Grid>

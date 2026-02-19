@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using PromptMasterv5.Core.Models;
 
 namespace PromptMasterv5.Views
@@ -12,6 +13,21 @@ namespace PromptMasterv5.Views
         {
             InitializeComponent();
             BackupList.ItemsSource = backups;
+
+            // Show empty state if no backups available
+            if (backups == null || backups.Count == 0)
+            {
+                BackupList.Visibility = Visibility.Collapsed;
+                EmptyState.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Enable the Restore button only when an item is selected
+        /// </summary>
+        private void BackupList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            RestoreButton.IsEnabled = BackupList.SelectedItem != null;
         }
 
         private void Restore_Click(object sender, RoutedEventArgs e)
@@ -21,10 +37,6 @@ namespace PromptMasterv5.Views
                 SelectedBackup = item;
                 DialogResult = true;
                 Close();
-            }
-            else
-            {
-                System.Windows.MessageBox.Show("请先选择一个备份文件。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

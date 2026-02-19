@@ -17,6 +17,10 @@ namespace PromptMasterv5
 
             string initialText = currentGeometry ?? "";
             InputBox.Text = initialText;
+
+            // 自动聚焦到输入框
+            Loaded += (_, _) => InputBox.Focus();
+
             UpdatePreview(initialText);
         }
 
@@ -27,22 +31,35 @@ namespace PromptMasterv5
 
         private void UpdatePreview(string data)
         {
-            try
+            if (PreviewPath == null || PreviewBorder == null) return;
+
+            if (string.IsNullOrWhiteSpace(data))
             {
-                if (string.IsNullOrWhiteSpace(data))
-                {
-                    PreviewPath.Data = null;
-                }
-                else
+                // 空输入：清空预览，恢复默认边框
+                PreviewPath.Data = null;
+                PreviewHint.Visibility = Visibility.Visible;
+                ErrorHint.Visibility = Visibility.Collapsed;
+                PreviewBorder.BorderBrush = FindResource("DividerBrush") as System.Windows.Media.Brush;
+            }
+            else
+            {
+                try
                 {
                     // 尝试解析 SVG 代码
                     PreviewPath.Data = Geometry.Parse(data);
+                    // 解析成功：绿色边框，隐藏提示
+                    PreviewHint.Visibility = Visibility.Collapsed;
+                    ErrorHint.Visibility = Visibility.Collapsed;
+                    PreviewBorder.BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x4C, 0xAF, 0x50)); // #4CAF50 success green
                 }
-            }
-            catch
-            {
-                // 解析失败不显示，避免报错
-                PreviewPath.Data = null;
+                catch
+                {
+                    // 解析失败：清空预览，红色边框 + 错误提示
+                    PreviewPath.Data = null;
+                    PreviewHint.Visibility = Visibility.Collapsed;
+                    ErrorHint.Visibility = Visibility.Visible;
+                    PreviewBorder.BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xE5, 0x39, 0x35)); // #E53935 error red
+                }
             }
         }
 
