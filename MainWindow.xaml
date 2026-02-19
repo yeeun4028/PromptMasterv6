@@ -206,13 +206,12 @@
                                 <Style TargetType="MenuItem" BasedOn="{StaticResource NoIconMenuItemStyle}"/>
                                 <Style TargetType="Separator" BasedOn="{StaticResource NoIconSeparatorStyle}"/>
                             </ContextMenu.Resources>
-                            <MenuItem Header="设置图标..." 
+                            <MenuItem Header="设置图标" 
                                       Command="{Binding PlacementTarget.Tag.SidebarVM.ChangeFolderIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
-                            <MenuItem Header="重命名..." 
+                            <MenuItem Header="重命名" 
                                       Command="{Binding PlacementTarget.Tag.SidebarVM.RenameFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
-                            <Separator/>
                             <MenuItem Header="删除" 
                                       Command="{Binding PlacementTarget.Tag.SidebarVM.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
@@ -266,10 +265,9 @@
                                 <Style TargetType="MenuItem" BasedOn="{StaticResource NoIconMenuItemStyle}"/>
                                 <Style TargetType="Separator" BasedOn="{StaticResource NoIconSeparatorStyle}"/>
                             </ContextMenu.Resources>
-                            <MenuItem Header="设置图标..." 
+                            <MenuItem Header="设置图标" 
                                       Command="{Binding PlacementTarget.Tag.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
-                            <Separator/>
                             <MenuItem Header="删除" 
                                       Command="{Binding PlacementTarget.Tag.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>

@@ -26,7 +26,16 @@
 
             <rootConverters:ApiKeyMaskConverter x:Key="ApiKeyMaskConverter"/>
 
-            <!-- Global: Remove default WPF focus dashed rectangle for all interactive controls -->
+            <!-- Global: Remove default WPF focus dashed rectangle for ALL controls -->
+            <!-- Override system-level FocusVisualStyle resource to affect everything -->
+            <Style x:Key="{x:Static SystemParameters.FocusVisualStyleKey}">
+                <Setter Property="Control.Template">
+                    <Setter.Value>
+                        <ControlTemplate/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style TargetType="Button">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             </Style>
@@ -37,6 +46,9 @@
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             </Style>
             <Style TargetType="TextBox">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="RichTextBox">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             </Style>
             <Style TargetType="ComboBox">
@@ -55,6 +67,24 @@
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             </Style>
             <Style TargetType="ScrollViewer">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="DataGrid">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="DataGridCell">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="DataGridRow">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="ToggleButton">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="Slider">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+            <Style TargetType="PasswordBox">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             </Style>
 
