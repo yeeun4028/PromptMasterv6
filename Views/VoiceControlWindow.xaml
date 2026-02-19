@@ -5,41 +5,94 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PromptMasterv5.Views"
         xmlns:vm="clr-namespace:PromptMasterv5.ViewModels"
+        xmlns:cv="clr-namespace:PromptMasterv5.Converters"
         mc:Ignorable="d"
-        Title="Voice Control" Height="100" Width="400"
+        Title="Voice Control" Height="50" Width="260"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
-        WindowStartupLocation="Manual">
+        WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
+        <cv:StringVisibilityConverter x:Key="StringVisibilityConverter"/>
+        
         <Style TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
     </Window.Resources>
 
-    <Border Background="#CC000000" CornerRadius="12" Padding="20">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-                <TextBlock Text="🎙️" FontSize="24" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
-            </StackPanel>
-            
-            <TextBlock Text="{Binding RecognizedText}" 
-                       FontSize="14" 
-                       Foreground="#CCCCCC" 
-                       HorizontalAlignment="Center" 
-                       TextTrimming="CharacterEllipsis"/>
-            
-            <!-- Simple Visualizer (Width based on AudioLevel) -->
-            <Rectangle Height="4" Fill="#4CAF50" HorizontalAlignment="Center" Margin="0,8,0,0" RadiusX="2" RadiusY="2">
-                <Rectangle.Width>
-                    <Binding Path="AudioLevel" Mode="OneWay"/>
-                </Rectangle.Width>
-            </Rectangle>
+    <!-- Main Container: Compact Pill Shape -->
+    <Border x:Name="border" Background="#F2202124" CornerRadius="25" Padding="20,10" RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <TranslateTransform Y="20"/>
+        </Border.RenderTransform>
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="4" Opacity="0.4" Color="Black" Direction="270"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        </StackPanel>
+            <!-- Waveform Visualizer -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
+                <StackPanel.Resources>
+                    <Style TargetType="Rectangle">
+                        <Setter Property="Width" Value="3"/>
+                        <Setter Property="Height" Value="16"/>
+                        <Setter Property="RadiusX" Value="1.5"/>
+                        <Setter Property="RadiusY" Value="1.5"/>
+                        <Setter Property="Fill" Value="White"/>
+                        <Setter Property="Margin" Value="1.5,0"/>
+                        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                    </Style>
+                </StackPanel.Resources>
+                
+                <Rectangle>
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform ScaleY="{Binding AudioScaleBar1}"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle>
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform ScaleY="{Binding AudioScaleBar2}"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle>
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform ScaleY="{Binding AudioScaleBar3}"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle>
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform ScaleY="{Binding AudioScaleBar4}"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle>
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform ScaleY="{Binding AudioScaleBar5}"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+            </StackPanel>
+
+            <!-- Text Content -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <!-- Status Text -->
+                <TextBlock Text="{Binding StatusText}" 
+                           FontSize="14" 
+                           FontWeight="SemiBold" 
+                           Foreground="#FFFFFF"
+                           Visibility="{Binding StatusText, Converter={StaticResource StringVisibilityConverter}}"/>
+                
+                <TextBlock Text="{Binding RecognizedText}" 
+                           FontSize="12" 
+                           Foreground="#E0E0E0" 
+                           TextTrimming="CharacterEllipsis"
+                           Visibility="{Binding RecognizedText, Converter={StaticResource StringVisibilityConverter}}"/>
+            </StackPanel>
+        </Grid>
     </Border>
 
     <Window.Triggers>
@@ -47,6 +100,11 @@
             <BeginStoryboard>
                 <Storyboard>
                     <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" 
+                                     Storyboard.TargetName="border"
+                                     From="20" To="0" 
+                                     Duration="0:0:0.3" 
+                                     DecelerationRatio="0.5"/>
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>

@@ -17,8 +17,8 @@ namespace PromptMasterv5.Infrastructure.Services
         // Max edit distance allowed for fuzzy matching (per character ratio)
         private const double MaxEditDistanceRatio = 0.4; // Allow up to 40% character difference
 
-        public event EventHandler CommandsChanged;
-        private FileSystemWatcher _watcher;
+        public event EventHandler? CommandsChanged;
+        private FileSystemWatcher? _watcher;
         private DateTime _lastReadTime = DateTime.MinValue;
 
         public CommandExecutionService(ISettingsService settingsService)
