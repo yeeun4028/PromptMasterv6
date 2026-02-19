@@ -777,7 +777,7 @@
                                                                             <ColumnDefinition Width="Auto"/>
                                                                         </Grid.ColumnDefinitions>
                                                                         <TextBlock Text="{Binding}" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                                         <Button Command="{Binding DataContext.SettingsVM.RemoveLauncherSearchPathCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                                         <Button Grid.Column="1" Command="{Binding DataContext.SettingsVM.RemoveLauncherSearchPathCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                                                  CommandParameter="{Binding}" 
                                                                                  Content="删除" 
                                                                                  Style="{StaticResource DangerLinkButtonStyle}" 
@@ -1431,105 +1431,9 @@
                                     </StackPanel.Style>
                                     <!-- Sub-Tab Navigation -->
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <Button x:Name="BtnMiniPromptTab" Content="提示词" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="0">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button x:Name="BtnMiniHotkeyTab" Content="热键" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="1">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button x:Name="BtnMiniLocationTab" Content="位置" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="2">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                                                        BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                        BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                        CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="Tag" Value="Selected">
-                                                                        <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColor}"/>
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
+                                        <Button x:Name="BtnMiniPromptTab" Content="提示词" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnMiniHotkeyTab" Content="热键" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button x:Name="BtnMiniLocationTab" Content="位置" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
                                     </StackPanel>
 
                                     <!-- [提示词] 标签页内容 -->
