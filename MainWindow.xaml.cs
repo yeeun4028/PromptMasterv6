@@ -643,10 +643,12 @@ namespace PromptMasterv5
                 if (hasWebDav)
                 {
                     // 配置了WebDAV，询问是否备份到云端
-                    var result = MessageBox.Show("您有未备份的修改。是否在退出前备份到云端？\n\n提示：选择【否】将仅保存到本地。", 
-                                                "未保存的更改", 
-                                                MessageBoxButton.YesNoCancel, 
-                                                MessageBoxImage.Warning);
+                    var dialog = new Views.ConfirmationDialog
+                    {
+                        Owner = this
+                    };
+                    dialog.ShowDialog();
+                    var result = dialog.Result;
                     
                     if (result == MessageBoxResult.Cancel)
                     {

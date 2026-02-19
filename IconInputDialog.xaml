@@ -44,7 +44,7 @@
         <!-- Helper hint text -->
         <TextBlock Grid.Row="1" Text="粘贴 SVG Path 数据，右侧实时预览图标效果"
                    Style="{StaticResource HintTextStyle}"
-                   Margin="0,-8,0,12"/>
+                   Margin="0,0,0,16"/>
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
@@ -59,7 +59,7 @@
                      VerticalContentAlignment="Top"
                      TextChanged="InputBox_TextChanged"
                      ToolTip="例如: M10,10 L50,50..."
-                     Margin="0,0,16,0"/>
+                     Margin="0,0,24,0"/>
 
             <!-- Preview area with validation feedback border -->
             <Border x:Name="PreviewBorder"
