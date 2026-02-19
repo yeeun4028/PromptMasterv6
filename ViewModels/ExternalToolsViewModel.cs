@@ -143,7 +143,6 @@ namespace PromptMasterv5.ViewModels
                     else
                     {
                         System.Windows.Clipboard.SetText(ocrResult);
-                        _dialogService.ShowToast("文字识别成功，已复制到剪贴板。", "Success");
                         // Play Shutter Sound
                         await _audioService.PlayShutterSoundAsync();
                     }
