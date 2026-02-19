@@ -636,6 +636,11 @@ namespace PromptMasterv5.ViewModels
 
             // 2. Show dialog
             var dialog = new Views.BackupSelectionDialog(backups);
+            
+            // Try to set owner to the active window first, fallback to MainWindow
+            var activeWindow = System.Windows.Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
+            dialog.Owner = activeWindow ?? System.Windows.Application.Current.MainWindow;
+
             if (dialog.ShowDialog() != true || dialog.SelectedBackup == null) return;
 
             // 3. Confirm
