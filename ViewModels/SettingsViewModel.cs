@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
 using MessageBox = System.Windows.MessageBox;
 
 namespace PromptMasterv5.ViewModels
@@ -711,7 +712,10 @@ namespace PromptMasterv5.ViewModels
 
             try
             {
-                await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files);
+                var voiceCommandService = (System.Windows.Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
+                var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, string>();
+                
+                await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files, voiceCommands);
                 _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now; // Update sync time
                 _mainViewModel.IsDirty = false; // Reset dirty state indicator
                 _mainViewModel.IsEditMode = false; // Switch to preview mode on successful backup

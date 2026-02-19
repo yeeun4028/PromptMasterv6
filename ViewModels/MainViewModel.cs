@@ -339,6 +339,14 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
+        // Restore voice commands from sync data
+        if (data.VoiceCommands != null && data.VoiceCommands.Count > 0)
+        {
+            var commandService = Application.Current.Dispatcher.Invoke(() => 
+                (Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>());
+            commandService?.SetCommands(data.VoiceCommands);
+        }
+
         FilesView = CollectionViewSource.GetDefaultView(Files);
         UpdateFilesViewFilter();
         FilesView?.Refresh();
@@ -1104,7 +1112,9 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            await _localDataService.SaveAsync(Folders, Files);
+            var voiceCommandService = (Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
+            var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, string>();
+            await _localDataService.SaveAsync(Folders, Files, voiceCommands);
         }
         catch { }
     }

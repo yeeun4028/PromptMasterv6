@@ -22,7 +22,7 @@ namespace PromptMasterv5.Infrastructure.Services
             });
         }
 
-        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
+        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, Dictionary<string, string> voiceCommands)
         {
             var config = ConfigService.Load();
             if (string.IsNullOrEmpty(config.UserName) || string.IsNullOrEmpty(config.Password))
@@ -36,7 +36,8 @@ namespace PromptMasterv5.Infrastructure.Services
             var data = new AppData
             {
                 Folders = new List<FolderItem>(folders),
-                Files = new List<PromptItem>(files)
+                Files = new List<PromptItem>(files),
+                VoiceCommands = voiceCommands ?? new()
             };
             var options = new JsonSerializerOptions { WriteIndented = true };
             string jsonString = JsonSerializer.Serialize(data, options);
@@ -112,7 +113,7 @@ namespace PromptMasterv5.Infrastructure.Services
             
             historyItem.UpdatedAt = DateTime.Now;
             
-            await SaveAsync(data.Folders, data.Files);
+            await SaveAsync(data.Folders, data.Files, data.VoiceCommands);
         }
     }
 }

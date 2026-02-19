@@ -337,6 +337,7 @@ namespace PromptMasterv5.Infrastructure.Services
                 {
                     string configPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "config.json");
                     string localConfigPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "local_settings.json");
+                    string voiceCommandsPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "voice_commands.json");
 
                     if (System.IO.File.Exists(configPath))
                     {
@@ -346,6 +347,11 @@ namespace PromptMasterv5.Infrastructure.Services
                     if (System.IO.File.Exists(localConfigPath))
                     {
                         archive.CreateEntryFromFile(localConfigPath, "local_settings.json");
+                    }
+
+                    if (System.IO.File.Exists(voiceCommandsPath))
+                    {
+                        archive.CreateEntryFromFile(voiceCommandsPath, "voice_commands.json");
                     }
                 }
 
@@ -371,10 +377,11 @@ namespace PromptMasterv5.Infrastructure.Services
                 {
                     var configEntry = archive.GetEntry("config.json");
                     var localConfigEntry = archive.GetEntry("local_settings.json");
+                    var voiceCommandsEntry = archive.GetEntry("voice_commands.json");
 
-                    if (configEntry == null && localConfigEntry == null)
+                    if (configEntry == null && localConfigEntry == null && voiceCommandsEntry == null)
                     {
-                        throw new System.Exception("The selected file does not contain valid configuration files (config.json or local_settings.json).");
+                        throw new System.Exception("The selected file does not contain valid configuration files (config.json, local_settings.json or voice_commands.json).");
                     }
 
                     string baseDir = System.AppDomain.CurrentDomain.BaseDirectory;
@@ -389,6 +396,12 @@ namespace PromptMasterv5.Infrastructure.Services
                     {
                         string targetPath = System.IO.Path.Combine(baseDir, "local_settings.json");
                         localConfigEntry.ExtractToFile(targetPath, overwrite: true);
+                    }
+
+                    if (voiceCommandsEntry != null)
+                    {
+                        string targetPath = System.IO.Path.Combine(baseDir, "voice_commands.json");
+                        voiceCommandsEntry.ExtractToFile(targetPath, overwrite: true);
                     }
                 }
 

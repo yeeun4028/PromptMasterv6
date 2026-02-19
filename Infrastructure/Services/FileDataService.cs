@@ -14,12 +14,13 @@ namespace PromptMasterv5.Infrastructure.Services
         private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data.json");
         public string BackupDirectory => Path.GetDirectoryName(_filePath) ?? "";
 
-        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
+        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, Dictionary<string, string> voiceCommands)
         {
             var data = new AppData
             {
                 Folders = new List<FolderItem>(folders),
-                Files = new List<PromptItem>(files)
+                Files = new List<PromptItem>(files),
+                VoiceCommands = voiceCommands ?? new()
             };
             var options = new JsonSerializerOptions { WriteIndented = true };
 
@@ -194,7 +195,7 @@ namespace PromptMasterv5.Infrastructure.Services
             
             historyItem.UpdatedAt = DateTime.Now;
             
-            await SaveAsync(data.Folders, data.Files);
+            await SaveAsync(data.Folders, data.Files, data.VoiceCommands);
         }
     }
 }

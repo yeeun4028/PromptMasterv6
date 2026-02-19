@@ -28,6 +28,28 @@ namespace PromptMasterv5.Infrastructure.Services
         /// </summary>
         public IReadOnlyList<string> GetCommandKeys() => _commands.Keys.ToList();
 
+        public Dictionary<string, string> GetCommands() => _commands;
+
+        public void SetCommands(Dictionary<string, string> commands)
+        {
+            if (commands == null) return;
+            _commands = commands;
+            
+            // Save to local file
+            try
+            {
+                var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _settingsService.Config.VoiceCommandConfigPath);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_commands, options);
+                File.WriteAllText(configPath, json);
+                LoggerService.Instance.LogInfo($"Saved {_commands.Count} voice commands to {configPath}", "CommandExecutionService.SetCommands");
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to save voice commands", "CommandExecutionService.SetCommands");
+            }
+        }
+
         public void LoadCommands()
         {
             try
