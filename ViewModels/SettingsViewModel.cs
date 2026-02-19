@@ -28,6 +28,7 @@ namespace PromptMasterv5.ViewModels
         private readonly IDataService _dataService;
         private readonly IDataService _localDataService;
         private readonly GlobalKeyService _keyService;
+        private readonly IDialogService _dialogService;
 
         // 引用 MainViewModel 以访问 Files、Folders 等数据（用于同步恢复）
         // 这是暂时的依赖，后续可以通过消息总线进一步解耦
@@ -82,13 +83,15 @@ namespace PromptMasterv5.ViewModels
             IAiService aiService,
             IDataService dataService,
             FileDataService localDataService,
-            GlobalKeyService keyService)
+            GlobalKeyService keyService,
+            IDialogService dialogService)
         {
             _settingsService = settingsService;
             _aiService = aiService;
             _dataService = dataService;
             _localDataService = localDataService;
             _keyService = keyService;
+            _dialogService = dialogService;
 
             LoggerService.Instance.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
         }
@@ -440,7 +443,7 @@ namespace PromptMasterv5.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"添加文件夹失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert($"添加文件夹失败: {ex.Message}", "错误");
                 LoggerService.Instance.LogException(ex, "Failed to add launcher search path", "SettingsViewModel.AddLauncherSearchPath");
             }
         }
@@ -479,7 +482,7 @@ namespace PromptMasterv5.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"无法打开配置文件: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert($"无法打开配置文件: {ex.Message}", "错误");
                 LoggerService.Instance.LogException(ex, "Failed to open voice command config", "SettingsViewModel.OpenVoiceCommandsConfig");
             }
         }
@@ -528,7 +531,7 @@ namespace PromptMasterv5.ViewModels
         {
             if (_mainViewModel == null)
             {
-                MessageBox.Show("系统初始化未完成", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert("系统初始化未完成", "错误");
                 return;
             }
 
@@ -614,7 +617,7 @@ namespace PromptMasterv5.ViewModels
         {
             if (_mainViewModel == null)
             {
-                MessageBox.Show("系统初始化未完成", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert("系统初始化未完成", "错误");
                 return;
             }
 
@@ -627,7 +630,7 @@ namespace PromptMasterv5.ViewModels
 
             if (backups.Count == 0)
             {
-                MessageBox.Show($"在以下路径未找到本地备份文件：\n{service.BackupDirectory}\n\n请确保已进行过保存操作。", "未找到备份", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogService.ShowToast($"在以下路径未找到本地备份文件：\n{service.BackupDirectory}\n\n请确保已进行过保存操作。", "Warning");
                 return;
             }
 
@@ -637,8 +640,7 @@ namespace PromptMasterv5.ViewModels
 
             // 3. Confirm
             var selected = dialog.SelectedBackup;
-            if (MessageBox.Show($"确定要恢复到备份点：\n{selected.DisplayText} 吗？\n当前未保存的更改将会丢失。", 
-                "确认恢复", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            if (!_dialogService.ShowConfirmation($"确定要恢复到备份点：\n{selected.DisplayText} 吗？\n当前未保存的更改将会丢失。", "确认恢复"))
             {
                 return;
             }
@@ -706,7 +708,7 @@ namespace PromptMasterv5.ViewModels
         {
             if (_mainViewModel == null)
             {
-                MessageBox.Show("系统初始化未完成", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert("系统初始化未完成", "错误");
                 return;
             }
 
@@ -724,7 +726,7 @@ namespace PromptMasterv5.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"备份失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert($"备份失败: {ex.Message}", "错误");
                 LoggerService.Instance.LogException(ex, "Failed to manual backup", "SettingsViewModel.ManualBackup");
             }
         }
@@ -745,37 +747,27 @@ namespace PromptMasterv5.ViewModels
                 }
                 else
                 {
-                    MessageBox.Show("日志文件夹不存在", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _dialogService.ShowToast("日志文件夹不存在", "Info");
                 }
             }
             catch (Exception ex)
             {
                 LoggerService.Instance.LogException(ex, "Failed to open log folder", "SettingsViewModel.OpenLogFolder");
-                MessageBox.Show($"无法打开日志文件夹: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowAlert($"无法打开日志文件夹: {ex.Message}", "错误");
             }
         }
 
         [RelayCommand]
         private void ClearLogs()
         {
-            var result = MessageBox.Show(
-                "确定要清除所有日志文件吗？此操作不可撤销。",
-                "确认清除日志",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Yes)
+            try
             {
-                try
-                {
-                    LoggerService.Instance.ClearLogs();
-                    MessageBox.Show("日志已清除", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    LoggerService.Instance.LogException(ex, "Failed to clear logs", "SettingsViewModel.ClearLogs");
-                    MessageBox.Show($"清除日志失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                LoggerService.Instance.ClearLogs();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to clear logs", "SettingsViewModel.ClearLogs");
+                _dialogService.ShowAlert($"清除日志失败: {ex.Message}", "错误");
             }
         }
 
@@ -798,11 +790,11 @@ namespace PromptMasterv5.ViewModels
                 try
                 {
                     _settingsService.ExportSettings(dialog.FileName);
-                    MessageBox.Show("配置导出成功！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _dialogService.ShowToast("配置导出成功！", "Success");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"配置导出失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    _dialogService.ShowAlert($"配置导出失败: {ex.Message}", "错误");
                 }
             }
         }

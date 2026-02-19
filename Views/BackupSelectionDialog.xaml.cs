@@ -24,7 +24,7 @@ namespace PromptMasterv5.Views
             }
             else
             {
-                System.Windows.MessageBox.Show("请先选择一个备份文件。", "提示");
+                System.Windows.MessageBox.Show("请先选择一个备份文件。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

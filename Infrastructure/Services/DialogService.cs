@@ -19,6 +19,26 @@ namespace PromptMasterv5.Infrastructure.Services
             return result == MessageBoxResult.Yes;
         }
 
+        public void ShowToast(string message, string type = "Info")
+        {
+            switch (type.ToLower())
+            {
+                case "success":
+                    HandyControl.Controls.Growl.SuccessGlobal(message);
+                    break;
+                case "warning":
+                    HandyControl.Controls.Growl.WarningGlobal(message);
+                    break;
+                case "error":
+                    HandyControl.Controls.Growl.ErrorGlobal(message);
+                    break;
+                case "info":
+                default:
+                    HandyControl.Controls.Growl.InfoGlobal(message);
+                    break;
+            }
+        }
+
         public string? ShowOpenFileDialog(string filter)
         {
             var dialog = new Microsoft.Win32.OpenFileDialog

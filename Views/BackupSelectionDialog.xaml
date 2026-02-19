@@ -4,37 +4,68 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="选择备份文件" Height="400" Width="600"
-        WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize"
-        Background="#F1F1EF">
+        Title="选择备份文件" Height="450" Width="600"
+        Style="{DynamicResource ModernDialogWindowStyle}">
     
-    <Grid Margin="20">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="请选择要恢复的本地备份文件：" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
+        <TextBlock Text="恢复本地备份" Style="{StaticResource SectionHeaderTextStyle}"/>
 
         <DataGrid Grid.Row="1" x:Name="BackupList" 
                   AutoGenerateColumns="False" 
                   IsReadOnly="True" 
                   SelectionMode="Single"
-                  Background="White"
+                  Background="{DynamicResource CardBackground}"
+                  RowBackground="{DynamicResource CardBackground}"
+                  Foreground="{DynamicResource TextPrimary}"
                   BorderThickness="1"
-                  BorderBrush="#E5E5E5">
+                  BorderBrush="{DynamicResource DividerBrush}"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="{DynamicResource DividerBrush}">
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="{DynamicResource ShellBackground}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                    <Setter Property="Padding" Value="10,6"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}"/>
+                </Style>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="10,6"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ContentPresenter VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="文件名" Binding="{Binding FileName}" Width="200"/>
-                <DataGridTextColumn Header="修改时间" Binding="{Binding LastModified, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="150"/>
-                <DataGridTextColumn Header="大小 (字节)" Binding="{Binding Size}" Width="100"/>
+                <DataGridTextColumn Header="文件名" Binding="{Binding FileName}" Width="*"/>
+                <DataGridTextColumn Header="修改时间" Binding="{Binding LastModified, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="160"/>
+                <DataGridTextColumn Header="大小" Binding="{Binding DisplaySize}" Width="80"/>
             </DataGrid.Columns>
         </DataGrid>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="取消" Width="80" Height="30" Margin="0,0,10,0" Click="Cancel_Click"/>
-            <Button Content="恢复" Width="80" Height="30" Click="Restore_Click" Background="#4A89DC" Foreground="White"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="取消" IsCancel="True" Click="Cancel_Click" Style="{StaticResource TextLinkButtonStyle}" Margin="0,0,16,0"/>
+            <Button Content="恢复" Click="Restore_Click" Style="{StaticResource PrimaryButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>

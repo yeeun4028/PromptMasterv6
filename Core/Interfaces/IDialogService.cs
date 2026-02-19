@@ -4,6 +4,7 @@ namespace PromptMasterv5.Core.Interfaces
     {
         void ShowAlert(string message, string title);
         bool ShowConfirmation(string message, string title);
+        void ShowToast(string message, string type = "Info");
         string? ShowOpenFileDialog(string filter);
         string[]? ShowOpenFilesDialog(string filter);
         string? ShowSaveFileDialog(string filter, string defaultName);

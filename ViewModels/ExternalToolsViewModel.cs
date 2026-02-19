@@ -143,7 +143,7 @@ namespace PromptMasterv5.ViewModels
                     else
                     {
                         System.Windows.Clipboard.SetText(ocrResult);
-                        // Growl.SuccessGlobal("文字识别成功，已复制到剪贴板。");
+                        _dialogService.ShowToast("文字识别成功，已复制到剪贴板。", "Success");
                         // Play Shutter Sound
                         await _audioService.PlayShutterSoundAsync();
                     }
@@ -295,12 +295,7 @@ namespace PromptMasterv5.ViewModels
                     // Auto-Screenshot Fallback (Perfect Solution)
                     // If text copy fails, seamlessly assume it's non-selectable text and switch to screenshot mode.
                     
-                    Growl.InfoGlobal(new GrowlInfo
-                    {
-                        Message = "无法直接取词，已自动切换至截图模式...",
-                        ShowDateTime = false,
-                        WaitTime = 2
-                    });
+                    _dialogService.ShowToast("无法直接取词，已自动切换至截图模式...", "Info");
 
                     await Task.Delay(200);
 

@@ -385,6 +385,10 @@
     </Window.Resources>
 
     <Grid UseLayoutRounding="True" SnapsToDevicePixels="True">
+        <!-- Growl Toast Notification Host -->
+        <StackPanel hc:Growl.GrowlParent="True"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,20,20,0" Panel.ZIndex="10000" IsHitTestVisible="False"/>
         <Grid x:Name="MiniModeContainer" 
               Visibility="{Binding IsFullMode, Converter={StaticResource InverseBoolToVis}}"
               Background="Transparent">
