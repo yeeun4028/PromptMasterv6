@@ -1,3 +1,4 @@
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using PromptMasterv5.Core.Interfaces;
 using PromptMasterv5.Core.Models;
@@ -27,8 +28,12 @@ namespace PromptMasterv5.Infrastructure.Services
         public event EventHandler? OnRecordingStopped;
 
         private DateTime _lastAudioDetectedTime;
-        private const float SilenceThreshold = 0.02f; // Adjust as needed
-        private const int SilenceTimeoutMs = 1500; // 1.5 seconds of silence to auto-stop
+        private const float SilenceThreshold = 0.02f;
+        private const int SilenceTimeoutMs = 1500;
+
+        // Volume ducking
+        private float _savedVolume = -1f;
+        private bool _wasMuted = false;
 
         public VoiceService(ISettingsService settingsService, IHttpClientFactory httpClientFactory)
         {
@@ -57,6 +62,9 @@ namespace PromptMasterv5.Infrastructure.Services
 
                 _tempFilePath = Path.Combine(Path.GetTempPath(), $"voice_cmd_{Guid.NewGuid()}.wav");
                 _waveWriter = new WaveFileWriter(_tempFilePath, _waveIn.WaveFormat);
+
+                // Duck system volume to reduce interference
+                DuckSystemVolume();
 
                 _waveIn.StartRecording();
                 _isRecording = true;
@@ -101,8 +109,46 @@ namespace PromptMasterv5.Infrastructure.Services
             _waveWriter = null;
             _waveIn?.Dispose();
             _waveIn = null;
+
+            // Restore system volume
+            RestoreSystemVolume();
             
             OnRecordingStopped?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void DuckSystemVolume()
+        {
+            try
+            {
+                using var enumerator = new MMDeviceEnumerator();
+                using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                _savedVolume = device.AudioEndpointVolume.MasterVolumeLevelScalar;
+                _wasMuted = device.AudioEndpointVolume.Mute;
+                device.AudioEndpointVolume.MasterVolumeLevelScalar = _savedVolume * 0.1f; // Reduce to 10%
+                LoggerService.Instance.LogInfo($"Volume ducked: {_savedVolume:P0} -> {_savedVolume * 0.1f:P0}", "VoiceService.DuckSystemVolume");
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to duck volume", "VoiceService.DuckSystemVolume");
+            }
+        }
+
+        private void RestoreSystemVolume()
+        {
+            try
+            {
+                if (_savedVolume < 0) return;
+                using var enumerator = new MMDeviceEnumerator();
+                using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                device.AudioEndpointVolume.MasterVolumeLevelScalar = _savedVolume;
+                device.AudioEndpointVolume.Mute = _wasMuted;
+                LoggerService.Instance.LogInfo($"Volume restored: {_savedVolume:P0}", "VoiceService.RestoreSystemVolume");
+                _savedVolume = -1f;
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to restore volume", "VoiceService.RestoreSystemVolume");
+            }
         }
 
         public async Task<string> StopRecordingAndTranscribeAsync(IReadOnlyList<string>? hotwords = null)
