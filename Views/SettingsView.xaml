@@ -509,14 +509,14 @@
                     </Border>
 
                     <!-- Right Content Area -->
-                    <Grid Grid.Column="1" Margin="30">
+                    <Grid Grid.Column="1" Margin="20,15,15,20">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <!-- Header with Close Button -->
-                        <Grid Grid.Row="0" Margin="0,0,0,20">
+                        <Grid Grid.Row="0" Margin="0,0,0,0">
                             <Button Command="{Binding SaveSettingsCommand}" 
                                     Content="✕" FontSize="18" Foreground="{DynamicResource TextSecondary}"
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
