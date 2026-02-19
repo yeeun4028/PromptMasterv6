@@ -45,19 +45,12 @@ namespace PromptMasterv5.ViewModels
             System.Windows.Application.Current.Dispatcher.Invoke(() => AudioLevel = level * 100); 
         }
 
-        public async Task StartSession()
+        public void StartRecordingSession()
         {
             StatusText = "Listening...";
             RecognizedText = "";
             IsProcessing = false;
             _voiceService.StartRecording();
-            
-            // Safety timeout
-            await Task.Delay(5000); 
-            if (IsListening)
-            {
-                await StopAndProcess();
-            }
         }
 
         public async Task StopAndProcess()

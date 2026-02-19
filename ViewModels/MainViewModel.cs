@@ -260,7 +260,8 @@ public partial class MainViewModel : ObservableObject
         });
         _keyService.OnQuickActionTriggered += async (_, __) => await HandleQuickActionTriggered();
         _keyService.OnLauncherTriggered += (_, __) => HandleLauncherTriggered();
-        _keyService.OnVoiceControlTriggered += (_, __) => HandleVoiceControlTriggered();
+        _keyService.OnVoiceControlKeyDown += (_, __) => HandleVoiceControlKeyDown();
+        _keyService.OnVoiceControlTriggered += (_, __) => HandleVoiceControlKeyUp();
         // Initialize hotkeys from config before starting
         _keyService.LauncherHotkeyString = Config.LauncherHotkey;
         _keyService.QuickActionHotkeyString = Config.QuickActionHotkey;
@@ -356,26 +357,15 @@ public partial class MainViewModel : ObservableObject
         IsDirty = false; // Initial load is consistent with source
     }
 
-    private void HandleVoiceControlTriggered()
+    private void HandleVoiceControlKeyDown()
     {
-        Application.Current.Dispatcher.Invoke(async () =>
+        Application.Current.Dispatcher.Invoke(() =>
         {
             try
             {
-                // Check if already open
+                // If already open and listening, ignore repeated KeyDown
                 var existing = Application.Current.Windows.OfType<Views.VoiceControlWindow>().FirstOrDefault();
-                if (existing != null)
-                {
-                    existing.Activate();
-                    var vm = existing.DataContext as VoiceControlViewModel;
-                    if (vm != null && vm.IsListening)
-                    {
-                        vm.Cancel();
-                        return;
-                    }
-                    existing.Close();
-                    return;
-                }
+                if (existing != null) return;
 
                 var app = Application.Current as App;
                 if (app != null)
@@ -383,12 +373,34 @@ public partial class MainViewModel : ObservableObject
                     var vm = app.ServiceProvider.GetRequiredService<VoiceControlViewModel>();
                     var window = new Views.VoiceControlWindow(vm);
                     window.Show();
-                    await vm.StartSession();
+                    vm.StartRecordingSession();
                 }
             }
             catch (Exception ex)
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to start voice control", "MainViewModel.HandleVoiceControlTriggered");
+                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to start voice control", "MainViewModel.HandleVoiceControlKeyDown");
+            }
+        });
+    }
+
+    private void HandleVoiceControlKeyUp()
+    {
+        Application.Current.Dispatcher.Invoke(async () =>
+        {
+            try
+            {
+                var existing = Application.Current.Windows.OfType<Views.VoiceControlWindow>().FirstOrDefault();
+                if (existing == null) return;
+
+                var vm = existing.DataContext as VoiceControlViewModel;
+                if (vm != null && vm.IsListening)
+                {
+                    await vm.StopAndProcess();
+                }
+            }
+            catch (Exception ex)
+            {
+                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to stop voice control", "MainViewModel.HandleVoiceControlKeyUp");
             }
         });
     }

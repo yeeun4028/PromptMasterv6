@@ -1,5 +1,6 @@
 {
     "打开计算器": "calc.exe",
     "打开记事本": "notepad.exe",
-    "清理文件": "D:\\Program Files\\PromptMasterv5\\脚本"
+    "清理文件": "D:\\Program Files\\PromptMasterv5\\脚本\\清理.ahk",
+    "打开音乐": "D:\\Program Files\\AIMP\\AIMP.exe"
 }
