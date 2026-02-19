@@ -45,6 +45,7 @@ public partial class MainViewModel : ObservableObject
     private readonly WindowPositionService _windowPositionService;
     private readonly IWindowManager _windowManager; // Injected
     private readonly ISettingsService _settingsService;
+    private readonly ICommandExecutionService _commandExecutionService;
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
@@ -150,7 +151,8 @@ public partial class MainViewModel : ObservableObject
         IDialogService dialogService,
         ClipboardService clipboardService,
         WindowPositionService windowPositionService,
-        IWindowManager windowManager) // Added parameter
+        IWindowManager windowManager,
+        ICommandExecutionService commandExecutionService) // Injected
     {
         _aiService = aiService;
         _dataService = dataService;
@@ -161,7 +163,15 @@ public partial class MainViewModel : ObservableObject
         _clipboardService = clipboardService;
         _windowPositionService = windowPositionService;
         _settingsService = settingsService;
+        _settingsService = settingsService;
         _windowManager = windowManager; // Assigned
+        _commandExecutionService = commandExecutionService;
+        
+        _commandExecutionService.CommandsChanged += (_, __) => 
+        {
+             // Mark as dirty so sync prompt appears
+             Application.Current.Dispatcher.Invoke(() => RequestSave());
+        };
 
         SidebarVM = sidebarVM;
         ChatVM = chatVM;
@@ -342,9 +352,7 @@ public partial class MainViewModel : ObservableObject
         // Restore voice commands from sync data
         if (data.VoiceCommands != null && data.VoiceCommands.Count > 0)
         {
-            var commandService = Application.Current.Dispatcher.Invoke(() => 
-                (Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>());
-            commandService?.SetCommands(data.VoiceCommands);
+            _commandExecutionService.SetCommands(data.VoiceCommands);
         }
 
         FilesView = CollectionViewSource.GetDefaultView(Files);

@@ -17,10 +17,56 @@ namespace PromptMasterv5.Infrastructure.Services
         // Max edit distance allowed for fuzzy matching (per character ratio)
         private const double MaxEditDistanceRatio = 0.4; // Allow up to 40% character difference
 
+        public event EventHandler CommandsChanged;
+        private FileSystemWatcher _watcher;
+        private DateTime _lastReadTime = DateTime.MinValue;
+
         public CommandExecutionService(ISettingsService settingsService)
         {
             _settingsService = settingsService;
             LoadCommands();
+            InitializeWatcher();
+        }
+
+        private void InitializeWatcher()
+        {
+            try
+            {
+                var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _settingsService.Config.VoiceCommandConfigPath);
+                var dir = Path.GetDirectoryName(configPath);
+                var fileName = Path.GetFileName(configPath);
+
+                if (Directory.Exists(dir))
+                {
+                    _watcher = new FileSystemWatcher(dir, fileName);
+                    _watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size;
+                    _watcher.Changed += OnFileChanged;
+                    _watcher.Created += OnFileChanged;
+                    _watcher.Renamed += OnFileChanged;
+                    _watcher.EnableRaisingEvents = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to initialize voice command file watcher", "CommandExecutionService.InitializeWatcher");
+            }
+        }
+
+        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        {
+            // Debounce
+            var now = DateTime.Now;
+            if ((now - _lastReadTime).TotalMilliseconds < 500) return;
+            _lastReadTime = now;
+
+            // Give the file a moment to release check locks
+            System.Threading.Thread.Sleep(100);
+
+            // Re-load
+            LoadCommands();
+            
+            // Notify
+            CommandsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -39,7 +85,11 @@ namespace PromptMasterv5.Infrastructure.Services
             try
             {
                 var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _settingsService.Config.VoiceCommandConfigPath);
-                var options = new JsonSerializerOptions { WriteIndented = true };
+                var options = new JsonSerializerOptions 
+                { 
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
                 var json = JsonSerializer.Serialize(_commands, options);
                 File.WriteAllText(configPath, json);
                 LoggerService.Instance.LogInfo($"Saved {_commands.Count} voice commands to {configPath}", "CommandExecutionService.SetCommands");

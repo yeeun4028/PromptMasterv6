@@ -7,5 +7,6 @@ namespace PromptMasterv5.Core.Interfaces
         IReadOnlyList<string> GetCommandKeys();
         System.Collections.Generic.Dictionary<string, string> GetCommands();
         void SetCommands(System.Collections.Generic.Dictionary<string, string> commands);
+        event System.EventHandler CommandsChanged;
     }
 }

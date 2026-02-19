@@ -22,7 +22,11 @@ namespace PromptMasterv5.Infrastructure.Services
                 Files = new List<PromptItem>(files),
                 VoiceCommands = voiceCommands ?? new()
             };
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
 
             string tempPath = _filePath + ".tmp";
             
