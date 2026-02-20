@@ -311,8 +311,15 @@ namespace PromptMasterv5.Infrastructure.Services
                 {
                     _voiceKeyHeld = false;
                     OnVoiceControlTriggered?.Invoke(this, EventArgs.Empty);
-                    e.Handled = true;
-                    e.SuppressKeyPress = true;
+                    
+                    // Do NOT suppress the KeyUp event for modifiers like Alt/Ctrl.
+                    // Doing so causes Windows to get stuck with the modifier "down"
+                    // because focus changes (like opening the Voice Control Window)
+                    // can cause Windows to synchronize its internal modifier state
+                    // with the physical hardware. If we drop the physical KeyUp, 
+                    // Windows never knows the key was released.
+                    // e.Handled = true;
+                    // e.SuppressKeyPress = true;
                 }
             }
 
