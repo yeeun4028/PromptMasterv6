@@ -2,5 +2,9 @@
     "打开计算器": "calc.exe",
     "打开记事本": "notepad.exe",
     "清理文件": "D:\\Program Files\\PromptMasterv5\\脚本\\清理.ahk",
-    "打开音乐": "D:\\Program Files\\AIMP\\AIMP.exe"
+    "重启": "D:\\Program Files\\PromptMasterv5\\脚本\\重启.ahk",
+    "关机": "D:\\Program Files\\PromptMasterv5\\脚本\\关机.ahk",
+    "打开音乐": "D:\\Program Files\\AIMP\\AIMP.exe",
+    "关闭P5": "D:\\Program Files\\PromptMasterv5\\脚本\\kill_promptmaster5.bat",
+    "关闭屁股": "D:\\Program Files\\PromptMasterv5\\脚本\\kill_promptmaster5.bat"
 }
