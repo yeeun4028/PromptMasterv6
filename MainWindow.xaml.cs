@@ -66,15 +66,6 @@ namespace PromptMasterv5
         private bool _isUpdatingMiniInputDocument = false;
         private DateTime _suppressAutoHideUntilUtc = DateTime.MinValue;
 
-        private IKeyboardMouseEvents? _globalMouseHook;
-        private DateTime _lastMouseActivityUtc = DateTime.UtcNow;
-
-        private DispatcherTimer? _miniUrlMonitorTimer;
-        private bool _isMiniTargetUrlActive;
-        private bool _shouldStealMiniFocusWhenIdle;
-        private DateTime _suppressMiniAutoShowUntilUtc = DateTime.MinValue;
-        private string _suppressMiniAutoShowUrl = "";
-
         public bool SuppressAutoActivation { get; set; }
 
         private double GetMiniDefaultWidth()
@@ -351,139 +342,11 @@ namespace PromptMasterv5
             // 处理窗口关闭事件
             this.Closing += MainWindow_Closing;
 
-            StartGlobalMouseActivityMonitor();
-
-            StartMiniUrlMonitor();
-
             // Register message handler
             WeakReferenceMessenger.Default.Register<InsertTextToMiniInputMessage>(this, (_, m) =>
             {
                 RebuildMiniInputDocument(m.Value, true);
             });
-        }
-
-        private void StartGlobalMouseActivityMonitor()
-        {
-            if (_globalMouseHook != null) return;
-
-            _globalMouseHook = Hook.GlobalEvents();
-            void MarkActivity()
-            {
-                _lastMouseActivityUtc = DateTime.UtcNow;
-                if (_isMiniTargetUrlActive) _shouldStealMiniFocusWhenIdle = true;
-            }
-
-            _globalMouseHook.MouseMove += (_, __) => MarkActivity();
-            _globalMouseHook.MouseDown += (_, __) => MarkActivity();
-            _globalMouseHook.MouseUp += (_, __) => MarkActivity();
-            _globalMouseHook.MouseWheel += (_, __) => MarkActivity();
-        }
-
-        private void StopGlobalMouseActivityMonitor()
-        {
-            if (_globalMouseHook == null) return;
-            _globalMouseHook.Dispose();
-            _globalMouseHook = null;
-        }
-
-        private void StartMiniUrlMonitor()
-        {
-            if (_miniUrlMonitorTimer != null) return;
-            _miniUrlMonitorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(450) };
-            _miniUrlMonitorTimer.Tick += (_, __) => UpdateMiniUrlMonitor();
-            _miniUrlMonitorTimer.Start();
-        }
-
-        private void UpdateMiniUrlMonitor()
-        {
-            if (ViewModel == null) return;
-            if (ViewModel.IsFullMode)
-            {
-                _isMiniTargetUrlActive = false;
-                _shouldStealMiniFocusWhenIdle = false;
-                return;
-            }
-
-            if (ViewModel.LocalConfig.IsMiniTopmostLocked)
-            {
-                _isMiniTargetUrlActive = false;
-                _shouldStealMiniFocusWhenIdle = false;
-                return;
-            }
-
-            var keywords = ViewModel.LocalConfig?.CoordinateRules?
-                .Select(r => r.UrlContains?.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Select(s => s!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToArray();
-
-            if (keywords == null || keywords.Length == 0)
-            {
-                _isMiniTargetUrlActive = false;
-                _shouldStealMiniFocusWhenIdle = false;
-                return;
-            }
-
-            var hwnd = NativeMethods.GetForegroundWindow();
-            var url = BrowserUrlDetector.TryGetChromeOrEdgeAddressBarUrl(hwnd);
-            var isMatch = !string.IsNullOrWhiteSpace(url) && keywords.Any(k => url.Contains(k, StringComparison.OrdinalIgnoreCase));
-
-            if (_isMiniTargetUrlActive != isMatch)
-            {
-                _shouldStealMiniFocusWhenIdle = isMatch;
-            }
-            _isMiniTargetUrlActive = isMatch;
-
-            if (!isMatch)
-            {
-                _suppressMiniAutoShowUrl = "";
-                Topmost = false;
-                _shouldStealMiniFocusWhenIdle = false;
-                if (!IsActive && Visibility == Visibility.Visible) Hide();
-                return;
-            }
-
-            var nowUtc = DateTime.UtcNow;
-            if (nowUtc < _suppressMiniAutoShowUntilUtc)
-            {
-                return;
-            }
-            if (Visibility != Visibility.Visible &&
-                !string.IsNullOrWhiteSpace(_suppressMiniAutoShowUrl) &&
-                string.Equals(url ?? "", _suppressMiniAutoShowUrl, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            if (Visibility != Visibility.Visible)
-            {
-                var oldShowActivated = ShowActivated;
-                ShowActivated = false;
-                Show();
-                ShowActivated = oldShowActivated;
-            }
-
-            EnsureWindowOnScreen();
-            Topmost = true;
-
-            var idleMs = (DateTime.UtcNow - _lastMouseActivityUtc).TotalMilliseconds;
-            if (idleMs >= 1000 && _shouldStealMiniFocusWhenIdle && !IsActive)
-            {
-                _shouldStealMiniFocusWhenIdle = false;
-                BringToFrontAndEnsureOnScreen();
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    if (MiniInputBox == null) return;
-                    MiniInputBox.Focus();
-                    Keyboard.Focus(MiniInputBox);
-                    if (MiniInputBox.Document != null)
-                    {
-                        MiniInputBox.CaretPosition = MiniInputBox.Document.ContentEnd;
-                        MiniInputBox.ScrollToEnd();
-                    }
-                }), DispatcherPriority.ContextIdle);
-            }
         }
 
         private void ScheduleMiniPersist()
@@ -631,7 +494,6 @@ namespace PromptMasterv5
                     _notifyIcon.Visible = false;
                     _notifyIcon.Dispose();
                 }
-                StopGlobalMouseActivityMonitor();
                 return;
             }
 
@@ -686,7 +548,6 @@ namespace PromptMasterv5
                 _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
             }
-            StopGlobalMouseActivityMonitor();
         }
 
         /// <summary>
@@ -755,12 +616,6 @@ namespace PromptMasterv5
             {
                 return;
             }
-            if (ViewModel != null && !ViewModel.IsFullMode && _isMiniTargetUrlActive)
-            {
-                this.Topmost = false;
-                StopHideTimer();
-                return;
-            }
 
             // 1. 需求实现：不需要始终保持置顶
             // 当失去焦点（用户点击了其他软件）时，取消置顶，允许其他窗口覆盖它
@@ -789,7 +644,7 @@ namespace PromptMasterv5
                 bool isAnyChildActive = Application.Current.Windows.Cast<Window>().Any(w => w.IsActive);
 
                 // 只有当主窗口不活动，且没有任何子窗口活动时，才执行隐藏
-                if (!this.IsActive && !isAnyChildActive && !(ViewModel != null && !ViewModel.IsFullMode && _isMiniTargetUrlActive))
+                if (!this.IsActive && !isAnyChildActive)
                 {
                     this.Hide();
                 }
@@ -1477,14 +1332,6 @@ namespace PromptMasterv5
 
         private async Task TriggerSendProcess(InputMode mode)
         {
-            var sendHwnd = NativeMethods.GetForegroundWindow();
-            var sendUrl = BrowserUrlDetector.TryGetChromeOrEdgeAddressBarUrl(sendHwnd);
-            if (!string.IsNullOrWhiteSpace(sendUrl))
-            {
-                _suppressMiniAutoShowUrl = sendUrl;
-            }
-            _suppressMiniAutoShowUntilUtc = DateTime.UtcNow.AddMilliseconds(2000);
-            _shouldStealMiniFocusWhenIdle = false;
             this.Hide();
             await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render);
             await Task.Delay(60);
