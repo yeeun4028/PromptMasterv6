@@ -18,6 +18,7 @@ namespace PromptMasterv5
         public IServiceProvider ServiceProvider => _serviceProvider!;
 
         private System.Threading.Mutex? _singleInstanceMutex;
+        private bool _ownsMutex;
         private const string MutexName = "PromptMasterv5_SingleInstance_Mutex";
         private const string WindowTitle = "PromptMaster v5";
 
@@ -39,6 +40,7 @@ namespace PromptMasterv5
             // Check for existing instance
             bool createdNew;
             _singleInstanceMutex = new System.Threading.Mutex(true, MutexName, out createdNew);
+            _ownsMutex = createdNew;
 
             if (!createdNew)
             {
@@ -102,7 +104,10 @@ namespace PromptMasterv5
             }
             
             // Release the mutex
-            _singleInstanceMutex?.ReleaseMutex();
+            if (_ownsMutex && _singleInstanceMutex != null)
+            {
+                _singleInstanceMutex.ReleaseMutex();
+            }
             _singleInstanceMutex?.Dispose();
             
             _serviceProvider?.Dispose();
