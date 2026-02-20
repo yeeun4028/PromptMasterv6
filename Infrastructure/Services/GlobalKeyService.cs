@@ -117,7 +117,7 @@ namespace PromptMasterv5.Infrastructure.Services
             _voiceEnabled = _voiceKey != Keys.None;
         }
 
-        private bool CheckVoiceModifiers()
+        private bool CheckVoiceModifiers(Keys eKeyCode)
         {
             // For exact modifier checking, we need to ensure ALL required modifiers are pressed
             // AND NO OTHER modifiers are pressed.
@@ -130,14 +130,14 @@ namespace PromptMasterv5.Infrastructure.Services
             bool reqLWin = _voiceModifiers.Contains(Keys.LWin) || _voiceKey == Keys.LWin;
             bool reqRWin = _voiceModifiers.Contains(Keys.RWin) || _voiceKey == Keys.RWin;
 
-            bool isLCtrl = Keyboard.IsKeyDown(Key.LeftCtrl);
-            bool isRCtrl = Keyboard.IsKeyDown(Key.RightCtrl);
-            bool isLAlt = Keyboard.IsKeyDown(Key.LeftAlt);
-            bool isRAlt = Keyboard.IsKeyDown(Key.RightAlt);
-            bool isLShift = Keyboard.IsKeyDown(Key.LeftShift);
-            bool isRShift = Keyboard.IsKeyDown(Key.RightShift);
-            bool isLWin = Keyboard.IsKeyDown(Key.LWin);
-            bool isRWin = Keyboard.IsKeyDown(Key.RWin);
+            bool isLCtrl = NativeMethods.IsKeyDown((int)Keys.LControlKey) || eKeyCode == Keys.LControlKey || (eKeyCode == Keys.ControlKey && reqLCtrl);
+            bool isRCtrl = NativeMethods.IsKeyDown((int)Keys.RControlKey) || eKeyCode == Keys.RControlKey || (eKeyCode == Keys.ControlKey && reqRCtrl);
+            bool isLAlt = NativeMethods.IsKeyDown((int)Keys.LMenu) || eKeyCode == Keys.LMenu || (eKeyCode == Keys.Menu && reqLAlt);
+            bool isRAlt = NativeMethods.IsKeyDown((int)Keys.RMenu) || eKeyCode == Keys.RMenu || (eKeyCode == Keys.Menu && reqRAlt);
+            bool isLShift = NativeMethods.IsKeyDown((int)Keys.LShiftKey) || eKeyCode == Keys.LShiftKey || (eKeyCode == Keys.ShiftKey && reqLShift);
+            bool isRShift = NativeMethods.IsKeyDown((int)Keys.RShiftKey) || eKeyCode == Keys.RShiftKey || (eKeyCode == Keys.ShiftKey && reqRShift);
+            bool isLWin = NativeMethods.IsKeyDown((int)Keys.LWin) || eKeyCode == Keys.LWin;
+            bool isRWin = NativeMethods.IsKeyDown((int)Keys.RWin) || eKeyCode == Keys.RWin;
 
             return reqLCtrl == isLCtrl && reqRCtrl == isRCtrl &&
                    reqLAlt == isLAlt && reqRAlt == isRAlt &&
@@ -252,25 +252,28 @@ namespace PromptMasterv5.Infrastructure.Services
 
             // Voice Control: KeyDown = start recording (push-to-talk)
             // Voice control could be a single modifier key itself.
-            // When e.KeyCode == _voiceKey, we check exact voice modifiers.
-            // We need to map e.KeyCode to its Left/Right equivalent if it's a generic modifier, 
-            // but unfortunately Gma.System.MouseKeyHook might sometimes map LeftAlt to LMenu and Alt to Menu.
-            // Usually e.KeyCode IS accurate to LMenu/RMenu for hook events.
             Keys actualKey = e.KeyCode;
             if (e.KeyCode == Keys.Menu || e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey)
             {
-                // Fallback to Keyboard.IsKeyDown to determine which one it was if hook only gives generic
-                if (e.KeyCode == Keys.Menu) actualKey = Keyboard.IsKeyDown(Key.LeftAlt) ? Keys.LMenu : (Keyboard.IsKeyDown(Key.RightAlt) ? Keys.RMenu : Keys.Menu);
-                if (e.KeyCode == Keys.ControlKey) actualKey = Keyboard.IsKeyDown(Key.LeftCtrl) ? Keys.LControlKey : (Keyboard.IsKeyDown(Key.RightCtrl) ? Keys.RControlKey : Keys.ControlKey);
-                if (e.KeyCode == Keys.ShiftKey) actualKey = Keyboard.IsKeyDown(Key.LeftShift) ? Keys.LShiftKey : (Keyboard.IsKeyDown(Key.RightShift) ? Keys.RShiftKey : Keys.ShiftKey);
+                if (e.KeyCode == Keys.Menu) actualKey = NativeMethods.IsKeyDown((int)Keys.LMenu) ? Keys.LMenu : (NativeMethods.IsKeyDown((int)Keys.RMenu) ? Keys.RMenu : Keys.Menu);
+                if (e.KeyCode == Keys.ControlKey) actualKey = NativeMethods.IsKeyDown((int)Keys.LControlKey) ? Keys.LControlKey : (NativeMethods.IsKeyDown((int)Keys.RControlKey) ? Keys.RControlKey : Keys.ControlKey);
+                if (e.KeyCode == Keys.ShiftKey) actualKey = NativeMethods.IsKeyDown((int)Keys.LShiftKey) ? Keys.LShiftKey : (NativeMethods.IsKeyDown((int)Keys.RShiftKey) ? Keys.RShiftKey : Keys.ShiftKey);
             }
 
-            if (_voiceEnabled && (actualKey == _voiceKey || e.KeyCode == _voiceKey) && !_voiceKeyHeld && CheckVoiceModifiers())
+            if (_voiceEnabled && !_voiceKeyHeld)
             {
-                _voiceKeyHeld = true;
-                OnVoiceControlKeyDown?.Invoke(this, EventArgs.Empty);
-                e.Handled = true;
-                e.SuppressKeyPress = true;
+                bool isVoiceKeyPress = (actualKey == _voiceKey || e.KeyCode == _voiceKey) || 
+                    (e.KeyCode == Keys.Menu && (_voiceKey == Keys.LMenu || _voiceKey == Keys.RMenu)) ||
+                    (e.KeyCode == Keys.ControlKey && (_voiceKey == Keys.LControlKey || _voiceKey == Keys.RControlKey)) ||
+                    (e.KeyCode == Keys.ShiftKey && (_voiceKey == Keys.LShiftKey || _voiceKey == Keys.RShiftKey));
+
+                if (isVoiceKeyPress && CheckVoiceModifiers(e.KeyCode))
+                {
+                    _voiceKeyHeld = true;
+                    OnVoiceControlKeyDown?.Invoke(this, EventArgs.Empty);
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
             }
 
             OnAnyKeyDown?.Invoke(this, e);
@@ -291,18 +294,26 @@ namespace PromptMasterv5.Infrastructure.Services
             Keys actualKey = e.KeyCode;
             if (e.KeyCode == Keys.Menu || e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey)
             {
-                if (e.KeyCode == Keys.Menu) actualKey = Keyboard.IsKeyDown(Key.LeftAlt) ? Keys.LMenu : (Keyboard.IsKeyDown(Key.RightAlt) ? Keys.RMenu : Keys.Menu);
-                if (e.KeyCode == Keys.ControlKey) actualKey = Keyboard.IsKeyDown(Key.LeftCtrl) ? Keys.LControlKey : (Keyboard.IsKeyDown(Key.RightCtrl) ? Keys.RControlKey : Keys.ControlKey);
-                if (e.KeyCode == Keys.ShiftKey) actualKey = Keyboard.IsKeyDown(Key.LeftShift) ? Keys.LShiftKey : (Keyboard.IsKeyDown(Key.RightShift) ? Keys.RShiftKey : Keys.ShiftKey);
+                if (e.KeyCode == Keys.Menu) actualKey = NativeMethods.IsKeyDown((int)Keys.LMenu) ? Keys.LMenu : (NativeMethods.IsKeyDown((int)Keys.RMenu) ? Keys.RMenu : Keys.Menu);
+                if (e.KeyCode == Keys.ControlKey) actualKey = NativeMethods.IsKeyDown((int)Keys.LControlKey) ? Keys.LControlKey : (NativeMethods.IsKeyDown((int)Keys.RControlKey) ? Keys.RControlKey : Keys.ControlKey);
+                if (e.KeyCode == Keys.ShiftKey) actualKey = NativeMethods.IsKeyDown((int)Keys.LShiftKey) ? Keys.LShiftKey : (NativeMethods.IsKeyDown((int)Keys.RShiftKey) ? Keys.RShiftKey : Keys.ShiftKey);
             }
 
             // Voice Control: KeyUp = stop recording and process (push-to-talk)
-            if (_voiceEnabled && (actualKey == _voiceKey || e.KeyCode == _voiceKey) && _voiceKeyHeld)
+            if (_voiceEnabled && _voiceKeyHeld)
             {
-                _voiceKeyHeld = false;
-                OnVoiceControlTriggered?.Invoke(this, EventArgs.Empty);
-                e.Handled = true;
-                e.SuppressKeyPress = true;
+                bool isVoiceKeyRelease = (actualKey == _voiceKey || e.KeyCode == _voiceKey) || 
+                    (e.KeyCode == Keys.Menu && (_voiceKey == Keys.LMenu || _voiceKey == Keys.RMenu)) ||
+                    (e.KeyCode == Keys.ControlKey && (_voiceKey == Keys.LControlKey || _voiceKey == Keys.RControlKey)) ||
+                    (e.KeyCode == Keys.ShiftKey && (_voiceKey == Keys.LShiftKey || _voiceKey == Keys.RShiftKey));
+
+                if (isVoiceKeyRelease)
+                {
+                    _voiceKeyHeld = false;
+                    OnVoiceControlTriggered?.Invoke(this, EventArgs.Empty);
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
             }
 
             if (e.KeyCode == Keys.LControlKey || e.KeyCode == Keys.RControlKey || e.KeyCode == Keys.ControlKey)
