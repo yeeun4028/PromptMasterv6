@@ -19,6 +19,7 @@ using System.Windows.Documents;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 using Gma.System.MouseKeyHook;
+using PromptMasterv5.Infrastructure.Helpers;
 
 // 引用自定义枚举和控件别名，解决命名冲突
 using InputMode = PromptMasterv5.Core.Models.InputMode;
@@ -422,22 +423,19 @@ namespace PromptMasterv5
                 _notifyIcon.Text = "PromptMaster v5";
                 _notifyIcon.Visible = true;
 
-                // 添加托盘菜单
-                var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-                contextMenu.Items.Add("显示/隐藏窗口", null, (s, e) => ToggleWindowVisibility());
-                contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                contextMenu.Items.Add("退出", null, (s, e) =>
+                // 使用 WPF ContextMenu 代替 WinForms 菜单
+                _notifyIcon.MouseClick += (s, e) =>
                 {
-                    _isExiting = true;
-                    this.Close();
-                });
-
-                _notifyIcon.ContextMenuStrip = contextMenu;
-
-                // 单击托盘图标显示/隐藏窗口
-                _notifyIcon.Click += (s, e) =>
-                {
-                    if (e is System.Windows.Forms.MouseEventArgs mouseArgs && mouseArgs.Button == System.Windows.Forms.MouseButtons.Left)
+                    if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                    {
+                        var menu = this.Resources["TrayMenu"] as System.Windows.Controls.ContextMenu;
+                        if (menu != null)
+                        {
+                            menu.DataContext = this.DataContext;
+                            TrayMenuHelper.ShowContextMenu(menu);
+                        }
+                    }
+                    else if (e.Button == System.Windows.Forms.MouseButtons.Left)
                     {
                         ToggleWindowVisibility();
                     }
@@ -480,6 +478,17 @@ namespace PromptMasterv5
                     this.Topmost = true;
                 NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
             }
+        }
+
+        private void Tray_ToggleVisibility_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleWindowVisibility();
+        }
+
+        private void Tray_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            _isExiting = true;
+            this.Close();
         }
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
