@@ -72,6 +72,30 @@ namespace PromptMasterv5.ViewModels
 
         #endregion
 
+        #region Observable Properties - OCR & Translation Test Status
+
+        // 百度 OCR 测试
+        [ObservableProperty] private string? baiduOcrTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush baiduOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+        // 百度翻译测试
+        [ObservableProperty] private string? baiduTranslateTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush baiduTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+        // 腾讯云翻译测试
+        [ObservableProperty] private string? tencentTranslateTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush tencentTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+        // 有道测试
+        [ObservableProperty] private string? youdaoTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush youdaoTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+        // Google 测试
+        [ObservableProperty] private string? googleTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush googleTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+        #endregion
+
         #region Configuration Access (通过 SettingsService)
 
         public AppConfig Config => _settingsService.Config;

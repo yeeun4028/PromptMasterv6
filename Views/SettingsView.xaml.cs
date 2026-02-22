@@ -952,10 +952,11 @@ namespace PromptMasterv5.Views
             {
                 SaveGoogleCredentials();
                 var profile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
-                
+
                 if (profile == null || string.IsNullOrWhiteSpace(profile.Key1))
                 {
-                    System.Windows.MessageBox.Show("请先填写 API Key", "参数错误");
+                    ViewModel.SettingsVM.GoogleTestStatus = "请先填写 API Key";
+                    ViewModel.SettingsVM.GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
                     return;
                 }
 
@@ -965,17 +966,20 @@ namespace PromptMasterv5.Views
                     var result = await service.TranslateAsync("Hello World", profile);
                     if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("Google"))
                     {
-                         System.Windows.MessageBox.Show("连接成功！\n翻译结果：" + result, "测试通过");
+                        ViewModel.SettingsVM.GoogleTestStatus = $"连接成功！翻译结果：{result}";
+                        ViewModel.SettingsVM.GoogleTestStatusColor = System.Windows.Media.Brushes.Green;
                     }
                     else
                     {
-                         System.Windows.MessageBox.Show("测试结果：\n" + result, "提示");
+                        ViewModel.SettingsVM.GoogleTestStatus = $"连接失败：{result}";
+                        ViewModel.SettingsVM.GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"测试出错: {ex.Message}", "错误");
+                ViewModel.SettingsVM.GoogleTestStatus = $"测试出错: {ex.Message}";
+                ViewModel.SettingsVM.GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
             }
             finally
             {
@@ -1072,25 +1076,28 @@ namespace PromptMasterv5.Views
 
             if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
             {
-                System.Windows.MessageBox.Show("请先填写 API Key 和 Secret Key", "测试失败");
+                ViewModel.SettingsVM.BaiduOcrTestStatus = "请先填写 API Key 和 Secret Key";
+                ViewModel.SettingsVM.BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Red;
                 return;
             }
 
             // Create local Baidu service instance with HttpClient
             using var httpClient = new HttpClient();
             var baiduService = new BaiduService(httpClient);
-            
+
             // Test with a minimal white 1x1 PNG image
             byte[] testImage = CreateTestImage();
             var result = await baiduService.OcrAsync(testImage, profile);
 
             if (result.StartsWith("错误") || result.Contains("错误"))
             {
-                System.Windows.MessageBox.Show($"连接失败：{result}", "OCR 测试结果");
+                ViewModel.SettingsVM.BaiduOcrTestStatus = $"连接失败：{result}";
+                ViewModel.SettingsVM.BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Red;
             }
             else
             {
-                System.Windows.MessageBox.Show("连接成功！OCR API 配置正确。", "OCR 测试结果");
+                ViewModel.SettingsVM.BaiduOcrTestStatus = "连接成功！";
+                ViewModel.SettingsVM.BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Green;
             }
         }
 
@@ -1105,24 +1112,27 @@ namespace PromptMasterv5.Views
 
             if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
             {
-                System.Windows.MessageBox.Show("请先填写 App ID 和 Secret Key", "测试失败");
+                ViewModel.SettingsVM.BaiduTranslateTestStatus = "请先填写 App ID 和 Secret Key";
+                ViewModel.SettingsVM.BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
                 return;
             }
 
             // Create local Baidu service instance with HttpClient
             using var httpClient = new HttpClient();
             var baiduService = new BaiduService(httpClient);
-            
+
             // Test with a simple English phrase
             var result = await baiduService.TranslateAsync("Hello", profile, "en", "zh");
 
             if (result.StartsWith("错误") || result.Contains("错误") || result.Contains("异常"))
             {
-                System.Windows.MessageBox.Show($"连接失败：{result}", "翻译测试结果");
+                ViewModel.SettingsVM.BaiduTranslateTestStatus = $"连接失败：{result}";
+                ViewModel.SettingsVM.BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
             }
             else
             {
-                System.Windows.MessageBox.Show($"连接成功！\n\n测试翻译结果：{result}", "翻译测试结果");
+                ViewModel.SettingsVM.BaiduTranslateTestStatus = $"连接成功！翻译结果：{result}";
+                ViewModel.SettingsVM.BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Green;
             }
         }
 
@@ -1139,28 +1149,33 @@ namespace PromptMasterv5.Views
 
             if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
             {
-                System.Windows.MessageBox.Show("请先填写 Secret ID 和 Secret Key", "测试失败");
+                ViewModel.SettingsVM.TencentTranslateTestStatus = "请先填写 Secret ID 和 Secret Key";
+                ViewModel.SettingsVM.TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
                 return;
             }
 
             using var httpClient = new HttpClient();
             var tencentService = new TencentService(httpClient);
-            
+
             var result = await tencentService.TranslateAsync("Hello", profile, "auto", "zh");
 
             if (result.StartsWith("Error") || result.StartsWith("Tencent Error"))
             {
-                System.Windows.MessageBox.Show($"连接失败：{result}", "腾讯云测试结果");
+                ViewModel.SettingsVM.TencentTranslateTestStatus = $"连接失败：{result}";
+                ViewModel.SettingsVM.TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
             }
             else
             {
-                System.Windows.MessageBox.Show($"连接成功！\n\n测试翻译结果：{result}", "腾讯云测试结果");
+                ViewModel.SettingsVM.TencentTranslateTestStatus = $"连接成功！翻译结果：{result}";
+                ViewModel.SettingsVM.TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Green;
             }
         }
 
         private void TestYoudao_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.MessageBox.Show("有道连接测试功能将在未来版本中实现。", "提示");
+            if (ViewModel?.SettingsVM == null) return;
+            ViewModel.SettingsVM.YoudaoTestStatus = "有道连接测试功能将在未来版本中实现";
+            ViewModel.SettingsVM.YoudaoTestStatusColor = System.Windows.Media.Brushes.Orange;
         }
 
         private byte[] CreateTestImage()

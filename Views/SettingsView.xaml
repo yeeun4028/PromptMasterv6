@@ -1888,9 +1888,23 @@
                                                     <TextBox x:Name="BaiduOcrSecretKey" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
-                                                <Button Content="测试 OCR 连接" Click="TestBaiduOcr_Click" 
-                                                        HorizontalAlignment="Left" Margin="0,0,0,0"
-                                                        Style="{StaticResource TextLinkButtonStyle}"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding SettingsVM.BaiduOcrTestStatus}"
+                                                               Foreground="{Binding SettingsVM.BaiduOcrTestStatusColor}"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,0,10,0"/>
+                                                    <Button Grid.Column="1"
+                                                            Content="测试连接"
+                                                            Click="TestBaiduOcr_Click"
+                                                            Style="{StaticResource TextLinkButtonStyle}"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
 
@@ -1909,9 +1923,23 @@
                                                     <TextBox x:Name="BaiduTranslateSecretKey" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
-                                                <Button Content="测试翻译连接" Click="TestBaiduTranslate_Click" 
-                                                        HorizontalAlignment="Left" Margin="0,0,0,0"
-                                                        Style="{StaticResource TextLinkButtonStyle}"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding SettingsVM.BaiduTranslateTestStatus}"
+                                                               Foreground="{Binding SettingsVM.BaiduTranslateTestStatusColor}"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,0,10,0"/>
+                                                    <Button Grid.Column="1"
+                                                            Content="测试连接"
+                                                            Click="TestBaiduTranslate_Click"
+                                                            Style="{StaticResource TextLinkButtonStyle}"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -1950,9 +1978,23 @@
                                                     <TextBox x:Name="TencentTranslateSecretKey" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
-                                                <Button Content="测试连接" Click="TestTencentCloud_Click" 
-                                                        HorizontalAlignment="Left" Margin="0,0,0,0"
-                                                        Style="{StaticResource PrimaryButtonStyle}"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding SettingsVM.TencentTranslateTestStatus}"
+                                                               Foreground="{Binding SettingsVM.TencentTranslateTestStatusColor}"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,0,10,0"/>
+                                                    <Button Grid.Column="1"
+                                                            Content="测试连接"
+                                                            Click="TestTencentCloud_Click"
+                                                            Style="{StaticResource TextLinkButtonStyle}"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -1991,12 +2033,26 @@
                                                     <TextBox x:Name="YoudaoTranslateAppSecret" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
-                                                <Button Content="测试连接（暂未实现）" Click="TestYoudao_Click" 
-                                                        HorizontalAlignment="Left" Margin="0,0,0,0"
-                                                        Style="{StaticResource TextLinkButtonStyle}"
-                                                        IsEnabled="False"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding SettingsVM.YoudaoTestStatus}"
+                                                               Foreground="{Binding SettingsVM.YoudaoTestStatusColor}"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,0,10,0"/>
+                                                    <Button Grid.Column="1"
+                                                            Content="测试连接"
+                                                            Click="TestYoudao_Click"
+                                                            Style="{StaticResource TextLinkButtonStyle}"
+                                                            IsEnabled="False"/>
+                                                </Grid>
 
-                                                <TextBlock Text="注意：有道后端集成将在未来版本中实现。" 
+                                                <TextBlock Text="注意：有道后端集成将在未来版本中实现。"
                                                            Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" Foreground="#FFA500"/>
                                             </StackPanel>
                                         </Border>
@@ -2019,9 +2075,23 @@
                                                     <TextBox x:Name="GoogleApiKey" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
-                                                <Button Content="测试连接" Click="TestGoogle_Click" 
-                                                        HorizontalAlignment="Left" Margin="0,0,0,0"
-                                                        Style="{StaticResource PrimaryButtonStyle}"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding SettingsVM.GoogleTestStatus}"
+                                                               Foreground="{Binding SettingsVM.GoogleTestStatusColor}"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,0,10,0"/>
+                                                    <Button Grid.Column="1"
+                                                            Content="测试连接"
+                                                            Click="TestGoogle_Click"
+                                                            Style="{StaticResource TextLinkButtonStyle}"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
