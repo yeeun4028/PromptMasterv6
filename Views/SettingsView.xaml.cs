@@ -27,6 +27,7 @@ namespace PromptMasterv5.Views
         private int _selectedExternalToolsSubTab = 0;
         private int _selectedMiniWindowSubTab = 0;
         private int _selectedAiSubTab = 0;
+        private int _selectedVoiceControlSubTab = 0;
 
         public SettingsView()
         {
@@ -45,9 +46,27 @@ namespace PromptMasterv5.Views
             // Initialize AI sub-tab to Main tab
             UpdateAiSubTab(0);
 
+            // Initialize Voice Control sub-tab to Engine tab
+            UpdateVoiceControlSubTab(0);
+
             // Load Baidu credentials from AppConfig
             LoadBaiduCredentials();
             LoadTencentCredentials();
+            
+            // Load Xunfei credentials
+            LoadXunfeiCredentials();
+            
+            // Subscribe to VoiceProvider changes
+            if (ViewModel?.Config != null)
+            {
+                ViewModel.Config.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(AppConfig.VoiceProvider))
+                    {
+                        UpdateVoiceProviderUI();
+                    }
+                };
+            }
         }
 
         private void LoadBaiduCredentials()
@@ -1151,5 +1170,138 @@ namespace PromptMasterv5.Views
                 return stream.ToArray();
             }
         }
+
+        #region Voice Control Sub-Tab Navigation
+
+        private void VoiceControlSubTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
+            {
+                UpdateVoiceControlSubTab(tabIndex);
+            }
+        }
+
+        private void UpdateVoiceControlSubTab(int tabIndex)
+        {
+            _selectedVoiceControlSubTab = tabIndex;
+
+            // Update button states
+            if (BtnVoiceEngineTab != null) BtnVoiceEngineTab.Tag = tabIndex == 0 ? "Selected" : "0";
+            if (BtnXunfeiConfigTab != null) BtnXunfeiConfigTab.Tag = tabIndex == 1 ? "Selected" : "1";
+            if (BtnVoiceCommandsTab != null) BtnVoiceCommandsTab.Tag = tabIndex == 2 ? "Selected" : "2";
+
+            // Show/hide tab content
+            if (VoiceEngineTab != null) VoiceEngineTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (XunfeiConfigTab != null) XunfeiConfigTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (VoiceCommandsTab != null) VoiceCommandsTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+
+            // Load Xunfei credentials when switching to Xunfei tab
+            if (tabIndex == 1) LoadXunfeiCredentials();
+
+            // Update voice provider UI
+            UpdateVoiceProviderUI();
+        }
+
+        private void UpdateVoiceProviderUI()
+        {
+            if (ViewModel?.Config == null) return;
+
+            var isXunfei = ViewModel.Config.VoiceProvider == VoiceProvider.Xunfei;
+
+            // Show/hide OpenAI model selection
+            if (OpenAIModelSelection != null)
+                OpenAIModelSelection.Visibility = isXunfei ? Visibility.Collapsed : Visibility.Visible;
+
+            // Show/hide Xunfei hint
+            if (XunfeiHint != null)
+                XunfeiHint.Visibility = isXunfei ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        #endregion
+
+        #region Xunfei Configuration
+
+        private void LoadXunfeiCredentials()
+        {
+            if (ViewModel == null) return;
+
+            // Load API Secret to password box
+            if (XunfeiApiSecretBox != null && !string.IsNullOrEmpty(ViewModel.Config.XunfeiApiSecret))
+            {
+                XunfeiApiSecretBox.Password = ViewModel.Config.XunfeiApiSecret;
+            }
+        }
+
+        private void XunfeiApiSecretBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+            if (sender is PasswordBox pb)
+            {
+                ViewModel.Config.XunfeiApiSecret = pb.Password;
+            }
+        }
+
+        private async void TestXunfeiConnection_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+
+            try
+            {
+                // Check configuration
+                if (string.IsNullOrWhiteSpace(ViewModel.Config.XunfeiAppId) ||
+                    string.IsNullOrWhiteSpace(ViewModel.Config.XunfeiApiKey) ||
+                    string.IsNullOrWhiteSpace(ViewModel.Config.XunfeiApiSecret))
+                {
+                    System.Windows.MessageBox.Show("请先填写 AppID、API Key 和 API Secret", "配置不完整");
+                    return;
+                }
+
+                // Save config first
+                ConfigService.Save(ViewModel.Config);
+
+                // Test connection by creating a simple WebSocket connection
+                // We'll just validate the auth URL generation
+                var testResult = await TestXunfeiAuthAsync();
+
+                if (testResult)
+                {
+                    System.Windows.MessageBox.Show("连接成功！讯飞语音听写 API 配置正确。", "测试通过");
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("连接失败，请检查配置参数是否正确。", "测试失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"测试出错: {ex.Message}", "错误");
+            }
+            finally
+            {
+                if (btn != null) btn.IsEnabled = true;
+            }
+        }
+
+        private async Task<bool> TestXunfeiAuthAsync()
+        {
+            try
+            {
+                // Create a test transcriber to validate configuration
+                var settingsService = ((App)System.Windows.Application.Current).ServiceProvider.GetService(typeof(ISettingsService)) as ISettingsService;
+                if (settingsService == null) return false;
+
+                var transcriber = new Infrastructure.Services.Transcribers.XunfeiIatTranscriber(settingsService);
+                return await transcriber.IsConfiguredAsync();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
     }
 }

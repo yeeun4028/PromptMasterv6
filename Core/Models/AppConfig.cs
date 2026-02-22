@@ -5,6 +5,22 @@ using PromptMasterv5.Infrastructure.Converters;
 
 namespace PromptMasterv5.Core.Models
 {
+    /// <summary>
+    /// 语音识别引擎类型
+    /// </summary>
+    public enum VoiceProvider
+    {
+        /// <summary>
+        /// OpenAI 兼容 API（录音后转写）
+        /// </summary>
+        OpenAI = 0,
+        
+        /// <summary>
+        /// 讯飞语音听写（实时流式）
+        /// </summary>
+        Xunfei = 1
+    }
+
     public partial class AppConfig : ObservableObject
     {
         [ObservableProperty]
@@ -180,5 +196,57 @@ namespace PromptMasterv5.Core.Models
 
         [ObservableProperty]
         private string voiceModelId = "";
+
+        // ★★★ 讯飞语音听写配置 ★★★
+
+        /// <summary>
+        /// 语音识别引擎类型
+        /// </summary>
+        [ObservableProperty]
+        private VoiceProvider voiceProvider = VoiceProvider.OpenAI;
+
+        /// <summary>
+        /// 讯飞 AppID
+        /// </summary>
+        [ObservableProperty]
+        private string xunfeiAppId = "";
+
+        /// <summary>
+        /// 讯飞 API Key
+        /// </summary>
+        [ObservableProperty]
+        [property: JsonConverter(typeof(JsonEncryptedStringConverter))]
+        private string xunfeiApiKey = "";
+
+        /// <summary>
+        /// 讯飞 API Secret
+        /// </summary>
+        [ObservableProperty]
+        [property: JsonConverter(typeof(JsonEncryptedStringConverter))]
+        private string xunfeiApiSecret = "";
+
+        /// <summary>
+        /// 静音检测超时（毫秒）
+        /// </summary>
+        [ObservableProperty]
+        private int xunfeiVadEos = 2000;
+
+        /// <summary>
+        /// 自动添加标点
+        /// </summary>
+        [ObservableProperty]
+        private bool xunfeiEnablePunctuation = true;
+
+        /// <summary>
+        /// 显示中间结果
+        /// </summary>
+        [ObservableProperty]
+        private bool xunfeiEnableIntermediateResult = true;
+
+        /// <summary>
+        /// 录音时降低系统音量
+        /// </summary>
+        [ObservableProperty]
+        private bool voiceDuckVolume = true;
     }
 }
