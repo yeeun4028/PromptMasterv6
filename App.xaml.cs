@@ -161,7 +161,6 @@ namespace PromptMasterv5
             services.AddSingleton<IDataService>(sp => sp.GetRequiredService<WebDavDataService>());
             services.AddSingleton<WebDavDataService>();
             services.AddSingleton<FileDataService>();
-            services.AddSingleton<BrowserAutomationService>();
             services.AddSingleton<GlobalKeyService>();
             services.AddSingleton<FabricService>();
             services.AddSingleton<IDialogService, DialogService>();
