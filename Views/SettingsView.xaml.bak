@@ -1209,7 +1209,9 @@
                                             </Border>
                                         </StackPanel>
                                     </StackPanel>
-                                </StackPanel>                                <!-- Tab 3: Sync -->
+                                </StackPanel>
+
+                                <!-- Tab 3: Sync -->
                                 <StackPanel>
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel" BasedOn="{StaticResource FadeInContentStyle}">
@@ -1222,196 +1224,174 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <!-- Sync Sub-Tab Navigation -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <Button x:Name="BtnSyncWebDavTab" Content="WebDAV配置" Padding="12,6" Margin="0,0,8,0" Click="SyncSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnSyncDataTab" Content="数据管理" Padding="12,6" Margin="0,0,8,0" Click="SyncSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnSyncLogTab" Content="日志管理" Padding="12,6" Margin="0,0,8,0" Click="SyncSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
+                                    <Border Style="{StaticResource CardStyle}">
+                                        <StackPanel>
+                                            <StackPanel Margin="0,0,0,12">
+                                                <TextBlock Text="WebDAV 网址" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                <TextBox Text="{Binding Config.WebDavUrl}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                            </StackPanel>
+
+                                            <StackPanel Margin="0,0,0,12">
+                                                <TextBlock Text="账号 (邮箱)" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                <TextBox Text="{Binding Config.UserName}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                            </StackPanel>
+
+                                            <StackPanel Margin="0,0,0,12">
+                                                <TextBlock Text="应用密码" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                <PasswordBox x:Name="WebDavPasswordBox"
+                                                             PasswordChar="●"
+                                                             Style="{StaticResource ModernPasswordBoxStyle}"
+                                                             PasswordChanged="WebDavPasswordBox_PasswordChanged"
+                                                             Loaded="WebDavPasswordBox_Loaded"/>
+                                            </StackPanel>
+
+                                            <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,10,0,20"/>
+
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="从云端强制恢复数据"
+                                                        Command="{Binding ShowRestoreConfirmCommand}"
+                                                        ToolTip="注意：此操作将使用云端数据覆盖本地所有数据"
+                                                        HorizontalAlignment="Left">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource DangerLinkButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+
+                                                <Button Content="本地恢复数据"
+                                                        Command="{Binding ManualLocalRestoreCommand}"
+                                                        ToolTip="从本地历史备份中恢复数据"
+                                                        HorizontalAlignment="Left"
+                                                        Margin="20,0,0,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource TextLinkButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+
+
+                                        <Border Margin="0,10,0,0"
+                                                Background="#FFF7F7"
+                                                BorderBrush="#F2C7C7"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="10,8">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <DockPanel LastChildFill="False">
+                                                <TextBlock Text="确定要覆盖吗？" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                                    <Button Content="取消"
+                                                            Command="{Binding CancelRestoreConfirmCommand}"
+                                                            Style="{StaticResource TextLinkButtonStyle}"
+                                                            Foreground="{DynamicResource TextSecondary}"
+                                                            Margin="14,0,0,0"/>
+                                                    <Button Content="确认覆盖"
+                                                            Command="{Binding ManualRestoreCommand}"
+                                                            Style="{StaticResource DangerLinkButtonStyle}"
+                                                            Margin="14,0,0,0"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+
+                                        <!-- Removed warning text -->
+
+                                        <Border Background="{DynamicResource CardBackground}"
+                                                BorderBrush="{DynamicResource DividerColor}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="10,8"
+                                                Margin="0,12,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RestoreStatus}" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding RestoreStatus}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding RestoreStatus}"
+                                                       Foreground="{Binding RestoreStatusColor}"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                        </Border>
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,14"/>
+
+                                        <!-- Config Export/Import -->
+                                        <TextBlock Text="配置迁移" 
+                                                   Style="{StaticResource FieldLabelTextStyle}" 
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"/>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Button Content="导出配置"
+                                                    Command="{Binding SettingsVM.ExportConfigCommand}"
+                                                    ToolTip="导出当前配置到文件 (config.json + local_settings.json)"
+                                                    Style="{StaticResource TextLinkButtonStyle}"
+                                                    Margin="0,0,20,0"/>
+
+                                            <Button Content="导入配置"
+                                                    Command="{Binding SettingsVM.ImportConfigCommand}"
+                                                    ToolTip="从配置文件恢复设置 (覆盖当前配置)"
+                                                    Style="{StaticResource TextLinkButtonStyle}"
+                                                    Margin="0,0,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Removed export hint -->
+
+                                        <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,20,0,14"/>
+
+                                        <!-- Log Management Section -->
+                                        <TextBlock Text="日志管理" 
+                                                   Style="{StaticResource FieldLabelTextStyle}" 
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"/>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Button Content="打开日志文件夹"
+                                                    Command="{Binding OpenLogFolderCommand}"
+                                                    Style="{StaticResource TextLinkButtonStyle}"
+                                                    Foreground="{DynamicResource TextSecondary}"
+                                                    Margin="0,0,14,0"/>
+                                            <Button Content="清除所有日志"
+                                                    Command="{Binding ClearLogsCommand}"
+                                                    Style="{StaticResource DangerLinkButtonStyle}"/>
+                                        </StackPanel>
+
+                                        <!-- Removed log path hint -->
                                     </StackPanel>
-
-                                    <!-- Sub-Tab Content Container -->
-                                    <StackPanel>
-                                        <!-- 1. WebDAV配置 Tab -->
-                                        <StackPanel x:Name="SyncWebDavTab" Visibility="Visible">
-                                            <Border Style="{StaticResource CardStyle}">
-                                                <StackPanel>
-                                                    <StackPanel Margin="0,0,0,12">
-                                                        <TextBlock Text="WebDAV 网址" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                        <TextBox Text="{Binding Config.WebDavUrl}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                                    </StackPanel>
-
-                                                    <StackPanel Margin="0,0,0,12">
-                                                        <TextBlock Text="账号 (邮箱)" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                        <TextBox Text="{Binding Config.UserName}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                                    </StackPanel>
-
-                                                    <StackPanel Margin="0,0,0,12">
-                                                        <TextBlock Text="应用密码" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                        <PasswordBox x:Name="WebDavPasswordBox"
-                                                                     PasswordChar="●"
-                                                                     Style="{StaticResource ModernPasswordBoxStyle}"
-                                                                     PasswordChanged="WebDavPasswordBox_PasswordChanged"
-                                                                     Loaded="WebDavPasswordBox_Loaded"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <!-- 2. 数据管理 Tab -->
-                                        <StackPanel x:Name="SyncDataTab" Visibility="Collapsed">
-                                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                                <StackPanel>
-                                                    <TextBlock Text="数据恢复"
-                                                               Style="{StaticResource FieldLabelTextStyle}"
-                                                               FontSize="16"
-                                                               FontWeight="SemiBold"
-                                                               Margin="0,0,0,10"/>
-
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <Button Content="从云端强制恢复数据"
-                                                                Command="{Binding ShowRestoreConfirmCommand}"
-                                                                ToolTip="注意：此操作将使用云端数据覆盖本地所有数据"
-                                                                HorizontalAlignment="Left">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button" BasedOn="{StaticResource DangerLinkButtonStyle}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                        </Button>
-
-                                                        <Button Content="本地恢复数据"
-                                                                Command="{Binding ManualLocalRestoreCommand}"
-                                                                ToolTip="从本地历史备份中恢复数据"
-                                                                HorizontalAlignment="Left"
-                                                                Margin="20,0,0,0">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button" BasedOn="{StaticResource TextLinkButtonStyle}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                        </Button>
-                                                    </StackPanel>
-
-                                                    <Border Margin="0,10,0,0"
-                                                            Background="#FFF7F7"
-                                                            BorderBrush="#F2C7C7"
-                                                            BorderThickness="1"
-                                                            CornerRadius="6"
-                                                            Padding="10,8">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsRestoreConfirmVisible}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <DockPanel LastChildFill="False">
-                                                            <TextBlock Text="确定要覆盖吗？" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                                                <Button Content="取消"
-                                                                        Command="{Binding CancelRestoreConfirmCommand}"
-                                                                        Style="{StaticResource TextLinkButtonStyle}"
-                                                                        Foreground="{DynamicResource TextSecondary}"
-                                                                        Margin="14,0,0,0"/>
-                                                                <Button Content="确认覆盖"
-                                                                        Command="{Binding ManualRestoreCommand}"
-                                                                        Style="{StaticResource DangerLinkButtonStyle}"
-                                                                        Margin="14,0,0,0"/>
-                                                            </StackPanel>
-                                                        </DockPanel>
-                                                    </Border>
-
-                                                    <Border Background="{DynamicResource CardBackground}"
-                                                            BorderBrush="{DynamicResource DividerColor}"
-                                                            BorderThickness="1"
-                                                            CornerRadius="6"
-                                                            Padding="10,8"
-                                                            Margin="0,12,0,0">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding RestoreStatus}" Value="">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding RestoreStatus}" Value="{x:Null}">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <TextBlock Text="{Binding RestoreStatus}"
-                                                                   Foreground="{Binding RestoreStatusColor}"
-                                                                   FontSize="13"
-                                                                   FontWeight="SemiBold"
-                                                                   TextWrapping="Wrap"/>
-                                                    </Border>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <Border Style="{StaticResource CardStyle}">
-                                                <StackPanel>
-                                                    <TextBlock Text="配置迁移"
-                                                               Style="{StaticResource FieldLabelTextStyle}"
-                                                               FontSize="16"
-                                                               FontWeight="SemiBold"
-                                                               Margin="0,0,0,10"/>
-
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                                        <Button Content="导出配置"
-                                                                Command="{Binding SettingsVM.ExportConfigCommand}"
-                                                                ToolTip="导出当前配置到文件 (config.json + local_settings.json)"
-                                                                Style="{StaticResource TextLinkButtonStyle}"
-                                                                Margin="0,0,20,0"/>
-
-                                                        <Button Content="导入配置"
-                                                                Command="{Binding SettingsVM.ImportConfigCommand}"
-                                                                ToolTip="从配置文件恢复设置 (覆盖当前配置)"
-                                                                Style="{StaticResource TextLinkButtonStyle}"
-                                                                Margin="0,0,0,0"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <!-- 3. 日志管理 Tab -->
-                                        <StackPanel x:Name="SyncLogTab" Visibility="Collapsed">
-                                            <Border Style="{StaticResource CardStyle}">
-                                                <StackPanel>
-                                                    <TextBlock Text="日志管理"
-                                                               Style="{StaticResource FieldLabelTextStyle}"
-                                                               FontSize="16"
-                                                               FontWeight="SemiBold"
-                                                               Margin="0,0,0,10"/>
-
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                                        <Button Content="打开日志文件夹"
-                                                                Command="{Binding OpenLogFolderCommand}"
-                                                                Style="{StaticResource TextLinkButtonStyle}"
-                                                                Foreground="{DynamicResource TextSecondary}"
-                                                                Margin="0,0,14,0"/>
-                                                        <Button Content="清除所有日志"
-                                                                Command="{Binding ClearLogsCommand}"
-                                                                Style="{StaticResource DangerLinkButtonStyle}"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                    </StackPanel>
+                                    </Border>
                                 </StackPanel>
 
-
+                                <!-- Tab 4: Mini Window -->
                                 <StackPanel>
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel" BasedOn="{StaticResource FadeInContentStyle}">

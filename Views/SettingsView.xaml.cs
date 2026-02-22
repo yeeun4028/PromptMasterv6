@@ -46,6 +46,9 @@ namespace PromptMasterv5.Views
             // Initialize AI sub-tab to Main tab
             UpdateAiSubTab(0);
 
+            // Initialize Sync sub-tab to WebDAV tab
+            UpdateSyncSubTab(0);
+
             // Initialize Voice Control sub-tab to Engine tab
             UpdateVoiceControlSubTab(0);
 
@@ -818,6 +821,33 @@ namespace PromptMasterv5.Views
             if (AiMiniTab != null) AiMiniTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
             // if (AiTranslateTab != null) AiTranslateTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed; // Removed
             if (AiQuickActionTab != null) AiQuickActionTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // Sync Sub-Tab Handlers
+        private int _selectedSyncSubTab = 0;
+
+        private void SyncSubTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tagStr)
+            {
+                int tabIndex = tagStr == "Selected" ? _selectedSyncSubTab : (int.TryParse(tagStr, out int idx) ? idx : 0);
+                UpdateSyncSubTab(tabIndex);
+            }
+        }
+
+        private void UpdateSyncSubTab(int tabIndex)
+        {
+            _selectedSyncSubTab = tabIndex;
+
+            // Update button states
+            if (BtnSyncWebDavTab != null) BtnSyncWebDavTab.Tag = tabIndex == 0 ? "Selected" : "0";
+            if (BtnSyncDataTab != null) BtnSyncDataTab.Tag = tabIndex == 1 ? "Selected" : "1";
+            if (BtnSyncLogTab != null) BtnSyncLogTab.Tag = tabIndex == 2 ? "Selected" : "2";
+
+            // Show/hide tab content
+            if (SyncWebDavTab != null) SyncWebDavTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (SyncDataTab != null) SyncDataTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (SyncLogTab != null) SyncLogTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // Quick Action Handlers
