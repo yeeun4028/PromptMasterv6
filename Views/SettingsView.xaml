@@ -2060,7 +2060,8 @@
                                                             IsChecked="{Binding Config.VoiceProvider, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OpenAI}"
                                                             Margin="0,0,0,12"
                                                             Cursor="Hand"
-                                                            FontSize="14"/>
+                                                            FontSize="14"
+                                                            Foreground="{DynamicResource TextSecondary}"/>
 
                                                 <!-- Xunfei Option -->
                                                 <RadioButton GroupName="VoiceProvider" 
@@ -2068,10 +2069,8 @@
                                                             IsChecked="{Binding Config.VoiceProvider, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Xunfei}"
                                                             Margin="0,0,0,12"
                                                             Cursor="Hand"
-                                                            FontSize="14"/>
-
-                                                <!-- Divider -->
-                                                <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,10,0,20"/>
+                                                            FontSize="14"
+                                                            Foreground="{DynamicResource TextSecondary}"/>
 
                                                 <!-- OpenAI Model Selection (shown when OpenAI is selected) -->
                                                 <StackPanel x:Name="OpenAIModelSelection">
