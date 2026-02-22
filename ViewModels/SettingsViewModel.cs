@@ -50,7 +50,8 @@ namespace PromptMasterv5.ViewModels
         #region Observable Properties - AI Model Management
 
         [ObservableProperty] private string? testStatus;
-        
+        [ObservableProperty] private System.Windows.Media.Brush testStatusColor = System.Windows.Media.Brushes.Gray;
+
         [ObservableProperty] private AiModelConfig? selectedSavedModel;
 
         partial void OnSelectedSavedModelChanged(AiModelConfig? value)
@@ -223,6 +224,7 @@ namespace PromptMasterv5.ViewModels
         #region Commands - AI Model Management
 
         [ObservableProperty] private string? translationTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush translationTestStatusColor = System.Windows.Media.Brushes.Gray;
 
         [RelayCommand]
         private async Task TestAiTranslationConnection()
@@ -231,11 +233,13 @@ namespace PromptMasterv5.ViewModels
             if (enabledModels.Count == 0)
             {
                 TranslationTestStatus = "请先勾选至少一个参与翻译的 AI 模型";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
                 return;
             }
 
             TranslationTestStatus = "测试中...";
-            
+            TranslationTestStatusColor = System.Windows.Media.Brushes.Gray;
+
             int successCount = 0;
             string lastError = "";
 
@@ -247,11 +251,20 @@ namespace PromptMasterv5.ViewModels
             }
 
             if (successCount == enabledModels.Count)
+            {
                 TranslationTestStatus = $"全部 {successCount} 个模型连接成功";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Green;
+            }
             else if (successCount > 0)
+            {
                 TranslationTestStatus = $"部分成功 ({successCount}/{enabledModels.Count})\n失败示例: {lastError}";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Orange;
+            }
             else
+            {
                 TranslationTestStatus = $"全部失败。\n错误示例: {lastError}";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
+            }
         }
 
         [RelayCommand]
@@ -260,14 +273,17 @@ namespace PromptMasterv5.ViewModels
             if (model == null)
             {
                  // Fallback to config if no specific model passed (though UI now passes parameter)
-                 var (_, msg) = await _aiService.TestConnectionAsync(Config);
+                 var (success, msg) = await _aiService.TestConnectionAsync(Config);
                  TestStatus = msg;
+                 TestStatusColor = success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
                  return;
             }
 
             TestStatus = "测试中...";
-            var (success, message) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName);
+            TestStatusColor = System.Windows.Media.Brushes.Gray;
+            var (success2, message) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName);
             TestStatus = message;
+            TestStatusColor = success2 ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         [RelayCommand]
