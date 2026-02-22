@@ -1211,10 +1211,6 @@ namespace PromptMasterv5.Views
             // Show/hide OpenAI model selection
             if (OpenAIModelSelection != null)
                 OpenAIModelSelection.Visibility = isXunfei ? Visibility.Collapsed : Visibility.Visible;
-
-            // Show/hide Xunfei hint
-            if (XunfeiHint != null)
-                XunfeiHint.Visibility = isXunfei ? Visibility.Visible : Visibility.Collapsed;
         }
 
         #endregion

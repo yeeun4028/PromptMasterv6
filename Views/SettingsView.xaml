@@ -2058,23 +2058,17 @@
                                                 <RadioButton GroupName="VoiceProvider" 
                                                             Content="OpenAI 兼容 API（录音后转写）"
                                                             IsChecked="{Binding Config.VoiceProvider, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OpenAI}"
-                                                            Margin="0,0,0,8"
+                                                            Margin="0,0,0,12"
                                                             Cursor="Hand"
                                                             FontSize="14"/>
-                                                <TextBlock Text="支持 Whisper、硅基流动 SenseVoice 等兼容接口"
-                                                          Style="{StaticResource HintTextStyle}"
-                                                          Margin="24,0,0,12"/>
 
                                                 <!-- Xunfei Option -->
                                                 <RadioButton GroupName="VoiceProvider" 
                                                             Content="讯飞语音听写（实时流式）"
                                                             IsChecked="{Binding Config.VoiceProvider, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Xunfei}"
-                                                            Margin="0,8,0,8"
+                                                            Margin="0,0,0,12"
                                                             Cursor="Hand"
                                                             FontSize="14"/>
-                                                <TextBlock Text="实时返回识别结果，响应更快，体验更好"
-                                                          Style="{StaticResource HintTextStyle}"
-                                                          Margin="24,0,0,12"/>
 
                                                 <!-- Divider -->
                                                 <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,10,0,20"/>
@@ -2088,26 +2082,6 @@
                                                               SelectedValue="{Binding Config.VoiceModelId}"
                                                               Style="{StaticResource ModernComboBoxStyle}"
                                                               HorizontalAlignment="Stretch"/>
-                                                    <TextBlock Text="选择支持语音识别的模型（如 FunAudioLLM/SenseVoiceSmall）"
-                                                              Style="{StaticResource HintTextStyle}"
-                                                              Margin="0,8,0,0"/>
-                                                </StackPanel>
-
-                                                <!-- Xunfei Hint (shown when Xunfei is selected) -->
-                                                <StackPanel x:Name="XunfeiHint" Visibility="Collapsed">
-                                                    <Border Background="#E3F2FD" 
-                                                            BorderBrush="#2196F3" 
-                                                            BorderThickness="1" 
-                                                            CornerRadius="6" 
-                                                            Padding="12,10">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="ℹ️" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                            <TextBlock Text="请切换到「讯飞配置」标签页填写 AppID、API Key 等参数"
-                                                                       Foreground="#1565C0"
-                                                                       FontSize="13"
-                                                                       VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                    </Border>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -2123,10 +2097,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <StackPanel>
-                                                        <TextBlock Text="语音唤醒快捷键" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                        <TextBlock Text="按住快捷键不放开始录音，松开快捷键结束录音" Style="{StaticResource HintTextStyle}"/>
-                                                    </StackPanel>
+                                                    <TextBlock Text="语音唤醒快捷键" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
                                                     <TextBox Grid.Column="1" 
                                                              Text="{Binding Config.VoiceTriggerHotkey}" 
                                                              Style="{StaticResource KeyRecorderStyle}"
@@ -2143,10 +2114,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <StackPanel>
-                                                        <TextBlock Text="录音时降低系统音量" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                        <TextBlock Text="减少系统声音对语音识别的干扰" Style="{StaticResource HintTextStyle}"/>
-                                                    </StackPanel>
+                                                    <TextBlock Text="录音时降低系统音量" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
                                                     <CheckBox Grid.Column="1" 
                                                               IsChecked="{Binding Config.VoiceDuckVolume}" 
                                                               Style="{StaticResource ToggleSwitchStyle}"
@@ -2160,10 +2128,7 @@
                                     <StackPanel x:Name="XunfeiConfigTab" Visibility="Collapsed">
                                         <Border Style="{StaticResource CardStyle}">
                                             <StackPanel>
-                                                <TextBlock Text="讯飞语音听写配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                                <TextBlock Text="在讯飞开放平台创建「语音听写」应用获取以下参数"
-                                                          Style="{StaticResource HintTextStyle}"
-                                                          Margin="0,0,0,20"/>
+                                                <TextBlock Text="讯飞语音听写配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,20"/>
 
                                                 <!-- AppID -->
                                                 <StackPanel Margin="0,0,0,15">
