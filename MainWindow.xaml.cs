@@ -491,22 +491,6 @@ namespace PromptMasterv5
             this.Close();
         }
 
-        private void Tray_OpenClaude_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = @"D:\MyAiProjects\Claude启动.bat",
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show($"启动失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
             // 如果正在执行备份后退出，直接跳到清理阶段
