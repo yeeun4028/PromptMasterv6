@@ -4,12 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace PromptMasterv5.Core.Models
 {
-    public enum InputMode
-    {
-        SmartFocus = 0, // 智能回退
-        CoordinateClick = 1 // 坐标点击
-    }
-
     public enum ThemeType
     {
         Light = 0,
@@ -18,20 +12,6 @@ namespace PromptMasterv5.Core.Models
 
     public partial class LocalSettings : ObservableObject
     {
-        [ObservableProperty]
-        private InputMode mode = InputMode.SmartFocus;
-
-        [ObservableProperty]
-        private int clickX = 0;
-
-        [ObservableProperty]
-        private int clickY = 0;
-
-        [ObservableProperty]
-        private ObservableCollection<CoordinateRule> coordinateRules = new() { new CoordinateRule() };
-
-        // --- 新增配置项 ---
-
         [ObservableProperty]
         private ThemeType theme = ThemeType.Light;
 

@@ -31,22 +31,6 @@ namespace PromptMasterv5.Infrastructure.Services
                 string json = File.ReadAllText(ConfigPath);
                 var settings = JsonSerializer.Deserialize<LocalSettings>(json) ?? new LocalSettings();
 
-                if (settings.CoordinateRules == null)
-                {
-                    settings.CoordinateRules = new();
-                }
-
-                if (settings.CoordinateRules.Count == 0)
-                {
-                    settings.CoordinateRules.Add(new CoordinateRule
-                    {
-                        X = settings.ClickX,
-                        Y = settings.ClickY,
-                        UrlContains = ""
-                    });
-                }
-
-
                 return settings;
             }
             catch

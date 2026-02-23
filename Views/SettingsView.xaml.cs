@@ -22,7 +22,6 @@ namespace PromptMasterv5.Views
 {
     public partial class SettingsView : System.Windows.Controls.UserControl
     {
-        private int _activeCoordinateRuleIndex = 0;
         private int _selectedExternalToolsSubTab = 0;
 
         private int _selectedAiSubTab = 0;
@@ -151,80 +150,6 @@ namespace PromptMasterv5.Views
                 ViewModel.SettingsVM.UpdateLauncherHotkey();
             }
         }
-
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        private async void PickCoordinate_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel == null) return;
-
-            var btn = sender as Button; 
-            if (btn == null) return; 
-            string org = btn.Content.ToString() ?? "⏱️ 3秒后拾取";
-            try
-            {
-                btn.IsEnabled = false;
-                for (int i = 3; i > 0; i--) { btn.Content = $"{i}"; await Task.Delay(1000); }
-                var pt = WinFormsCursor.Position;
-                ViewModel.LocalConfig.ClickX = pt.X;
-                ViewModel.LocalConfig.ClickY = pt.Y;
-
-                var rules = ViewModel.LocalConfig.CoordinateRules;
-                if (rules != null && rules.Count > 0)
-                {
-                    if (_activeCoordinateRuleIndex < 0) _activeCoordinateRuleIndex = 0;
-                    if (_activeCoordinateRuleIndex >= rules.Count) _activeCoordinateRuleIndex = rules.Count - 1;
-
-                    rules[_activeCoordinateRuleIndex].X = pt.X;
-                    rules[_activeCoordinateRuleIndex].Y = pt.Y;
-                }
-                btn.Content = "已获取!";
-                await Task.Delay(1000);
-            }
-            finally { btn.Content = org; btn.IsEnabled = true; }
-        }
-
-
-        private System.Windows.Point ScreenToDip(System.Windows.Point screenPoint)
-        {
-            var hostWindow = Window.GetWindow(this);
-            if (hostWindow == null) return screenPoint;
-
-            var source = PresentationSource.FromVisual(hostWindow);
-            var target = source?.CompositionTarget;
-            if (target == null) return screenPoint;
-
-            return target.TransformFromDevice.Transform(screenPoint);
-        }
-
-        private void CoordinateRuleField_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement fe)
-            {
-                if (fe.Tag is int idx)
-                {
-                    _activeCoordinateRuleIndex = idx;
-                }
-                else if (fe.Tag is string s && int.TryParse(s, out int parsed))
-                {
-                    _activeCoordinateRuleIndex = parsed;
-                }
-            }
-        }
-
-        private void AddCoordinateRule_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel == null) return;
-
-            if (ViewModel.LocalConfig.CoordinateRules == null)
-            {
-                ViewModel.LocalConfig.CoordinateRules = new();
-            }
-
-            ViewModel.LocalConfig.CoordinateRules.Add(new CoordinateRule());
-            _activeCoordinateRuleIndex = ViewModel.LocalConfig.CoordinateRules.Count - 1;
-        }
-
-
 
         private void TranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {

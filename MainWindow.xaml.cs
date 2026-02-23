@@ -22,7 +22,6 @@ using Gma.System.MouseKeyHook;
 using PromptMasterv5.Infrastructure.Helpers;
 
 // 引用自定义枚举和控件别名，解决命名冲突
-using InputMode = PromptMasterv5.Core.Models.InputMode;
 using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
 using ListBox = System.Windows.Controls.ListBox;
@@ -387,32 +386,8 @@ namespace PromptMasterv5
             }
         }
 
-        private async void FileListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is ListBoxItem) await ViewModel.SendBySmartFocus();
-        }
-
         private void WebDavPasswordBox_Loaded(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null && pb.Password != ViewModel.Config.Password) pb.Password = ViewModel.Config.Password; }
         private void WebDavPasswordBox_PasswordChanged(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null) ViewModel.Config.Password = pb.Password; }
-
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        private async void PickCoordinate_Click(object sender, RoutedEventArgs e)
-        {
-            var btn = sender as Button; if (btn == null) return; string org = btn.Content.ToString() ?? "拾取";
-            try
-            {
-                btn.IsEnabled = false;
-                for (int i = 3; i > 0; i--) { btn.Content = $"{i}"; await Task.Delay(1000); }
-                var pt = WinFormsCursor.Position;
-                ViewModel.LocalConfig.ClickX = pt.X;
-                ViewModel.LocalConfig.ClickY = pt.Y;
-                btn.Content = "已获取!";
-                await Task.Delay(1000);
-            }
-            finally { btn.Content = org; btn.IsEnabled = true; }
-        }
-
-
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {

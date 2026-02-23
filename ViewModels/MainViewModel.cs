@@ -23,7 +23,6 @@ using System.Windows.Threading;
 using Application = System.Windows.Application;
 using Clipboard = System.Windows.Clipboard;
 using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
-using InputMode = PromptMasterv5.Core.Models.InputMode;
 using MessageBox = System.Windows.MessageBox;
 
 using System.Reactive.Linq;
@@ -63,7 +62,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
 
     private bool _previousFullMode = true;
-    private IntPtr _previousWindowHandle = IntPtr.Zero;
     private bool _isSimulatingKeys;
     public void SetSimulatingKeys(bool value) => _isSimulatingKeys = value;
 
@@ -1005,58 +1003,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
 
-    private async Task ExecuteSendAsync(string content, InputMode targetMode)
-    {
-        if (string.IsNullOrWhiteSpace(content)) return;
-        var window = Application.Current.MainWindow;
-
-        bool stoppedGlobalHook = false;
-        try
-        {
-            if (Config.EnableDoubleCtrl)
-            {
-                _keyService.Stop();
-                stoppedGlobalHook = true;
-            }
-
-            if (window != null) window.Hide();
-
-            await InputSender.SendAsync(content, targetMode, LocalConfig, _previousWindowHandle);
-        }
-        finally
-        {
-            if (stoppedGlobalHook)
-            {
-                await Task.Delay(450);
-                if (Config.EnableDoubleCtrl)
-                {
-                    try { _keyService.Start(); }
-                    catch (Exception ex)
-                    {
-                        LoggerService.Instance.LogException(ex, "Failed to restart GlobalKeyService after send", "MainViewModel.ExecuteSendAsync");
-                    }
-                }
-            }
-        }
-
-        AdditionalInput = "";
-    }
-
-
-
-
-
     [RelayCommand]
     private void TriggerOcr() => ExternalToolsVM.TriggerOcrCommand.Execute(null);
 
     [RelayCommand]
     private void TriggerTranslate() => ExternalToolsVM.TriggerTranslateCommand.Execute(null);
-
-    public async Task SendBySmartFocus()
-    {
-        var content = CompileContent();
-        await ExecuteSendAsync(content, InputMode.SmartFocus);
-    }
 
     private void HandleLauncherTriggered()
     {

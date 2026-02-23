@@ -315,7 +315,6 @@
             <Setter Property="Margin" Value="0,2"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
-            <EventSetter Event="MouseDoubleClick" Handler="FileListBoxItem_MouseDoubleClick"/>
                 <Setter Property="ContextMenu">
                     <Setter.Value>
                         <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
