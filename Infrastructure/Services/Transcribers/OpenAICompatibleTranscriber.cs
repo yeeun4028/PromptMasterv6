@@ -19,7 +19,7 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
     public class OpenAICompatibleTranscriber : IVoiceTranscriber
     {
         private readonly ISettingsService _settingsService;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         private WaveInEvent? _waveIn;
         private WaveFileWriter? _waveWriter;
@@ -47,10 +47,10 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
         private float _savedVolume = -1f;
         private bool _wasMuted = false;
 
-        public OpenAICompatibleTranscriber(ISettingsService settingsService, HttpClient httpClient)
+        public OpenAICompatibleTranscriber(ISettingsService settingsService, IHttpClientFactory httpClientFactory)
         {
             _settingsService = settingsService;
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
         }
 
         public void UpdateConfig(string baseUrl, string apiKey, string model)
@@ -254,6 +254,9 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
                     requestUrl = new Uri(new Uri(baseUrl), "audio/transcriptions").ToString();
                 }
 
+                // 使用 IHttpClientFactory 创建 HttpClient
+                var httpClient = _httpClientFactory.CreateClient("VoiceClient");
+
                 using var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
@@ -275,7 +278,7 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
 
                 request.Content = form;
 
-                var response = await _httpClient.SendAsync(request);
+                var response = await httpClient.SendAsync(request);
                 string responseString = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)

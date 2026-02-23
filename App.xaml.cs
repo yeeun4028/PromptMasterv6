@@ -143,7 +143,20 @@ namespace PromptMasterv5
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient();
+            // 注册 ZhipuCompatHandler（智谱 AI URL 兼容性处理器）
+            services.AddTransient<ZhipuCompatHandler>();
+
+            // 注册具名 HttpClient（用于 AiService）
+            services.AddHttpClient("AiServiceClient")
+                .AddHttpMessageHandler<ZhipuCompatHandler>()
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+            
+            services.AddHttpClient("NativeAiClient")
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
+            // 注册 VoiceClient（用于语音识别）
+            services.AddHttpClient("VoiceClient")
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
             // Configuration Service (单例，所有 VM 共享配置)
             services.AddSingleton<ISettingsService, SettingsService>();
@@ -166,6 +179,8 @@ namespace PromptMasterv5
             services.AddSingleton<FabricService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IWindowManager, WindowManager>();
+
+            // 类型化 HttpClient（BaiduService、GoogleService、TencentService）
             services.AddHttpClient<BaiduService>();
             services.AddHttpClient<GoogleService>();
             services.AddHttpClient<TencentService>();

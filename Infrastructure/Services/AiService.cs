@@ -19,11 +19,7 @@ namespace PromptMasterv5.Infrastructure.Services
 {
     public class AiService : IAiService
     {
-        // 静态 HttpClient 避免每次请求都创建新连接（DNS/TCP/TLS 开销 + 端口耗尽风险）
-        private static readonly HttpClient _nativeHttpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromMinutes(2)
-        };
+        private readonly IHttpClientFactory _httpClientFactory;
 
         // 缓存 OpenAIService 实例，避免每次请求都创建新实例
         // 使用 (apiKey + baseUrl) 作为缓存键
@@ -32,6 +28,11 @@ namespace PromptMasterv5.Infrastructure.Services
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, OpenAIService> _serviceCache 
             = new System.Collections.Concurrent.ConcurrentDictionary<string, OpenAIService>();
         private static readonly object _cacheLock = new();
+
+        public AiService(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
 
         /// <summary>
         /// 获取缓存的 OpenAIService 实例，如果不存在则创建并缓存
@@ -73,11 +74,9 @@ namespace PromptMasterv5.Infrastructure.Services
                 BaseDomain = baseUrl
             };
 
-            // 使用自定义 Handler 处理智谱 AI 的 URL 兼容性问题
-            var httpClient = new HttpClient(new ZhipuCompatHandler(new HttpClientHandler()))
-            {
-                Timeout = TimeSpan.FromMinutes(2)
-            };
+            // 使用 IHttpClientFactory 创建 HttpClient
+            var httpClient = _httpClientFactory.CreateClient("AiServiceClient");
+            httpClient.Timeout = TimeSpan.FromMinutes(2);
 
             return new OpenAIService(options, httpClient);
         }
@@ -478,11 +477,13 @@ namespace PromptMasterv5.Infrastructure.Services
         {
             try
             {
+                var httpClient = _httpClientFactory.CreateClient("NativeAiClient");
+                
                 var request = new HttpRequestMessage(HttpMethod.Post, url);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
                 request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                var response = await _nativeHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                 return (response, null);
             }
             catch (Exception ex)
@@ -578,67 +579,74 @@ namespace PromptMasterv5.Infrastructure.Services
                 return (false, $"连接异常: {ex.Message}");
             }
         }
+
         private OpenAIService CreateOpenAiService(string apiKey, string baseUrl)
         {
             // 使用缓存版本，避免重复创建
             return GetOrCreateOpenAiService(apiKey, baseUrl);
         }
+    }
 
-        /// <summary>
-        /// 智谱 AI URL 兼容性处理器
-        /// </summary>
-        private class ZhipuCompatHandler : DelegatingHandler
+    /// <summary>
+    /// 智谱 AI URL 兼容性处理器
+    /// 处理 SDK 自动追加 /v1/ 导致的路径错误
+    /// </summary>
+    public class ZhipuCompatHandler : DelegatingHandler
+    {
+        public ZhipuCompatHandler() : base(new HttpClientHandler())
         {
-            public ZhipuCompatHandler(HttpMessageHandler innerHandler) : base(innerHandler) 
-            { 
-                LoggerService.Instance.LogInfo("ZhipuCompatHandler instance created", "AiService.ZhipuCompatHandler");
-            }
+            LoggerService.Instance.LogInfo("ZhipuCompatHandler instance created", "ZhipuCompatHandler");
+        }
 
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        public ZhipuCompatHandler(HttpMessageHandler innerHandler) : base(innerHandler)
+        {
+            LoggerService.Instance.LogInfo("ZhipuCompatHandler instance created with inner handler", "ZhipuCompatHandler");
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LoggerService.Instance.LogInfo($"SendAsync called: URL={request.RequestUri}", "ZhipuCompatHandler");
+            
+            if (request.RequestUri != null && request.RequestUri.Host.Contains("bigmodel.cn", StringComparison.OrdinalIgnoreCase))
             {
-                LoggerService.Instance.LogInfo($"SendAsync called: URL={request.RequestUri}", "AiService.ZhipuCompatHandler");
+                var uriStr = request.RequestUri.AbsoluteUri;
                 
-                if (request.RequestUri != null && request.RequestUri.Host.Contains("bigmodel.cn", StringComparison.OrdinalIgnoreCase))
+                // 1. 处理 SDK 自动追加 /v1/ 导致路径错误 (如 .../v4/v1/...)
+                // 同时处理可能的双斜杠问题 (.../v4//v1/...)
+                if (uriStr.Contains("/v4/v1/") || uriStr.Contains("/v4//v1/"))
                 {
-                    var uriStr = request.RequestUri.AbsoluteUri;
+                    var originalUri = uriStr;
                     
-                    // 1. 处理 SDK 自动追加 /v1/ 导致路径错误 (如 .../v4/v1/...)
-                    // 同时处理可能的双斜杠问题 (.../v4//v1/...)
-                    if (uriStr.Contains("/v4/v1/") || uriStr.Contains("/v4//v1/"))
-                    {
-                        var originalUri = uriStr;
-                        
-                        // 替换错误的 v1 路径，修正为 v4 直接衔接后续路径
-                        var newUriStr = uriStr.Replace("/v4//v1/", "/v4/").Replace("/v4/v1/", "/v4/");
-                        
-                        request.RequestUri = new Uri(newUriStr);
-                        
-                        // Log the fix for debugging
-                        LoggerService.Instance.LogInfo($"[ZhipuFix] Rewrote URL from {originalUri} to {newUriStr}", "AiService.ZhipuCompatHandler");
-                    }
-                    else
-                    {
-                         // Log normal requests to verify host match
-                         // LoggerService.Instance.LogInfo($"[ZhipuCheck] URL pass-through: {uriStr}", "AiService.ZhipuCompatHandler");
-                    }
+                    // 替换错误的 v1 路径，修正为 v4 直接衔接后续路径
+                    var newUriStr = uriStr.Replace("/v4//v1/", "/v4/").Replace("/v4/v1/", "/v4/");
+                    
+                    request.RequestUri = new Uri(newUriStr);
+                    
+                    // Log the fix for debugging
+                    LoggerService.Instance.LogInfo($"[ZhipuFix] Rewrote URL from {originalUri} to {newUriStr}", "ZhipuCompatHandler");
                 }
-                
-                // 记录 GLM 请求信息（用于调试）
-                if (request.RequestUri != null && request.RequestUri.Host.Contains("bigmodel.cn", StringComparison.OrdinalIgnoreCase))
+                else
                 {
-                    LoggerService.Instance.LogInfo($"[GLM Request] URL: {request.RequestUri}, Method: {request.Method}", "AiService.ZhipuCompatHandler");
+                     // Log normal requests to verify host match
+                     // LoggerService.Instance.LogInfo($"[ZhipuCheck] URL pass-through: {uriStr}", "ZhipuCompatHandler");
                 }
-                
-                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                
-                // 记录 GLM 响应状态（流式响应不能读取Body）
-                if (request.RequestUri != null && request.RequestUri.Host.Contains("bigmodel.cn", StringComparison.OrdinalIgnoreCase))
-                {
-                    LoggerService.Instance.LogInfo($"[GLM Response] Status: {response.StatusCode}, ContentType: {response.Content.Headers.ContentType}", "AiService.ZhipuCompatHandler");
-                }
-                
-                return response;
             }
+            
+            // 记录 GLM 请求信息（用于调试）
+            if (request.RequestUri != null && request.RequestUri.Host.Contains("bigmodel.cn", StringComparison.OrdinalIgnoreCase))
+            {
+                LoggerService.Instance.LogInfo($"[GLM Request] URL: {request.RequestUri}, Method: {request.Method}", "ZhipuCompatHandler");
+            }
+            
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            
+            // 记录 GLM 响应状态（流式响应不能读取Body）
+            if (request.RequestUri != null && request.RequestUri.Host.Contains("bigmodel.cn", StringComparison.OrdinalIgnoreCase))
+            {
+                LoggerService.Instance.LogInfo($"[GLM Response] Status: {response.StatusCode}, ContentType: {response.Content.Headers.ContentType}", "ZhipuCompatHandler");
+            }
+            
+            return response;
         }
     }
 }

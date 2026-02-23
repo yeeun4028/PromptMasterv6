@@ -14,14 +14,9 @@ namespace PromptMasterv5.Infrastructure.Services
     public class VoiceService : IVoiceService, IDisposable
     {
         private readonly ISettingsService _settingsService;
+        private readonly IHttpClientFactory _httpClientFactory;
         private IVoiceTranscriber? _currentTranscriber;
         private VoiceProvider _currentProvider;
-
-        // 静态 HttpClient 避免每次请求都创建新连接
-        private static readonly HttpClient _httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
 
         public bool IsRecording => _currentTranscriber?.IsRecording ?? false;
 
@@ -32,9 +27,10 @@ namespace PromptMasterv5.Infrastructure.Services
         public event EventHandler<string>? OnFinalResult;
         public event EventHandler<Exception>? OnError;
 
-        public VoiceService(ISettingsService settingsService)
+        public VoiceService(ISettingsService settingsService, IHttpClientFactory httpClientFactory)
         {
             _settingsService = settingsService;
+            _httpClientFactory = httpClientFactory;
 
             // 初始化转写器
             InitializeTranscriber();
@@ -67,7 +63,7 @@ namespace PromptMasterv5.Infrastructure.Services
                 _currentTranscriber = config.VoiceProvider switch
                 {
                     VoiceProvider.Xunfei => new XunfeiIatTranscriber(_settingsService),
-                    _ => new OpenAICompatibleTranscriber(_settingsService, _httpClient)
+                    _ => new OpenAICompatibleTranscriber(_settingsService, _httpClientFactory)
                 };
 
                 _currentProvider = config.VoiceProvider;
