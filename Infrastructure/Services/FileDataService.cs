@@ -163,56 +163,5 @@ namespace PromptMasterv5.Infrastructure.Services
             }
         }
 
-        public async Task<IEnumerable<PromptItem>> GetQuickActionsAsync()
-        {
-            var data = await LoadAsync();
-            return data.Files.FindAll(f => f.IsQuickAction);
-        }
-
-        public async Task ArchiveQuickActionHistoryAsync(string userQuestion, string aiResponse)
-        {
-            var data = await LoadAsync();
-            
-            // 1. Find or create "Quick Actions" topic
-            // Assuming we are storing topics in a separate structure or within a special folder/file structure
-            // For simplicity in this v5 architecture (based on AppData structure), let's assume we use a special Folder named "Quick Actions History"
-            // Or better, if there's a Chat History mechanism, use that.
-            // Since AppData has Folders and Files (PromptItem), and PromptItem seems to be a prompt template,
-            // we might need a different place for Chat History.
-            
-            // Checking AppData structure... it seems PromptMasterv5 is prompt manager, maybe Chat history is not fully implemented in AppData?
-            // Let's check ChatViewModel or similar to see how history is stored.
-            // If no existing history storage, we can create a text file log or append to a special PromptItem content.
-            
-            // Strategy: Create/Update a PromptItem named "Quick Actions History"
-            var historyItem = data.Files.FirstOrDefault(f => f.Title == "Quick Actions History");
-            if (historyItem == null)
-            {
-                historyItem = new PromptItem
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Title = "Quick Actions History",
-                    Content = "",
-                    Description = "Auto-archived history from Global Quick Actions",
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
-                data.Files.Add(historyItem);
-            }
-            
-            // Append new conversation
-            var newEntry = $"## {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n**Q:** {userQuestion}\n\n**A:** {aiResponse}\n\n---\n\n";
-            historyItem.Content = newEntry + historyItem.Content; // Prepend to show newest first
-            
-            // Limit length (optional, simple char limit for now)
-            if (historyItem.Content.Length > 50000)
-            {
-                historyItem.Content = historyItem.Content.Substring(0, 50000);
-            }
-            
-            historyItem.UpdatedAt = DateTime.Now;
-            
-            await SaveAsync(data.Folders, data.Files, data.VoiceCommands);
-        }
     }
 }

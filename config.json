@@ -252,11 +252,7 @@
     "ScreenshotTranslateHotkey": "Alt+S",
     "SelectedTextTranslateHotkey": "Alt+D",
     "OcrHotkey": "F9",
-    "QuickActionHotkey": "Alt+Q",
-    "QuickActionLongTextMode": 0,
-    "QuickActionLineThreshold": 15,
-    "QuickActionShowText": true,
-    "QuickActionShowIcons": true,
+
     "LauncherHotkey": "Ctrl+Shift+S",
     "LauncherRunAsAdmin": false,
     "LauncherSearchPaths": [

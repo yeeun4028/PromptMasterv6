@@ -10,7 +10,7 @@ using System.Windows.Automation; // For UI Automation
 namespace PromptMasterv5.Infrastructure.Services
 {
     /// <summary>
-    /// 剪贴板操作服务，用于全局划词助手功能
+    /// 剪贴板操作服务
     /// </summary>
     public class ClipboardService
     {

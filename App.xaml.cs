@@ -190,8 +190,6 @@ namespace PromptMasterv5
             services.AddSingleton<ICommandExecutionService, CommandExecutionService>();
             services.AddTransient<VoiceControlViewModel>();
             
-            // 全局划词助手服务
-            services.AddSingleton<WindowPositionService>();
             services.AddSingleton<ClipboardService>();
             services.AddSingleton<IAudioService, AudioService>();
         }

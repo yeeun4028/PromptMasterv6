@@ -40,24 +40,8 @@ namespace PromptMasterv5.Core.Models
         // Value: SVG Path Data 字符串
         public Dictionary<string, string> ActionIcons { get; set; } = new();
 
-        // Quick Action prompts for 划词 feature
-        [ObservableProperty]
-        private ObservableCollection<QuickActionPrompt> quickActionPrompts = new();
-
         [ObservableProperty]
         private DateTime? lastCloudSyncTime;
     }
 
-    // Model for Quick Action prompts with individual model selection
-    public partial class QuickActionPrompt : ObservableObject
-    {
-        [ObservableProperty]
-        private string id = "";
-
-        [ObservableProperty]
-        private string title = "";
-
-        [ObservableProperty]
-        private string boundModelId = ""; // Empty = use global default model
-    }
 }

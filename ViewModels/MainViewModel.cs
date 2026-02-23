@@ -39,7 +39,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly FabricService _fabricService;
     private readonly IDialogService _dialogService;
     private readonly ClipboardService _clipboardService;
-    private readonly WindowPositionService _windowPositionService;
     private readonly IWindowManager _windowManager; // Injected
     private readonly ISettingsService _settingsService;
     private readonly ICommandExecutionService _commandExecutionService;
@@ -122,11 +121,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private PromptItem? selectedFile;
 
-    partial void OnFilesChanged(ObservableCollection<PromptItem> value)
-    {
-        if (IsGlobalPromptListOpen) UpdateGlobalPromptList();
-    }
-
     partial void OnSelectedFileChanged(PromptItem? value)
     {
         OnPropertyChanged(nameof(HasVariables));
@@ -142,8 +136,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private bool isDirty;
 
-    [ObservableProperty] private bool isGlobalPromptListOpen;
-    [ObservableProperty] private ObservableCollection<PromptGroup> globalPromptList = new();
 
     public MainViewModel(
         ISettingsService settingsService,
@@ -158,9 +150,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ExternalToolsViewModel externalToolsVM,
         IDialogService dialogService,
         ClipboardService clipboardService,
-        WindowPositionService windowPositionService,
-        IWindowManager windowManager,
-        ICommandExecutionService commandExecutionService) // Injected
+          IWindowManager windowManager,
+          ICommandExecutionService commandExecutionService) // Injected
     {
         _aiService = aiService;
         _dataService = dataService;
@@ -169,7 +160,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _fabricService = fabricService;
         _dialogService = dialogService;
         _clipboardService = clipboardService;
-        _windowPositionService = windowPositionService;
         _settingsService = settingsService;
         _settingsService = settingsService;
         _windowManager = windowManager; // Assigned
@@ -1040,75 +1030,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         });
     }
 
-    // ========== 全局划词助手 ==========
-
-
-    [RelayCommand]
-    private void ToggleGlobalPromptList()
-    {
-        // IsGlobalPromptListOpen is toggled by the UI binding (ToggleButton.IsChecked)
-        // We only need to react to the state change
-        if (IsGlobalPromptListOpen)
-        {
-            // Update with partial or empty filter
-            UpdateGlobalPromptList("");
-        }
-    }
-
-    [RelayCommand]
-    private void SelectGlobalPrompt(PromptItem prompt)
-    {
-        if (prompt == null) return;
-
-        IsGlobalPromptListOpen = false;
-        SelectedFile = prompt;
-    }
-
-    private void UpdateGlobalPromptList(string filterText = "")
-    {
-        var groups = new List<PromptGroup>();
-        string filter = NormalizeSymbols(filterText?.Trim() ?? "");
-
-        // 1. Default (Uncategorized or Root) - only if filter matches
-        var rootPrompts = Files.Where(f => string.IsNullOrEmpty(f.FolderId)).ToList();
-        if (!string.IsNullOrWhiteSpace(filter))
-        {
-            rootPrompts = rootPrompts
-                .Where(p =>
-                    NormalizeSymbols(p.Title).Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                    NormalizeSymbols(p.Content ?? "").Contains(filter, StringComparison.OrdinalIgnoreCase)
-                )
-                .ToList();
-        }
-
-        if (rootPrompts.Any())
-        {
-            groups.Add(new PromptGroup { FolderName = "默认", Prompts = rootPrompts });
-        }
-
-        // 2. Folders
-        foreach (var folder in Folders)
-        {
-            var folderPrompts = Files.Where(f => f.FolderId == folder.Id).ToList();
-
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                folderPrompts = folderPrompts
-                    .Where(p =>
-                        NormalizeSymbols(p.Title).Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                        NormalizeSymbols(p.Content ?? "").Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    )
-                    .ToList();
-            }
-
-            if (folderPrompts.Any())
-            {
-                groups.Add(new PromptGroup { FolderName = folder.Name, Prompts = folderPrompts });
-            }
-        }
-
-        GlobalPromptList = new ObservableCollection<PromptGroup>(groups);
-    }
 
     // ========== IDisposable ==========
     private bool _disposed = false;

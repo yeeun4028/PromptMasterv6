@@ -19,12 +19,5 @@
     "TranslateHotkey": "",
     "Block1Width": 45.6,
     "Block2Width": 189.6,
-    "QuickActionPrompts": [
-        {
-            "Id": "516a92f4-1388-46d7-a6df-71f1e18ac266",
-            "Title": "\u91C7\u8BBF\u5F0F\u63D0\u95EE ",
-            "BoundModelId": ""
-        }
-    ],
     "LastCloudSyncTime": "2026-01-28T19:12:24.6766105+08:00"
 }

@@ -9,10 +9,5 @@ namespace PromptMasterv5.Core.Interfaces
         Task<AppData> LoadAsync();
         Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, Dictionary<string, string> voiceCommands);
         
-        // Quick Action specific
-        Task<IEnumerable<PromptItem>> GetQuickActionsAsync();
-        
-        // History Archiving
-        Task ArchiveQuickActionHistoryAsync(string userQuestion, string aiResponse);
     }
 }
