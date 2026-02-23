@@ -1146,8 +1146,9 @@ namespace PromptMasterv5.ViewModels
         {
             var promptId = Config.AiTranslationPromptId;
             if (string.IsNullOrWhiteSpace(promptId)) return;
+            if (_mainViewModel == null) return;
 
-            var prompt = _mainViewModel?.Files.FirstOrDefault(f => f.Id == promptId);
+            var prompt = _mainViewModel.Files.FirstOrDefault(f => f.Id == promptId);
             if (prompt != null)
             {
                 _mainViewModel.SelectedFile = prompt;
@@ -1244,8 +1245,8 @@ namespace PromptMasterv5.ViewModels
             }
 
             // Update OCR credentials
-            baiduOcrProfile.Key1 = BaiduOcrApiKey;
-            baiduOcrProfile.Key2 = BaiduOcrSecretKey;
+            baiduOcrProfile.Key1 = BaiduOcrApiKey ?? "";
+            baiduOcrProfile.Key2 = BaiduOcrSecretKey ?? "";
 
             // Find or create Baidu Translation profile
             var baiduTransProfile = Config.ApiProfiles.FirstOrDefault(p =>
@@ -1263,8 +1264,8 @@ namespace PromptMasterv5.ViewModels
             }
 
             // Update Translation credentials
-            baiduTransProfile.Key1 = BaiduTranslateAppId;
-            baiduTransProfile.Key2 = BaiduTranslateSecretKey;
+            baiduTransProfile.Key1 = BaiduTranslateAppId ?? "";
+            baiduTransProfile.Key2 = BaiduTranslateSecretKey ?? "";
 
             // Auto-set as active profiles if not already set
             if (string.IsNullOrEmpty(Config.OcrProfileId))
