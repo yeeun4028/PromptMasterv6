@@ -17,7 +17,10 @@ namespace PromptMasterv5.Infrastructure.Services
                 string json = JsonSerializer.Serialize(settings, options);
                 File.WriteAllText(ConfigPath, json);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, $"Failed to save local settings to {ConfigPath}", "LocalConfigService.Save");
+            }
         }
 
         public static LocalSettings Load()

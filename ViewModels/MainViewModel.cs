@@ -3,10 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GongSolutions.Wpf.DragDrop;
 using Microsoft.Extensions.DependencyInjection;
-using NHotkey;
-using NHotkey.Wpf;
 using PromptMasterv5.Core.Interfaces;
 using PromptMasterv5.Core.Models;
+using PromptMasterv5.Infrastructure.Helpers;
 using PromptMasterv5.Infrastructure.Services;
 using PromptMasterv5.ViewModels.Messages;
 using System;
@@ -20,7 +19,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
 using Clipboard = System.Windows.Clipboard;
@@ -46,6 +44,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IWindowManager _windowManager; // Injected
     private readonly ISettingsService _settingsService;
     private readonly ICommandExecutionService _commandExecutionService;
+    private readonly ThemeService _themeService;
+    private readonly HotkeyService _hotkeyService;
+
+    // 编译后的正则表达式，用于解析变量 {{xxx}}
+    private static readonly Regex VariableRegex = new(@"\{\{(.*?)\}\}", RegexOptions.Compiled);
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
@@ -173,6 +176,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _settingsService = settingsService;
         _windowManager = windowManager; // Assigned
         _commandExecutionService = commandExecutionService;
+        _themeService = new ThemeService();
+        _hotkeyService = new HotkeyService();
         
         _commandExecutionService.CommandsChanged += (_, __) => 
         {
@@ -285,7 +290,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // Initialize hotkeys from config before starting
         _keyService.LauncherHotkeyString = Config.LauncherHotkey;
         // Initialize GlobalKeyService unconditionally to support Launcher
-        try { _keyService.Start(); } catch { }
+        try { _keyService.Start(); }
+        catch (Exception ex)
+        {
+            LoggerService.Instance.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.ctor");
+        }
 
         // 委托给 SettingsViewModel 处理主题和快捷键
         SettingsVM.SetMainViewModel(this);
@@ -802,99 +811,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         win.Hide();
     }
 
-    private static void SetBrush(ResourceDictionary resources, string key, string color)
-    {
-        static System.Windows.Media.Color ParseColor(string value) =>
-            (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(value);
-
-        resources[key] = new System.Windows.Media.SolidColorBrush(ParseColor(color));
-    }
-
     private void ApplyTheme(ThemeType theme)
     {
-        var resources = Application.Current?.Resources;
-        if (resources == null) return;
-
-        if (theme == ThemeType.Dark)
-        {
-            SetBrush(resources, "ShellBackground", "#2E3033");
-            SetBrush(resources, "AppBackground", "#363B40");
-            SetBrush(resources, "SidebarBackground", "#2E3033");
-            SetBrush(resources, "CardBackground", "#363B40");
-            SetBrush(resources, "TextPrimary", "#ACBFBE");
-            SetBrush(resources, "TextSecondary", "#ACBFBE");
-            SetBrush(resources, "DividerColor", "#4A4F55");
-            SetBrush(resources, "HintBrush", "#ACBFBE");
-            SetBrush(resources, "ListItemHoverBackgroundBrush", "#3A3F45");
-            SetBrush(resources, "ListItemSelectedBackgroundBrush", "#444A52");
-            SetBrush(resources, "InputFocusBackgroundBrush", "#2E3033");
-
-            SetBrush(resources, "Block1Background", "#2E3033");
-            SetBrush(resources, "Block2Background", "#2E3033");
-            SetBrush(resources, "Block3Background", "#363B40");
-            SetBrush(resources, "Block4Background", "#363B40");
-            SetBrush(resources, "PrimaryTextBrush", "#ACBFBE");
-            SetBrush(resources, "SecondaryTextBrush", "#ACBFBE");
-            SetBrush(resources, "PlaceholderTextBrush", "#ACBFBE");
-            SetBrush(resources, "DividerBrush", "#4A4F55");
-            SetBrush(resources, "ActionIconBrush", "#ACBFBE");
-            SetBrush(resources, "ActionIconHoverBrush", "#ACBFBE");
-            SetBrush(resources, "HeaderIconBrush", "#ACBFBE");
-            SetBrush(resources, "HeaderIconHoverBrush", "#ACBFBE");
-
-            SetBrush(resources, "Block3EditorTextBrush", "#B8BFC6");
-            SetBrush(resources, "Block3EditorCaretBrush", "#B8BFC6");
-            SetBrush(resources, "Block3EditorSelectionBrush", "#4A89DC");
-        }
-        else
-        {
-            SetBrush(resources, "ShellBackground", "#FAFAFA");
-            SetBrush(resources, "AppBackground", "#F1F1EF");
-            SetBrush(resources, "SidebarBackground", "#F7F7F7");
-            SetBrush(resources, "CardBackground", "#FFFFFF");
-            SetBrush(resources, "TextPrimary", "#333333");
-            SetBrush(resources, "TextSecondary", "#666666");
-            SetBrush(resources, "DividerColor", "#E5E5E5");
-            SetBrush(resources, "HintBrush", "#999999");
-            SetBrush(resources, "ListItemHoverBackgroundBrush", "#EAEAEA");
-            SetBrush(resources, "ListItemSelectedBackgroundBrush", "#E0E0E0");
-            SetBrush(resources, "InputFocusBackgroundBrush", "#FFFFFF");
-
-            SetBrush(resources, "Block1Background", "#E8E7E7");
-            SetBrush(resources, "Block2Background", "#E8E7E7");
-            SetBrush(resources, "Block3Background", "#EDEDED");
-            SetBrush(resources, "Block4Background", "#EDEDED");
-            SetBrush(resources, "PrimaryTextBrush", "#333333");
-            SetBrush(resources, "SecondaryTextBrush", "#666666");
-            SetBrush(resources, "PlaceholderTextBrush", "#999999");
-            SetBrush(resources, "DividerBrush", "#E5E5E5");
-            SetBrush(resources, "ActionIconBrush", "#666666");
-            SetBrush(resources, "ActionIconHoverBrush", "#333333");
-            SetBrush(resources, "HeaderIconBrush", "#666666");
-            SetBrush(resources, "HeaderIconHoverBrush", "#333333");
-
-            SetBrush(resources, "Block3EditorTextBrush", "#333333");
-            SetBrush(resources, "Block3EditorCaretBrush", "#333333");
-            SetBrush(resources, "Block3EditorSelectionBrush", "#4A89DC");
-        }
-    }
-
-    private static char NormalizeSymbol(char c)
-    {
-        return c switch
-        {
-            '；' => ';',
-            '＇' => '\'',
-            '‘' => '\'',
-            '’' => '\'',
-            '`' => '\'',
-            '´' => '\'',
-            _ => c
-        };
+        _themeService.ApplyTheme(theme);
     }
 
     private static string NormalizeSymbols(string s) =>
-        new string((s ?? "").Select(NormalizeSymbol).ToArray());
+        StringUtils.NormalizeSymbols(s);
 
     // ... (existing code) ...
 
@@ -911,7 +834,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var matches = Regex.Matches(content, @"\{\{(.*?)\}\}");
+        var matches = VariableRegex.Matches(content);
         var newVarNames = matches.Cast<Match>()
             .Select(m => m.Groups[1].Value.Trim())
             .Where(s => !string.IsNullOrEmpty(s))
@@ -933,36 +856,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
 
 
-    private static void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(hotkeyStr))
-            {
-                try { HotkeyManager.Current.Remove(name); } catch { }
-                return;
-            }
-
-            ModifierKeys modifiers = ModifierKeys.None;
-            if (hotkeyStr.Contains("Ctrl", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Control;
-            if (hotkeyStr.Contains("Alt", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Alt;
-            if (hotkeyStr.Contains("Shift", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Shift;
-            if (hotkeyStr.Contains("Win", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Windows;
-
-            string keyStr = hotkeyStr.Split('+').Last().Trim();
-            if (Enum.TryParse(keyStr, true, out Key key))
-            {
-                try { HotkeyManager.Current.Remove(name); } catch { }
-                HotkeyManager.Current.AddOrReplace(name, key, modifiers, (_, __) => action());
-            }
-        }
-        catch { }
-    }
-
     [SupportedOSPlatform("windows")]
     public void UpdateWindowHotkeys()
     {
-        RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
+        _hotkeyService.RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
     }
 
     private void ToggleWindowToMode(bool targetFull)
@@ -1008,7 +905,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, string>();
             await _localDataService.SaveAsync(Folders, Files, voiceCommands);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            LoggerService.Instance.LogException(ex, "Failed to perform local backup", "MainViewModel.PerformLocalBackup");
+        }
     }
 
     /// <summary>
@@ -1130,7 +1030,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 await Task.Delay(450);
                 if (Config.EnableDoubleCtrl)
                 {
-                    try { _keyService.Start(); } catch { }
+                    try { _keyService.Start(); }
+                    catch (Exception ex)
+                    {
+                        LoggerService.Instance.LogException(ex, "Failed to restart GlobalKeyService after send", "MainViewModel.ExecuteSendAsync");
+                    }
                 }
             }
         }

@@ -17,7 +17,10 @@ namespace PromptMasterv5.Infrastructure.Services
                 string json = JsonSerializer.Serialize(config, options);
                 File.WriteAllText(ConfigPath, json);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, $"Failed to save config to {ConfigPath}", "ConfigService.Save");
+            }
         }
 
         public static AppConfig Load()

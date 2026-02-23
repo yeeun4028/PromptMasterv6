@@ -43,7 +43,10 @@ namespace PromptMasterv5.Infrastructure.Services
                     return (first.X, first.Y);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to resolve click point", "InputSender.ResolveClickPoint");
+            }
 
             return (settings.ClickX, settings.ClickY);
         }

@@ -55,7 +55,11 @@ namespace PromptMasterv5.Infrastructure.Services
                 LoggerService.Instance.LogException(ex, $"保存数据到 {_filePath} 失败", "FileDataService.SaveAsync");
                 
                 // Verify if temp file exists and delete it if operation failed
-                try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+                try { if (File.Exists(tempPath)) File.Delete(tempPath); }
+                catch (Exception delEx)
+                {
+                    LoggerService.Instance.LogException(delEx, $"Failed to delete temp file: {tempPath}", "FileDataService.SaveAsync");
+                }
             }
         }
 
@@ -79,7 +83,10 @@ namespace PromptMasterv5.Infrastructure.Services
                 string bak1 = $"{originalPath}.bak1";
                 if (File.Exists(originalPath)) File.Move(originalPath, bak1);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to rotate backups", "FileDataService.RotateBackups");
+            }
         }
 
         public List<BackupFileItem> GetBackups()
@@ -103,7 +110,10 @@ namespace PromptMasterv5.Infrastructure.Services
                     });
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to get backups", "FileDataService.GetBackups");
+            }
             return backups.OrderByDescending(x => x.LastModified).ToList();
         }
 
@@ -124,7 +134,10 @@ namespace PromptMasterv5.Infrastructure.Services
                     return data;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, $"Failed to restore backup: {backupPath}", "FileDataService.RestoreLocalBackupAsync");
+            }
             return null;
         }
 

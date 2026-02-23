@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv5.Core.Interfaces;
 using PromptMasterv5.Core.Models;
+using PromptMasterv5.Infrastructure.Helpers;
 using PromptMasterv5.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
@@ -34,23 +35,6 @@ namespace PromptMasterv5.ViewModels
             _fabricService = fabricService;
         }
 
-        private static char NormalizeSymbol(char c)
-        {
-            return c switch
-            {
-                '；' => ';',
-                '＇' => '\'',
-                '‘' => '\'',
-                '’' => '\'',
-                '`' => '\'',
-                '´' => '\'',
-                _ => c
-            };
-        }
-
-        private static string NormalizeSymbols(string s)
-        {
-            return new string((s ?? "").Select(NormalizeSymbol).ToArray());
-        }
+        private static string NormalizeSymbols(string s) => StringUtils.NormalizeSymbols(s);
     }
 }

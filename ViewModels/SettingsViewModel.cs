@@ -1,7 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NHotkey;
-using NHotkey.Wpf;
 using PromptMasterv5.Core.Interfaces;
 using PromptMasterv5.Core.Models;
 using PromptMasterv5.Infrastructure.Services;
@@ -10,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using MessageBox = System.Windows.MessageBox;
 
@@ -29,6 +26,8 @@ namespace PromptMasterv5.ViewModels
         private readonly IDataService _localDataService;
         private readonly GlobalKeyService _keyService;
         private readonly IDialogService _dialogService;
+        private readonly ThemeService _themeService;
+        private readonly HotkeyService _hotkeyService;
 
         // 引用 MainViewModel 以访问 Files、Folders 等数据（用于同步恢复）
         // 这是暂时的依赖，后续可以通过消息总线进一步解耦
@@ -117,6 +116,8 @@ namespace PromptMasterv5.ViewModels
             _localDataService = localDataService;
             _keyService = keyService;
             _dialogService = dialogService;
+            _themeService = new ThemeService();
+            _hotkeyService = new HotkeyService();
 
             LoggerService.Instance.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
         }
@@ -165,80 +166,7 @@ namespace PromptMasterv5.ViewModels
 
         private void ApplyTheme(ThemeType theme)
         {
-            var resources = System.Windows.Application.Current?.Resources;
-            if (resources == null) return;
-
-            static void SetBrush(ResourceDictionary res, string key, string color)
-            {
-                static System.Windows.Media.Color ParseColor(string value) =>
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(value);
-                res[key] = new System.Windows.Media.SolidColorBrush(ParseColor(color));
-            }
-
-            if (theme == ThemeType.Dark)
-            {
-                SetBrush(resources, "ShellBackground", "#2E3033");
-                SetBrush(resources, "AppBackground", "#363B40");
-                SetBrush(resources, "SidebarBackground", "#2E3033");
-                SetBrush(resources, "CardBackground", "#363B40");
-                SetBrush(resources, "TextPrimary", "#ACBFBE");
-                SetBrush(resources, "TextSecondary", "#ACBFBE");
-                SetBrush(resources, "DividerColor", "#4A4F55");
-                SetBrush(resources, "HintBrush", "#ACBFBE");
-                SetBrush(resources, "ListItemHoverBackgroundBrush", "#3A3F45");
-                SetBrush(resources, "ListItemSelectedBackgroundBrush", "#444A52");
-                SetBrush(resources, "InputFocusBackgroundBrush", "#2E3033");
-
-                SetBrush(resources, "Block1Background", "#2E3033");
-                SetBrush(resources, "Block2Background", "#2E3033");
-                SetBrush(resources, "Block3Background", "#363B40");
-                SetBrush(resources, "Block4Background", "#363B40");
-                SetBrush(resources, "PrimaryTextBrush", "#ACBFBE");
-                SetBrush(resources, "SecondaryTextBrush", "#ACBFBE");
-                SetBrush(resources, "PlaceholderTextBrush", "#ACBFBE");
-                SetBrush(resources, "DividerBrush", "#4A4F55");
-                SetBrush(resources, "ActionIconBrush", "#ACBFBE");
-                SetBrush(resources, "ActionIconHoverBrush", "#ACBFBE");
-                SetBrush(resources, "HeaderIconBrush", "#ACBFBE");
-                SetBrush(resources, "HeaderIconHoverBrush", "#ACBFBE");
-
-                SetBrush(resources, "Block3EditorTextBrush", "#B8BFC6");
-                SetBrush(resources, "Block3EditorCaretBrush", "#B8BFC6");
-                SetBrush(resources, "Block3EditorSelectionBrush", "#4A89DC");
-                SetBrush(resources, "InputTextBrush", "#DEDEDE");
-            }
-            else
-            {
-                SetBrush(resources, "ShellBackground", "#FAFAFA");
-                SetBrush(resources, "AppBackground", "#F1F1EF");
-                SetBrush(resources, "SidebarBackground", "#F7F7F7");
-                SetBrush(resources, "CardBackground", "#FFFFFF");
-                SetBrush(resources, "TextPrimary", "#333333");
-                SetBrush(resources, "TextSecondary", "#666666");
-                SetBrush(resources, "DividerColor", "#E5E5E5");
-                SetBrush(resources, "HintBrush", "#999999");
-                SetBrush(resources, "ListItemHoverBackgroundBrush", "#EAEAEA");
-                SetBrush(resources, "ListItemSelectedBackgroundBrush", "#E0E0E0");
-                SetBrush(resources, "InputFocusBackgroundBrush", "#FFFFFF");
-
-                SetBrush(resources, "Block1Background", "#E8E7E7");
-                SetBrush(resources, "Block2Background", "#E8E7E7");
-                SetBrush(resources, "Block3Background", "#EDEDED");
-                SetBrush(resources, "Block4Background", "#EDEDED");
-                SetBrush(resources, "PrimaryTextBrush", "#333333");
-                SetBrush(resources, "SecondaryTextBrush", "#666666");
-                SetBrush(resources, "PlaceholderTextBrush", "#999999");
-                SetBrush(resources, "DividerBrush", "#E5E5E5");
-                SetBrush(resources, "ActionIconBrush", "#666666");
-                SetBrush(resources, "ActionIconHoverBrush", "#333333");
-                SetBrush(resources, "HeaderIconBrush", "#666666");
-                SetBrush(resources, "HeaderIconHoverBrush", "#333333");
-
-                SetBrush(resources, "Block3EditorTextBrush", "#333333");
-                SetBrush(resources, "Block3EditorCaretBrush", "#333333");
-                SetBrush(resources, "Block3EditorSelectionBrush", "#4A89DC");
-                SetBrush(resources, "InputTextBrush", "#666666");
-            }
+            _themeService.ApplyTheme(theme);
         }
 
         #endregion
@@ -372,11 +300,11 @@ namespace PromptMasterv5.ViewModels
         {
             try
             {
-                HotkeyManager.Current.Remove("ToggleWindow");
-                HotkeyManager.Current.Remove("ToggleWindowSingle");
+                _hotkeyService.TryRemoveHotkey("ToggleWindow");
+                _hotkeyService.TryRemoveHotkey("ToggleWindowSingle");
 
                 // Register Full window hotkey using helper method
-                RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
+                _hotkeyService.RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
             }
             catch (Exception ex)
             {
@@ -391,12 +319,12 @@ namespace PromptMasterv5.ViewModels
             try 
             {
                 // Remove old hotkeys
-                try { HotkeyManager.Current.Remove("ScreenshotTranslate"); } catch { }
-                try { HotkeyManager.Current.Remove("OcrOnly"); } catch { }
+                _hotkeyService.TryRemoveHotkey("ScreenshotTranslate");
+                _hotkeyService.TryRemoveHotkey("OcrOnly");
 
                 // Register new hotkeys from external tools settings
-                RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null));
-                RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null));
+                _hotkeyService.RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null));
+                _hotkeyService.RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null));
                 
                 // Update Launcher Hotkey
                 UpdateLauncherHotkey();
@@ -407,32 +335,6 @@ namespace PromptMasterv5.ViewModels
             {
                 LoggerService.Instance.LogException(ex, "Failed to update external tools hotkeys", "SettingsViewModel.UpdateExternalToolsHotkeys");
             }
-        }
-
-        private static void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(hotkeyStr))
-                {
-                    try { HotkeyManager.Current.Remove(name); } catch { }
-                    return;
-                }
-
-                ModifierKeys modifiers = ModifierKeys.None;
-                if (hotkeyStr.Contains("Ctrl", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Control;
-                if (hotkeyStr.Contains("Alt", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Alt;
-                if (hotkeyStr.Contains("Shift", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Shift;
-                if (hotkeyStr.Contains("Win", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Windows;
-
-                string keyStr = hotkeyStr.Split('+').Last().Trim();
-                if (Enum.TryParse(keyStr, true, out Key key))
-                {
-                    try { HotkeyManager.Current.Remove(name); } catch { }
-                    HotkeyManager.Current.AddOrReplace(name, key, modifiers, (_, __) => action());
-                }
-            }
-            catch { }
         }
 
         public void UpdateLauncherHotkey()
