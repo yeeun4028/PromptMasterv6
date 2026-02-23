@@ -163,7 +163,20 @@ namespace PromptMasterv5
         private void Tray_Exit_Click(object sender, RoutedEventArgs e)
         {
             _isExiting = true;
-            this.Close();
+            
+            // 清理托盘图标
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+                _notifyIcon.Dispose();
+                _notifyIcon = null;
+            }
+            
+            // Clean up timers
+            CleanupTimers();
+            
+            // 强制退出应用程序
+            Application.Current.Shutdown();
         }
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
@@ -177,6 +190,22 @@ namespace PromptMasterv5
                 {
                     _notifyIcon.Visible = false;
                     _notifyIcon.Dispose();
+                    _notifyIcon = null;
+                }
+                // Clean up timers
+                CleanupTimers();
+                return;
+            }
+
+            // 如果是用户主动退出（从托盘菜单），允许关闭
+            if (_isExiting)
+            {
+                // 清理托盘图标
+                if (_notifyIcon != null)
+                {
+                    _notifyIcon.Visible = false;
+                    _notifyIcon.Dispose();
+                    _notifyIcon = null;
                 }
                 // Clean up timers
                 CleanupTimers();
@@ -221,22 +250,8 @@ namespace PromptMasterv5
             }
 
             // 如果不是通过退出菜单关闭，则隐藏窗口而不是关闭
-            if (!_isExiting)
-            {
-                e.Cancel = true;  // 取消关闭事件
-                this.Hide();       // 隐藏窗口
-                return;
-            }
-
-            // 清理托盘图标
-            if (_notifyIcon != null)
-            {
-                _notifyIcon.Visible = false;
-                _notifyIcon.Dispose();
-            }
-
-            // Clean up timers
-            CleanupTimers();
+            e.Cancel = true;  // 取消关闭事件
+            this.Hide();       // 隐藏窗口
         }
 
         private void CleanupTimers()
