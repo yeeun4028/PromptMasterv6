@@ -42,9 +42,7 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private string fullWindowHotkey = "";
 
-        [ObservableProperty]
-        private string miniWindowHotkey = "";
-
+        [ObservableProperty] private bool autoHide = true;
         [ObservableProperty]
         private bool enableDoubleCtrl = true;
 
@@ -65,10 +63,6 @@ namespace PromptMasterv5.Core.Models
 
         [ObservableProperty]
         private string activeModelId = "";
-
-        // Model selection for Mini Window (empty = use default active model)
-        [ObservableProperty]
-        private string miniWindowModelId = "";
 
         // Model selection for Translation (empty = use default active model)
         [ObservableProperty]

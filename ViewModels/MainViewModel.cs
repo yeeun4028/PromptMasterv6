@@ -70,12 +70,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public SettingsViewModel SettingsVM { get; }
     public ExternalToolsViewModel ExternalToolsVM { get; }
 
-    public IDropTarget MiniPinnedPromptDropHandler { get; private set; }
 
     [ObservableProperty] private AppConfig config;
     [ObservableProperty] private LocalSettings localConfig;
     [ObservableProperty] private bool isFullMode = true;
-    [ObservableProperty] private bool isMiniVarsExpanded;
 
     // 委托属性：转发到 SettingsViewModel（保持 XAML 兼容性）
     public bool IsSettingsOpen
@@ -230,7 +228,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ChatVM.LocalConfigProvider = () => LocalConfig;
         ChatVM.FilesProvider = () => Files;
 
-        WeakReferenceMessenger.Default.Register<MiniInputTextChangedMessage>(this, (_, m) => HandleMiniInputTextChangedFromChat(m.Value));
         WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, __) =>
         {
             UpdateFilesViewFilter();
@@ -245,7 +242,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Register<RequestMoveFileToFolderMessage>(this, (_, m) => MoveFileToFolder(m.File, m.TargetFolder));
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, __) => RequestSave());
 
-        MiniPinnedPromptDropHandler = new PinnedPromptDropHandler(this);
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += (_, __) => UpdateTimeDisplay();
@@ -278,11 +274,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         });
         _keyService.OnDoubleCtrlDetected += _onDoubleCtrlDetectedHandler;
 
-        _onDoubleSemiColonDetectedHandler = (_, __) => Application.Current.Dispatcher.Invoke(() =>
-        {
-            if (!IsFullMode) ChatVM.MiniInputText = "";
-        });
-        _keyService.OnDoubleSemiColonDetected += _onDoubleSemiColonDetectedHandler;
 
         _onLauncherTriggeredHandler = (_, __) => HandleLauncherTriggered();
         _keyService.OnLauncherTriggered += _onLauncherTriggeredHandler;
@@ -388,7 +379,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        SyncMiniPinnedPrompts();
         IsDirty = false; // Initial load is consistent with source
     }
 
@@ -460,13 +450,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _previousFullMode = true;
     }
 
-    [RelayCommand]
-    private void ExitFullMode()
-    {
-        IsFullMode = false;
-        _previousFullMode = false;
-    }
-
     // Hotkey handlers (called by SettingsViewModel)
     public void OnWindowHotkeyPressed()
     {
@@ -475,14 +458,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void ToggleModeViaHotkey()
     {
-        if (IsFullMode)
-        {
-            ExitFullMode();
-        }
-        else
-        {
-            EnterFullMode();
-        }
+        // Mini mode removed, always ensure full mode
+        EnterFullMode();
     }
 
     public string SelectedSettingsTabName => SelectedSettingsTab switch
@@ -491,8 +468,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         1 => "发送方式",
         2 => "外部工具",
         3 => "发送",
-        4 => "迷你",
-        5 => "高级",
+        4 => "高级",
         _ => "设置"
     };
 
@@ -817,10 +793,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         if (win.Visibility != Visibility.Visible)
         {
-            IsFullMode = _previousFullMode;
+            IsFullMode = true;
             win.Show();
             win.Activate();
-            if (!IsFullMode) win.Topmost = true;
             return;
         }
 
@@ -928,55 +903,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
 
 
-    private void HandleMiniInputTextChangedFromChat(string value)
-    {
-        if (IsGlobalPromptListOpen)
-        {
-            UpdateGlobalPromptList(value);
-        }
-
-        if (!LocalConfig.MiniAiOnlyChatEnabled)
-        {
-            Variables.Clear();
-            HasVariables = false;
-            IsMiniVarsExpanded = false;
-
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                ChatVM.IsSearchPopupOpen = false;
-                return;
-            }
-
-            // Only show search popup if Global List is NOT open to avoid clutter
-            if (!IsGlobalPromptListOpen)
-            {
-                ChatVM.UpdateSearchPopup(value.Trim());
-            }
-            else
-            {
-                ChatVM.IsSearchPopupOpen = false;
-            }
-            return;
-        }
-
-        var prefix = LocalConfig.MiniPatternPrefix ?? "";
-        if (!string.IsNullOrWhiteSpace(prefix))
-        {
-            var normalizedValue = NormalizeSymbols(value);
-            var normalizedPrefix = NormalizeSymbols(prefix);
-            if (normalizedValue.StartsWith(normalizedPrefix, StringComparison.Ordinal))
-            {
-                ChatVM.IsSearchPopupOpen = false;
-                Variables.Clear();
-                HasVariables = false;
-                IsMiniVarsExpanded = false;
-                return;
-            }
-        }
-
-        ChatVM.IsSearchPopupOpen = false;
-        ParseVariablesRealTime(value ?? "");
-    }
 
 
     private void ParseVariablesRealTime(string content)
@@ -985,7 +911,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             Variables.Clear();
             HasVariables = false;
-            IsMiniVarsExpanded = false;
             return;
         }
 
@@ -1007,24 +932,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
 
         HasVariables = Variables.Count > 0;
-        if (!IsFullMode) IsMiniVarsExpanded = HasVariables;
     }
 
 
-    [RelayCommand]
-    private void EnableMiniAiMode()
-    {
-        LocalConfig.MiniAiOnlyChatEnabled = true;
-        if (string.IsNullOrWhiteSpace(LocalConfig.MiniPatternPrefix)) LocalConfig.MiniPatternPrefix = "ai";
-        LocalConfigService.Save(LocalConfig);
-    }
-
-    [RelayCommand]
-    private void EnableMiniTestMode()
-    {
-        LocalConfig.MiniAiOnlyChatEnabled = false;
-        LocalConfigService.Save(LocalConfig);
-    }
 
     private static void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
     {
@@ -1055,11 +965,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [SupportedOSPlatform("windows")]
     public void UpdateWindowHotkeys()
     {
-        try { HotkeyManager.Current.Remove("ToggleWindow"); } catch { }
-        try { HotkeyManager.Current.Remove("ToggleWindowSingle"); } catch { }
-
         RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
-        RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => ToggleWindowToMode(false));
     }
 
     private void ToggleWindowToMode(bool targetFull)
@@ -1069,18 +975,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         if (win.Visibility != Visibility.Visible)
         {
-            IsFullMode = targetFull;
+            IsFullMode = true;
             win.Show();
             win.Activate();
-            if (!targetFull) win.Topmost = true;
-            return;
-        }
-
-        if (IsFullMode != targetFull)
-        {
-            IsFullMode = targetFull;
-            win.Activate();
-            if (!targetFull) win.Topmost = true;
             return;
         }
 
@@ -1089,36 +986,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
 
 
-    public void AddMiniPinnedPromptFromCandidate()
-    {
-        ChatVM.AddMiniPinnedPromptFromCandidate(LocalConfig.MiniPinnedPromptIds, LocalConfig.MiniPinnedPromptCandidateId ?? "");
-        LocalConfigService.Save(LocalConfig);
-    }
-
-    [RelayCommand]
-    private void RemoveMiniPinnedPrompt(PromptItem? prompt)
-    {
-        if (prompt == null) return;
-        RemoveMiniPinnedPromptById(prompt.Id);
-    }
-
-    public void RemoveMiniPinnedPromptById(string id)
-    {
-        ChatVM.RemoveMiniPinnedPromptById(
-            LocalConfig.MiniPinnedPromptIds,
-            clearSelectedPinnedIfMatch: () =>
-            {
-                if (LocalConfig.MiniSelectedPinnedPromptId == id) LocalConfig.MiniSelectedPinnedPromptId = "";
-            },
-            id: id);
-        LocalConfigService.Save(LocalConfig);
-    }
-
-    public void ReorderMiniPinnedPrompts(int oldIndex, int newIndex) =>
-        ChatVM.ReorderMiniPinnedPrompts(LocalConfig.MiniPinnedPromptIds, oldIndex, newIndex);
-
-    public void SyncMiniPinnedPrompts() =>
-        ChatVM.SyncMiniPinnedPrompts(LocalConfig.MiniPinnedPromptIds, LocalConfig.MiniSelectedPinnedPromptId);
 
     public void MoveFileToFolder(PromptItem f, FolderItem t)
     {
@@ -1221,31 +1088,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private string CompileContent()
     {
-        string finalContent;
-        if (IsFullMode)
-        {
-            finalContent = SelectedFile?.Content ?? "";
-        }
-        else
-        {
-            finalContent = ChatVM.MiniInputText;
-            if (!LocalConfig.MiniPinnedPromptClickShowsFullContent && !string.IsNullOrWhiteSpace(LocalConfig.MiniSelectedPinnedPromptId))
-            {
-                var pinned = Files.FirstOrDefault(f => f.Id == LocalConfig.MiniSelectedPinnedPromptId);
-                var pinnedContent = pinned?.Content ?? "";
-                if (!string.IsNullOrWhiteSpace(pinnedContent))
-                {
-                    if (string.IsNullOrWhiteSpace(finalContent))
-                    {
-                        finalContent = pinnedContent;
-                    }
-                    else
-                    {
-                        finalContent = $"{pinnedContent}\n\n---\n\nUSER INPUT:\n{finalContent}";
-                    }
-                }
-            }
-        }
+        string finalContent = SelectedFile?.Content ?? "";
 
         if (HasVariables)
         {
@@ -1255,7 +1098,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        if (IsFullMode && !string.IsNullOrWhiteSpace(AdditionalInput))
+        if (!string.IsNullOrWhiteSpace(AdditionalInput))
         {
             if (!string.IsNullOrWhiteSpace(finalContent)) finalContent += "\n";
             finalContent += AdditionalInput;
@@ -1264,34 +1107,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         return finalContent;
     }
 
-    public async Task SendBySmartFocus()
-    {
-        string content = CompileContent();
-        await ExecuteSendAsync(content, InputMode.SmartFocus);
-        if (IsFullMode) AdditionalInput = "";
-        else ChatVM.MiniInputText = "";
-    }
-
-    public async Task SendByCoordinate()
-    {
-        string content = CompileContent().TrimEnd();
-        await ExecuteSendAsync(content, InputMode.CoordinateClick);
-        if (IsFullMode) AdditionalInput = "";
-        else ChatVM.MiniInputText = "";
-    }
-
-    [RelayCommand]
-    private async Task SendFromMini(string modeStr)
-    {
-        if (modeStr == "Coordinate") await SendByCoordinate();
-        else await SendBySmartFocus();
-    }
 
     private async Task ExecuteSendAsync(string content, InputMode targetMode)
     {
         if (string.IsNullOrWhiteSpace(content)) return;
         var window = Application.Current.MainWindow;
-        bool wasMiniMode = !IsFullMode;
 
         bool stoppedGlobalHook = false;
         try
@@ -1318,20 +1138,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        if (!IsFullMode)
-        {
-            ChatVM.MiniInputText = "";
-            LocalConfig.MiniSelectedPinnedPromptId = "";
-        }
-        else AdditionalInput = "";
-
-        if (wasMiniMode && window != null)
-        {
-            window.Show();
-            window.Activate();
-            window.Topmost = true;
-            if (window is MainWindow mainWin) mainWin.MiniInputBox.Focus();
-        }
+        AdditionalInput = "";
     }
 
 
@@ -1343,6 +1150,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void TriggerTranslate() => ExternalToolsVM.TriggerTranslateCommand.Execute(null);
+
+    public async Task SendBySmartFocus()
+    {
+        var content = CompileContent();
+        await ExecuteSendAsync(content, InputMode.SmartFocus);
+    }
 
     private void HandleLauncherTriggered()
     {
@@ -1386,7 +1199,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (IsGlobalPromptListOpen)
         {
             // Update with partial or empty filter
-            UpdateGlobalPromptList(ChatVM?.MiniInputText ?? "");
+            UpdateGlobalPromptList("");
         }
     }
 
@@ -1396,22 +1209,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (prompt == null) return;
 
         IsGlobalPromptListOpen = false;
-
-        string textToInsert = ChatVM.MiniInputText ?? "";
-        if (LocalConfig.MiniPinnedPromptClickShowsFullContent)
-        {
-            // Full Content Mode: Show Text ONLY (No Chip)
-            LocalConfig.MiniSelectedPinnedPromptId = "";
-            textToInsert = prompt.Content ?? "";
-        }
-        else
-        {
-            // Combo Mode: Show Chip + Preserve Text
-            LocalConfig.MiniSelectedPinnedPromptId = prompt.Id;
-        }
-
-        // 3. Insert prompt content/chip to mini window input
-        WeakReferenceMessenger.Default.Send(new InsertTextToMiniInputMessage(textToInsert));
+        SelectedFile = prompt;
     }
 
     private void UpdateGlobalPromptList(string filterText = "")

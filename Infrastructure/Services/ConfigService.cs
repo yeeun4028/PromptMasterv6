@@ -33,10 +33,6 @@ namespace PromptMasterv5.Infrastructure.Services
                     config.FullWindowHotkey = config.GlobalHotkey;
                 }
 
-                if (string.IsNullOrWhiteSpace(config.MiniWindowHotkey) && !string.IsNullOrWhiteSpace(config.SingleHotkey))
-                {
-                    config.MiniWindowHotkey = config.SingleHotkey;
-                }
 
                 return config;
             }

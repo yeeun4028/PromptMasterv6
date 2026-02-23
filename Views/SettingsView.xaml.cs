@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using PromptMasterv5.Core.Models;
 using PromptMasterv5.Infrastructure.Services;
@@ -25,7 +26,7 @@ namespace PromptMasterv5.Views
     {
         private int _activeCoordinateRuleIndex = 0;
         private int _selectedExternalToolsSubTab = 0;
-        private int _selectedMiniWindowSubTab = 0;
+
         private int _selectedAiSubTab = 0;
         private int _selectedVoiceControlSubTab = 0;
 
@@ -40,8 +41,6 @@ namespace PromptMasterv5.Views
             // Initialize external tools sub-tab to Main tab
             UpdateExternalToolsSubTab(0);
             
-            // Initialize mini window sub-tab to Prompt tab
-            UpdateMiniWindowSubTab(0);
 
             // Initialize AI sub-tab to Main tab
             UpdateAiSubTab(0);
@@ -83,6 +82,7 @@ namespace PromptMasterv5.Views
                 p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
 
             // Load OCR credentials
+            /*
             if (baiduOcrProfile != null && BaiduOcrApiKey != null && BaiduOcrSecretKey != null)
             {
                 BaiduOcrApiKey.Text = baiduOcrProfile.Key1;
@@ -95,6 +95,7 @@ namespace PromptMasterv5.Views
                 BaiduTranslateAppId.Text = baiduTransProfile.Key1;
                 BaiduTranslateSecretKey.Text = baiduTransProfile.Key2;
             }
+            */
         }
 
         private void SaveBaiduCredentials()
@@ -116,11 +117,13 @@ namespace PromptMasterv5.Views
                 ViewModel.Config.ApiProfiles.Add(baiduOcrProfile);
             }
 
+            /*
             if (BaiduOcrApiKey != null && BaiduOcrSecretKey != null)
             {
                 baiduOcrProfile.Key1 = BaiduOcrApiKey.Text;
                 baiduOcrProfile.Key2 = BaiduOcrSecretKey.Text;
             }
+            */
 
             // Find or create Baidu Translation profile
             var baiduTransProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
@@ -137,11 +140,13 @@ namespace PromptMasterv5.Views
                 ViewModel.Config.ApiProfiles.Add(baiduTransProfile);
             }
 
+            /*
             if (BaiduTranslateAppId != null && BaiduTranslateSecretKey != null)
             {
                 baiduTransProfile.Key1 = BaiduTranslateAppId.Text;
                 baiduTransProfile.Key2 = BaiduTranslateSecretKey.Text;
             }
+            */
 
             // Auto-set as active profiles if not already set
             if (string.IsNullOrEmpty(ViewModel.Config.OcrProfileId))
@@ -154,16 +159,6 @@ namespace PromptMasterv5.Views
             }
 
             ConfigService.Save(ViewModel.Config);
-            
-            // Refresh logic if needed (ObservableCollection updates automatically if added/removed, but filters might need help if relying on new instances)
-            // Since we added to Config.ApiProfiles, the computed properties in ExternalToolsViewModel (if implemented as just getters returning new OC) won't auto-update unless we notify.
-            // Better to trigger a refresh in ViewModel.
-            // However, our current implementation created `new ObservableCollection` in the property getter which is NOT dynamic.
-            // We need to fix ExternalToolsViewModel to have ObservableCollections that sync with Config.ApiProfiles OR just refresh the view.
-            
-            // For now, let's just force a NotifyPropertyChanged on the ViewModel properties if we can.
-            // But better: let's modifying ExternalToolsViewModel to actually use a filtering mechanism, 
-            // OR just re-fetch the list here if we can access ExternalToolsVM.
             
             if (ViewModel.ExternalToolsVM != null)
             {
@@ -180,6 +175,7 @@ namespace PromptMasterv5.Views
             var tencentTransProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
                 p.Provider == ApiProvider.Tencent && p.ServiceType == ServiceType.Translation);
 
+            /*
             if (tencentOcrProfile != null && TencentOcrSecretId != null && TencentOcrSecretKey != null)
             {
                 TencentOcrSecretId.Text = tencentOcrProfile.Key1;
@@ -191,6 +187,7 @@ namespace PromptMasterv5.Views
                 TencentTranslateSecretId.Text = tencentTransProfile.Key1;
                 TencentTranslateSecretKey.Text = tencentTransProfile.Key2;
             }
+            */
         }
 
         private void SaveTencentCredentials()
@@ -212,11 +209,13 @@ namespace PromptMasterv5.Views
                 ViewModel.Config.ApiProfiles.Add(tencentOcrProfile);
             }
 
+            /*
             if (TencentOcrSecretId != null && TencentOcrSecretKey != null)
             {
                 tencentOcrProfile.Key1 = TencentOcrSecretId.Text;
                 tencentOcrProfile.Key2 = TencentOcrSecretKey.Text;
             }
+            */
 
             // Translation Profile
             var tencentTransProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
@@ -233,11 +232,13 @@ namespace PromptMasterv5.Views
                 ViewModel.Config.ApiProfiles.Add(tencentTransProfile);
             }
 
+            /*
             if (TencentTranslateSecretId != null && TencentTranslateSecretKey != null)
             {
                 tencentTransProfile.Key1 = TencentTranslateSecretId.Text;
                 tencentTransProfile.Key2 = TencentTranslateSecretKey.Text;
             }
+            */
 
             // Auto-set as active profiles if undefined
             if (string.IsNullOrEmpty(ViewModel.Config.OcrProfileId))
@@ -310,39 +311,6 @@ namespace PromptMasterv5.Views
             }
         }
 
-        private void MiniWindowHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (ViewModel == null) return;
-
-            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
-
-            // Delete to clear
-            if (key == Key.Delete || key == Key.Back)
-            {
-                e.Handled = true;
-                ViewModel.Config.MiniWindowHotkey = "";
-                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateWindowHotkeys();
-                return;
-            }
-
-            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin) return;
-            e.Handled = true;
-
-            if (sender is TextBox tb)
-            {
-                var sb = new StringBuilder();
-                if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) sb.Append("Ctrl+");
-                if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) sb.Append("Alt+");
-                if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) sb.Append("Shift+");
-                if ((Keyboard.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) sb.Append("Win+");
-                sb.Append(key.ToString());
-
-                ViewModel.Config.MiniWindowHotkey = sb.ToString();
-                tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.UpdateWindowHotkeys();
-            }
-        }
 
         private void LauncherHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -409,27 +377,6 @@ namespace PromptMasterv5.Views
             finally { btn.Content = org; btn.IsEnabled = true; }
         }
 
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        private async void PickMiniWindowDefaultPosition_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel == null) return;
-
-            var btn = sender as Button;
-            if (btn == null) return;
-            string org = btn.Content.ToString() ?? "⏱️3秒拾取";
-            try
-            {
-                btn.IsEnabled = false;
-                for (int i = 3; i > 0; i--) { btn.Content = $"{i}"; await Task.Delay(1000); }
-                var pt = WinFormsCursor.Position;
-                var dip = ScreenToDip(new System.Windows.Point(pt.X, pt.Y));
-                ViewModel.LocalConfig.MiniDefaultLeft = Math.Round(dip.X, 1);
-                ViewModel.LocalConfig.MiniDefaultBottom = Math.Round(dip.Y, 1);
-                btn.Content = "已获取!";
-                await Task.Delay(1000);
-            }
-            finally { btn.Content = org; btn.IsEnabled = true; }
-        }
 
         private System.Windows.Point ScreenToDip(System.Windows.Point screenPoint)
         {
@@ -471,17 +418,6 @@ namespace PromptMasterv5.Views
             _activeCoordinateRuleIndex = ViewModel.LocalConfig.CoordinateRules.Count - 1;
         }
 
-        private void AddMiniPinnedPrompt_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel == null) return;
-            var selectedId = (MiniPinnedPromptCandidateCombo?.SelectedValue as string) ?? "";
-            if (!string.IsNullOrWhiteSpace(selectedId))
-            {
-                ViewModel.LocalConfig.MiniPinnedPromptCandidateId = selectedId;
-            }
-
-            ViewModel.AddMiniPinnedPromptFromCandidate();
-        }
 
 
         private void TranslateHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -657,11 +593,6 @@ namespace PromptMasterv5.Views
         }
 
 
-
-
-
-
-
         // External Tools Sub-Tab Navigation
         private void ExternalToolsSubTab_Click(object sender, RoutedEventArgs e)
         {
@@ -671,34 +602,13 @@ namespace PromptMasterv5.Views
             }
         }
 
-        private void MiniWindowSubTab_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
-            {
-                UpdateMiniWindowSubTab(tabIndex);
-            }
-        }
-
-        private void UpdateMiniWindowSubTab(int tabIndex)
-        {
-            _selectedMiniWindowSubTab = tabIndex;
-
-            // Update button states
-            if (BtnMiniPromptTab != null) BtnMiniPromptTab.Tag = tabIndex == 0 ? "Selected" : "0";
-            if (BtnMiniHotkeyTab != null) BtnMiniHotkeyTab.Tag = tabIndex == 1 ? "Selected" : "1";
-            if (BtnMiniLocationTab != null) BtnMiniLocationTab.Tag = tabIndex == 2 ? "Selected" : "2";
-
-            // Show/hide tab content
-            if (MiniWindowPromptTab != null) MiniWindowPromptTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
-            if (MiniWindowHotkeyTab != null) MiniWindowHotkeyTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
-            if (MiniWindowLocationTab != null) MiniWindowLocationTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
-        }
 
         private void UpdateExternalToolsSubTab(int tabIndex)
         {
             var previousTab = _selectedExternalToolsSubTab;
             _selectedExternalToolsSubTab = tabIndex;
 
+            /*
             // Update button states directly - much simpler!
             if (BtnMainTab != null) BtnMainTab.Tag = tabIndex == 0 ? "Selected" : "0";
             if (BtnBaiduTab != null) BtnBaiduTab.Tag = tabIndex == 1 ? "Selected" : "1";
@@ -715,14 +625,14 @@ namespace PromptMasterv5.Views
             if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsGoogleTab != null) ExternalToolsGoogleTab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsAiTranslateTab != null) ExternalToolsAiTranslateTab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
+            */
 
-
-            // Load credentials when switching to Baidu tab
+            // Load credentials when switching to tabs
             if (tabIndex == 1) LoadBaiduCredentials();
             if (tabIndex == 2) LoadTencentCredentials();
             if (tabIndex == 4) LoadGoogleCredentials();
 
-            // Sync credentials when leaving Baidu tab
+            // Sync credentials when leaving tabs
             if (previousTab == 1 && tabIndex != 1) SaveBaiduCredentials();
             if (previousTab == 2 && tabIndex != 2) SaveTencentCredentials();
             if (previousTab == 4 && tabIndex != 4) SaveGoogleCredentials();
@@ -742,14 +652,15 @@ namespace PromptMasterv5.Views
         {
             _selectedAiSubTab = tabIndex;
 
+            /*
             // Update button states
             if (BtnAiMainTab != null) BtnAiMainTab.Tag = tabIndex == 0 ? "Selected" : "0";
-            if (BtnAiMiniTab != null) BtnAiMiniTab.Tag = tabIndex == 1 ? "Selected" : "1";
+
             // Tab 2 (Translations) and Tab 3 (Selection Assistant) removed
 
             // Show/hide tab content
             if (AiMainTab != null) AiMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
-            if (AiMiniTab != null) AiMiniTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            */
         }
 
         // Sync Sub-Tab Handlers
@@ -768,6 +679,7 @@ namespace PromptMasterv5.Views
         {
             _selectedSyncSubTab = tabIndex;
 
+            /*
             // Update button states
             if (BtnSyncWebDavTab != null) BtnSyncWebDavTab.Tag = tabIndex == 0 ? "Selected" : "0";
             if (BtnSyncDataTab != null) BtnSyncDataTab.Tag = tabIndex == 1 ? "Selected" : "1";
@@ -777,6 +689,7 @@ namespace PromptMasterv5.Views
             if (SyncWebDavTab != null) SyncWebDavTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (SyncDataTab != null) SyncDataTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
             if (SyncLogTab != null) SyncLogTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+            */
         }
 
 
@@ -787,11 +700,13 @@ namespace PromptMasterv5.Views
             var googleProfile = ViewModel.Config.ApiProfiles.FirstOrDefault(p => 
                 p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
             
+            /*
             if (googleProfile != null && GoogleBaseUrl != null && GoogleApiKey != null)
             {
                 GoogleBaseUrl.Text = googleProfile.BaseUrl;
                 GoogleApiKey.Text = googleProfile.Key1;
             }
+            */
         }
 
         private void SaveGoogleCredentials()
@@ -812,11 +727,13 @@ namespace PromptMasterv5.Views
                 ViewModel.Config.ApiProfiles.Add(googleProfile);
             }
 
+            /*
             if (GoogleBaseUrl != null && GoogleApiKey != null)
             {
                 googleProfile.BaseUrl = GoogleBaseUrl.Text;
                 googleProfile.Key1 = GoogleApiKey.Text;
             }
+            */
 
             ConfigService.Save(ViewModel.Config);
 
@@ -1114,6 +1031,7 @@ namespace PromptMasterv5.Views
         {
             _selectedVoiceControlSubTab = tabIndex;
 
+            /*
             // Update button states
             if (BtnVoiceEngineTab != null) BtnVoiceEngineTab.Tag = tabIndex == 0 ? "Selected" : "0";
             if (BtnXunfeiConfigTab != null) BtnXunfeiConfigTab.Tag = tabIndex == 1 ? "Selected" : "1";
@@ -1123,6 +1041,7 @@ namespace PromptMasterv5.Views
             if (VoiceEngineTab != null) VoiceEngineTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (XunfeiConfigTab != null) XunfeiConfigTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
             if (VoiceCommandsTab != null) VoiceCommandsTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+            */
 
             // Load Xunfei credentials when switching to Xunfei tab
             if (tabIndex == 1) LoadXunfeiCredentials();
@@ -1137,9 +1056,11 @@ namespace PromptMasterv5.Views
 
             var isXunfei = ViewModel.Config.VoiceProvider == VoiceProvider.Xunfei;
 
+            /*
             // Show/hide OpenAI model selection
             if (OpenAIModelSelection != null)
                 OpenAIModelSelection.Visibility = isXunfei ? Visibility.Collapsed : Visibility.Visible;
+            */
         }
 
         #endregion
@@ -1151,10 +1072,12 @@ namespace PromptMasterv5.Views
             if (ViewModel == null) return;
 
             // Load API Secret to password box
+            /*
             if (XunfeiApiSecretBox != null && !string.IsNullOrEmpty(ViewModel.Config.XunfeiApiSecret))
             {
                 XunfeiApiSecretBox.Password = ViewModel.Config.XunfeiApiSecret;
             }
+            */
         }
 
         private void XunfeiApiSecretBox_PasswordChanged(object sender, RoutedEventArgs e)

@@ -379,7 +379,6 @@ namespace PromptMasterv5.ViewModels
 
                 // Register Full and Mini window hotkeys using helper method
                 RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
-                RegisterWindowHotkey("ToggleMiniWindowHotkey", Config.MiniWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
             }
             catch (Exception ex)
             {
@@ -630,7 +629,6 @@ namespace PromptMasterv5.ViewModels
                 _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
                 _mainViewModel.UpdateFilesViewFilter();
                 _mainViewModel.FilesView?.Refresh();
-                _mainViewModel.SyncMiniPinnedPrompts();
 
                 // Save to local
                 await _mainViewModel.PerformLocalBackup();
@@ -732,7 +730,6 @@ namespace PromptMasterv5.ViewModels
                 _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
                 _mainViewModel.UpdateFilesViewFilter();
                 _mainViewModel.FilesView?.Refresh();
-                _mainViewModel.SyncMiniPinnedPrompts();
 
                 RestoreStatus = $"✅ 本地恢复成功: {selected.FileName}";
                 RestoreStatusColor = System.Windows.Media.Brushes.Green;

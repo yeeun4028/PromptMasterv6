@@ -24,7 +24,6 @@
         <!-- Icons -->
         <Geometry x:Key="IconShortcut">M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.89,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3M19,19H5V5H19V19M11,17H13V15H11V17M15,17H17V15H15V17M7,17H9V15H7V17M11,13H13V11H11V13M15,13H17V11H15V13M7,13H9V11H7V13M11,9H13V7H11V9M15,9H17V7H15V9M7,9H9V7H7V9Z</Geometry>
         <Geometry x:Key="IconModel">M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z</Geometry>
-        <Geometry x:Key="IconMiniWindow">M19,13H5V11H19V13Z</Geometry>
         <Geometry x:Key="IconLauncher">M13.13 22.19L11.5 18.36C13.07 17.78 14.54 17 15.9 16.09L13.13 22.19M5.64 12.5L1.81 10.87L7.91 8.1C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39C21.61 2.39 16.66 0.26 11 5.93C8.81 8.12 7.5 10.53 6.65 12.64C6.37 13.39 6.56 14.21 7.11 14.77L9.24 16.89C9.79 17.45 10.61 17.63 11.36 17.35C13.47 16.47 15.88 15.16 18.07 12.97C23.74 7.31 21.61 2.39 21.61 2.39M14.53 13.38L10.63 9.47C11.13 8.97 11.59 8.5 12 8.09C12.55 7.53 13.43 7.53 13.97 8.09C14.5 8.62 14.5 9.5 13.97 10.03C13.56 10.45 13.08 10.91 12.58 11.42L11.5 10.35L13.65 12.5C13.65 12.5 14.53 13.38 14.53 13.38Z</Geometry>
 
         <!-- Tab Button Style -->
@@ -432,23 +431,6 @@
                                 </StackPanel>
                             </Button>
 
-                            <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="4">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource ModernTabBtnStyle}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="4">
-                                                <Setter Property="Tag" Value="Selected"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                                <StackPanel Orientation="Horizontal">
-                                    <Viewbox Width="16" Height="16" Margin="0,1,12,1">
-                                        <Path Data="{StaticResource IconMiniWindow}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Stretch="Uniform"/>
-                                    </Viewbox>
-                                    <TextBlock Text="mini窗口" FontSize="14" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
 
                             <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="5">
                                 <Button.Style>
@@ -584,23 +566,6 @@
                                                                  ToolTip="点击按下按键设置，按 Delete 清除"/>
                                                     </Grid>
 
-                                                    <!-- Row 2: Mini Window -->
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="迷你窗口" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Column="1" 
-                                                                 Text="{Binding Config.MiniWindowHotkey}"
-                                                                 Style="{StaticResource KeyRecorderStyle}"
-                                                                 Width="140"
-                                                                 IsReadOnly="True"
-                                                                 Cursor="Hand"
-                                                                 VerticalAlignment="Center"
-                                                                 PreviewKeyDown="MiniWindowHotkeyTextBox_PreviewKeyDown"
-                                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
-                                                    </Grid>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -908,11 +873,7 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <!-- AI Sub-Tab Navigation -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <Button x:Name="BtnAiMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnAiMiniTab" Content="迷你" Padding="12,6" Margin="0,0,8,0" Click="AiSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
-                                    </StackPanel>
+                                    <!-- AI Sub-Tab Navigation Removed -->
 
                                     <!-- Sub-Tab Content Container -->
                                     <StackPanel>
@@ -1049,23 +1010,6 @@
                                             </Border>
                                         </StackPanel>
 
-                                        <!-- 2. 迷你 Tab: Mini Window Model Selection -->
-                                        <StackPanel x:Name="AiMiniTab" Visibility="Collapsed">
-                                            <Border Style="{StaticResource CardStyle}">
-                                                <StackPanel>
-                                                    <TextBlock Text="迷你窗口 AI 模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                                                    
-                                                    <TextBlock Text="迷你窗口 AI 模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                                                    
-                                                    <ComboBox ItemsSource="{Binding Config.SavedModels}"
-                                                              SelectedValuePath="Id"
-                                                              SelectedValue="{Binding Config.MiniWindowModelId, Mode=TwoWay}"
-                                                              DisplayMemberPath="DisplayName"
-                                                              Style="{StaticResource ModernComboBoxStyle}"
-                                                              HorizontalAlignment="Stretch"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
                                 <!-- Tab 3: Sync -->
@@ -1271,305 +1215,6 @@
                                 </StackPanel>
 
 
-                                <StackPanel>
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel" BasedOn="{StaticResource FadeInContentStyle}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="4">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <!-- Mini Window Sub-Tab Navigation -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <Button x:Name="BtnMiniPromptTab" Content="提示词" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="Selected" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnMiniHotkeyTab" Content="热键" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnMiniLocationTab" Content="位置" Padding="12,6" Margin="0,0,8,0" Click="MiniWindowSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
-                                    </StackPanel>
-
-                                    <!-- Sub-Tab Content Container -->
-                                    <StackPanel>
-                                        <!-- 1. 提示词 Tab -->
-                                                                                <StackPanel x:Name="MiniWindowPromptTab" Visibility="Visible">
-                                            <!-- 卡片1: 预选提示词 -->
-                                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                                <Grid>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="260"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock Grid.Row="0" Grid.Column="0"
-                                                               Text="预选提示词"
-                                                               FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
-                                                               VerticalAlignment="Center"/>
-                                                    <Grid Grid.Row="0" Grid.Column="1" Margin="10,0,0,0">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <ComboBox Grid.Column="0"
-                                                                  x:Name="MiniPinnedPromptCandidateCombo"
-                                                                  ItemsSource="{Binding FilesView}"
-                                                                  SelectedValuePath="Id"
-                                                                  SelectedValue="{Binding LocalConfig.MiniPinnedPromptCandidateId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                  DisplayMemberPath="Title"
-                                                                  Style="{StaticResource ModernComboBoxStyle}"/>
-                                                        <Button Grid.Column="1"
-                                                                Width="34"
-                                                                Height="28"
-                                                                Margin="8,0,0,0"
-                                                                Content="+"
-                                                                Click="AddMiniPinnedPrompt_Click"/>
-                                                    </Grid>
-
-                                                    <TextBlock Grid.Row="1" Grid.Column="0"
-                                                               Text="已添加提示词（可拖拽排序）"
-                                                               Style="{StaticResource FieldLabelTextStyle}"
-                                                               Margin="0,12,0,0"
-                                                               VerticalAlignment="Top"/>
-                                                    <ListBox Grid.Row="1" Grid.Column="1"
-                                                             ItemsSource="{Binding ChatVM.MiniPinnedPrompts}"
-                                                             Background="Transparent"
-                                                             BorderThickness="0"
-                                                             Margin="10,12,0,0"
-                                                             dd:DragDrop.IsDragSource="True"
-                                                             dd:DragDrop.IsDropTarget="True"
-                                                             dd:DragDrop.DropHandler="{Binding MiniPinnedPromptDropHandler}">
-                                                        <ListBox.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Grid Margin="0,6">
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBlock Grid.Column="0"
-                                                                               Text="{Binding Title}"
-                                                                               Foreground="{DynamicResource TextPrimary}"
-                                                                               FontSize="13"
-                                                                               TextTrimming="CharacterEllipsis"/>
-                                                                    <Button Grid.Column="1"
-                                                                            Content="删除"
-                                                                            Margin="10,0,0,0"
-                                                                            Command="{Binding DataContext.RemoveMiniPinnedPromptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                            CommandParameter="{Binding}"/>
-                                                                </Grid>
-                                                            </DataTemplate>
-                                                        </ListBox.ItemTemplate>
-                                                    </ListBox>
-                                                </Grid>
-                                            </Border>
-
-                                            <!-- 卡片2: 外观与行为 -->
-                                            <Border Style="{StaticResource CardStyle}">
-                                                <StackPanel>
-                                                    <TextBlock Text="外观与行为"
-                                                               FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
-                                                               Margin="0,0,0,15"
-                                                               VerticalAlignment="Center"/>
-
-                                                    <Grid Margin="0,0,0,12">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="底部显示图标" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}"/>
-                                                        <CheckBox Grid.Column="2"
-                                                                  IsChecked="{Binding LocalConfig.MiniPinnedPromptShowIcons}"
-                                                                  Style="{StaticResource ToggleSwitchStyle}"
-                                                                  Cursor="Hand"/>
-                                                    </Grid>
-
-                                                    <Grid Margin="0,0,0,12">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="底部显示名称" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}"/>
-                                                        <CheckBox Grid.Column="2"
-                                                                  IsChecked="{Binding LocalConfig.MiniPinnedPromptShowIcons, Converter={StaticResource InverseBoolConverter}}"
-                                                                  Style="{StaticResource ToggleSwitchStyle}"
-                                                                  Cursor="Hand"/>
-                                                    </Grid>
-
-                                                    <!-- 点击提示词展示 -->
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Grid.Column="0"
-                                                                       Text="点击提示词仅填入不发送"
-                                                                       VerticalAlignment="Center"
-                                                                       Foreground="{DynamicResource TextPrimary}"/>
-                                                            <TextBlock Text="（关闭则自动发送）" Margin="5,0,0,0" VerticalAlignment="Center" Style="{StaticResource HintTextStyle}"/>
-                                                        </StackPanel>
-                                                        <CheckBox Grid.Column="2"
-                                                                  IsChecked="{Binding LocalConfig.MiniPinnedPromptClickShowsFullContent}"
-                                                                  Style="{StaticResource ToggleSwitchStyle}"
-                                                                  Cursor="Hand"/>
-                                                    </Grid>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-
-
-
-                                                                          <!-- 2. 热键 Tab -->
-                                      <StackPanel x:Name="MiniWindowHotkeyTab" Visibility="Collapsed">
-                                          <!-- 卡片1: AI 查询模式 -->
-                                          <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                              <Grid>
-                                                  <Grid.ColumnDefinitions>
-                                                      <ColumnDefinition Width="*"/>
-                                                      <ColumnDefinition Width="Auto"/>
-                                                  </Grid.ColumnDefinitions>
-                                                  <TextBlock Text="启用 AI 查询模式"
-                                                             FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
-                                                             VerticalAlignment="Center"/>
-                                                  <CheckBox Grid.Column="1"
-                                                            IsChecked="{Binding LocalConfig.MiniAiOnlyChatEnabled}"
-                                                            Style="{StaticResource ToggleSwitchStyle}"
-                                                            Content="启用"
-                                                            Cursor="Hand"
-                                                            VerticalAlignment="Center"/>
-                                              </Grid>
-                                          </Border>
-
-                                          <!-- 卡片2: 输入行为 -->
-                                          <Border Style="{StaticResource CardStyle}">
-                                              <StackPanel>
-                                                  <TextBlock Text="输入行为"
-                                                             FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
-                                                             Margin="0,0,0,15"
-                                                             VerticalAlignment="Center"/>
-
-                                                  <!-- 提示词匹配前缀 -->
-                                                  <StackPanel Margin="0,0,0,20">
-                                                      <TextBlock Text="提示词匹配前缀" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,8"/>
-                                                      <TextBox Text="{Binding LocalConfig.MiniPatternPrefix, UpdateSourceTrigger=PropertyChanged}"
-                                                               Style="{StaticResource ModernTextBoxStyle}"
-                                                               HorizontalAlignment="Stretch"/>
-                                                  </StackPanel>
-
-                                                  <!-- AI回复后输入清空 -->
-                                                  <Grid>
-                                                      <Grid.ColumnDefinitions>
-                                                          <ColumnDefinition Width="*"/>
-                                                          <ColumnDefinition Width="Auto"/>
-                                                      </Grid.ColumnDefinitions>
-                                                      <TextBlock Text="AI 回复后自动清空输入"
-                                                                 Style="{StaticResource FieldLabelTextStyle}"
-                                                                 VerticalAlignment="Center"/>
-                                                      <CheckBox Grid.Column="1"
-                                                                IsChecked="{Binding LocalConfig.MiniClearAiResultOnTyping}"
-                                                                Style="{StaticResource ToggleSwitchStyle}"
-                                                                Cursor="Hand"
-                                                                VerticalAlignment="Center"/>
-                                                  </Grid>
-                                              </StackPanel>
-                                          </Border>
-                                      </StackPanel>
-
-                                      <!-- 3. 位置 Tab -->
-                                      <StackPanel x:Name="MiniWindowLocationTab" Visibility="Collapsed">
-                                          <!-- 卡片1: 初始位置 -->
-                                          <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                              <StackPanel>
-                                                  <TextBlock Text="初始位置 (左下角坐标)"
-                                                             FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
-                                                             Margin="0,0,0,15"
-                                                             VerticalAlignment="Center"/>
-
-                                                  <Grid>
-                                                      <Grid.ColumnDefinitions>
-                                                          <ColumnDefinition Width="Auto"/>
-                                                          <ColumnDefinition Width="*"/>
-                                                          <ColumnDefinition Width="Auto"/>
-                                                      </Grid.ColumnDefinitions>
-                                                      <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                          <TextBox Text="{Binding LocalConfig.MiniDefaultLeft}"
-                                                                   IsEnabled="{Binding LocalConfig.MiniUseDefaultPosition}"
-                                                                   Width="100"
-                                                                   Style="{StaticResource ModernTextBoxStyle}"/>
-                                                          <TextBlock Text="," Margin="8,0" VerticalAlignment="Center" Foreground="{DynamicResource PlaceholderTextBrush}" FontWeight="Bold"/>
-                                                          <TextBox Text="{Binding LocalConfig.MiniDefaultBottom}"
-                                                                   IsEnabled="{Binding LocalConfig.MiniUseDefaultPosition}"
-                                                                   Width="100"
-                                                                   Style="{StaticResource ModernTextBoxStyle}"/>
-                                                          <Button Content="⏱️ 3秒拾取"
-                                                                  IsEnabled="{Binding LocalConfig.MiniUseDefaultPosition}"
-                                                                  Click="PickMiniWindowDefaultPosition_Click"
-                                                                  Style="{StaticResource TextLinkButtonStyle}"
-                                                                  Margin="20,0,0,0"
-                                                                  VerticalAlignment="Center"/>
-                                                      </StackPanel>
-                                                      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                          <TextBlock Text="启用固定位置" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
-                                                          <CheckBox IsChecked="{Binding LocalConfig.MiniUseDefaultPosition}"
-                                                                    Style="{StaticResource ToggleSwitchStyle}"
-                                                                    Cursor="Hand"
-                                                                    ToolTip="开启后将使用指定坐标，关闭则记忆上次位置"/>
-                                                      </StackPanel>
-                                                  </Grid>
-                                              </StackPanel>
-                                          </Border>
-
-                                          <!-- 卡片2: 初始尺寸 -->
-                                          <Border Style="{StaticResource CardStyle}">
-                                              <StackPanel>
-                                                  <TextBlock Text="初始尺寸 (宽 × 高 / 展开宽)"
-                                                             FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
-                                                             Margin="0,0,0,15"
-                                                             VerticalAlignment="Center"/>
-
-                                                  <Grid>
-                                                      <Grid.ColumnDefinitions>
-                                                          <ColumnDefinition Width="Auto"/>
-                                                          <ColumnDefinition Width="*"/>
-                                                          <ColumnDefinition Width="Auto"/>
-                                                      </Grid.ColumnDefinitions>
-                                                      <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                          <TextBox Text="{Binding LocalConfig.MiniDefaultWidth}"
-                                                                   IsEnabled="{Binding LocalConfig.MiniUseDefaultSize}"
-                                                                   Width="80"
-                                                                   Style="{StaticResource ModernTextBoxStyle}"/>
-                                                          <TextBlock Text="×" Margin="8,0" VerticalAlignment="Center" Foreground="{DynamicResource PlaceholderTextBrush}"/>
-                                                          <TextBox Text="{Binding LocalConfig.MiniDefaultHeight}"
-                                                                   IsEnabled="{Binding LocalConfig.MiniUseDefaultSize}"
-                                                                   Width="80"
-                                                                   Style="{StaticResource ModernTextBoxStyle}"/>
-                                                          <TextBlock Text="/" Margin="8,0" VerticalAlignment="Center" Foreground="{DynamicResource PlaceholderTextBrush}"/>
-                                                          <TextBox Text="{Binding LocalConfig.MiniExpandedWidth}"
-                                                                   IsEnabled="{Binding LocalConfig.MiniUseDefaultSize}"
-                                                                   Width="80"
-                                                                   Style="{StaticResource ModernTextBoxStyle}"/>
-                                                      </StackPanel>
-                                                      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                          <TextBlock Text="启用固定尺寸" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
-                                                          <CheckBox IsChecked="{Binding LocalConfig.MiniUseDefaultSize}"
-                                                                    Style="{StaticResource ToggleSwitchStyle}"
-                                                                    VerticalAlignment="Center"
-                                                                    Cursor="Hand"
-                                                                    ToolTip="开启后将使用指定尺寸，关闭则记忆上次尺寸"/>
-                                                      </StackPanel>
-                                                  </Grid>
-                                              </StackPanel>
-                                          </Border>
-                                      </StackPanel>
-
-                                    </StackPanel>
-                                </StackPanel>
 
                                 <!-- Tab 5: External Tools (OCR/Translate) -->
                                 <StackPanel>
