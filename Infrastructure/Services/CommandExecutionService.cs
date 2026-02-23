@@ -183,6 +183,34 @@ namespace PromptMasterv5.Infrastructure.Services
             LoggerService.Instance.LogInfo($"No match found for: '{normalizedText}'", "CommandExecutionService.ExecuteCommand");
             return false;
         }
+        
+        /// <summary>
+        /// 尝试精确匹配指令（用于抢答模式）
+        /// 仅进行精确匹配和包含匹配，不进行模糊匹配
+        /// </summary>
+        public bool TryExactMatch(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+
+            var normalizedText = NormalizeText(text);
+
+            // 1. Exact match
+            if (_commands.TryGetValue(normalizedText, out var command))
+            {
+                LoggerService.Instance.LogInfo($"[QuickMatch] Exact match: '{normalizedText}'", "CommandExecutionService.TryExactMatch");
+                return ExecuteProcess(command);
+            }
+
+            // 2. Contains match (检查识别文本是否包含某个指令)
+            var containsMatch = _commands.Keys.FirstOrDefault(k => normalizedText.Contains(NormalizeText(k)));
+            if (containsMatch != null)
+            {
+                LoggerService.Instance.LogInfo($"[QuickMatch] Contains match: '{containsMatch}'", "CommandExecutionService.TryExactMatch");
+                return ExecuteProcess(_commands[containsMatch]);
+            }
+
+            return false;
+        }
 
         private bool ExecuteProcess(string command)
         {

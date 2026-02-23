@@ -54,6 +54,30 @@ namespace PromptMasterv5.ViewModels
             {
                 _intermediateResultBuffer.Append(text);
                 RecognizedText = _intermediateResultBuffer.ToString();
+                
+                // ★★★ 抢答模式：中间结果抢先匹配指令 ★★★
+                // 如果当前累积的文本已经匹配了某个指令，立即执行并停止录音
+                if (!string.IsNullOrWhiteSpace(RecognizedText) && IsListening)
+                {
+                    bool matched = _commandExecutionService.TryExactMatch(RecognizedText);
+                    if (matched)
+                    {
+                        // 匹配成功，立即停止录音并执行
+                        StatusText = $"Quick: {RecognizedText}";
+                        
+                        // 异步停止录音，避免阻塞 UI
+                        _ = Task.Run(async () => 
+                        {
+                            try
+                            {
+                                _voiceService.CancelRecording();
+                                await Task.Delay(800); // 短暂显示状态
+                                RequestClose?.Invoke();
+                            }
+                            catch { }
+                        });
+                    }
+                }
             });
         }
 

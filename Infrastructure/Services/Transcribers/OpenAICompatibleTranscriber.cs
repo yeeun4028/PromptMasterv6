@@ -41,7 +41,7 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
 
         private DateTime _lastAudioDetectedTime;
         private const float SilenceThreshold = 0.02f;
-        private const int SilenceTimeoutMs = 1500;
+        private const int SilenceTimeoutMs = 600;
 
         // Volume ducking
         private float _savedVolume = -1f;

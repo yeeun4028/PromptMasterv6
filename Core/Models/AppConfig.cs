@@ -204,7 +204,7 @@ namespace PromptMasterv5.Core.Models
         /// 静音检测超时（毫秒）
         /// </summary>
         [ObservableProperty]
-        private int xunfeiVadEos = 2000;
+        private int xunfeiVadEos = 600;
 
         /// <summary>
         /// 自动添加标点
