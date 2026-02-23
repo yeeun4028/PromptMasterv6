@@ -160,21 +160,32 @@ namespace PromptMasterv5
             ToggleWindowVisibility();
         }
 
-        private void Tray_Exit_Click(object sender, RoutedEventArgs e)
+        private async void Tray_Exit_Click(object sender, RoutedEventArgs e)
         {
             _isExiting = true;
-            
-            // 清理托盘图标
-            if (_notifyIcon != null)
+
+            // 先执行异步保存 (等待它完成)
+            if (ViewModel != null)
             {
-                _notifyIcon.Visible = false;
-                _notifyIcon.Dispose();
-                _notifyIcon = null;
+                try
+                {
+                    LoggerService.Instance.LogInfo("执行退出前保存...", "MainWindow.Tray_Exit_Click");
+                    // 在这里安全地异步等待
+                    await ViewModel.PerformLocalBackup();
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.Instance.LogException(ex, "退出前保存失败", "MainWindow.Tray_Exit_Click");
+                    System.Diagnostics.Debug.WriteLine($"退出前保存失败: {ex.Message}");
+                }
             }
-            
-            // Clean up timers
-            CleanupTimers();
-            
+
+            // 清理所有资源
+            Cleanup();
+
+            // 释放 ViewModel 资源
+            ViewModel?.Dispose();
+
             // 强制退出应用程序
             Application.Current.Shutdown();
         }
@@ -185,30 +196,14 @@ namespace PromptMasterv5
             if (_isBackupExiting)
             {
                 _isExiting = true;
-                // 清理托盘图标
-                if (_notifyIcon != null)
-                {
-                    _notifyIcon.Visible = false;
-                    _notifyIcon.Dispose();
-                    _notifyIcon = null;
-                }
-                // Clean up timers
-                CleanupTimers();
+                Cleanup();
                 return;
             }
 
             // 如果是用户主动退出（从托盘菜单），允许关闭
             if (_isExiting)
             {
-                // 清理托盘图标
-                if (_notifyIcon != null)
-                {
-                    _notifyIcon.Visible = false;
-                    _notifyIcon.Dispose();
-                    _notifyIcon = null;
-                }
-                // Clean up timers
-                CleanupTimers();
+                Cleanup();
                 return;
             }
 
@@ -260,6 +255,25 @@ namespace PromptMasterv5
             {
                 _hideTimer.Stop();
                 _hideTimer = null;
+            }
+        }
+
+        private void Cleanup()
+        {
+            CleanupTimers();
+
+            // 取消事件订阅
+            if (ViewModel != null)
+            {
+                ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            }
+
+            // 清理托盘图标
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+                _notifyIcon.Dispose();
+                _notifyIcon = null;
             }
         }
 

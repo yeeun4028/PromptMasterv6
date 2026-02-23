@@ -1047,7 +1047,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _saveSubject?.Dispose();
         _saveLocalSettingsSubject?.Dispose();
 
-        // Unsubscribe from GlobalKeyService events
+        // Unsubscribe from GlobalKeyService events and dispose
         if (_keyService != null)
         {
             if (_onDoubleCtrlDetectedHandler != null)
@@ -1058,6 +1058,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 _keyService.OnVoiceControlKeyDown -= _onVoiceControlKeyDownHandler;
             if (_onVoiceControlTriggeredHandler != null)
                 _keyService.OnVoiceControlTriggered -= _onVoiceControlTriggeredHandler;
+            _keyService.Dispose();
         }
 
         // Unsubscribe from SettingsVM PropertyChanged
@@ -1084,6 +1085,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         // Unregister WeakReferenceMessenger
         WeakReferenceMessenger.Default.UnregisterAll(this);
+
+        // Dispose services
+        _commandExecutionService?.Dispose();
 
         GC.SuppressFinalize(this);
     }

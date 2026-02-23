@@ -472,6 +472,9 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
 
         private void CleanupResources()
         {
+            // 先取消所有正在运行的任务
+            try { _cts?.Cancel(); } catch { }
+
             _waveIn?.Dispose();
             _waveIn = null;
             _webSocket?.Dispose();

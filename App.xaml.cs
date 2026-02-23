@@ -86,31 +86,31 @@ namespace PromptMasterv5
         protected override void OnExit(ExitEventArgs e)
         {
             LoggerService.Instance.LogInfo($"Application exiting with code: {e.ApplicationExitCode}", "App.OnExit");
-            
-            // 在退出前强制执行一次本地保存（仅对托盘菜单退出有效，taskkill /F 无效）
+
+            // 仅释放资源，不执行保存操作（避免死锁）
+            // 保存操作已在 MainWindow.Tray_Exit_Click 中异步完成
             try
             {
                 var mainVM = _serviceProvider?.GetService(typeof(MainViewModel)) as MainViewModel;
                 if (mainVM != null)
                 {
-                    LoggerService.Instance.LogInfo("执行退出前保存...", "App.OnExit");
-                    // 使用 GetAwaiter().GetResult() 避免 Wait() 的死锁风险
-                    // 因为 OnExit 已经在 UI 线程，不需要同步上下文
-                    mainVM.PerformLocalBackup().GetAwaiter().GetResult();
+                    LoggerService.Instance.LogInfo("释放 MainViewModel 资源...", "App.OnExit");
+                    // 仅释放资源
+                    mainVM.Dispose();
                 }
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "退出前保存失败", "App.OnExit");
+                LoggerService.Instance.LogException(ex, "退出清理失败", "App.OnExit");
             }
-            
+
             // Release the mutex
             if (_ownsMutex && _singleInstanceMutex != null)
             {
                 _singleInstanceMutex.ReleaseMutex();
             }
             _singleInstanceMutex?.Dispose();
-            
+
             _serviceProvider?.Dispose();
             base.OnExit(e);
         }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace PromptMasterv5.Core.Interfaces
 {
-    public interface IVoiceService
+    public interface IVoiceService : IDisposable
     {
         bool IsRecording { get; }
         
