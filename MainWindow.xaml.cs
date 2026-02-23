@@ -68,6 +68,12 @@ namespace PromptMasterv5
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            InitializeTrayIcon();
+        }
+
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(MainViewModel.IsSettingsOpen))

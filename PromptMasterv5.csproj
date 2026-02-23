@@ -12,7 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="pro_icon.ico" />
+    <Content Include="pro_icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
