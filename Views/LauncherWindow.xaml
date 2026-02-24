@@ -12,12 +12,8 @@
         Deactivated="Window_Deactivated" KeyDown="Window_KeyDown"
         Loaded="Window_Loaded">
 
-    <Border Background="#CC000000" 
-            BorderBrush="{DynamicResource DividerBrush}" 
-            BorderThickness="1" CornerRadius="12" Padding="15">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
-        </Border.Effect>
+    <Border Background="#00000000" 
+            CornerRadius="12" Padding="15">
         
         <Grid>
             <Grid.RowDefinitions>
