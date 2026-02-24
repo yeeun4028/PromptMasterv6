@@ -13,7 +13,7 @@ namespace PromptMasterv5.Core.Models
     public partial class LocalSettings : ObservableObject
     {
         [ObservableProperty]
-        private ThemeType theme = ThemeType.Light;
+        private ThemeType theme = ThemeType.Dark;
 
         [ObservableProperty] 
         private string ocrHotkey = ""; // OCR 快捷键（从外部工具设置页面配置）
