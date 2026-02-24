@@ -27,7 +27,7 @@
         Deactivated="Window_Deactivated">
 
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="0"/>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="8" GlassFrameThickness="0" CornerRadius="0"/>
     </WindowChrome.WindowChrome>
 
     <!-- (Window.Resources 保持不变) ... -->
