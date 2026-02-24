@@ -329,7 +329,7 @@ namespace PromptMasterv5
         private void StartHideTimer()
         {
             StopHideTimer();
-            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
             _hideTimer.Tick += (s, e) =>
             {
                 StopHideTimer();
