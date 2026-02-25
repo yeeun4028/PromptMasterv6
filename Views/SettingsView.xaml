@@ -60,6 +60,29 @@
             </Setter>
         </Style>
 
+        <!-- Icon Button Style -->
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Card Style -->
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource CardBackground}"/>
@@ -2086,13 +2109,13 @@
 
                                                                 <!-- Buttons -->
                                                                 <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                                    <Button Command="{Binding DataContext.SettingsVM.MoveLaunchBarItemUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Margin="0,0,4,0" Style="{StaticResource ModernTabBtnStyle}" Padding="0" HorizontalContentAlignment="Center" ToolTip="上移">
+                                                                    <Button Command="{Binding DataContext.SettingsVM.MoveLaunchBarItemUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Margin="0,0,4,0" Style="{StaticResource IconButtonStyle}" ToolTip="上移">
                                                                         <Path Data="{StaticResource IconMoveUp}" Fill="{DynamicResource TextSecondary}" Stretch="Uniform" Width="14" Height="14"/>
                                                                     </Button>
-                                                                    <Button Command="{Binding DataContext.SettingsVM.MoveLaunchBarItemDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Margin="0,0,4,0" Style="{StaticResource ModernTabBtnStyle}" Padding="0" HorizontalContentAlignment="Center" ToolTip="下移">
+                                                                    <Button Command="{Binding DataContext.SettingsVM.MoveLaunchBarItemDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Margin="0,0,4,0" Style="{StaticResource IconButtonStyle}" ToolTip="下移">
                                                                         <Path Data="{StaticResource IconMoveDown}" Fill="{DynamicResource TextSecondary}" Stretch="Uniform" Width="14" Height="14"/>
                                                                     </Button>
-                                                                    <Button Command="{Binding DataContext.SettingsVM.RemoveLaunchBarItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Style="{StaticResource ModernTabBtnStyle}" Padding="0" HorizontalContentAlignment="Center" ToolTip="删除">
+                                                                    <Button Command="{Binding DataContext.SettingsVM.RemoveLaunchBarItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Style="{StaticResource IconButtonStyle}" ToolTip="删除">
                                                                         <Path Data="{StaticResource IconDelete}" Fill="{StaticResource DangerBrush}" Stretch="Uniform" Width="14" Height="14"/>
                                                                     </Button>
                                                                 </StackPanel>
