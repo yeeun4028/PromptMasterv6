@@ -147,6 +147,18 @@ namespace PromptMasterv5.Views
             }
         }
         
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            
+            // Set WS_EX_NOACTIVATE to ensure this window NEVER takes focus, 
+            // even when this.Show() is called or it is clicked, preventing it from
+            // stealing focus from other popups (like TranslationPopup)
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            int exStyle = Infrastructure.Services.NativeMethods.GetWindowLong(hwnd, Infrastructure.Services.NativeMethods.GWL_EXSTYLE);
+            Infrastructure.Services.NativeMethods.SetWindowLong(hwnd, Infrastructure.Services.NativeMethods.GWL_EXSTYLE, exStyle | Infrastructure.Services.NativeMethods.WS_EX_NOACTIVATE);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             _fullScreenCheckTimer.Stop();
