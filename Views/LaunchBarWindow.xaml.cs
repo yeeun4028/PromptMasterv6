@@ -12,20 +12,13 @@ namespace PromptMasterv5.Views
     public partial class LaunchBarWindow : Window
     {
         private readonly MainViewModel _mainViewModel;
-        private DispatcherTimer _fullScreenCheckTimer;
-        private bool _isHiddenDueToFullScreen = false;
 
         public LaunchBarWindow(MainViewModel mainViewModel)
         {
             InitializeComponent();
             _mainViewModel = mainViewModel;
             this.DataContext = _mainViewModel;
-
-            // Timer to check for full-screen apps
-            _fullScreenCheckTimer = new DispatcherTimer();
-            _fullScreenCheckTimer.Interval = TimeSpan.FromMilliseconds(500);
-            _fullScreenCheckTimer.Tick += FullScreenCheckTimer_Tick;
-            _fullScreenCheckTimer.Start();
+            
             
             // Re-evaluate visibility when config changes
             _mainViewModel.Config.PropertyChanged += Config_PropertyChanged;
@@ -67,25 +60,9 @@ namespace PromptMasterv5.Views
             UpdateVisibility();
         }
 
-        private void FullScreenCheckTimer_Tick(object? sender, EventArgs e)
-        {
-            bool isFullScreenActive = Infrastructure.Services.NativeMethods.IsForegroundFullScreen();
-            
-            if (isFullScreenActive && !_isHiddenDueToFullScreen)
-            {
-                _isHiddenDueToFullScreen = true;
-                UpdateVisibility();
-            }
-            else if (!isFullScreenActive && _isHiddenDueToFullScreen)
-            {
-                _isHiddenDueToFullScreen = false;
-                UpdateVisibility();
-            }
-        }
-
         private void UpdateVisibility()
         {
-            if (!_mainViewModel.Config.EnableLaunchBar || _isHiddenDueToFullScreen || _mainViewModel.Config.LaunchBarItems.Count == 0)
+            if (!_mainViewModel.Config.EnableLaunchBar || _mainViewModel.Config.LaunchBarItems.Count == 0)
             {
                 this.Hide();
             }
@@ -161,7 +138,6 @@ namespace PromptMasterv5.Views
 
         protected override void OnClosed(EventArgs e)
         {
-            _fullScreenCheckTimer.Stop();
             if (_mainViewModel != null && _mainViewModel.Config != null)
             {
                  _mainViewModel.Config.PropertyChanged -= Config_PropertyChanged;

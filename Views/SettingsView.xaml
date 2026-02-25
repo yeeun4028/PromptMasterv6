@@ -2017,6 +2017,25 @@
                                                           VerticalAlignment="Center"/>
                                             </Grid>
 
+                                            <!-- Toggle Launch Bar Hotkey -->
+                                            <Grid Margin="0,0,0,15">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="显示/隐藏启动条快捷键" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="1" 
+                                                         x:Name="LaunchBarHotkeyTextBox"
+                                                         Text="{Binding Config.LaunchBarHotkey, Mode=TwoWay}" 
+                                                         Style="{StaticResource KeyRecorderStyle}"
+                                                         Width="140"
+                                                         IsReadOnly="True"
+                                                         Cursor="Hand"
+                                                         VerticalAlignment="Center"
+                                                         PreviewKeyDown="LaunchBarHotkeyTextBox_PreviewKeyDown"
+                                                         ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                            </Grid>
+
                                             <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,10,0,20"/>
 
                                             <TextBlock Text="启动分段配置 (从上到下等比例分布)" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>

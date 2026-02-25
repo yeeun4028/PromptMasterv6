@@ -51,6 +51,9 @@ namespace PromptMasterv5.Core.Models
         private bool enableLaunchBar = true;
 
         [ObservableProperty]
+        private string launchBarHotkey = "Alt+L";
+
+        [ObservableProperty]
         private ObservableCollection<LaunchBarItem> launchBarItems = new();
         [ObservableProperty]
         private string webDavUrl = "https://dav.jianguoyun.com/dav/";

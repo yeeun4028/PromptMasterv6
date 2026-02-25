@@ -836,6 +836,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public void UpdateWindowHotkeys()
     {
         _hotkeyService.RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
+        
+        // 注册启动条显示/隐藏快捷键
+        _hotkeyService.RegisterWindowHotkey("ToggleLaunchBarHotkey", Config.LaunchBarHotkey, () => 
+        {
+            Config.EnableLaunchBar = !Config.EnableLaunchBar;
+        });
     }
 
     private void ToggleWindowToMode(bool targetFull)
