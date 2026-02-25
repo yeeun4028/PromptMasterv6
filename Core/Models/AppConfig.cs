@@ -21,8 +21,37 @@ namespace PromptMasterv5.Core.Models
         Xunfei = 1
     }
 
+    public enum LaunchBarActionType
+    {
+        BuiltIn,
+        CustomApp
+    }
+
+    public partial class LaunchBarItem : ObservableObject
+    {
+        [ObservableProperty]
+        private string id = Guid.NewGuid().ToString();
+
+        [ObservableProperty]
+        private string colorHex = "#FF4183C4";
+
+        [ObservableProperty]
+        private LaunchBarActionType actionType = LaunchBarActionType.BuiltIn;
+
+        [ObservableProperty]
+        private string actionTarget = "ToggleWindow";
+
+        [ObservableProperty]
+        private string label = "新建功能";
+    }
+
     public partial class AppConfig : ObservableObject
     {
+        [ObservableProperty]
+        private bool enableLaunchBar = true;
+
+        [ObservableProperty]
+        private ObservableCollection<LaunchBarItem> launchBarItems = new();
         [ObservableProperty]
         private string webDavUrl = "https://dav.jianguoyun.com/dav/";
 

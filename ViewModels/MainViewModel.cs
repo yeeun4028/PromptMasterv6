@@ -987,7 +987,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void TriggerTranslate() => ExternalToolsVM.TriggerTranslateCommand.Execute(null);
 
-    private void HandleLauncherTriggered()
+    public void HandleLauncherTriggered()
     {
         Application.Current.Dispatcher.Invoke(() =>
         {

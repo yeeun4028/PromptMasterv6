@@ -1567,5 +1567,60 @@ namespace PromptMasterv5.ViewModels
         }
 
         #endregion
+
+        #region Commands - Launch Bar
+
+        [RelayCommand]
+        private void AddLaunchBarItem()
+        {
+            Config.LaunchBarItems.Add(new LaunchBarItem
+            {
+                ColorHex = "#FF007ACC",
+                ActionType = LaunchBarActionType.BuiltIn,
+                ActionTarget = "ToggleWindow",
+                Label = "主界面"
+            });
+            _settingsService.SaveConfig();
+        }
+
+        [RelayCommand]
+        private void RemoveLaunchBarItem(LaunchBarItem? item)
+        {
+            if (item != null)
+            {
+                Config.LaunchBarItems.Remove(item);
+                _settingsService.SaveConfig();
+            }
+        }
+
+        [RelayCommand]
+        private void MoveLaunchBarItemUp(LaunchBarItem? item)
+        {
+            if (item != null)
+            {
+                int index = Config.LaunchBarItems.IndexOf(item);
+                if (index > 0)
+                {
+                    Config.LaunchBarItems.Move(index, index - 1);
+                    _settingsService.SaveConfig();
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void MoveLaunchBarItemDown(LaunchBarItem? item)
+        {
+            if (item != null)
+            {
+                int index = Config.LaunchBarItems.IndexOf(item);
+                if (index >= 0 && index < Config.LaunchBarItems.Count - 1)
+                {
+                    Config.LaunchBarItems.Move(index, index + 1);
+                    _settingsService.SaveConfig();
+                }
+            }
+        }
+
+        #endregion
     }
 }

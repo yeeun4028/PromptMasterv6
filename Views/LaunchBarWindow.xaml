@@ -1,0 +1,69 @@
+<Window x:Class="PromptMasterv5.Views.LaunchBarWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:PromptMasterv5.ViewModels"
+        xmlns:converters="clr-namespace:PromptMasterv5.Converters"
+        mc:Ignorable="d"
+        Title="LaunchBarWindow" 
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="Transparent"
+        Topmost="True" 
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Width="6" 
+        Left="0"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <converters:HexToSolidColorBrushConverter x:Key="HexColorConverter"/>
+        
+        <!-- Style for the entire ItemsControl container to clip/manage size based on items -->
+        <Style x:Key="LaunchBarStyle" TargetType="ItemsControl">
+            <Setter Property="Width" Value="6" />
+        </Style>
+
+        <!-- Style for individual launch bar segments -->
+        <Style x:Key="LaunchBarItemStyle" TargetType="Border">
+            <Setter Property="Width" Value="2"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource HexColorConverter}}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="{Binding Label}"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="0"/>
+            <Setter Property="ToolTipService.ShowDuration" Value="5000"/>
+            <!-- Add a transparent background to the grid behind it to catch mouse events easily -->
+            
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Width" Value="6"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid Background="Transparent">
+        <!-- We use an ItemsControl to display the segments -->
+        <ItemsControl ItemsSource="{Binding Config.LaunchBarItems}" Style="{StaticResource LaunchBarStyle}">
+            <!-- Use a UniformGrid to divide the height evenly among the items -->
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="1" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!-- A container grid to ensure the hit area is the full 6px width even if the line is 2px -->
+                    <Grid Background="Transparent" 
+                          MouseEnter="Segment_MouseEnter"
+                          Tag="{Binding}">
+                        <Border Style="{StaticResource LaunchBarItemStyle}" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</Window>

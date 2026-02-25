@@ -81,5 +81,40 @@ namespace PromptMasterv5.Infrastructure.Services
         public const int SM_YVIRTUALSCREEN = 77;
         public const int SM_CXVIRTUALSCREEN = 78;
         public const int SM_CYVIRTUALSCREEN = 79;
+        
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetDesktopWindow();
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetShellWindow();
+
+        public static bool IsForegroundFullScreen()
+        {
+            var desktopHandle = GetDesktopWindow();
+            var shellHandle = GetShellWindow();
+            var handle = GetForegroundWindow();
+
+            if (handle.Equals(IntPtr.Zero)) return false;
+            if (handle.Equals(desktopHandle) || handle.Equals(shellHandle)) return false;
+
+            GetWindowRect(handle, out RECT rect);
+            
+            // Allow a small margin of error (e.g. 2 pixels) for apps that might be essentially fullscreen
+            return (rect.left <= 2 && rect.top <= 2 && 
+                    rect.right >= (GetSystemMetrics(0) - 2) && 
+                    rect.bottom >= (GetSystemMetrics(1) - 2));
+        }
     }
 }
