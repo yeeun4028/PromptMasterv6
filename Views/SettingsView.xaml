@@ -370,7 +370,7 @@
         <!-- Modal Overlay -->
         <Border Background="#66000000">
             <!-- Main Settings Window -->
-            <Border Width="900" Height="500" Background="{DynamicResource AppBackground}" CornerRadius="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Width="900" Height="600" Background="{DynamicResource AppBackground}" CornerRadius="12" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="25" ShadowDepth="0"/>
                 </Border.Effect>
