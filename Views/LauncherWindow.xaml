@@ -42,43 +42,67 @@
                 <ItemsControl ItemsSource="{Binding FilteredItems}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel x:Name="IconPanel" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            <WrapPanel x:Name="IconPanel" Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="696"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Panel.ZIndex" Value="0"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Panel.ZIndex" Value="100"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Button x:Name="ItemButton"
                                     Command="{Binding DataContext.ExecuteItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
                                     CommandParameter="{Binding}"
-                                    Margin="8" Width="55" Height="55"
+                                    Margin="16" Width="55" Height="55" ClipToBounds="False"
                                     Background="Transparent" BorderThickness="0" Cursor="Hand"
                                     MouseLeftButtonDown="ItemButton_MouseLeftButtonDown"
                                     MouseMove="ItemButton_MouseMove"
                                     MouseLeftButtonUp="ItemButton_MouseLeftButtonUp">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
+                                        <Grid Background="Transparent" ClipToBounds="False">
                                             
                                             <!-- 图标名称（悬停时显示） -->
                                             <TextBlock x:Name="NameText" Text="{Binding Title}" 
-                                                       HorizontalAlignment="Center" 
-                                                       Foreground="White" FontSize="11" 
-                                                       Margin="0,0,0,5" Opacity="0" 
-                                                       TextTrimming="CharacterEllipsis" MaxWidth="60"/>
+                                                       HorizontalAlignment="Center" VerticalAlignment="Top"
+                                                       Foreground="#E0E0E0" FontSize="14" FontWeight="Medium"
+                                                       Opacity="0" IsHitTestVisible="False"
+                                                       TextTrimming="CharacterEllipsis" MaxWidth="100">
+                                                <TextBlock.RenderTransform>
+                                                    <TranslateTransform x:Name="NameTextTranslate" X="0" Y="0"/>
+                                                </TextBlock.RenderTransform>
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="1" Opacity="0.5" Direction="270"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
 
-                                            <!-- 图标容器（带缩放动画） -->
-                                            <Border x:Name="IconBorder" Grid.Row="1" 
-                                                    Background="Transparent" 
-                                                    CornerRadius="8" Padding="5"
-                                                    RenderTransformOrigin="0.5,1">
-                                                <Border.RenderTransform>
-                                                    <ScaleTransform x:Name="IconScale" ScaleX="1" ScaleY="1"/>
-                                                </Border.RenderTransform>
-                                                <Grid Width="45" Height="45">
+                                            <!-- 图标容器（带形变动画） -->
+                                            <Grid x:Name="CardGrid" Width="55" Height="55"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Grid.RenderTransform>
+                                                    <TranslateTransform x:Name="CardTranslate" X="0" Y="0"/>
+                                                </Grid.RenderTransform>
+                                                
+                                                <Rectangle x:Name="CardBg" RadiusX="18" RadiusY="18">
+                                                    <Rectangle.Fill>
+                                                        <SolidColorBrush x:Name="CardBackground" Color="#1E1E1E"/>
+                                                    </Rectangle.Fill>
+                                                    <Rectangle.Effect>
+                                                        <DropShadowEffect x:Name="CardShadow" Color="Black" BlurRadius="5" ShadowDepth="2" Opacity="0.2" Direction="270"/>
+                                                    </Rectangle.Effect>
+                                                </Rectangle>
+                                                
+                                                <!-- Icon Vector -->
+                                                <Grid Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                                     <Path Data="{Binding IconGeometry}" 
                                                           Visibility="{Binding IconGeometry, Converter={StaticResource StringToVis}}"
                                                           Fill="#4A90D9" 
@@ -88,37 +112,91 @@
                                                           Fill="#888888" 
                                                           Stretch="Uniform" Opacity="0.7"/>
                                                 </Grid>
-                                            </Border>
+                                            </Grid>
                                         </Grid>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Trigger.EnterActions>
                                                     <BeginStoryboard>
                                                         <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetName="IconScale" 
-                                                                             Storyboard.TargetProperty="ScaleX"
-                                                                             To="0.6" Duration="0:0:0.15"/>
-                                                            <DoubleAnimation Storyboard.TargetName="IconScale" 
-                                                                             Storyboard.TargetProperty="ScaleY"
-                                                                             To="0.6" Duration="0:0:0.15"/>
-                                                            <DoubleAnimation Storyboard.TargetName="NameText" 
-                                                                             Storyboard.TargetProperty="Opacity"
-                                                                             To="1" BeginTime="0:0:0.15" Duration="0:0:0.1"/>
+                                                            <DoubleAnimation Storyboard.TargetName="CardGrid" Storyboard.TargetProperty="Width" To="30" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardGrid" Storyboard.TargetProperty="Height" To="30" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardBg" Storyboard.TargetProperty="RadiusX" To="15" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardBg" Storyboard.TargetProperty="RadiusY" To="15" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardTranslate" Storyboard.TargetProperty="Y" To="10" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            
+                                                            <ColorAnimation Storyboard.TargetName="CardBackground" Storyboard.TargetProperty="Color" To="#252525" Duration="0:0:0.4">
+                                                                <ColorAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></ColorAnimation.EasingFunction>
+                                                            </ColorAnimation>
+                                                            
+                                                            <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="BlurRadius" To="12" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="ShadowDepth" To="6" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            
+                                                            <DoubleAnimation Storyboard.TargetName="NameText" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="NameTextTranslate" Storyboard.TargetProperty="Y" To="-35" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </Trigger.EnterActions>
                                                 <Trigger.ExitActions>
                                                     <BeginStoryboard>
                                                         <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetName="IconScale" 
-                                                                             Storyboard.TargetProperty="ScaleX"
-                                                                             To="1" Duration="0:0:0.15"/>
-                                                            <DoubleAnimation Storyboard.TargetName="IconScale" 
-                                                                             Storyboard.TargetProperty="ScaleY"
-                                                                             To="1" Duration="0:0:0.15"/>
-                                                            <DoubleAnimation Storyboard.TargetName="NameText" 
-                                                                             Storyboard.TargetProperty="Opacity"
-                                                                             To="0" Duration="0:0:0.1"/>
+                                                            <DoubleAnimation Storyboard.TargetName="CardGrid" Storyboard.TargetProperty="Width" To="55" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardGrid" Storyboard.TargetProperty="Height" To="55" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardBg" Storyboard.TargetProperty="RadiusX" To="18" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardBg" Storyboard.TargetProperty="RadiusY" To="18" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardTranslate" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            
+                                                            <ColorAnimation Storyboard.TargetName="CardBackground" Storyboard.TargetProperty="Color" To="#1E1E1E" Duration="0:0:0.4">
+                                                                <ColorAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></ColorAnimation.EasingFunction>
+                                                            </ColorAnimation>
+                                                            
+                                                            <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="BlurRadius" To="5" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="ShadowDepth" To="2" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="Opacity" To="0.2" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            
+                                                            <DoubleAnimation Storyboard.TargetName="NameText" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="NameTextTranslate" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.4">
+                                                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </Trigger.ExitActions>
