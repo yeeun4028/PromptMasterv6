@@ -105,6 +105,9 @@ namespace PromptMasterv5.Views
                         case "Launcher":
                             _mainViewModel.HandleLauncherTriggered();
                             break;
+                        case "PinImage":
+                            _mainViewModel.ExternalToolsVM.TriggerPinToScreenCommand.Execute(null);
+                            break;
                     }
                 }
                 else if (item.ActionType == LaunchBarActionType.CustomApp)

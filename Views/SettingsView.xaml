@@ -2163,6 +2163,7 @@
                                                                         <ComboBoxItem Tag="Launcher" Content="快捷启动器"/>
                                                                         <ComboBoxItem Tag="Translate" Content="截图翻译"/>
                                                                         <ComboBoxItem Tag="Ocr" Content="截图文字识别"/>
+                                                                        <ComboBoxItem Tag="PinImage" Content="贴图"/>
                                                                     </ComboBox>
                                                                 </Grid>
 
