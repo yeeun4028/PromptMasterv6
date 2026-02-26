@@ -232,7 +232,7 @@
                         </ItemsControl.Style>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel x:Name="IconPanel" Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="696"/>
+                                <WrapPanel x:Name="IconPanel" Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>
@@ -269,7 +269,7 @@
                             <ItemsControl ItemsSource="{Binding Bookmarks}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="696"/>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemContainerStyle>
@@ -294,7 +294,7 @@
                             <ItemsControl ItemsSource="{Binding Applications}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="696"/>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemContainerStyle>
@@ -319,7 +319,7 @@
                             <ItemsControl ItemsSource="{Binding Tools}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="696"/>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemContainerStyle>
