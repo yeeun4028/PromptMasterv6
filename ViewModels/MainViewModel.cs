@@ -58,7 +58,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private PropertyChangedEventHandler? _settingsVMPropertyChangedHandler;
     private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
 
-    private bool _previousFullMode = true;
     private bool _isSimulatingKeys;
     public void SetSimulatingKeys(bool value) => _isSimulatingKeys = value;
 
@@ -448,13 +447,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void EnterFullMode()
     {
         IsFullMode = true;
-        _previousFullMode = true;
     }
 
     // Hotkey handlers (called by SettingsViewModel)
     public void OnWindowHotkeyPressed()
     {
         ToggleMainWindow();
+    }
+
+    public void SimulateFullWindowHotkey()
+    {
+        _hotkeyService.SimulateHotkey(Config.FullWindowHotkey);
     }
 
     public void ToggleModeViaHotkey()
@@ -789,19 +792,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void ToggleMainWindow()
     {
-        var win = Application.Current.MainWindow;
+        var win = Application.Current.MainWindow as MainWindow;
         if (win == null) return;
 
-        if (win.Visibility != Visibility.Visible)
-        {
-            IsFullMode = true;
-            win.Show();
-            win.Activate();
-            return;
-        }
-
-        _previousFullMode = IsFullMode;
-        win.Hide();
+        win.ToggleWindowVisibility();
     }
 
     private void ApplyTheme(ThemeType theme)

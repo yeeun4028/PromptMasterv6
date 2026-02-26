@@ -92,7 +92,7 @@ namespace PromptMasterv5.Views
                     switch (item.ActionTarget)
                     {
                         case "ToggleWindow":
-                            _mainViewModel.OnWindowHotkeyPressed();
+                            _mainViewModel.SimulateFullWindowHotkey();
                             break;
                         case "ScreenshotTranslate":
                         case "Translate": // config.json saves "Translate" for screenshot translation

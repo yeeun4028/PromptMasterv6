@@ -140,19 +140,35 @@ namespace PromptMasterv5
             }
         }
 
-        private void ToggleWindowVisibility()
+        public void ToggleWindowVisibility()
         {
             if (this.Visibility == Visibility.Visible)
             {
+                // 如果窗口可见但不在前台（失去焦点），将其重新调回前台
+                var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+                var foregroundHwnd = Infrastructure.Services.NativeMethods.GetForegroundWindow();
+                if (hwnd != foregroundHwnd)
+                {
+                    StopHideTimer();
+                    ViewModel.IsFullMode = true;
+                    this.Show();
+                    this.Activate();
+                    this.Focus();
+                    Infrastructure.Services.NativeMethods.SetForegroundWindow(hwnd);
+                    return;
+                }
+
+                // 已在前台，执行隐藏
                 this.Hide();
             }
             else
             {
                 StopHideTimer();
+                ViewModel.IsFullMode = true;
                 this.Show();
                 this.Activate();
                 this.Focus();
-                NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+                Infrastructure.Services.NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
             }
         }
 
