@@ -58,6 +58,15 @@ namespace PromptMasterv5.Views
             this.Width = SystemParameters.VirtualScreenWidth;
             this.Height = SystemParameters.VirtualScreenHeight;
 
+            // 诊断日志：覆盖层窗口 vs 截图位图
+            var diagSource = PresentationSource.FromVisual(this);
+            double diagDpiX = diagSource?.CompositionTarget?.TransformToDevice.M11 ?? -1;
+            LoggerService.Instance.LogInfo(
+                $"[PIN-DIAG] Overlay Loaded: Window=[{this.Width}x{this.Height}], " +
+                $"_screenBitmap=[{_screenBitmap?.Width}x{_screenBitmap?.Height}], " +
+                $"DPI Scale from PresentationSource={diagDpiX}",
+                "ScreenCaptureOverlay");
+
             // Ensure we are active and focused
             this.Activate();
             this.Focus();
@@ -290,7 +299,11 @@ namespace PromptMasterv5.Views
                 int physWidth = (int)(width * dpiX);
                 int physHeight = (int)(height * dpiY);
 
-                LoggerService.Instance.LogInfo($"Capture Region: Logical [{x},{y} {width}x{height}] -> Physical [{physX},{physY} {physWidth}x{physHeight}] (DPI: {dpiX}x{dpiY})", "ScreenCaptureOverlay");
+                LoggerService.Instance.LogInfo(
+                    $"[PIN-DIAG] CaptureSelectedRegion: _screenBitmap=[{_screenBitmap.Width}x{_screenBitmap.Height}], " +
+                    $"Logical selection=[{x},{y} {width}x{height}], DPI=[{dpiX}x{dpiY}], " +
+                    $"Physical crop=[{physX},{physY} {physWidth}x{physHeight}]",
+                    "ScreenCaptureOverlay");
 
                 // Ensure bounds
                 physX = Math.Max(0, physX);
@@ -314,9 +327,21 @@ namespace PromptMasterv5.Views
                         GraphicsUnit.Pixel);
                 }
 
+                // 将屏幕实际 DPI 写入位图元数据
+                croppedBmp.SetResolution((float)(96 * dpiX), (float)(96 * dpiY));
+
+                LoggerService.Instance.LogInfo(
+                    $"[PIN-DIAG] CaptureSelectedRegion: croppedBmp=[{croppedBmp.Width}x{croppedBmp.Height}], " +
+                    $"Resolution=[{croppedBmp.HorizontalResolution}x{croppedBmp.VerticalResolution}]",
+                    "ScreenCaptureOverlay");
+
                 using var stream = new MemoryStream();
                 croppedBmp.Save(stream, ImageFormat.Png);
                 CapturedImageBytes = stream.ToArray();
+
+                LoggerService.Instance.LogInfo(
+                    $"[PIN-DIAG] CaptureSelectedRegion: PNG bytes={CapturedImageBytes.Length}",
+                    "ScreenCaptureOverlay");
             }
             catch (Exception ex)
             {

@@ -8,7 +8,6 @@
         AllowsTransparency="True"
         Topmost="True"
         ShowInTaskbar="False"
-        SizeToContent="WidthAndHeight"
         MouseDown="Window_MouseDown"
         MouseMove="Window_MouseMove"
         MouseUp="Window_MouseUp"

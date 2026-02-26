@@ -157,6 +157,22 @@ namespace PromptMasterv5.Views
             // 设置焦点以接收键盘输入
             Focusable = true;
             GotFocus += (s, e) => Keyboard.Focus(this);
+
+            // 诊断：在 WPF 布局完成后记录实际渲染尺寸
+            Loaded += (s, e) =>
+            {
+                try
+                {
+                    var ps = PresentationSource.FromVisual(this);
+                    double winDpi = ps?.CompositionTarget?.TransformToDevice.M11 ?? -1;
+                    Infrastructure.Services.LoggerService.Instance.LogInfo(
+                        $"[PIN-DIAG] Window Loaded: ActualWidth={ActualWidth:F1}, ActualHeight={ActualHeight:F1}, " +
+                        $"PinnedImage.ActualWidth={PinnedImage.ActualWidth:F1}, PinnedImage.ActualHeight={PinnedImage.ActualHeight:F1}, " +
+                        $"WindowDPI={winDpi:F3}",
+                        "PinToScreenWindow");
+                }
+                catch { }
+            };
         }
 
         /// <summary>
@@ -231,28 +247,49 @@ namespace PromptMasterv5.Views
             if (Image == null) return;
 
             double scale = _imageScale / 100.0;
-            double width, height;
+            double imgWidth, imgHeight;
 
             if (IsMinimized)
             {
-                width = Options.MinimizeSize.Width;
-                height = Options.MinimizeSize.Height;
+                imgWidth = Options.MinimizeSize.Width;
+                imgHeight = Options.MinimizeSize.Height;
             }
             else
             {
-                width = Image.PixelWidth * scale;
-                height = Image.PixelHeight * scale;
+                // 将物理像素转换为 WPF 逻辑尺寸（设备无关单位）。
+                double dpiScaleX = (Image.DpiX > 0 ? Image.DpiX : 96.0) / 96.0;
+                double dpiScaleY = (Image.DpiY > 0 ? Image.DpiY : 96.0) / 96.0;
+                imgWidth = (Image.PixelWidth / dpiScaleX) * scale;
+                imgHeight = (Image.PixelHeight / dpiScaleY) * scale;
             }
+
+            // 显式设置 Image 控件的尺寸，防止其按自然像素大小显示
+            PinnedImage.Width = imgWidth;
+            PinnedImage.Height = imgHeight;
+
+            double winWidth = imgWidth;
+            double winHeight = imgHeight;
 
             // 添加边框
             if (Options.Border)
             {
-                width += Options.BorderSize * 2;
-                height += Options.BorderSize * 2;
+                winWidth += Options.BorderSize * 2;
+                winHeight += Options.BorderSize * 2;
             }
 
-            Width = width;
-            Height = height;
+            Width = winWidth;
+            Height = winHeight;
+
+            // 诊断日志
+            try
+            {
+                Infrastructure.Services.LoggerService.Instance.LogInfo(
+                    $"[PIN-DIAG] UpdateImageSize: Image.PixelWidth={Image.PixelWidth}, Image.PixelHeight={Image.PixelHeight}, " +
+                    $"Image.DpiX={Image.DpiX}, Image.DpiY={Image.DpiY}, dpiScale={((Image.DpiX > 0 ? Image.DpiX : 96.0) / 96.0):F3}, " +
+                    $"scale={scale}, PinnedImage=[{imgWidth:F1}x{imgHeight:F1}], Window=[{winWidth:F1}x{winHeight:F1}]",
+                    "PinToScreenWindow");
+            }
+            catch { }
 
             // 更新图片缩放模式
             if (_imageScale == 100 && !IsMinimized)

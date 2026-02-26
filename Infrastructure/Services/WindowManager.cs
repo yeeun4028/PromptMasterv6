@@ -297,6 +297,13 @@ namespace PromptMasterv5.Infrastructure.Services
             bitmap.StreamSource = stream;
             bitmap.EndInit();
             bitmap.Freeze();
+
+            LoggerService.Instance.LogInfo(
+                $"[PIN-DIAG] LoadBitmapFromBytes: PixelWidth={bitmap.PixelWidth}, PixelHeight={bitmap.PixelHeight}, " +
+                $"DpiX={bitmap.DpiX}, DpiY={bitmap.DpiY}, " +
+                $"Width(DIPs)={bitmap.Width}, Height(DIPs)={bitmap.Height}",
+                "WindowManager");
+
             return bitmap;
         }
 

@@ -244,15 +244,6 @@
               <MenuItem Header="显示/隐藏窗口" 
                         Style="{StaticResource TrayMenuItemStyle}"
                         Click="Tray_ToggleVisibility_Click"/>
-              <MenuItem Header="贴图 - 截图" 
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Click="Tray_PinToScreen_Capture_Click"/>
-              <MenuItem Header="贴图 - 剪贴板" 
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Click="Tray_PinToScreen_Clipboard_Click"/>
-              <MenuItem Header="关闭所有贴图" 
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Click="Tray_PinToScreen_CloseAll_Click"/>
               <Separator Style="{StaticResource NoIconSeparatorStyle}"/>
               <MenuItem Header="云端同步" 
                         Style="{StaticResource TrayMenuItemStyle}"
