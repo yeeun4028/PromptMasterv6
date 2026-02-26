@@ -50,7 +50,7 @@ namespace PromptMasterv5.Infrastructure.Services
                 File.Move(tempPath, _filePath, overwrite: true);
                 
                 // --- 新增：自动导出所有的提示词为 .md 文件 ---
-                Task.Run(() => ExportPromptsToMarkdown(folders, files));
+                _ = Task.Run(() => ExportPromptsToMarkdown(folders, files));
 
                 // 记录保存成功
                 LoggerService.Instance.LogInfo($"数据已保存到 {_filePath} ({data.Files.Count} 个提示词)", "FileDataService.SaveAsync");

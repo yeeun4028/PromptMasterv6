@@ -313,7 +313,6 @@ namespace PromptMasterv5.Services
                         return string.Join(Environment.NewLine, allWordsLines).Trim();
                     }
                 }
-                return "错误: 未能解析 OCR 结果";
             }
             catch (Exception ex)
             {
