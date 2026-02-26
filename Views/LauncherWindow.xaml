@@ -263,7 +263,7 @@
                         <StackPanel Margin="0,0,0,20" Visibility="{Binding Bookmarks.Count, Converter={StaticResource CountToVis}}">
                             <StackPanel Orientation="Vertical" Margin="16,0,16,10">
                                 <TextBlock Text="书签" Foreground="#AAAAAA" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="0,0,0,6"/>
-                                <Border Height="1" Background="#444444" HorizontalAlignment="Stretch"/>
+                                <Border Height="0.5" Background="#444444" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <ItemsControl ItemsSource="{Binding Bookmarks}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
@@ -288,7 +288,7 @@
                         <StackPanel Margin="0,0,0,20" Visibility="{Binding Applications.Count, Converter={StaticResource CountToVis}}">
                             <StackPanel Orientation="Vertical" Margin="16,0,16,10">
                                 <TextBlock Text="应用" Foreground="#AAAAAA" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="0,0,0,6"/>
-                                <Border Height="1" Background="#444444" HorizontalAlignment="Stretch"/>
+                                <Border Height="0.5" Background="#444444" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <ItemsControl ItemsSource="{Binding Applications}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
@@ -313,7 +313,7 @@
                         <StackPanel Margin="0,0,0,20" Visibility="{Binding Tools.Count, Converter={StaticResource CountToVis}}">
                             <StackPanel Orientation="Vertical" Margin="16,0,16,10">
                                 <TextBlock Text="工具" Foreground="#AAAAAA" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="0,0,0,6"/>
-                                <Border Height="1" Background="#444444" HorizontalAlignment="Stretch"/>
+                                <Border Height="0.5" Background="#444444" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <ItemsControl ItemsSource="{Binding Tools}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
