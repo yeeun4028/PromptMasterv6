@@ -20,6 +20,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 using Gma.System.MouseKeyHook;
 using PromptMasterv5.Infrastructure.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 
 // 引用自定义枚举和控件别名，解决命名冲突
 using Button = System.Windows.Controls.Button;
@@ -158,6 +159,57 @@ namespace PromptMasterv5
         private void Tray_ToggleVisibility_Click(object sender, RoutedEventArgs e)
         {
             ToggleWindowVisibility();
+        }
+
+        private async void Tray_PinToScreen_Capture_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var app = Application.Current as App;
+                if (app == null) return;
+
+                var windowManager = app.ServiceProvider.GetRequiredService<Core.Interfaces.IWindowManager>();
+                await windowManager.ShowPinToScreenFromCaptureAsync();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"贴图截图失败: {ex.Message}", "MainWindow");
+            }
+        }
+
+        private void Tray_PinToScreen_Clipboard_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var app = Application.Current as App;
+                if (app == null) return;
+
+                var windowManager = app.ServiceProvider.GetRequiredService<Core.Interfaces.IWindowManager>();
+                if (!windowManager.ShowPinToScreenFromClipboard())
+                {
+                    HandyControl.Controls.Growl.Warning("剪贴板中没有图片");
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"贴图剪贴板失败: {ex.Message}", "MainWindow");
+            }
+        }
+
+        private void Tray_PinToScreen_CloseAll_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var app = Application.Current as App;
+                if (app == null) return;
+
+                var windowManager = app.ServiceProvider.GetRequiredService<Core.Interfaces.IWindowManager>();
+                windowManager.CloseAllPinToScreenWindows();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"关闭贴图失败: {ex.Message}", "MainWindow");
+            }
         }
 
         private async void Tray_Exit_Click(object sender, RoutedEventArgs e)

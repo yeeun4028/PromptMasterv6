@@ -241,19 +241,29 @@
 
         <!-- Tray ContextMenu Resource -->
         <ContextMenu x:Key="TrayMenu" Style="{StaticResource ModernContextMenuStyle}">
-            <MenuItem Header="显示/隐藏窗口" 
-                      Style="{StaticResource TrayMenuItemStyle}"
-                      Click="Tray_ToggleVisibility_Click"/>
-            <MenuItem Header="云端同步" 
-                      Style="{StaticResource TrayMenuItemStyle}"
-                      Command="{Binding ManualBackupCommand}"/>
-            <MenuItem Header="配置中心" 
-                      Style="{StaticResource TrayMenuItemStyle}"
-                      Command="{Binding OpenSettingsCommand}"/>
-            <MenuItem Header="退出" 
-                      Style="{StaticResource TrayMenuItemStyle}"
-                      Click="Tray_Exit_Click"/>
-        </ContextMenu>
+              <MenuItem Header="显示/隐藏窗口" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Click="Tray_ToggleVisibility_Click"/>
+              <MenuItem Header="贴图 - 截图" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Click="Tray_PinToScreen_Capture_Click"/>
+              <MenuItem Header="贴图 - 剪贴板" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Click="Tray_PinToScreen_Clipboard_Click"/>
+              <MenuItem Header="关闭所有贴图" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Click="Tray_PinToScreen_CloseAll_Click"/>
+              <Separator Style="{StaticResource NoIconSeparatorStyle}"/>
+              <MenuItem Header="云端同步" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Command="{Binding ManualBackupCommand}"/>
+              <MenuItem Header="配置中心" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Command="{Binding OpenSettingsCommand}"/>
+              <MenuItem Header="退出" 
+                        Style="{StaticResource TrayMenuItemStyle}"
+                        Click="Tray_Exit_Click"/>
+          </ContextMenu>
 
         <Style x:Key="FolderListBoxItemStyle" TargetType="ListBoxItem">
             <Setter Property="Background" Value="Transparent"/>

@@ -7,6 +7,11 @@ using PromptMasterv5.Infrastructure.Helpers;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using System.Windows.Media.Imaging;
+using PromptMasterv5.Core.Models;
+using System.IO;
+
+using WpfClipboard = System.Windows.Clipboard;
 
 namespace PromptMasterv5.Infrastructure.Services
 {
@@ -171,5 +176,137 @@ namespace PromptMasterv5.Infrastructure.Services
                 window.Show();
             });
         }
+
+        #region 贴图功能
+
+        public async Task ShowPinToScreenFromCaptureAsync(PinToScreenOptions? options = null)
+        {
+            var imageBytes = await ShowCaptureWindowAsync();
+            if (imageBytes == null || imageBytes.Length == 0) return;
+
+            try
+            {
+                var bitmap = LoadBitmapFromBytes(imageBytes);
+                if (bitmap != null)
+                {
+                    ShowPinToScreen(bitmap, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"从截图创建贴图失败: {ex.Message}", "WindowManager");
+            }
+        }
+
+        public bool ShowPinToScreenFromClipboard(PinToScreenOptions? options = null)
+        {
+            try
+            {
+                if (WpfClipboard.ContainsImage())
+                {
+                    var image = WpfClipboard.GetImage();
+                    if (image != null)
+                    {
+                        ShowPinToScreen(image, options);
+                        return true;
+                    }
+                }
+
+                // 尝试从剪贴板获取文件
+                if (WpfClipboard.ContainsFileDropList())
+                {
+                    var files = WpfClipboard.GetFileDropList();
+                    if (files.Count > 0)
+                    {
+                        var file = files[0];
+                        if (IsImageFile(file))
+                        {
+                            return ShowPinToScreenFromFile(file, options);
+                        }
+                    }
+                }
+
+                LoggerService.Instance.LogInfo("剪贴板中没有图片", "WindowManager");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"从剪贴板创建贴图失败: {ex.Message}", "WindowManager");
+                return false;
+            }
+        }
+
+        public bool ShowPinToScreenFromFile(string filePath, PinToScreenOptions? options = null)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    LoggerService.Instance.LogError($"文件不存在: {filePath}", "WindowManager");
+                    return false;
+                }
+
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(filePath);
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                ShowPinToScreen(bitmap, options);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"从文件创建贴图失败: {ex.Message}", "WindowManager");
+                return false;
+            }
+        }
+
+        public void ShowPinToScreen(BitmapSource image, PinToScreenOptions? options = null, System.Windows.Point? location = null)
+        {
+            if (image == null) return;
+
+            // 确保图片可跨线程访问
+            if (!image.IsFrozen)
+            {
+                image.Freeze();
+            }
+
+            PinToScreenWindow.PinToScreenAsync(image, options, location);
+        }
+
+        public void CloseAllPinToScreenWindows()
+        {
+            PinToScreenWindow.CloseAll();
+        }
+
+        public int GetPinToScreenWindowCount()
+        {
+            return PinToScreenWindow.OpenWindowCount;
+        }
+
+        private BitmapSource? LoadBitmapFromBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0) return null;
+
+            using var stream = new MemoryStream(bytes);
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.StreamSource = stream;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
+
+        private bool IsImageFile(string filePath)
+        {
+            var ext = Path.GetExtension(filePath).ToLowerInvariant();
+            return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || 
+                   ext == ".bmp" || ext == ".gif" || ext == ".tiff" || ext == ".ico";
+        }
+
+        #endregion
     }
 }

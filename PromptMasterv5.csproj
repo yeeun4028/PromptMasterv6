@@ -11,6 +11,16 @@
 	  <ApplicationIcon>pro_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <!-- 排除 abc 文件夹中的参考代码 -->
+  <ItemGroup>
+    <Compile Remove="abc\**\*.cs" />
+    <Content Remove="abc\**\*" />
+    <None Remove="abc\**\*" />
+    <Page Remove="abc\**\*" />
+    <Resource Remove="abc\**\*" />
+  </ItemGroup>
+
+
   <ItemGroup>
     <Content Include="pro_icon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
