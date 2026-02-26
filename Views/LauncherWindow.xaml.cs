@@ -97,8 +97,8 @@ namespace PromptMasterv5.Views
                 else if (TabTool.IsChecked == true) TabBookmark.IsChecked = true; // cycle to start if on last
             }
             
-            // Mark handled to avoid scrolling the inner ScrollViewer simultaneously if we only want to switch tabs
-            e.Handled = true;
+            // Marking handled might prevent scrolling in some contexts if the user expected to scroll the view
+            // e.Handled = true;
         }
 
         private void ItemButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -143,7 +143,9 @@ namespace PromptMasterv5.Views
         {
             if (_isDragging)
             {
-                e.Handled = true; // Prevent the Button's Click command from firing
+                // Dragging is handled by DragDrop, so this logic might not fire anyway,
+                // but we clear the flag just in case.
+                _isDragging = false;
             }
             else if (sender is System.Windows.Controls.Button button)
             {

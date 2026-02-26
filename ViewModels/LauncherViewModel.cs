@@ -80,17 +80,17 @@ namespace PromptMasterv5.ViewModels
         {
             if (source == null || target == null || source == target) return;
 
-            var oldIndex = FilteredItems.IndexOf(source);
-            var newIndex = FilteredItems.IndexOf(target);
+            var oldIndex = Items.IndexOf(source);
+            var newIndex = Items.IndexOf(target);
 
             if (oldIndex < 0 || newIndex < 0) return;
 
-            FilteredItems.Move(oldIndex, newIndex);
+            Items.Move(oldIndex, newIndex);
 
             // Update all DisplayOrders based on new index and save
-            for (int i = 0; i < FilteredItems.Count; i++)
+            for (int i = 0; i < Items.Count; i++)
             {
-                var item = FilteredItems[i];
+                var item = Items[i];
                 item.DisplayOrder = i;
                 
                 var key = $"{item.Category}_{item.Title}";
@@ -109,6 +109,8 @@ namespace PromptMasterv5.ViewModels
                 File.WriteAllText(appDataPath, json);
             }
             catch { }
+
+            UpdateFilter();
         }
 
         public void SelectCategory(string category)
