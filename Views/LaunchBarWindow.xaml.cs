@@ -99,6 +99,7 @@ namespace PromptMasterv5.Views
                             _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null);
                             break;
                         case "OcrOnly":
+                        case "Ocr": // Settings saves "Ocr" as ActionTarget for screenshot OCR
                             _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null);
                             break;
                         case "Launcher":

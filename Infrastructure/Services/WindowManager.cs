@@ -65,6 +65,20 @@ namespace PromptMasterv5.Infrastructure.Services
 
                 IntPtr previousHwnd = NativeMethods.GetForegroundWindow();
 
+                // Temporarily hide LaunchBarWindow so it doesn't block the capture overlay.
+                // Both windows have Topmost=True; without hiding, LaunchBarWindow (the 6px strip
+                // on the left edge) sits on top of ScreenCaptureOverlay and swallows mouse events,
+                // making the screenshot selection appear unresponsive.
+                var launchBarWindows = new System.Collections.Generic.List<LaunchBarWindow>();
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is LaunchBarWindow lbw && lbw.IsVisible)
+                    {
+                        launchBarWindows.Add(lbw);
+                        lbw.Hide();
+                    }
+                }
+
                 var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
                 
                 byte[]? result = null;
@@ -77,6 +91,12 @@ namespace PromptMasterv5.Infrastructure.Services
                 }
                 finally
                 {
+                    // Restore LaunchBarWindow visibility after capture dialog closes
+                    foreach (var lbw in launchBarWindows)
+                    {
+                        lbw.Show();
+                    }
+
                     if (result == null)
                     {
                         screenBmp?.Dispose();
