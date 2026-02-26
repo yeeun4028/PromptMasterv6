@@ -52,22 +52,6 @@ namespace PromptMasterv5.Views
 
         /// <summary>
         /// 当前缩放比例 (20-500)
-        /// </summary>
-        public int ImageScale
-        {
-            get => _imageScale;
-            set
-            {
-                int newScale = Math.Clamp(value, 20, 500);
-                if (_imageScale != newScale)
-                {
-                    _imageScale = newScale;
-                    UpdateImageSize();
-                    UpdateScaleText();
-                }
-            }
-        }
-
         /// <summary>
         /// 当前透明度 (10-100)
         /// </summary>
@@ -106,7 +90,6 @@ namespace PromptMasterv5.Views
             Image = image;
 
             // 应用配置
-            _imageScale = Options.InitialScale;
             _imageOpacity = Options.InitialOpacity;
             Topmost = Options.TopMost;
             Opacity = _imageOpacity / 100.0;
@@ -127,7 +110,6 @@ namespace PromptMasterv5.Views
             // 设置图片
             PinnedImage.Source = Image;
             UpdateImageSize();
-            UpdateScaleText();
 
             // 设置位置
             if (location.HasValue)
@@ -246,7 +228,7 @@ namespace PromptMasterv5.Views
         {
             if (Image == null) return;
 
-            double scale = _imageScale / 100.0;
+            double scale = 1.0; // 移除缩放功能，固定为100%
             double imgWidth, imgHeight;
 
             if (IsMinimized)
@@ -291,21 +273,8 @@ namespace PromptMasterv5.Views
             }
             catch { }
 
-            // 更新图片缩放模式
-            if (_imageScale == 100 && !IsMinimized)
-            {
-                RenderOptions.SetBitmapScalingMode(PinnedImage, BitmapScalingMode.NearestNeighbor);
-            }
-            else
-            {
-                RenderOptions.SetBitmapScalingMode(PinnedImage,
-                    Options.HighQualityScale ? BitmapScalingMode.HighQuality : BitmapScalingMode.NearestNeighbor);
-            }
-        }
-
-        private void UpdateScaleText()
-        {
-            ScaleText.Text = $"{_imageScale}%";
+            // 移除根据缩放百分比调整缩放模式的逻辑，因为目前已经固定缩放比例为 100%
+            RenderOptions.SetBitmapScalingMode(PinnedImage, BitmapScalingMode.NearestNeighbor);
         }
 
         private void ShowToolbar()
@@ -323,7 +292,6 @@ namespace PromptMasterv5.Views
 
         private void ResetImage()
         {
-            ImageScale = 100;
             ImageOpacity = 100;
         }
 
@@ -411,17 +379,8 @@ namespace PromptMasterv5.Views
                     ImageOpacity += Options.OpacityStep;
                 else
                     ImageOpacity -= Options.OpacityStep;
+                e.Handled = true;
             }
-            else
-            {
-                // 滚轮：调整缩放
-                if (e.Delta > 0)
-                    ImageScale += Options.ScaleStep;
-                else
-                    ImageScale -= Options.ScaleStep;
-            }
-
-            e.Handled = true;
         }
 
         private void Window_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
@@ -468,32 +427,26 @@ namespace PromptMasterv5.Views
 
         private void Window_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // Ctrl+C 复制图片
-            if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                CopyImageToClipboard();
-                e.Handled = true;
-                return;
-            }
+            // 移除 Ctrl+C 复制图片功能
 
             if (!IsMinimized)
             {
-                // +/- 调整缩放
+                // +/- 调整透明度
                 if (e.Key == Key.OemPlus || e.Key == Key.Add)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
                         ImageOpacity += Options.OpacityStep;
-                    else
-                        ImageScale += Options.ScaleStep;
-                    e.Handled = true;
+                        e.Handled = true;
+                    }
                 }
                 else if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
                         ImageOpacity -= Options.OpacityStep;
-                    else
-                        ImageScale -= Options.ScaleStep;
-                    e.Handled = true;
+                        e.Handled = true;
+                    }
                 }
             }
         }
@@ -502,47 +455,21 @@ namespace PromptMasterv5.Views
 
         #region 按钮事件
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
-        {
-            CopyImageToClipboard();
-        }
-
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
 
-        private void ScaleText_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!IsMinimized)
-            {
-                ImageScale = 100;
-            }
-            e.Handled = true;
-        }
-
         #endregion
-
-        private void CopyImageToClipboard()
-        {
-            try
-            {
-                if (Image != null)
-                {
-                    WpfClipboard.SetImage(Image);
-                    LoggerService.Instance.LogInfo("图片已复制到剪贴板", "PinToScreenWindow");
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogError($"复制图片失败: {ex.Message}", "PinToScreenWindow");
-            }
-        }
 
         protected override void OnClosed(EventArgs e)
         {
             _toolbarTimer?.Stop();
             base.OnClosed(e);
+            // 关闭此窗口所在 STA 线程的 Dispatcher 消息循环，
+            // 使 PinToScreenAsync 中 Dispatcher.Run() 返回，线程正常退出。
+            // 没有这一行，每个贴图窗口关闭后线程会永久挂起，积累导致系统卡顿。
+            Dispatcher.InvokeShutdown();
         }
     }
 }

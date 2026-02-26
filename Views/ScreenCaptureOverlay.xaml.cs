@@ -32,8 +32,8 @@ namespace PromptMasterv5.Views
             
             if (capturedScreen != null)
             {
-                // Clone the bitmap so we own this instance (used for physical cropping later)
-                _screenBitmap = new Bitmap(capturedScreen);
+                // 直接使用传入位图，不克隆，此对象拥有所有权并负责释放
+                _screenBitmap = capturedScreen;
                 
                 // Set the Window Background to the captured static screen
                 SetBackgroundFromBitmap(_screenBitmap);
@@ -260,7 +260,8 @@ namespace PromptMasterv5.Views
             LoadingSpinner.Visibility = Visibility.Visible;
 
             // Force redraw/update
-            System.Windows.Forms.Application.DoEvents(); // Optional but helps update UI immediately before async task
+            // 通知 WPF 渲染线程刷新 UI，避免使用 DoEvents() 可能引发的重入问题
+            Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void CaptureSelectedRegion(int x, int y, int width, int height)

@@ -71,9 +71,6 @@ namespace PromptMasterv5.Infrastructure.Services
                 IntPtr previousHwnd = NativeMethods.GetForegroundWindow();
 
                 // Temporarily hide LaunchBarWindow so it doesn't block the capture overlay.
-                // Both windows have Topmost=True; without hiding, LaunchBarWindow (the 6px strip
-                // on the left edge) sits on top of ScreenCaptureOverlay and swallows mouse events,
-                // making the screenshot selection appear unresponsive.
                 var launchBarWindows = new System.Collections.Generic.List<LaunchBarWindow>();
                 foreach (Window win in Application.Current.Windows)
                 {
@@ -84,8 +81,12 @@ namespace PromptMasterv5.Infrastructure.Services
                     }
                 }
 
+                // 将 screenBmp 的所有权转交给 ScreenCaptureOverlay，
+                // 由它在使用后负责释放（OnClosed 中 Dispose）。
+                // WindowManager 不持有引用，彻底杜绝此处的位图泄漏。
                 var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
-                
+                screenBmp = null; // 显式释放引用，所有权已转交
+
                 byte[]? result = null;
                 try
                 {
@@ -102,11 +103,6 @@ namespace PromptMasterv5.Infrastructure.Services
                         lbw.Show();
                     }
 
-                    if (result == null)
-                    {
-                        screenBmp?.Dispose();
-                    }
-
                     if (previousHwnd != IntPtr.Zero)
                     {
                         var currentMainHwnd = new System.Windows.Interop.WindowInteropHelper(Application.Current.MainWindow).Handle;
@@ -118,8 +114,7 @@ namespace PromptMasterv5.Infrastructure.Services
 
                     if (mainWin != null)
                     {
-                        // Slight delay to ensure the OS activation event has passed
-                        Application.Current.Dispatcher.BeginInvoke(new Action(() => 
+                        Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             mainWin.SuppressAutoActivation = false;
                         }), System.Windows.Threading.DispatcherPriority.Background);
