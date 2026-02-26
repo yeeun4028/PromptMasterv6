@@ -680,6 +680,37 @@
                                                 </Grid>
                                             </StackPanel>
                                         </Border>
+
+                                        <!-- Group 4: PinToScreen -->
+                                        <Border Style="{StaticResource CardStyle}">
+                                            <StackPanel>
+                                                
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <!-- Row 0: PinToScreen -->
+                                                    <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
+                                                        <TextBlock Text="贴图（截图）" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                    </StackPanel>
+                                                    <TextBox Grid.Row="0" Grid.Column="1" 
+                                                             x:Name="PinToScreenHotkeyTextBox" 
+                                                             Text="{Binding Config.PinToScreenHotkey, Mode=TwoWay}"
+                                                             Style="{StaticResource KeyRecorderStyle}"
+                                                             Width="140"
+                                                             IsReadOnly="True"
+                                                             Cursor="Hand"
+                                                             VerticalAlignment="Center"
+                                                             PreviewKeyDown="PinToScreenHotkeyTextBox_PreviewKeyDown"
+                                                             ToolTip="点击按下按键设置，按 Delete 清除"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </StackPanel>
 

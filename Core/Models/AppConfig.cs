@@ -162,6 +162,10 @@ namespace PromptMasterv5.Core.Models
         [ObservableProperty]
         private string ocrHotkey = "";
 
+        // PinToScreen Hotkey
+        [ObservableProperty]
+        private string pinToScreenHotkey = "";
+
         // ★★★ 新增：启动器 (Launcher) 配置 ★★★
         [ObservableProperty]
         private string launcherHotkey = "Alt+S";

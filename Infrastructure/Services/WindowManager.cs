@@ -219,7 +219,7 @@ namespace PromptMasterv5.Infrastructure.Services
                     if (files.Count > 0)
                     {
                         var file = files[0];
-                        if (IsImageFile(file))
+                        if (!string.IsNullOrEmpty(file) && IsImageFile(file))
                         {
                             return ShowPinToScreenFromFile(file, options);
                         }

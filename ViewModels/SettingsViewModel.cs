@@ -388,10 +388,12 @@ namespace PromptMasterv5.ViewModels
                 // Remove old hotkeys
                 _hotkeyService.TryRemoveHotkey("ScreenshotTranslate");
                 _hotkeyService.TryRemoveHotkey("OcrOnly");
+                _hotkeyService.TryRemoveHotkey("PinToScreen");
 
                 // Register new hotkeys from external tools settings
                 _hotkeyService.RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null));
                 _hotkeyService.RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null));
+                _hotkeyService.RegisterWindowHotkey("PinToScreen", Config.PinToScreenHotkey, () => _mainViewModel.ExternalToolsVM.TriggerPinToScreenCommand.Execute(null));
                 
                 // Update Launcher Hotkey
                 UpdateLauncherHotkey();

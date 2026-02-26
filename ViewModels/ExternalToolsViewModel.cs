@@ -592,5 +592,21 @@ namespace PromptMasterv5.ViewModels
 ## 输入
 [在此处上传图片]";
         }
+
+        [RelayCommand]
+        private async Task TriggerPinToScreen()
+        {
+            if (_isCapturing) return;
+
+            try
+            {
+                _isCapturing = true;
+                await _windowManager.ShowPinToScreenFromCaptureAsync();
+            }
+            finally
+            {
+                _isCapturing = false;
+            }
+        }
     }
 }
