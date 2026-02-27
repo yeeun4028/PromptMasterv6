@@ -27,7 +27,7 @@
 
         <!-- Style for individual launch bar segments -->
         <Style x:Key="LaunchBarItemStyle" TargetType="Border">
-            <Setter Property="Width" Value="1"/>
+            <Setter Property="Width" Value="{Binding DataContext.Config.LaunchBarWidth, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource HexColorConverter}}"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -38,7 +38,7 @@
 
     </Window.Resources>
 
-    <Grid Background="Transparent">
+    <Grid Background="#01FFFFFF">
         <!-- We use an ItemsControl to display the segments -->
         <ItemsControl ItemsSource="{Binding Config.LaunchBarItems}" Style="{StaticResource LaunchBarStyle}">
             <!-- Use a UniformGrid to divide the height evenly among the items -->
@@ -50,8 +50,8 @@
 
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <!-- A container grid to ensure the hit area is the full 6px width even if the line is 2px -->
-                    <Grid Background="Transparent" 
+                    <!-- A container grid covering the full window width for mouse hit testing -->
+                    <Grid Background="#01FFFFFF" 
                           MouseEnter="Segment_MouseEnter"
                           Tag="{Binding}">
                         <Border Style="{StaticResource LaunchBarItemStyle}" />
@@ -61,3 +61,4 @@
         </ItemsControl>
     </Grid>
 </Window>
+

@@ -38,7 +38,10 @@ namespace PromptMasterv5.Views
 
         private void UpdateWidth()
         {
-            this.Width = _mainViewModel.Config.LaunchBarWidth;
+            Dispatcher.Invoke(() =>
+            {
+                this.Width = _mainViewModel.Config.LaunchBarWidth;
+            });
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -65,6 +68,7 @@ namespace PromptMasterv5.Views
             this.Top = topPos;
             this.Height = SystemParameters.WorkArea.Height - (topPos - SystemParameters.WorkArea.Top);
             this.Left = 0;
+            UpdateWidth(); // Ensure the width is set from code-behind (overrides/supplements XAML binding)
             
             UpdateVisibility();
         }

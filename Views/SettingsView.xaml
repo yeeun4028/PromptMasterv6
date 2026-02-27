@@ -2071,7 +2071,7 @@
                                                     <TextBlock Text="设置启动条的宽度 (单位: px)" Style="{StaticResource HintTextStyle}"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBox Text="{Binding Config.LaunchBarWidth, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                    <TextBox Text="{Binding Config.LaunchBarWidth, UpdateSourceTrigger=LostFocus, Mode=TwoWay}"
                                                              Style="{StaticResource ModernTextBoxStyle}"
                                                              Width="80"
                                                              HorizontalContentAlignment="Center"
