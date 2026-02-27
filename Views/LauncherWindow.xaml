@@ -37,14 +37,17 @@
                             <!-- 图标名称（悬停时显示） -->
                             <TextBlock x:Name="NameText" Text="{Binding Title}" 
                                        HorizontalAlignment="Center" VerticalAlignment="Top"
-                                       Foreground="#E0E0E0" FontSize="14" FontWeight="Medium"
+                                       Foreground="#EEEEEE" FontSize="12" FontWeight="Medium"
                                        Opacity="0" IsHitTestVisible="False"
-                                       TextTrimming="CharacterEllipsis" MaxWidth="100">
+                                       TextTrimming="CharacterEllipsis" MaxWidth="100"
+                                       TextOptions.TextFormattingMode="Display"
+                                       TextOptions.TextRenderingMode="ClearType"
+                                       UseLayoutRounding="True" SnapsToDevicePixels="True">
                                 <TextBlock.RenderTransform>
                                     <TranslateTransform x:Name="NameTextTranslate" X="0" Y="0"/>
                                 </TextBlock.RenderTransform>
                                 <TextBlock.Effect>
-                                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="1" Opacity="0.5" Direction="270"/>
+                                    <DropShadowEffect Color="Black" BlurRadius="2" ShadowDepth="1" Opacity="0.6" Direction="270"/>
                                 </TextBlock.Effect>
                             </TextBlock>
 
