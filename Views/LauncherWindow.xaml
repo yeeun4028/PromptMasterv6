@@ -181,7 +181,7 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Border Background="#F2121212" 
+    <Border Background="#121212" 
             CornerRadius="12" Padding="15">
         
         <Grid>
@@ -218,7 +218,7 @@
 
             <!-- 内容区域 -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <Grid>
+                <Grid VerticalAlignment="Center" Margin="0,20">
                     <!-- 分页显示 (Tabbed Display) -->
                     <ItemsControl ItemsSource="{Binding FilteredItems}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                         <ItemsControl.Style>
@@ -233,7 +233,9 @@
                         </ItemsControl.Style>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel x:Name="IconPanel" Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
+                                <!-- 每项宽 55，加上 Margin="16" (左右各16) = 单项总宽 87 -->
+                                <!-- 8个 * 87 = 696，加8个像素冗余确保稳定显示8个图标 -->
+                                <WrapPanel x:Name="IconPanel" Orientation="Horizontal" HorizontalAlignment="Center" Width="704"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>
@@ -270,7 +272,7 @@
                             <ItemsControl ItemsSource="{Binding Bookmarks}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="704"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemContainerStyle>
@@ -295,7 +297,7 @@
                             <ItemsControl ItemsSource="{Binding Applications}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="704"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemContainerStyle>
@@ -320,7 +322,7 @@
                             <ItemsControl ItemsSource="{Binding Tools}" ItemTemplate="{StaticResource LauncherItemTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="704"/>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="704"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemContainerStyle>

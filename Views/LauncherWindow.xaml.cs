@@ -35,12 +35,14 @@ namespace PromptMasterv5.Views
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var screenWidth = SystemParameters.PrimaryScreenWidth;
-            var screenHeight = SystemParameters.PrimaryScreenHeight;
-            Width = screenWidth * 0.67;
-            Height = screenHeight * 0.67;
-            Left = (screenWidth - Width) / 2;
-            Top = (screenHeight - Height) / 2;
+            var workArea = SystemParameters.WorkArea;
+            // 浏览器系统界面区域（标签页+地址栏+书签栏）通常占用约 80-110px 的顶部高度
+            double browserTopUiHeight = 85; 
+            
+            Width = workArea.Width;
+            Height = workArea.Height - browserTopUiHeight;
+            Left = workArea.Left;
+            Top = workArea.Top + browserTopUiHeight;
         }
 
         private void Tab_Checked(object sender, RoutedEventArgs e)
