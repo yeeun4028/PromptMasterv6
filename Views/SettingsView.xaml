@@ -2100,7 +2100,7 @@
                                                          ToolTip="点击按下按键设置，按 Delete 清除"/>
                                             </Grid>
 
-                                            <Border Height="1" Background="{DynamicResource DividerColor}" Margin="0,10,0,20"/>
+
 
                                             <TextBlock Text="启动分段配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
                                             <TextBlock Text="颜色请使用 HEX 格式 (如 #FF4183C4)。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,15"/>
