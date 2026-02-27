@@ -30,6 +30,15 @@ namespace PromptMasterv5.Views
             {
                 UpdateVisibility();
             }
+            else if (e.PropertyName == nameof(AppConfig.LaunchBarWidth))
+            {
+                UpdateWidth();
+            }
+        }
+
+        private void UpdateWidth()
+        {
+            this.Width = _mainViewModel.Config.LaunchBarWidth;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

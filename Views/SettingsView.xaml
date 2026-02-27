@@ -2060,6 +2060,28 @@
                                                           VerticalAlignment="Center"/>
                                             </Grid>
 
+                                            <!-- Launch Bar Width Setting -->
+                                            <Grid Margin="0,0,0,15">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="启动条宽度" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                    <TextBlock Text="设置启动条的宽度 (单位: px)" Style="{StaticResource HintTextStyle}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBox Text="{Binding Config.LaunchBarWidth, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                             Style="{StaticResource ModernTextBoxStyle}"
+                                                             Width="80"
+                                                             HorizontalContentAlignment="Center"
+                                                             VerticalAlignment="Center"
+                                                             Height="30"
+                                                             Padding="5,4"/>
+                                                    <TextBlock Text="px" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource TextSecondary}"/>
+                                                </StackPanel>
+                                            </Grid>
+
                                             <!-- Toggle Launch Bar Hotkey -->
                                             <Grid Margin="0,0,0,15">
                                                 <Grid.ColumnDefinitions>

@@ -6,15 +6,15 @@
         xmlns:viewmodels="clr-namespace:PromptMasterv5.ViewModels"
         xmlns:converters="clr-namespace:PromptMasterv5.Converters"
         mc:Ignorable="d"
-        Title="LaunchBarWindow" 
-        WindowStyle="None" 
-        AllowsTransparency="True" 
+        Title="LaunchBarWindow"
+        WindowStyle="None"
+        AllowsTransparency="True"
         Background="Transparent"
-        Topmost="True" 
+        Topmost="True"
         ShowInTaskbar="False"
         ShowActivated="False"
         ResizeMode="NoResize"
-        Width="6" 
+        Width="{Binding Config.LaunchBarWidth, Mode=OneWay}"
         Left="0"
         Loaded="Window_Loaded">
     <Window.Resources>
@@ -22,7 +22,7 @@
         
         <!-- Style for the entire ItemsControl container to clip/manage size based on items -->
         <Style x:Key="LaunchBarStyle" TargetType="ItemsControl">
-            <Setter Property="Width" Value="6" />
+            <Setter Property="Width" Value="{Binding Config.LaunchBarWidth, Mode=OneWay}" />
         </Style>
 
         <!-- Style for individual launch bar segments -->

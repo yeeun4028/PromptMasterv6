@@ -51,6 +51,9 @@ namespace PromptMasterv5.Core.Models
         private bool enableLaunchBar = true;
 
         [ObservableProperty]
+        private int launchBarWidth = 6;
+
+        [ObservableProperty]
         private string launchBarHotkey = "Alt+L";
 
         [ObservableProperty]
