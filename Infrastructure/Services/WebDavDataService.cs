@@ -38,11 +38,13 @@ namespace PromptMasterv5.Infrastructure.Services
                 Folders = new List<FolderItem>(folders),
                 Files = new List<PromptItem>(files),
                 VoiceCommands = voiceCommands ?? new(),
-                ApiProfiles = new List<ApiProfile>(config.ApiProfiles),
-                SavedModels = new List<AiModelConfig>(config.SavedModels)
+                // ApiProfiles 和 SavedModels 不再通过 WebDAV 同步
+                // 这些配置仅通过本地 config.json 保存
+                ApiProfiles = new List<ApiProfile>(),
+                SavedModels = new List<AiModelConfig>()
             };
-            var options = new JsonSerializerOptions 
-            { 
+            var options = new JsonSerializerOptions
+            {
                 WriteIndented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };

@@ -304,22 +304,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        // 同步 API 配置和 AI 模型配置
-        bool configUpdated = false;
-        if (data.ApiProfiles != null && data.ApiProfiles.Any())
-        {
-            Config.ApiProfiles = new ObservableCollection<ApiProfile>(data.ApiProfiles);
-            configUpdated = true;
-        }
-        if (data.SavedModels != null && data.SavedModels.Any())
-        {
-            Config.SavedModels = new ObservableCollection<AiModelConfig>(data.SavedModels);
-            configUpdated = true;
-        }
-        if (configUpdated)
-        {
-            Infrastructure.Services.ConfigService.Save(Config);
-        }
+        // 不再从 WebDAV 同步 API 配置和 AI 模型配置
+        // 这些配置仅通过本地 config.json 保存，避免覆盖用户的本地设置
+        // if (data.ApiProfiles != null && data.ApiProfiles.Any())
+        // {
+        //     Config.ApiProfiles = new ObservableCollection<ApiProfile>(data.ApiProfiles);
+        //     configUpdated = true;
+        // }
+        // if (data.SavedModels != null && data.SavedModels.Any())
+        // {
+        //     Config.SavedModels = new ObservableCollection<AiModelConfig>(data.SavedModels);
+        //     configUpdated = true;
+        // }
+        // if (configUpdated)
+        // {
+        //     Infrastructure.Services.ConfigService.Save(Config);
+        // }
 
         Files = new ObservableCollection<PromptItem>(data.Files ?? new());
 
