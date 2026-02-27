@@ -12,7 +12,7 @@
 
     <Border Background="#363B40" 
             CornerRadius="8"
-            Padding="20">
+            Padding="15">
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="3" Opacity="0.3"/>
         </Border.Effect>
@@ -30,7 +30,7 @@
                      IsReadOnly="True"
                      MaxWidth="500"
                      TextAlignment="Left"
-                     Margin="0,5,0,0">
+                     Margin="0,0,0,0">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Paragraph}">
                         <Setter Property="LineHeight" Value="26"/>
