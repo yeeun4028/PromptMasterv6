@@ -269,7 +269,7 @@
                         <!-- 书签区 -->
                         <StackPanel Margin="0,0,0,20" Visibility="{Binding Bookmarks.Count, Converter={StaticResource CountToVis}}">
                             <StackPanel Orientation="Vertical" Margin="0,0,0,10" Width="784" HorizontalAlignment="Center">
-                                <TextBlock Text="书签" Foreground="#AAAAAA" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="4,0,0,6"/>
+                                <TextBlock Text="书签" Foreground="#AAAAAA" FontSize="14" FontWeight="Normal" HorizontalAlignment="Left" Margin="4,0,0,6"/>
                                 <Border Height="0.5" Background="#444444" HorizontalAlignment="Stretch" SnapsToDevicePixels="True" UseLayoutRounding="True"/>
                             </StackPanel>
                             <ItemsControl ItemsSource="{Binding Bookmarks}" ItemTemplate="{StaticResource LauncherItemTemplate}">
@@ -294,7 +294,7 @@
                         <!-- 应用区 -->
                         <StackPanel Margin="0,0,0,20" Visibility="{Binding Applications.Count, Converter={StaticResource CountToVis}}">
                             <StackPanel Orientation="Vertical" Margin="0,0,0,10" Width="784" HorizontalAlignment="Center">
-                                <TextBlock Text="应用" Foreground="#AAAAAA" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="4,0,0,6"/>
+                                <TextBlock Text="应用" Foreground="#AAAAAA" FontSize="14" FontWeight="Normal" HorizontalAlignment="Left" Margin="4,0,0,6"/>
                                 <Border Height="0.5" Background="#444444" HorizontalAlignment="Stretch" SnapsToDevicePixels="True" UseLayoutRounding="True"/>
                             </StackPanel>
                             <ItemsControl ItemsSource="{Binding Applications}" ItemTemplate="{StaticResource LauncherItemTemplate}">
@@ -319,7 +319,7 @@
                         <!-- 工具区 -->
                         <StackPanel Margin="0,0,0,20" Visibility="{Binding Tools.Count, Converter={StaticResource CountToVis}}">
                             <StackPanel Orientation="Vertical" Margin="0,0,0,10" Width="784" HorizontalAlignment="Center">
-                                <TextBlock Text="工具" Foreground="#AAAAAA" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="4,0,0,6"/>
+                                <TextBlock Text="工具" Foreground="#AAAAAA" FontSize="14" FontWeight="Normal" HorizontalAlignment="Left" Margin="4,0,0,6"/>
                                 <Border Height="0.5" Background="#444444" HorizontalAlignment="Stretch" SnapsToDevicePixels="True" UseLayoutRounding="True"/>
                             </StackPanel>
                             <ItemsControl ItemsSource="{Binding Tools}" ItemTemplate="{StaticResource LauncherItemTemplate}">
