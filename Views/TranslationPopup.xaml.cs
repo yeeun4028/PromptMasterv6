@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
 
 namespace PromptMasterv5.Views
 {
@@ -6,16 +9,30 @@ namespace PromptMasterv5.Views
     {
         public bool IsClosing { get; private set; }
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromPoint(POINT pt, uint dwFlags);
+
+        [DllImport("shcore.dll")]
+        private static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
+        private const int MDT_EFFECTIVE_DPI = 0;
+
         public TranslationPopup(string initialText)
         {
             InitializeComponent();
             
             ResultBox.Text = initialText;
             
-            // 使用 Loaded 事件确保窗口尺寸已经计算完成
             this.Loaded += TranslationPopup_Loaded;
             
-            // 失去焦点自动关闭
             this.Deactivated += (s, e) => 
             {
                 if (!IsClosing) Close();
@@ -33,32 +50,42 @@ namespace PromptMasterv5.Views
 
         private void TranslationPopup_Loaded(object sender, RoutedEventArgs e)
         {
-            // 跟随鼠标位置显示，但确保不超出屏幕
-            // 获取当前屏幕的 DPI 缩放比例
-            var source = PresentationSource.FromVisual(this);
+            var mousePhysical = System.Windows.Forms.Cursor.Position;
+            
             double dpiX = 1.0;
             double dpiY = 1.0;
-            if (source?.CompositionTarget != null)
+            
+            try
             {
-                dpiX = source.CompositionTarget.TransformToDevice.M11;
-                dpiY = source.CompositionTarget.TransformToDevice.M22;
+                var monitor = MonitorFromPoint(new POINT { X = mousePhysical.X, Y = mousePhysical.Y }, MONITOR_DEFAULTTONEAREST);
+                if (monitor != IntPtr.Zero)
+                {
+                    var hr = GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, out uint monitorDpiX, out uint monitorDpiY);
+                    if (hr >= 0 && monitorDpiX > 0)
+                    {
+                        dpiX = monitorDpiX / 96.0;
+                        dpiY = monitorDpiY / 96.0;
+                    }
+                }
+            }
+            catch
+            {
+                var source = PresentationSource.FromVisual(this);
+                if (source?.CompositionTarget != null)
+                {
+                    dpiX = source.CompositionTarget.TransformToDevice.M11;
+                    dpiY = source.CompositionTarget.TransformToDevice.M22;
+                }
             }
 
-            // 获取鼠标物理坐标
-            var mousePhysical = System.Windows.Forms.Cursor.Position;
-
-            // 转换为逻辑坐标 (WPF 使用的坐标系)
             double mouseX = mousePhysical.X / dpiX;
             double mouseY = mousePhysical.Y / dpiY;
             
-            // 获取工作区域（排除任务栏）
             var workArea = SystemParameters.WorkArea;
             
-            // 获取窗口实际尺寸
             double windowWidth = this.ActualWidth;
             double windowHeight = this.ActualHeight;
             
-            // 如果实际尺寸为0，使用期望尺寸
             if (windowWidth == 0 || windowHeight == 0)
             {
                 this.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -66,15 +93,11 @@ namespace PromptMasterv5.Views
                 windowHeight = this.DesiredSize.Height;
             }
             
-            // 默认显示在鼠标右下方
-            // 如果有选区信息，优先使用选区右下角作为锚点
             double anchorX = mouseX;
             double anchorY = mouseY;
             
             if (_placementTarget.HasValue)
             {
-                // 使用选区的右下角代替鼠标坐标
-                // 补回虚拟屏幕的偏移，防止副屏选区坐标飞到主屏
                 var target = _placementTarget.Value;
                 target.X += SystemParameters.VirtualScreenLeft;
                 target.Y += SystemParameters.VirtualScreenTop;
@@ -85,51 +108,35 @@ namespace PromptMasterv5.Views
                 double left = anchorX + 10;
                 double top = anchorY + 10;
 
-                // 智能避让逻辑
                 bool overflowRight = (left + windowWidth > workArea.Right);
                 bool overflowBottom = (top + windowHeight > workArea.Bottom);
 
-                // 策略 1: 默认 (Target 右下) -> (left, top)
-                
-                // 策略 2: 如果右边缘溢出 -> 尝试 Target 左下
-                // (Target.Left - windowWidth - 10, Target.Bottom + 10)
                 if (overflowRight && !overflowBottom)
                 {
                     double tryLeft = target.Left - windowWidth - 10;
                     if (tryLeft >= workArea.Left)
                     {
                          left = tryLeft;
-                         // top 保持不变
-                    }
-                    else
-                    {
-                         // 左边也放不下？那就依然用原来的逻辑（会被强制拉回屏幕内，或者尝试上方）
                     }
                 }
 
-                // 策略 3: 如果下边缘溢出 -> 尝试 Target 右上
-                // (Target.Right + 10, Target.Top - windowHeight - 10)
                 if (!overflowRight && overflowBottom)
                 {
                      double tryTop = target.Top - windowHeight - 10;
                      if (tryTop >= workArea.Top)
                      {
                          top = tryTop;
-                         // left 保持不变
                      }
                 }
 
-                // 策略 4: 如果右下都溢出 -> 尝试 Target 左上
-                // (Target.Left - windowWidth - 10, Target.Top - windowHeight - 10)
                 if (overflowRight && overflowBottom)
                 {
                     left = target.Left - windowWidth - 10;
                     top = target.Top - windowHeight - 10;
                 }
                 
-                // 最终兜底：强制限制在屏幕工作区内
-                left = System.Math.Max(workArea.Left, System.Math.Min(left, workArea.Right - windowWidth));
-                top = System.Math.Max(workArea.Top, System.Math.Min(top, workArea.Bottom - windowHeight));
+                left = Math.Max(workArea.Left, Math.Min(left, workArea.Right - windowWidth));
+                top = Math.Max(workArea.Top, Math.Min(top, workArea.Bottom - windowHeight));
                 
                 this.Left = left;
                 this.Top = top;
@@ -139,17 +146,14 @@ namespace PromptMasterv5.Views
                 double left = anchorX + 10;
                 double top = anchorY + 10;
 
-                // 智能避让逻辑
                 bool overflowRight = (left + windowWidth > workArea.Right);
                 bool overflowBottom = (top + windowHeight > workArea.Bottom);
 
-                // 旧逻辑：仅基于鼠标点的简单避让
                 if (overflowRight) left = mouseX - windowWidth - 15;
                 if (overflowBottom) top = mouseY - windowHeight - 15;
                 
-                // 最终兜底：强制限制在屏幕工作区内
-                left = System.Math.Max(workArea.Left, System.Math.Min(left, workArea.Right - windowWidth));
-                top = System.Math.Max(workArea.Top, System.Math.Min(top, workArea.Bottom - windowHeight));
+                left = Math.Max(workArea.Left, Math.Min(left, workArea.Right - windowWidth));
+                top = Math.Max(workArea.Top, Math.Min(top, workArea.Bottom - windowHeight));
                 
                 this.Left = left;
                 this.Top = top;
@@ -160,6 +164,5 @@ namespace PromptMasterv5.Views
         {
             ResultBox.Text = text;
         }
-
     }
 }
