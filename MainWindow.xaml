@@ -990,7 +990,8 @@
                                              Padding="5"
                                              FontFamily="Segoe UI, Microsoft YaHei UI"
                                              PreviewKeyDown="TextBox_PreviewKeyDown"
-                                             LostFocus="Block3ContentEditor_LostFocus">
+                                             LostFocus="Block3ContentEditor_LostFocus"
+                                             hc:InfoElement.Placeholder="在此处键入提示词内容...">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -1002,29 +1003,6 @@
                                         </Style>
                                     </TextBox.Style>
                                 </TextBox>
-                                    <TextBlock Text="在此处键入内容..."
-                                               Foreground="{DynamicResource PlaceholderTextBrush}"
-                                               FontFamily="Segoe UI, Microsoft YaHei UI"
-                                               FontSize="14"
-                                               Margin="5"
-                                               IsHitTestVisible="False"
-                                               VerticalAlignment="Top">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding ElementName=Block3ContentEditor, Path=Text}" Value=""/>
-                                                            <Condition Binding="{Binding ElementName=Block3ContentEditor, Path=IsKeyboardFocusWithin}" Value="False"/>
-                                                            <Condition Binding="{Binding IsEditMode}" Value="True"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
                                 </Grid>
 
                                 <md:MarkdownViewer Grid.Row="1"
