@@ -689,12 +689,34 @@
                                 <RowDefinition Height="3*"/>
                             </Grid.RowDefinitions>
 
+                            <!-- 空状态占位提示 -->
+                            <TextBlock Grid.Row="0"
+                                       Text="请在左侧选择或新建提示词"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource PlaceholderTextBrush}"
+                                       FontFamily="Segoe UI, Microsoft YaHei UI"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
                             <Grid Grid.Row="0" Margin="20,10,20,0" TextElement.Foreground="{DynamicResource Block3EditorTextBrush}" TextElement.FontFamily="Segoe UI, Microsoft YaHei UI">
                                 <Grid.Style>
                                     <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Visible"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Hidden"/>
+                                                <Setter Property="Visibility" Value="Collapsed"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
