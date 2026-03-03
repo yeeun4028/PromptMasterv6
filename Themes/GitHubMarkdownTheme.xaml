@@ -114,11 +114,12 @@
     <!-- ==========================================
          7. 分割线 (Thematic Break)
          ========================================== -->
-    <Style x:Key="{x:Static md:Styles.ThematicBreakStyleKey}" TargetType="{x:Type Border}">
-        <Setter Property="Height" Value="4"/>
-        <Setter Property="Background" Value="#E1E4E8"/>
-        <Setter Property="Margin" Value="0,24,0,24"/>
-        <Setter Property="CornerRadius" Value="2"/>
+    <Style x:Key="{x:Static md:Styles.ThematicBreakStyleKey}" TargetType="{x:Type Line}">
+        <Setter Property="Stroke" Value="{StaticResource GithubBorderBrush}"/>
+        <Setter Property="StrokeThickness" Value="2"/>
+        <Setter Property="X2" Value="1"/>
+        <Setter Property="Stretch" Value="Fill"/>
+        <Setter Property="Margin" Value="0,16,0,16"/>
     </Style>
 
 </ResourceDictionary>

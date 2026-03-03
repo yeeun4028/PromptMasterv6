@@ -124,22 +124,69 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedFileChanged(PromptItem? value)
     {
-        OnPropertyChanged(nameof(HasVariables));
-        OnPropertyChanged(nameof(Variables));
-        IsEditMode = false;
-        PreviewContent = ConvertHtmlToMarkdown(value?.Content);
-        ParseVariablesRealTime(value?.Content ?? "");
+        System.Diagnostics.Debug.WriteLine($"=== OnSelectedFileChanged 开始 ===");
+        System.Diagnostics.Debug.WriteLine($"value: {(value == null ? "null" : value.Title)}");
+        System.Diagnostics.Debug.WriteLine($"value.Content 长度: {value?.Content?.Length ?? -1}");
+        System.Diagnostics.Debug.WriteLine($"value.Content 前100字符: {(value?.Content?.Length > 100 ? value.Content.Substring(0, 100) : value?.Content ?? "null")}");
+
+        try
+        {
+            IsEditMode = false;
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("调用 ConvertHtmlToMarkdown...");
+                var result = ConvertHtmlToMarkdown(value?.Content);
+                System.Diagnostics.Debug.WriteLine($"ConvertHtmlToMarkdown 返回，长度: {result?.Length ?? -1}");
+                PreviewContent = result;
+                System.Diagnostics.Debug.WriteLine("PreviewContent 赋值完成");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"!!! HTML转MD失败: {ex.GetType().Name} - {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"!!! 堆栈: {ex.StackTrace}");
+                PreviewContent = value?.Content ?? "";
+            }
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("调用 ParseVariablesRealTime...");
+                ParseVariablesRealTime(value?.Content ?? "");
+                System.Diagnostics.Debug.WriteLine("ParseVariablesRealTime 完成");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"!!! ParseVariablesRealTime 失败: {ex.GetType().Name} - {ex.Message}");
+            }
+
+            System.Diagnostics.Debug.WriteLine($"=== OnSelectedFileChanged 完成，PreviewContent 长度: {PreviewContent?.Length ?? -1} ===");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"!!! 切换文件时发生未捕获异常: {ex.GetType().Name} - {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"!!! 堆栈: {ex.StackTrace}");
+        }
     }
 
     
     private string? ConvertHtmlToMarkdown(string? content)
     {
-        if (string.IsNullOrWhiteSpace(content)) return content;
+        System.Diagnostics.Debug.WriteLine($"ConvertHtmlToMarkdown: 输入长度={content?.Length ?? -1}");
         
-        if (ContainsHtml(content))
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            System.Diagnostics.Debug.WriteLine("ConvertHtmlToMarkdown: 内容为空，直接返回");
+            return content;
+        }
+        
+        bool hasHtml = ContainsHtml(content);
+        System.Diagnostics.Debug.WriteLine($"ConvertHtmlToMarkdown: ContainsHtml={hasHtml}");
+        
+        if (hasHtml)
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("ConvertHtmlToMarkdown: 开始 HTML 转 Markdown...");
                 var config = new ReverseMarkdown.Config
                 {
                     UnknownTags = ReverseMarkdown.Config.UnknownTagsOption.PassThrough,
@@ -148,21 +195,25 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 };
 
                 var converter = new ReverseMarkdown.Converter(config);
-                return converter.Convert(content);
+                var result = converter.Convert(content);
+                System.Diagnostics.Debug.WriteLine($"ConvertHtmlToMarkdown: 转换成功，输出长度={result?.Length ?? -1}");
+                return result;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"ConvertHtmlToMarkdown: 转换异常 - {ex.GetType().Name}: {ex.Message}");
                 Infrastructure.Services.LoggerService.Instance.LogException(ex, "HTML转Markdown失败", "ConvertHtmlToMarkdown");
                 return content;
             }
         }
         
+        System.Diagnostics.Debug.WriteLine("ConvertHtmlToMarkdown: 无 HTML，直接返回原文");
         return content;
     }
     
     private bool ContainsHtml(string content)
     {
-        return Regex.IsMatch(content, @"<[^>]+>", RegexOptions.IgnoreCase);
+        return Regex.IsMatch(content, @"<(p|div|br|span|a|img|ul|ol|li|table|tr|td|th|h[1-6]|strong|em|b|i|u|code|pre|blockquote)[\s>]", RegexOptions.IgnoreCase);
     }
 
     [ObservableProperty] private bool isEditMode;
