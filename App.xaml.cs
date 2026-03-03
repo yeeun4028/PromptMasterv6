@@ -31,6 +31,32 @@ namespace PromptMasterv5
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            // 【关键修复】：在 App 层面也挂载进程退出事件，确保托盘图标被清理
+            AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+            {
+                LoggerService.Instance.LogInfo("[App] ProcessExit event triggered", "App");
+                CleanupNotifyIcon();
+            };
+        }
+
+        /// <summary>
+        /// 清理托盘图标（静态方法，可从任何地方调用）
+        /// </summary>
+        private static void CleanupNotifyIcon()
+        {
+            try
+            {
+                var mainWindow = Current?.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.ForceCleanupNotifyIcon();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to cleanup notify icon", "App.CleanupNotifyIcon");
+            }
         }
 
         protected override void OnStartup(StartupEventArgs e)

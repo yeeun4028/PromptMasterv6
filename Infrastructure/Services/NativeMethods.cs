@@ -70,6 +70,7 @@ namespace PromptMasterv5.Infrastructure.Services
         public static extern bool IsIconic(IntPtr hWnd);
 
         public const int SW_RESTORE = 9;
+        public const int SW_SHOW = 5;
         
         public const int GWL_EXSTYLE = -20;
         public const int WS_EX_NOACTIVATE = 0x08000000;
