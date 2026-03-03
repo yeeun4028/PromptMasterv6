@@ -19,6 +19,7 @@ namespace PromptMasterv5.Views
         public static extern bool DeleteObject(IntPtr hObject);
         private System.Windows.Point _startPoint;
         private bool _isSelecting;
+        private bool _isProcessing;
         private Bitmap? _screenBitmap;
 
         private readonly Func<byte[], System.Windows.Rect, Task>? _processingCallback;
@@ -45,6 +46,7 @@ namespace PromptMasterv5.Views
             Loaded += ScreenCaptureOverlay_Loaded;
             PreviewKeyDown += (s, e) =>
             {
+                if (_isProcessing) return;
                 if (e.Key == Key.Escape)
                 {
                     DialogResult = false;
@@ -260,6 +262,8 @@ namespace PromptMasterv5.Views
 
         private void EnterProcessingState()
         {
+            _isProcessing = true;
+            
             // Calculate final selection bounds before hiding
             double rectX = Canvas.GetLeft(SelectionRect);
             double rectY = Canvas.GetTop(SelectionRect);
@@ -377,6 +381,7 @@ namespace PromptMasterv5.Views
 
         private void Window_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
+            if (_isProcessing) return;
             DialogResult = false;
             Close();
         }

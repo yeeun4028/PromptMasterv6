@@ -74,20 +74,20 @@ namespace PromptMasterv5.Views
             if (_placementTarget.HasValue)
             {
                 // 使用选区的右下角代替鼠标坐标
-                anchorX = _placementTarget.Value.Right;
-                anchorY = _placementTarget.Value.Bottom;
-            }
-
-            double left = anchorX + 10;
-            double top = anchorY + 10;
-
-            // 智能避让逻辑
-            bool overflowRight = (left + windowWidth > workArea.Right);
-            bool overflowBottom = (top + windowHeight > workArea.Bottom);
-
-            if (_placementTarget.HasValue)
-            {
+                // 补回虚拟屏幕的偏移，防止副屏选区坐标飞到主屏
                 var target = _placementTarget.Value;
+                target.X += SystemParameters.VirtualScreenLeft;
+                target.Y += SystemParameters.VirtualScreenTop;
+                
+                anchorX = target.Right;
+                anchorY = target.Bottom;
+
+                double left = anchorX + 10;
+                double top = anchorY + 10;
+
+                // 智能避让逻辑
+                bool overflowRight = (left + windowWidth > workArea.Right);
+                bool overflowBottom = (top + windowHeight > workArea.Bottom);
 
                 // 策略 1: 默认 (Target 右下) -> (left, top)
                 
@@ -126,20 +126,34 @@ namespace PromptMasterv5.Views
                     left = target.Left - windowWidth - 10;
                     top = target.Top - windowHeight - 10;
                 }
+                
+                // 最终兜底：强制限制在屏幕工作区内
+                left = System.Math.Max(workArea.Left, System.Math.Min(left, workArea.Right - windowWidth));
+                top = System.Math.Max(workArea.Top, System.Math.Min(top, workArea.Bottom - windowHeight));
+                
+                this.Left = left;
+                this.Top = top;
             }
             else
             {
+                double left = anchorX + 10;
+                double top = anchorY + 10;
+
+                // 智能避让逻辑
+                bool overflowRight = (left + windowWidth > workArea.Right);
+                bool overflowBottom = (top + windowHeight > workArea.Bottom);
+
                 // 旧逻辑：仅基于鼠标点的简单避让
                 if (overflowRight) left = mouseX - windowWidth - 15;
                 if (overflowBottom) top = mouseY - windowHeight - 15;
+                
+                // 最终兜底：强制限制在屏幕工作区内
+                left = System.Math.Max(workArea.Left, System.Math.Min(left, workArea.Right - windowWidth));
+                top = System.Math.Max(workArea.Top, System.Math.Min(top, workArea.Bottom - windowHeight));
+                
+                this.Left = left;
+                this.Top = top;
             }
-            
-            // 最终兜底：强制限制在屏幕工作区内
-            left = System.Math.Max(workArea.Left, System.Math.Min(left, workArea.Right - windowWidth));
-            top = System.Math.Max(workArea.Top, System.Math.Min(top, workArea.Bottom - windowHeight));
-            
-            this.Left = left;
-            this.Top = top;
         }
 
         public void UpdateText(string text)
