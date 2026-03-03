@@ -1028,7 +1028,8 @@
                                 </Grid>
 
                                 <md:MarkdownViewer Grid.Row="1"
-                                                  Markdown="{Binding SelectedFile.Content}"
+                                                  Markdown="{Binding PreviewContent}"
+                                                  Pipeline="{Binding Pipeline}"
                                                   xml:lang="zh-CN"
                                                   Background="{DynamicResource Block3Background}">
                                     <md:MarkdownViewer.Resources>
@@ -1049,22 +1050,14 @@
                                     <md:MarkdownViewer.Style>
                                         <Style TargetType="md:MarkdownViewer">
                                             <Setter Property="Visibility" Value="Visible"/>
-                                            <!-- 将 Margin 设为 0，因为 GitHub 主题内部已经定义了 PagePadding (内边距) -->
                                             <Setter Property="Margin" Value="0"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsEditMode}" Value="True">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding SelectedFile.Content}" Value="">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding SelectedFile.Content}" Value="{x:Null}">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </md:MarkdownViewer.Style>
-                                    <!-- 此处移除了 <md:MarkdownViewer.Resources> 块，从而自动应用全局 GitHub 主题 -->
                                 </md:MarkdownViewer>
                                 <TextBlock Grid.Row="1"
                                            Text="在此处键入内容..."

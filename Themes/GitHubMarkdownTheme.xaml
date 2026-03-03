@@ -22,17 +22,11 @@
     <FontFamily x:Key="GithubCodeFontFamily">Consolas, Cascadia Code, Courier New, monospace</FontFamily>
 
     <!-- ==========================================
-         2. 全局文档样式 (Global Document Style)
-         对应: 16px, 行高 1.6
+         2. 全局文档样式
+         注意: 排版属性已移至 MainWindow.xaml 的 MarkdownViewer 控件
          ========================================== -->
     <Style x:Key="{x:Static md:Styles.DocumentStyleKey}" TargetType="{x:Type FlowDocument}">
-        <Setter Property="FontFamily" Value="{StaticResource GithubFontFamily}"/>
-        <Setter Property="FontSize" Value="16"/>
-        <Setter Property="Foreground" Value="{StaticResource GithubTextBrush}"/>
-        <Setter Property="LineHeight" Value="26"/>
-        <!-- 16 * 1.6 ≈ 25.6 -->
         <Setter Property="TextAlignment" Value="Left"/>
-        <Setter Property="PagePadding" Value="30,30,30,50"/>
         <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 

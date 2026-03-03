@@ -2,12 +2,16 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GongSolutions.Wpf.DragDrop;
+using Markdig;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv5.Core.Interfaces;
 using PromptMasterv5.Core.Models;
 using PromptMasterv5.Infrastructure.Helpers;
 using PromptMasterv5.Infrastructure.Services;
 using PromptMasterv5.ViewModels.Messages;
+using ReverseMarkdown;
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -122,8 +126,43 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(HasVariables));
         OnPropertyChanged(nameof(Variables));
-        IsEditMode = false; // Always default to preview mode when selecting a file
+        IsEditMode = false;
+        PreviewContent = ConvertHtmlToMarkdown(value?.Content);
         ParseVariablesRealTime(value?.Content ?? "");
+    }
+
+    
+    private string? ConvertHtmlToMarkdown(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return content;
+        
+        if (ContainsHtml(content))
+        {
+            try
+            {
+                var config = new ReverseMarkdown.Config
+                {
+                    UnknownTags = ReverseMarkdown.Config.UnknownTagsOption.PassThrough,
+                    GithubFlavored = true,
+                    RemoveComments = false
+                };
+
+                var converter = new ReverseMarkdown.Converter(config);
+                return converter.Convert(content);
+            }
+            catch (Exception ex)
+            {
+                Infrastructure.Services.LoggerService.Instance.LogException(ex, "HTML转Markdown失败", "ConvertHtmlToMarkdown");
+                return content;
+            }
+        }
+        
+        return content;
+    }
+    
+    private bool ContainsHtml(string content)
+    {
+        return Regex.IsMatch(content, @"<[^>]+>", RegexOptions.IgnoreCase);
     }
 
     [ObservableProperty] private bool isEditMode;
@@ -132,6 +171,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string additionalInput = "";
 
     [ObservableProperty] private bool isDirty;
+
+    public MarkdownPipeline Pipeline { get; }
+
+    [ObservableProperty] private string? previewContent;
 
 
     public MainViewModel(
@@ -149,6 +192,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
           IWindowManager windowManager,
           ICommandExecutionService commandExecutionService) // Injected
     {
+        Pipeline = new MarkdownPipelineBuilder()
+            .DisableHtml()
+            .Build();
+
         _aiService = aiService;
         _dataService = dataService;
         _localDataService = localDataService;
@@ -622,6 +669,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             SelectedFile.LastModified = DateTime.Now;
             IsEditMode = false;
             RequestSave();
+            PreviewContent = ConvertHtmlToMarkdown(SelectedFile.Content);
             return;
         }
 

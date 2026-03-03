@@ -37,6 +37,7 @@
     <PackageReference Include="MouseKeyHook" />
     <PackageReference Include="NAudio" />
     <PackageReference Include="NHotkey.Wpf" />
+    <PackageReference Include="ReverseMarkdown" />
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="WebDav.Client" />
   </ItemGroup>

@@ -12,6 +12,7 @@
     <PackageVersion Include="MouseKeyHook" Version="5.7.1" />
     <PackageVersion Include="NAudio" Version="2.2.1" />
     <PackageVersion Include="NHotkey.Wpf" Version="3.0.0" />
+    <PackageVersion Include="ReverseMarkdown" Version="5.2.0" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="WebDav.Client" Version="2.9.0" />
   </ItemGroup>
