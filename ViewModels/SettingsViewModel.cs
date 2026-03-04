@@ -150,6 +150,10 @@ namespace PromptMasterv5.ViewModels
         [ObservableProperty] private string? baiduTranslateTestStatus;
         [ObservableProperty] private System.Windows.Media.Brush baiduTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
 
+        // 腾讯云 OCR 测试
+        [ObservableProperty] private string? tencentOcrTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush tencentOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
+
         // 腾讯云翻译测试
         [ObservableProperty] private string? tencentTranslateTestStatus;
         [ObservableProperty] private System.Windows.Media.Brush tencentTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
@@ -1031,6 +1035,48 @@ namespace PromptMasterv5.ViewModels
         #endregion
 
         #region Commands - Tencent Cloud API Testing
+
+        [RelayCommand]
+        private async Task TestTencentOcr()
+        {
+            SaveTencentCredentials();
+
+            var profile = Config.ApiProfiles.FirstOrDefault(p =>
+                p.Provider == ApiProvider.Tencent && p.ServiceType == ServiceType.OCR);
+
+            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
+            {
+                TencentOcrTestStatus = "请先填写 Secret ID 和 Secret Key";
+                TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
+                return;
+            }
+
+            TencentOcrTestStatus = "测试中...";
+            TencentOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+            try
+            {
+                var testImage = CreateTestImage();
+                var result = await _tencentService.OcrAsync(testImage, profile);
+
+                if (result.StartsWith("Error") || result.StartsWith("Tencent Error"))
+                {
+                    TencentOcrTestStatus = $"连接失败：{result}";
+                    TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
+                }
+                else
+                {
+                    TencentOcrTestStatus = "连接成功！";
+                    TencentOcrTestStatusColor = System.Windows.Media.Brushes.Green;
+                }
+            }
+            catch (Exception ex)
+            {
+                TencentOcrTestStatus = $"测试出错: {ex.Message}";
+                TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
+                LoggerService.Instance.LogException(ex, "Failed to test Tencent OCR", "SettingsViewModel.TestTencentOcr");
+            }
+        }
 
         [RelayCommand]
         private async Task TestTencentCloud()

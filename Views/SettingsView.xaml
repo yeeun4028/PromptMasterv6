@@ -1576,6 +1576,24 @@
                                                     <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
                                                     <TextBox Text="{Binding SettingsVM.TencentOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
+
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding SettingsVM.TencentOcrTestStatus}"
+                                                               Foreground="{Binding SettingsVM.TencentOcrTestStatusColor}"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,0,10,0"/>
+                                                    <Button Grid.Column="1"
+                                                            Content="测试连接"
+                                                            Command="{Binding SettingsVM.TestTencentOcrCommand}"
+                                                            Style="{StaticResource TextLinkButtonStyle}"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
 
