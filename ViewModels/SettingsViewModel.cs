@@ -365,6 +365,13 @@ namespace PromptMasterv5.ViewModels
         }
 
         [RelayCommand]
+        private void ConfirmDeleteAiModel(AiModelConfig? model)
+        {
+            if (model == null) return;
+            model.IsPendingDelete = true;
+        }
+
+        [RelayCommand]
         private void DeleteAiModel(AiModelConfig? model)
         {
             if (model == null) return;

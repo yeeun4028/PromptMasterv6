@@ -45,5 +45,9 @@ namespace PromptMasterv5.Core.Models
         [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
         [property: JsonPropertyName("useProxy")]
         private bool useProxy;
+
+        [JsonIgnore]
+        [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+        private bool isPendingDelete;
     }
 }

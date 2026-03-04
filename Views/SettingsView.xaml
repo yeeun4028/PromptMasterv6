@@ -1033,11 +1033,23 @@
                                                             <TextBox Text="{Binding SelectedSavedModel.Remark, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                                                         </StackPanel>
 
-                                                        <CheckBox Content="✈️ 使用 VPN 代理 (海外模型请勾选)" 
-                                                                  IsChecked="{Binding SelectedSavedModel.UseProxy, Mode=TwoWay}"
+                                                        <CheckBox IsChecked="{Binding SelectedSavedModel.UseProxy, Mode=TwoWay}"
                                                                   Style="{StaticResource ToggleSwitchStyle}"
                                                                   Cursor="Hand"
-                                                                  Margin="0,10,0,0"/>
+                                                                  Margin="0,10,0,0">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Path Data="M12.5 2C8.4 2 5 5.4 5 9.5c0 2.2.9 4.2 2.4 5.6L5 20h15l-2.4-4.9c1.5-1.4 2.4-3.4 2.4-5.6C20 5.4 16.6 2 12.5 2zm0 2c3 0 5.5 2.5 5.5 5.5S15.5 15 12.5 15 7 12.5 7 9.5 9.5 4 12.5 4zm-1 2v3l2.5 1.5.7-1.2-2-1.2V6h-1.2z"
+                                                                      Fill="{DynamicResource AccentColor}"
+                                                                      Stretch="Uniform"
+                                                                      Width="16" Height="16"
+                                                                      VerticalAlignment="Center"
+                                                                      Margin="0,0,6,0"/>
+                                                                <TextBlock VerticalAlignment="Center">
+                                                                    <Run Text="使用 VPN 代理" Foreground="{DynamicResource TextPrimary}" FontWeight="Medium"/>
+                                                                    <Run Text=" (海外模型请勾选)" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </CheckBox>
 
                                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                                                             <TextBlock x:Name="TestStatusText"
@@ -1089,12 +1101,18 @@
                                                                                         <ColumnDefinition Width="Auto"/>
                                                                                         <ColumnDefinition Width="*"/>
                                                                                         <ColumnDefinition Width="Auto"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
                                                                                     </Grid.ColumnDefinitions>
                                                                                     <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
                                                                                         <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                                     </Border>
                                                                                     <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
                                                                                     <TextBlock x:Name="DeleteBtn" Grid.Column="2" Text="删除" FontSize="12" Foreground="{DynamicResource DangerBrush}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
+                                                                                        <TextBlock.InputBindings>
+                                                                                            <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SettingsVM.ConfirmDeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                                                        </TextBlock.InputBindings>
+                                                                                    </TextBlock>
+                                                                                    <TextBlock x:Name="ConfirmBtn" Grid.Column="3" Text="确认" FontSize="12" Foreground="{DynamicResource AccentColor}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
                                                                                         <TextBlock.InputBindings>
                                                                                             <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SettingsVM.DeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
                                                                                         </TextBlock.InputBindings>
@@ -1117,6 +1135,9 @@
                                                                                     <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
                                                                                     <Setter TargetName="DeleteBtn" Property="Visibility" Value="Visible"/>
                                                                                 </Trigger>
+                                                                                <DataTrigger Binding="{Binding IsPendingDelete}" Value="True">
+                                                                                    <Setter TargetName="ConfirmBtn" Property="Visibility" Value="Visible"/>
+                                                                                </DataTrigger>
                                                                             </ControlTemplate.Triggers>
                                                                         </ControlTemplate>
                                                                     </Setter.Value>
