@@ -11,8 +11,11 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        Closing="Window_Closing">
-    <Grid Background="#01000000" PreviewMouseRightButtonDown="Grid_PreviewMouseRightButtonDown">
+        Closing="Window_Closing"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="Auto">
+    <Grid Background="#01000000" PreviewMouseRightButtonDown="Grid_PreviewMouseRightButtonDown" UseLayoutRounding="True">
         <views:SettingsView x:Name="SettingsViewContent"/>
     </Grid>
 </Window>
