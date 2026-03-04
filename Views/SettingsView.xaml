@@ -1848,13 +1848,13 @@
                                                 </StackPanel>
 
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
-                                                    <TextBlock Text="{Binding TranslationTestStatus}"
-                                                               Foreground="{Binding TranslationTestStatusColor}"
+                                                    <TextBlock Text="{Binding SettingsVM.TranslationTestStatus}"
+                                                               Foreground="{Binding SettingsVM.TranslationTestStatusColor}"
                                                                VerticalAlignment="Center"
                                                                Margin="0,0,15,0"
                                                                FontWeight="SemiBold"/>
                                                     <Button Content="测试勾选的模型"
-                                                            Command="{Binding TestAiTranslationConnectionCommand}"
+                                                            Command="{Binding SettingsVM.TestAiTranslationConnectionCommand}"
                                                             Width="150"
                                                             Height="36"
                                                             Style="{StaticResource PrimaryButtonStyle}"/>

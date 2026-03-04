@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using PromptMasterv5.ViewModels;
+using System.Windows.Threading;
 
 namespace PromptMasterv5.Views
 {
@@ -28,7 +29,16 @@ namespace PromptMasterv5.Views
         private void Grid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            Close();
+            
+            // 捕获鼠标，阻止事件传播
+            Mouse.Capture(this, CaptureMode.SubTree);
+            Mouse.Capture(null);
+            
+            // 延迟关闭，确保事件完全处理
+            Dispatcher.BeginInvoke(() =>
+            {
+                Close();
+            }, DispatcherPriority.ContextIdle);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
