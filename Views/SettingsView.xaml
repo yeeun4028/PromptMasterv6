@@ -2219,6 +2219,35 @@
                                                     Width="150" Height="36"/>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Network & Proxy Settings Card -->
+                                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="🌐 网络与代理设置" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                            
+                                            <Grid Margin="0,0,0,15">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="全局 VPN 代理地址" Style="{StaticResource FieldLabelTextStyle}"/>
+                                                    <TextBlock Text="例如 v2rayN 默认值为 http://127.0.0.1:10808。此地址仅对配置为【走VPN代理】的模型生效。" 
+                                                               Style="{StaticResource HintTextStyle}" 
+                                                               Margin="0,2,0,0"
+                                                               TextWrapping="Wrap"
+                                                               MaxWidth="400"/>
+                                                </StackPanel>
+                                                <TextBox Grid.Column="1" 
+                                                         Text="{Binding SettingsVM.ProxyAddress, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                                         Style="{StaticResource ModernTextBoxStyle}"
+                                                         Width="250"
+                                                         VerticalAlignment="Center"
+                                                         Height="30"
+                                                         Padding="8,4"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>

@@ -53,6 +53,24 @@ namespace PromptMasterv5.ViewModels
 
         #endregion
 
+        #region Observable Properties - Proxy Settings
+
+        public string ProxyAddress
+        {
+            get => Config.ProxyAddress;
+            set
+            {
+                if (Config.ProxyAddress != value)
+                {
+                    Config.ProxyAddress = value;
+                    OnPropertyChanged();
+                    _settingsService.SaveConfig();
+                }
+            }
+        }
+
+        #endregion
+
         #region Observable Properties - AI Model Management
 
         [ObservableProperty] private string? testStatus;
