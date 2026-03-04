@@ -457,7 +457,12 @@ namespace PromptMasterv5.ViewModels
                 try
                 {
                     var result = await finishedTask.ConfigureAwait(false);
-                    if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("翻译失败") && !result.StartsWith("错误") && !result.StartsWith("AI 翻译失败"))
+                    if (!string.IsNullOrWhiteSpace(result) && 
+                        !result.StartsWith("翻译失败") && 
+                        !result.StartsWith("错误") && 
+                        !result.StartsWith("AI 翻译失败") &&
+                        !result.StartsWith("[AI 错误]") &&
+                        !result.StartsWith("[系统错误]"))
                     {
                         return result; // Winner!
                     }

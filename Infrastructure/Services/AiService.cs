@@ -139,6 +139,8 @@ namespace PromptMasterv5.Infrastructure.Services
 
             try
             {
+                LoggerService.Instance.LogInfo($"[ChatAsync] Sending request to Model={model}, UseProxy={useProxy}", "AiService");
+                
                 var completionResult = await openAiService.ChatCompletion.CreateCompletion(request).ConfigureAwait(false);
 
                 if (completionResult.Successful)
@@ -146,18 +148,24 @@ namespace PromptMasterv5.Infrastructure.Services
                     var choice = completionResult.Choices?.FirstOrDefault();
                     if (choice != null && choice.Message != null && !string.IsNullOrEmpty(choice.Message.Content))
                     {
+                        LoggerService.Instance.LogInfo($"[ChatAsync] Success! Received {choice.Message.Content.Length} chars.", "AiService");
                         return choice.Message.Content.Trim();
                     }
                     return "[AI 无响应] 返回内容为空";
                 }
                 else
                 {
-                    if (completionResult.Error == null) return "[AI 错误] 未知网络错误";
-                    return $"[AI 错误] {completionResult.Error.Message} ({completionResult.Error.Type})";
+                    string errorMsg = completionResult.Error == null 
+                        ? "[AI 错误] 未知网络错误" 
+                        : $"[AI 错误] {completionResult.Error.Message} ({completionResult.Error.Type})";
+                    
+                    LoggerService.Instance.LogError($"[ChatAsync] API Error: {errorMsg}", "AiService");
+                    return errorMsg;
                 }
             }
             catch (Exception ex)
             {
+                LoggerService.Instance.LogError($"[ChatAsync] Exception: {ex.Message}", "AiService");
                 return $"[系统错误] {ex.Message}";
             }
         }
