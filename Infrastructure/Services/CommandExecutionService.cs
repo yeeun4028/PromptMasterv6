@@ -17,6 +17,21 @@ namespace PromptMasterv5.Infrastructure.Services
         // Max edit distance allowed for fuzzy matching (per character ratio)
         private const double MaxEditDistanceRatio = 0.4; // Allow up to 40% character difference
 
+        // Dangerous commands (those pointing to scripts/executables that kill or restart the process)
+        // must have zero tolerance in fuzzy matching — require absolute edit distance 0 in fuzzy phase.
+        private static readonly string[] DangerousCommandKeywords = { "kill", "关闭p5", "关闭p", "restart", "exit", "quit", "shutdown" };
+
+        private bool IsDangerousCommand(string commandValue)
+        {
+            if (string.IsNullOrEmpty(commandValue)) return false;
+            var lower = commandValue.ToLowerInvariant();
+            // Check if the script/executable path itself suggests danger
+            return lower.EndsWith(".vbs", StringComparison.OrdinalIgnoreCase) ||
+                   lower.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase) ||
+                   lower.Contains("kill") || lower.Contains("restart") ||
+                   lower.Contains("exit") || lower.Contains("shutdown");
+        }
+
         public event EventHandler? CommandsChanged;
         private FileSystemWatcher? _watcher;
         private DateTime _lastReadTime = DateTime.MinValue;
@@ -169,6 +184,14 @@ namespace PromptMasterv5.Infrastructure.Services
 
                 if (ratio <= MaxEditDistanceRatio && distance < bestDistance)
                 {
+                    // 危险命令（杀进程、重启等脚本）在模糊匹配阶段要求完全一致（距离=0）
+                    // 防止 "关闭P" / "关闭屁5" 等发音近似词意外触发 "关闭P5"
+                    if (distance > 0 && IsDangerousCommand(_commands[key]))
+                    {
+                        LoggerService.Instance.LogInfo($"Fuzzy match blocked for dangerous command: '{normalizedText}' -> '{key}' (distance={distance})", "CommandExecutionService.ExecuteCommand");
+                        continue;
+                    }
+
                     bestDistance = distance;
                     bestKey = key;
                 }

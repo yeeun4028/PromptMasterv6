@@ -14,10 +14,7 @@ namespace PromptMasterv5.Infrastructure.Services
     /// </summary>
     public class ClipboardService
     {
-        private const int VK_CONTROL = 0x11;
-        private const int VK_C = 0x43;
-        private const int VK_V = 0x56;
-        private const int KEYEVENTF_KEYUP = 0x0002;
+        // 虚拟键码现统一由 NativeMethods 提供
 
         /// <summary>
         /// 模拟 Ctrl+C 获取当前选中的文本 (功能已移除)
@@ -65,10 +62,11 @@ namespace PromptMasterv5.Infrastructure.Services
                 // 等待 100ms 确保窗口焦点已恢复
                 Thread.Sleep(100);
 
-                NativeMethods.keybd_event(VK_CONTROL, 0, 0, 0);
-                NativeMethods.keybd_event(VK_V, 0, 0, 0);
-                NativeMethods.keybd_event(VK_V, 0, KEYEVENTF_KEYUP, 0);
-                NativeMethods.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+                // 使用 SendInput 模拟 Ctrl+V（替代废弃的 keybd_event）
+                NativeMethods.SendKey(NativeMethods.VK_CONTROL);
+                NativeMethods.SendKey(NativeMethods.VK_V);
+                NativeMethods.SendKey(NativeMethods.VK_V,   keyUp: true);
+                NativeMethods.SendKey(NativeMethods.VK_CONTROL, keyUp: true);
             }
             catch (Exception ex)
             {

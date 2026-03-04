@@ -570,10 +570,12 @@ namespace PromptMasterv5
                 else
                 {
                     config.MainWindowMaximized = false;
-                    config.MainWindowLeft = this.Left;
-                    config.MainWindowTop = this.Top;
-                    config.MainWindowWidth = this.Width;
-                    config.MainWindowHeight = this.Height;
+
+                    // 仅在值合法时更新，防止 Infinity/NaN 写入导致 ConfigService.Save 崩溃
+                    if (double.IsFinite(this.Left))   config.MainWindowLeft   = this.Left;
+                    if (double.IsFinite(this.Top))    config.MainWindowTop    = this.Top;
+                    if (double.IsFinite(this.Width)  && this.Width  > 0) config.MainWindowWidth  = this.Width;
+                    if (double.IsFinite(this.Height) && this.Height > 0) config.MainWindowHeight = this.Height;
                 }
                 
                 LoggerService.Instance.LogInfo($"Window position saved: Left={config.MainWindowLeft}, Top={config.MainWindowTop}, Width={config.MainWindowWidth}, Height={config.MainWindowHeight}, Maximized={config.MainWindowMaximized}", "MainWindow.SaveWindowPosition");
@@ -599,15 +601,17 @@ namespace PromptMasterv5
                     return;
                 }
 
-                if (!double.IsNaN(config.MainWindowLeft) && !double.IsNaN(config.MainWindowTop))
+                // IsFinite 同时排除 NaN 和 Infinity，比仅检查 !IsNaN 更严格
+                if (double.IsFinite(config.MainWindowLeft) && double.IsFinite(config.MainWindowTop))
                 {
                     this.Left = config.MainWindowLeft;
-                    this.Top = config.MainWindowTop;
+                    this.Top  = config.MainWindowTop;
                 }
 
-                if (config.MainWindowWidth > 0 && config.MainWindowHeight > 0)
+                if (double.IsFinite(config.MainWindowWidth)  && config.MainWindowWidth  > 0 &&
+                    double.IsFinite(config.MainWindowHeight) && config.MainWindowHeight > 0)
                 {
-                    this.Width = config.MainWindowWidth;
+                    this.Width  = config.MainWindowWidth;
                     this.Height = config.MainWindowHeight;
                 }
 
@@ -618,6 +622,7 @@ namespace PromptMasterv5
                 LoggerService.Instance.LogException(ex, "Failed to restore window position", "MainWindow.RestoreWindowPosition");
             }
         }
+
 
         /// <summary>
         /// 执行云端备份，完成后自动退出应用

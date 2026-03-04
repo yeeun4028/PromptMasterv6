@@ -1,7 +1,7 @@
 ﻿<Window x:Class="PromptMasterv5.NameInputDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="重命名" Height="200" Width="380"
+        Title="重命名" Width="380" MinHeight="180"
         WindowStartupLocation="CenterOwner"
         SizeToContent="Height"
         Style="{DynamicResource ModernDialogWindowStyle}">
@@ -50,6 +50,7 @@
         <TextBox x:Name="InputBox"
                  Grid.Row="2"
                  Style="{StaticResource ModernTextBoxStyle}"
+                 AcceptsReturn="False"
                  VerticalAlignment="Center"
                  Margin="0,0,0,24"
                  TextChanged="InputBox_TextChanged"/>
