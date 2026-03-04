@@ -526,29 +526,29 @@ Begin extraction now:";
             }
         }
 
-        public Task<(bool Success, string Message)> TestConnectionAsync(AppConfig config)
+        public Task<(bool Success, string Message, long? ResponseTimeMs)> TestConnectionAsync(AppConfig config)
         {
             return TestConnectionAsync(config.AiApiKey, config.AiBaseUrl, config.AiModel);
         }
 
-        public async Task<(bool Success, string Message)> TestConnectionAsync(string apiKey, string baseUrl, string model)
+        public async Task<(bool Success, string Message, long? ResponseTimeMs)> TestConnectionAsync(string apiKey, string baseUrl, string model)
         {
             LoggerService.Instance.LogInfo($"Testing connection: BaseUrl={baseUrl}, Model={model}", "AiService.TestConnectionAsync");
             
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 LoggerService.Instance.LogError("API Key is empty", "AiService.TestConnectionAsync");
-                return (false, "API Key 为空");
+                return (false, "API Key 为空", null);
             }
             if (string.IsNullOrWhiteSpace(baseUrl))
             {
                 LoggerService.Instance.LogError("Base URL is empty", "AiService.TestConnectionAsync");
-                return (false, "API 地址为空");
+                return (false, "API 地址为空", null);
             }
             if (string.IsNullOrWhiteSpace(model))
             {
                 LoggerService.Instance.LogError("Model name is empty", "AiService.TestConnectionAsync");
-                return (false, "模型名称为空");
+                return (false, "模型名称为空", null);
             }
 
             try
@@ -567,25 +567,27 @@ Begin extraction now:";
                     MaxTokens = 5
                 };
 
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 var completionResult = await openAiService.ChatCompletion.CreateCompletion(request).ConfigureAwait(false);
+                stopwatch.Stop();
 
                 LoggerService.Instance.LogInfo($"Response received: Successful={completionResult.Successful}, Error={completionResult.Error?.Message ?? "null"}", "AiService.TestConnectionAsync");
 
                 if (completionResult.Successful)
                 {
-                    return (true, "连接成功！");
+                    return (true, "连接成功", stopwatch.ElapsedMilliseconds);
                 }
                 else
                 {
                     var errorMsg = completionResult.Error?.Message ?? "未知错误";
                     LoggerService.Instance.LogError($"API returned error: {errorMsg} (Type: {completionResult.Error?.Type}, Code: {completionResult.Error?.Code})", "AiService.TestConnectionAsync");
-                    return (false, $"连接失败: {errorMsg}");
+                    return (false, $"连接失败: {errorMsg}", null);
                 }
             }
             catch (Exception ex)
             {
                 LoggerService.Instance.LogException(ex, $"Test connection exception: BaseUrl={baseUrl}, Model={model}", "AiService.TestConnectionAsync");
-                return (false, $"连接异常: {ex.Message}");
+                return (false, $"连接异常: {ex.Message}", null);
             }
         }
 

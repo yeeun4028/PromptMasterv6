@@ -259,17 +259,24 @@ namespace PromptMasterv5.ViewModels
 
             int successCount = 0;
             string lastError = "";
+            long totalTime = 0;
 
             foreach (var model in enabledModels)
             {
                 var result = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName);
-                if (result.Success) successCount++;
+                if (result.Success)
+                {
+                    successCount++;
+                    if (result.ResponseTimeMs.HasValue)
+                        totalTime += result.ResponseTimeMs.Value;
+                }
                 else lastError = result.Message;
             }
 
             if (successCount == enabledModels.Count)
             {
-                TranslationTestStatus = $"全部 {successCount} 个模型连接成功";
+                var avgTime = successCount > 0 ? totalTime / successCount : 0;
+                TranslationTestStatus = $"全部 {successCount} 个模型连接成功 (平均 {avgTime}ms)";
                 TranslationTestStatusColor = System.Windows.Media.Brushes.Green;
             }
             else if (successCount > 0)
@@ -289,17 +296,16 @@ namespace PromptMasterv5.ViewModels
         {
             if (model == null)
             {
-                 // Fallback to config if no specific model passed (though UI now passes parameter)
-                 var (success, msg) = await _aiService.TestConnectionAsync(Config);
-                 TestStatus = msg;
+                 var (success, msg, timeMs) = await _aiService.TestConnectionAsync(Config);
+                 TestStatus = success && timeMs.HasValue ? $"{msg} ({timeMs}ms)" : msg;
                  TestStatusColor = success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
                  return;
             }
 
             TestStatus = "测试中...";
             TestStatusColor = System.Windows.Media.Brushes.Gray;
-            var (success2, message) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName);
-            TestStatus = message;
+            var (success2, message, responseTimeMs) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName);
+            TestStatus = success2 && responseTimeMs.HasValue ? $"{message} ({responseTimeMs}ms)" : message;
             TestStatusColor = success2 ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 

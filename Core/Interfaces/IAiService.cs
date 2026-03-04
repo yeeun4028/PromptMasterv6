@@ -17,7 +17,7 @@ namespace PromptMasterv5.Core.Interfaces
         IAsyncEnumerable<string> ChatStreamAsync(List<ChatMessage> messages, AppConfig config);
         IAsyncEnumerable<string> ChatStreamAsync(List<ChatMessage> messages, string apiKey, string baseUrl, string model);
 
-        Task<(bool Success, string Message)> TestConnectionAsync(AppConfig config);
-        Task<(bool Success, string Message)> TestConnectionAsync(string apiKey, string baseUrl, string model);
+        Task<(bool Success, string Message, long? ResponseTimeMs)> TestConnectionAsync(AppConfig config);
+        Task<(bool Success, string Message, long? ResponseTimeMs)> TestConnectionAsync(string apiKey, string baseUrl, string model);
     }
 }
