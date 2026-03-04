@@ -546,6 +546,25 @@
                                         <TextBlock Text="📏" FontSize="14" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                     </Viewbox>
                                     <TextBlock Text="启动条" FontSize="14" VerticalAlignment="Center"/>
+                        </StackPanel>
+                            </Button>
+
+                            <!-- Proxy Tab -->
+                            <Button Command="{Binding SelectSettingsTabCommand}" CommandParameter="10">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ModernTabBtnStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="10">
+                                                <Setter Property="Tag" Value="Selected"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="16" Height="16" Margin="0,1,12,1">
+                                        <TextBlock Text="🌐" FontSize="14" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                    </Viewbox>
+                                    <TextBlock Text="代理" FontSize="14" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -2225,9 +2244,23 @@
                                                     Width="150" Height="36"/>
                                         </StackPanel>
                                     </Border>
+                                </StackPanel>
 
-                                    <!-- Network & Proxy Settings Card -->
-                                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,0">
+                                <!-- Tab 10: Proxy -->
+                                <StackPanel>
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel" BasedOn="{StaticResource FadeInContentStyle}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedSettingsTab}" Value="10">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <!-- Proxy Settings Card -->
+                                    <Border Style="{StaticResource CardStyle}">
                                         <StackPanel>
                                             <TextBlock Text="🌐 网络与代理设置" Style="{StaticResource SectionHeaderTextStyle}"/>
                                             
