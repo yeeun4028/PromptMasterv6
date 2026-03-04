@@ -1090,11 +1090,17 @@
                                                                                     <Grid.ColumnDefinitions>
                                                                                         <ColumnDefinition Width="Auto"/>
                                                                                         <ColumnDefinition Width="*"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
                                                                                     </Grid.ColumnDefinitions>
                                                                                     <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
                                                                                         <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                                     </Border>
                                                                                     <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                                                                    <TextBlock x:Name="DeleteBtn" Grid.Column="2" Text="删除" FontSize="12" Foreground="{DynamicResource DangerBrush}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
+                                                                                        <TextBlock.InputBindings>
+                                                                                            <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SettingsVM.DeleteAiModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                                                        </TextBlock.InputBindings>
+                                                                                    </TextBlock>
                                                                                 </Grid>
 
                                                                                 <Border.ContextMenu>
@@ -1111,6 +1117,7 @@
                                                                                 </Trigger>
                                                                                 <Trigger Property="IsMouseOver" Value="True">
                                                                                     <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                                                                    <Setter TargetName="DeleteBtn" Property="Visibility" Value="Visible"/>
                                                                                 </Trigger>
                                                                             </ControlTemplate.Triggers>
                                                                         </ControlTemplate>
