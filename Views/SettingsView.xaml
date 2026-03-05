@@ -1226,7 +1226,7 @@
                                                         </Button>
 
                                                         <Button Content="本地恢复数据"
-                                                                Command="{Binding ManualLocalRestoreCommand}"
+                                                                Command="{Binding SettingsVM.ManualLocalRestoreCommand}"
                                                                 ToolTip="从本地历史备份中恢复数据"
                                                                 HorizontalAlignment="Left"
                                                                 Margin="20,0,0,0">

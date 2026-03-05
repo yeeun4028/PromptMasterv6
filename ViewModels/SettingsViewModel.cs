@@ -27,7 +27,7 @@ namespace PromptMasterv5.ViewModels
         private readonly ISettingsService _settingsService;
         private readonly IAiService _aiService;
         private readonly IDataService _dataService;
-        private readonly IDataService _localDataService;
+        private readonly FileDataService _localDataService;
         private readonly GlobalKeyService _keyService;
         private readonly IDialogService _dialogService;
         private readonly ThemeService _themeService;
@@ -184,7 +184,7 @@ namespace PromptMasterv5.ViewModels
             ISettingsService settingsService,
             IAiService aiService,
             IDataService dataService,
-            IDataService localDataService,
+            FileDataService localDataService,
             GlobalKeyService keyService,
             IDialogService dialogService,
             BaiduService baiduService,
