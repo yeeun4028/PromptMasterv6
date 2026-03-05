@@ -154,7 +154,7 @@ namespace PromptMasterv5.ViewModels
                 RecognizedText = text;
                 StatusText = "Executing...";
 
-                bool result = _commandExecutionService.ExecuteCommand(text);
+                bool result = await _commandExecutionService.ExecuteCommandAsync(text);
                 
                 if (!result)
                 {

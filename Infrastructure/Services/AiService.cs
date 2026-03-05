@@ -170,6 +170,70 @@ namespace PromptMasterv5.Infrastructure.Services
             }
         }
 
+        public async Task<string> InterpretIntentAsync(string systemPrompt, string userText, AppConfig config)
+        {
+            string apiKey = config.AiApiKey;
+            string baseUrl = config.AiBaseUrl;
+            string model = config.AiModel;
+            bool useProxy = false;
+
+            if (!string.IsNullOrEmpty(config.ActiveModelId))
+            {
+                var savedModel = config.SavedModels.FirstOrDefault(m => m.Id == config.ActiveModelId);
+                if (savedModel != null)
+                {
+                    apiKey = savedModel.ApiKey;
+                    baseUrl = savedModel.BaseUrl;
+                    model = savedModel.ModelName;
+                    useProxy = savedModel.UseProxy;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                return "NONE"; // Fail gracefully if no API key is configured
+            }
+
+            var openAiService = GetOrCreateOpenAiService(apiKey, baseUrl, useProxy);
+
+            var messages = new List<ChatMessage>
+            {
+                ChatMessage.FromSystem(systemPrompt),
+                ChatMessage.FromUser(userText)
+            };
+
+            var request = new ChatCompletionCreateRequest
+            {
+                Messages = messages,
+                Model = model,
+                // Low temperature for strict routing matching
+                Temperature = 0.1f 
+            };
+
+            try
+            {
+                LoggerService.Instance.LogInfo($"[InterpretIntentAsync] Sending routing request to Model={model}", "AiService");
+                var completionResult = await openAiService.ChatCompletion.CreateCompletion(request).ConfigureAwait(false);
+
+                if (completionResult.Successful && completionResult.Choices != null)
+                {
+                    var choice = completionResult.Choices.FirstOrDefault();
+                    if (choice?.Message != null && !string.IsNullOrWhiteSpace(choice.Message.Content))
+                    {
+                        return choice.Message.Content.Trim();
+                    }
+                }
+                
+                LoggerService.Instance.LogWarning("[InterpretIntentAsync] API returned empty or unsuccessful response.", "AiService");
+                return "NONE";
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogError($"[InterpretIntentAsync] Exception: {ex.Message}", "AiService");
+                return "NONE";
+            }
+        }
+
         public async Task<string> ChatWithImageAsync(byte[] imageBytes, string apiKey, string baseUrl, string model, string? systemPrompt = null, bool useProxy = false)
         {
             if (string.IsNullOrWhiteSpace(apiKey)) return "[设置错误] 请先配置 API Key";

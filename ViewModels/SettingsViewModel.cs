@@ -515,7 +515,7 @@ namespace PromptMasterv5.ViewModels
                 {
                     // Create default file if not exists (although AppConfig should handle it, double check)
                     System.IO.File.WriteAllText(configPath, 
-                        "{\n  \"打开计算器\": \"calc.exe\",\n  \"打开记事本\": \"notepad.exe\"\n}");
+                        "{\n  \"打开计算器\": {\n    \"Name\": \"打开计算器\",\n    \"ActionPath\": \"calc.exe\",\n    \"Description\": \"启动系统计算器\"\n  },\n  \"打开记事本\": {\n    \"Name\": \"打开记事本\",\n    \"ActionPath\": \"notepad.exe\",\n    \"Description\": \"启动系统记事本\"\n  }\n}");
                 }
 
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -550,6 +550,23 @@ namespace PromptMasterv5.ViewModels
             catch (Exception ex)
             {
                 LoggerService.Instance.LogException(ex, "Failed to update voice trigger hotkey", "SettingsViewModel.UpdateVoiceTriggerHotkey");
+            }
+        }
+
+        [RelayCommand]
+        private void ClearVoiceCommandCache()
+        {
+            try
+            {
+                var voiceCommandService = (System.Windows.Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
+                voiceCommandService?.ClearIntentCache();
+                _dialogService.ShowToast("AI 意图缓存已清空", "Success");
+                LoggerService.Instance.LogInfo("Triggered ClearVoiceCommandCache", "SettingsViewModel.ClearVoiceCommandCache");
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowAlert($"清空失败: {ex.Message}", "错误");
+                LoggerService.Instance.LogException(ex, "Failed to clear intent cache", "SettingsViewModel.ClearVoiceCommandCache");
             }
         }
 
@@ -762,7 +779,7 @@ namespace PromptMasterv5.ViewModels
             try
             {
                 var voiceCommandService = (System.Windows.Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
-                var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, string>();
+                var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, VoiceCommand>();
                 
                 await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files, voiceCommands);
                 _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now; // Update sync time

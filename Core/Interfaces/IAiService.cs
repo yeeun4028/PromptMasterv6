@@ -11,6 +11,9 @@ namespace PromptMasterv5.Core.Interfaces
         Task<string> ChatAsync(string userContent, string apiKey, string baseUrl, string model, string? systemPrompt = null, bool useProxy = false);
         Task<string> ChatWithImageAsync(byte[] imageBytes, string apiKey, string baseUrl, string model, string? systemPrompt = null, bool useProxy = false);
         
+        // Semantic Routing / Single-shot evaluation
+        Task<string> InterpretIntentAsync(string systemPrompt, string userText, AppConfig config);
+        
         // Streaming support
         IAsyncEnumerable<string> ChatStreamAsync(string userContent, AppConfig config, string? systemPrompt = null);
         IAsyncEnumerable<string> ChatStreamAsync(string userContent, string apiKey, string baseUrl, string model, string? systemPrompt = null, bool useProxy = false);

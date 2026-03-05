@@ -57,6 +57,12 @@ namespace PromptMasterv5
         private DispatcherTimer? _hideTimer;
         private bool _isExternalCloseRequest = true; // 默认假设是外部关闭，SC_CLOSE 会标记为用户操作
 
+        // Tray Icon Animation Variables
+        private DispatcherTimer? _routingAnimTimer;
+        private bool _routingAnimState = false;
+        private System.Drawing.Icon? _defaultIcon;
+        private System.Drawing.Icon? _processingIcon;
+
         public MainWindow(MainViewModel viewModel)
         {
             InitializeComponent();
@@ -341,6 +347,45 @@ namespace PromptMasterv5
                         ToggleWindowVisibility();
                     }
                 };
+                
+                // Initialize Animation Timer and Icons
+                _defaultIcon = _notifyIcon.Icon;
+                _processingIcon = System.Drawing.SystemIcons.Information; // Fallback for processing state
+                
+                _routingAnimTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+                _routingAnimTimer.Tick += (s, e) =>
+                {
+                    if (_notifyIcon == null) return;
+                    _routingAnimState = !_routingAnimState;
+                    _notifyIcon.Icon = _routingAnimState ? _processingIcon : _defaultIcon;
+                };
+
+                // Subscribe to AI routing events
+                var cmdService = (Application.Current as App)?.ServiceProvider.GetService<PromptMasterv5.Core.Interfaces.ICommandExecutionService>();
+                if (cmdService != null)
+                {
+                    cmdService.OnRoutingStarted += (s, ev) => 
+                    {
+                        Application.Current.Dispatcher.Invoke(() => 
+                        {
+                            _routingAnimState = false;
+                            _routingAnimTimer?.Start();
+                            if (_notifyIcon != null) _notifyIcon.Text = "PromptMaster v5 - AI 路由中...";
+                        });
+                    };
+                    cmdService.OnRoutingFinished += (s, ev) => 
+                    {
+                        Application.Current.Dispatcher.Invoke(() => 
+                        {
+                            _routingAnimTimer?.Stop();
+                            if (_notifyIcon != null) 
+                            {
+                                _notifyIcon.Icon = _defaultIcon;
+                                _notifyIcon.Text = "PromptMaster v5";
+                            }
+                        });
+                    };
+                }
             }
             catch (Exception ex)
             {

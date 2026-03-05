@@ -467,9 +467,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
 
         // Restore voice commands from sync data
-        if (data.VoiceCommands != null && data.VoiceCommands.Count > 0)
+        if (data.VoiceCommandsV2 != null && data.VoiceCommandsV2.Count > 0)
         {
-            _commandExecutionService.SetCommands(data.VoiceCommands);
+            _commandExecutionService.SetCommands(data.VoiceCommandsV2);
+        }
+        else if (data.VoiceCommands != null && data.VoiceCommands.Count > 0)
+        {
+            var migrated = data.VoiceCommands.ToDictionary(kvp => kvp.Key, kvp => new VoiceCommand { Name = kvp.Key, ActionPath = kvp.Value });
+            _commandExecutionService.SetCommands(migrated);
         }
 
         FilesView = CollectionViewSource.GetDefaultView(Files);
@@ -1006,7 +1011,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var voiceCommandService = (Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
-            var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, string>();
+            var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, VoiceCommand>();
             await _localDataService.SaveAsync(Folders, Files, voiceCommands);
         }
         catch (Exception ex)

@@ -211,6 +211,9 @@ namespace PromptMasterv5.Core.Models
         private string voiceCommandConfigPath = "voice_commands.json";
 
         [ObservableProperty]
+        private string voiceCommandCacheConfigPath = "voice_commands_cache.json";
+
+        [ObservableProperty]
         private string voiceModelId = "";
 
         // ★★★ 讯飞语音听写配置 ★★★

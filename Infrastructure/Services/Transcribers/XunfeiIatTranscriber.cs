@@ -380,7 +380,7 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
                 }
 
                 // 触发后台清理任务，不阻塞当前返回，消除 1 秒延迟
-                Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
