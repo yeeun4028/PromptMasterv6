@@ -379,11 +379,22 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
                     LoggerService.Instance.LogInfo($"Timeout, using current result: {result}", "XunfeiIatTranscriber.StopRecordingAndTranscribeAsync");
                 }
 
-                // 关闭 WebSocket
-                if (_webSocket?.State == WebSocketState.Open)
+                // 触发后台清理任务，不阻塞当前返回，消除 1 秒延迟
+                Task.Run(async () =>
                 {
-                    await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Done", CancellationToken.None);
-                }
+                    try
+                    {
+                        if (_webSocket?.State == WebSocketState.Open)
+                        {
+                            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Done", CancellationToken.None);
+                        }
+                    }
+                    catch { }
+                    finally
+                    {
+                        CleanupResources();
+                    }
+                });
 
                 return result;
             }
@@ -391,11 +402,8 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
             {
                 LoggerService.Instance.LogException(ex, "Error stopping recording", "XunfeiIatTranscriber.StopRecordingAndTranscribeAsync");
                 OnError?.Invoke(this, ex);
-                return _resultBuilder.ToString();
-            }
-            finally
-            {
                 CleanupResources();
+                return _resultBuilder.ToString();
             }
         }
 
