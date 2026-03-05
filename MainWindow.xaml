@@ -1109,8 +1109,8 @@
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                                         <Setter Property="FontSize" Value="14"/>
-                                        <Setter Property="Padding" Value="16,8"/>
-                                        <Setter Property="Margin" Value="4,2"/>
+                                        <Setter Property="Padding" Value="12,4"/>
+                                        <Setter Property="Margin" Value="0,0"/>
                                         <Setter Property="Cursor" Value="Hand"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
