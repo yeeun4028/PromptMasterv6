@@ -31,6 +31,11 @@ namespace PromptMasterv5.Infrastructure.Services
                 string json = File.ReadAllText(ConfigPath);
                 var settings = JsonSerializer.Deserialize<LocalSettings>(json) ?? new LocalSettings();
 
+                // 兼容旧配置：补全 ActionIcons 中可能缺失的 key
+                var defaultKeys = new[] { "CreateFile", "CreateFolder", "Import", "Settings" };
+                foreach (var key in defaultKeys)
+                    settings.ActionIcons.TryAdd(key, "");
+
                 return settings;
             }
             catch
