@@ -140,13 +140,13 @@ namespace PromptMasterv5.Views
         }
 
         /// <summary>
-        /// 异步创建并显示贴图窗口（在独立线程中运行）
+        /// 在主 UI 线程上创建并显示贴图窗口
         /// </summary>
         public static void PinToScreenAsync(BitmapSource image, PinToScreenOptions? options = null, WpfPoint? location = null)
         {
             if (image == null) return;
 
-            var thread = new Thread(() =>
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 var window = new PinToScreenWindow(image, options, location);
 
@@ -165,14 +165,7 @@ namespace PromptMasterv5.Views
 
                 window.Show();
                 window.Activate();
-
-                // 启动此线程的 Dispatcher
-                Dispatcher.Run();
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.IsBackground = true;
-            thread.Start();
+            }));
         }
 
         /// <summary>
@@ -386,10 +379,8 @@ namespace PromptMasterv5.Views
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            // 关闭此窗口所在 STA 线程的 Dispatcher 消息循环，
-            // 使 PinToScreenAsync 中 Dispatcher.Run() 返回，线程正常退出。
-            // 没有这一行，每个贴图窗口关闭后线程会永久挂起，积累导致系统卡顿。
-            Dispatcher.InvokeShutdown();
+            // 此前使用独立 STA 线程时需要 Dispatcher.InvokeShutdown()。
+            // 现在回到主 UI 线程，绝对不能调用 InvokeShutdown()，否则整个应用将被关闭。
         }
     }
 }
