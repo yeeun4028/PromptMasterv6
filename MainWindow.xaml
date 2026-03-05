@@ -71,6 +71,7 @@
         <utils:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
         <utils:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
         <utils:NavigationWidthConverter x:Key="NavigationWidthConverter"/>
+        <converters:StringVisibilityConverter x:Key="StringVisibilityConverter"/>
 
         <Style x:Key="Block1ToolTipStyle" TargetType="ToolTip">
             <Setter Property="Background" Value="{DynamicResource Block1Background}"/>
@@ -289,7 +290,7 @@
                                 <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="{Binding Name}"/>
                             </Border.ToolTip>
                             <Path x:Name="IconPath" 
-                                  Data="{Binding IconGeometry}" 
+                                  Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconFolderLinear}}" 
                                   Fill="{DynamicResource ActionIconBrush}" 
                                   Stretch="Uniform" 
                                   Width="18" Height="18" 
@@ -347,7 +348,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Path x:Name="FileIcon" 
-                                      Data="{Binding IconGeometry}" 
+                                      Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconFolderLinear}}" 
                                       Visibility="Visible" 
                                       Fill="{DynamicResource PlaceholderTextBrush}" 
                                       Stretch="Uniform" 
@@ -1135,6 +1136,7 @@
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <Path x:Name="Icon" 
                                                                               Data="{Binding IconData, Converter={StaticResource StringToGeometryConverter}}"
+                                                                              Visibility="{Binding IconData, Converter={StaticResource StringVisibilityConverter}}"
                                                                               Fill="{DynamicResource ActionIconBrush}"
                                                                               Stretch="Uniform" Width="14" Height="14" VerticalAlignment="Center"/>
                                                                         <TextBlock x:Name="Label" Text="{Binding Name}" 

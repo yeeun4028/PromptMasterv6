@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
@@ -15,12 +16,12 @@ namespace PromptMasterv5.Infrastructure.Converters
                 {
                     return Geometry.Parse(pathString);
                 }
-                catch 
+                catch
                 {
-                    return Geometry.Empty;
+                    return DependencyProperty.UnsetValue; // 解析失败 → 触发 FallbackValue
                 }
             }
-            return Geometry.Empty;
+            return DependencyProperty.UnsetValue; // null 或空字符串 → 触发 FallbackValue
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

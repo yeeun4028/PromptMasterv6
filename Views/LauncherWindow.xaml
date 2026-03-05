@@ -76,7 +76,7 @@
 
                                 <Grid Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                     <Grid x:Name="VectorContent" Visibility="{Binding CustomImagePath, Converter={StaticResource StringToVisInverted}}">
-                                        <Path Data="{Binding IconGeometry}" 
+                                        <Path Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}}" 
                                               Visibility="{Binding IconGeometry, Converter={StaticResource StringToVis}}"
                                               Fill="#4A90D9" 
                                               Stretch="Uniform" />
