@@ -14,23 +14,40 @@ namespace PromptMasterv5.Infrastructure.Services
         private readonly ISettingsService _settingsService;
         private Dictionary<string, string> _commands = new();
 
-        // Max edit distance allowed for fuzzy matching (per character ratio)
-        private const double MaxEditDistanceRatio = 0.4; // Allow up to 40% character difference
+        // 零容错指令关键词：仅限关机和重启类操作，其余指令均使用 40% 模糊容错。
+        private static readonly string[] ZeroToleranceKeywords =
+        {
+            "shutdown", "reboot", "关机", "重启"
+        };
 
-        // Dangerous commands (those pointing to scripts/executables that kill or restart the process)
-        // must have zero tolerance in fuzzy matching — require absolute edit distance 0 in fuzzy phase.
-        private static readonly string[] DangerousCommandKeywords = { "kill", "关闭p5", "关闭p", "restart", "exit", "quit", "shutdown" };
+        // 模糊匹配最大容错比例（40%），适用于非零容错指令
+        private const double MaxEditDistanceRatio = 0.4;
 
+
+        /// <summary>
+        /// 判断某个指令是否属于"零容错"类别（关机/重启）。
+        /// 满足以下任一条件则返回 true：
+        ///  1. 指令值（执行的命令/脚本路径）本身包含零容错关键词；
+        ///  2. 指令调用的是系统关机命令（shutdown.exe）。
+        /// </summary>
         private bool IsDangerousCommand(string commandValue)
         {
             if (string.IsNullOrEmpty(commandValue)) return false;
             var lower = commandValue.ToLowerInvariant();
-            // Check if the script/executable path itself suggests danger
-            return lower.EndsWith(".vbs", StringComparison.OrdinalIgnoreCase) ||
-                   lower.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase) ||
-                   lower.Contains("kill") || lower.Contains("restart") ||
-                   lower.Contains("exit") || lower.Contains("shutdown");
+
+            // 仅关机、重启类操作执行零容错
+            foreach (var keyword in ZeroToleranceKeywords)
+            {
+                if (lower.Contains(keyword)) return true;
+            }
+
+            // 调用 shutdown.exe 的也算（例如 "shutdown /r /t 0"）
+            if (lower.Contains("shutdown.exe") || lower.StartsWith("shutdown "))
+                return true;
+
+            return false;
         }
+
 
         public event EventHandler? CommandsChanged;
         private FileSystemWatcher? _watcher;
