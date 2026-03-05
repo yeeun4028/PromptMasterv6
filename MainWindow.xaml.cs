@@ -901,18 +901,47 @@ namespace PromptMasterv5
             var fg = Application.Current.Resources["PrimaryTextBrush"] as System.Windows.Media.Brush;
             var divBrush = Application.Current.Resources["DividerBrush"] as System.Windows.Media.Brush;
 
-            MenuItem MakeItem(string header, ICommand command) => new MenuItem
+            MenuItem MakeItem(string header, ICommand command)
             {
-                Header = header,
-                Command = command,
-                Background = System.Windows.Media.Brushes.Transparent,
-                Foreground = fg,
-                Padding = new Thickness(12, 4, 12, 4),
-                Margin = new Thickness(0),
-                Cursor = System.Windows.Input.Cursors.Hand,
-                Icon = null,
-                InputGestureText = string.Empty,
-            };
+                var item = new MenuItem
+                {
+                    Header = header,
+                    Command = command,
+                    Cursor = System.Windows.Input.Cursors.Hand,
+                    Foreground = fg,
+                };
+
+                // 完整自定义模板：仅 Border + ContentPresenter，无图标列/快捷键列
+                var itemTemplate = new ControlTemplate(typeof(MenuItem));
+                var bd = new FrameworkElementFactory(typeof(Border));
+                bd.Name = "Bd";
+                bd.SetValue(Border.BackgroundProperty, System.Windows.Media.Brushes.Transparent);
+                bd.SetValue(Border.PaddingProperty, new Thickness(12, 3, 12, 3));   // 紧凑间距
+                bd.SetValue(Border.CornerRadiusProperty, new System.Windows.CornerRadius(5));
+
+                var cp = new FrameworkElementFactory(typeof(ContentPresenter));
+                cp.SetBinding(ContentPresenter.ContentProperty,
+                    new System.Windows.Data.Binding(nameof(MenuItem.Header))
+                    { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent) });
+                cp.SetValue(ContentPresenter.VerticalAlignmentProperty, System.Windows.VerticalAlignment.Center);
+                cp.SetValue(ContentPresenter.HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Left);
+                bd.AppendChild(cp);
+                itemTemplate.VisualTree = bd;
+
+                var hlTrigger = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
+                hlTrigger.Setters.Add(new Setter(Border.BackgroundProperty,
+                    Application.Current.Resources.Contains("ListItemSelectedBackgroundBrush")
+                        ? Application.Current.Resources["ListItemSelectedBackgroundBrush"]
+                        : System.Windows.Media.Brushes.LightGray, "Bd"));
+                itemTemplate.Triggers.Add(hlTrigger);
+
+                var disabledTrigger = new Trigger { Property = MenuItem.IsEnabledProperty, Value = false };
+                disabledTrigger.Setters.Add(new Setter(UIElement.OpacityProperty, 0.5));
+                itemTemplate.Triggers.Add(disabledTrigger);
+
+                item.Template = itemTemplate;
+                return item;
+            }
 
             menu.Items.Add(MakeItem("复制", ApplicationCommands.Copy));
             menu.Items.Add(new Separator { Margin = new Thickness(0, 2, 0, 2), Background = divBrush });
@@ -920,5 +949,6 @@ namespace PromptMasterv5
 
             return menu;
         }
+
     }
 }

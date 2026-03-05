@@ -281,24 +281,53 @@ namespace PromptMasterv5
             menuTemplate.VisualTree = borderFactory;
             menu.Template = menuTemplate;
 
-            // 菜单项样式生成函数
-            static MenuItem MakeItem(string header, ICommand command, bool canCut = true)
+            // 菜单项工厂：完整替换 MenuItem 的 ControlTemplate
+            // ——只保留文字区，彻底消除图标列和快捷键列。
+            static MenuItem MakeItem(string header, ICommand command)
             {
                 var item = new MenuItem
                 {
                     Header = header,
                     Command = command,
-                    Background = System.Windows.Media.Brushes.Transparent,
-                    Padding = new Thickness(12, 4, 12, 4),
-                    Margin = new Thickness(0),
                     Cursor = System.Windows.Input.Cursors.Hand,
-                    // 隐藏图标区和快捷键文字
-                    Icon = null,
-                    InputGestureText = string.Empty,
                 };
+
+                // 自定义 ControlTemplate：仅一个 Border + ContentPresenter
+                var itemTemplate = new ControlTemplate(typeof(MenuItem));
+                var bd = new FrameworkElementFactory(typeof(Border));
+                bd.Name = "Bd";
+                bd.SetValue(Border.BackgroundProperty, System.Windows.Media.Brushes.Transparent);
+                bd.SetValue(Border.PaddingProperty, new Thickness(12, 3, 12, 3));  // 紧凑间距
+                bd.SetValue(Border.CornerRadiusProperty, new System.Windows.CornerRadius(5));
+
+                var cp = new FrameworkElementFactory(typeof(ContentPresenter));
+                cp.SetBinding(ContentPresenter.ContentProperty,
+                    new System.Windows.Data.Binding(nameof(MenuItem.Header))
+                    { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent) });
+                cp.SetValue(ContentPresenter.VerticalAlignmentProperty, System.Windows.VerticalAlignment.Center);
+                cp.SetValue(ContentPresenter.HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Left);
+                bd.AppendChild(cp);
+                itemTemplate.VisualTree = bd;
+
+                // 高亮触发器
+                var highlight = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
+                highlight.Setters.Add(new Setter(Border.BackgroundProperty,
+                    Application.Current.Resources.Contains("ListItemSelectedBackgroundBrush")
+                        ? Application.Current.Resources["ListItemSelectedBackgroundBrush"]
+                        : System.Windows.Media.Brushes.LightGray, "Bd"));
+                itemTemplate.Triggers.Add(highlight);
+
+                // IsEnabled=false 时半透明
+                var disabled = new Trigger { Property = MenuItem.IsEnabledProperty, Value = false };
+                disabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.5));
+                itemTemplate.Triggers.Add(disabled);
+
+                item.Template = itemTemplate;
+
                 // 绑定前景色到主题
                 if (Application.Current.Resources["PrimaryTextBrush"] is System.Windows.Media.Brush fg)
                     item.Foreground = fg;
+
                 return item;
             }
 
@@ -314,12 +343,10 @@ namespace PromptMasterv5
 
             menu.Items.Add(MakeItem("全选", ApplicationCommands.SelectAll));
 
-            // 替换 TextBox 的 ContextMenu 并触发命令绑定刷新
+            // 替换 TextBox 的 ContextMenu
             tb.ContextMenu = menu;
-
-            // 设置命令目标，使 Cut/Copy/Paste 命令作用于正确的 TextBox
-            menu.CommandBindings.Clear();
         }
+
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
