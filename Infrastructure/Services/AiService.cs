@@ -741,6 +741,17 @@ Begin extraction now:";
                 else
                 {
                     var errorMsg = completionResult.Error?.Message ?? "未知错误";
+                    
+                    // 特殊处理：如果错误明确指出该模型不支持 Chat（例如 Whisper/TTS 模型），
+                    // 说明 API Key 和网络连接已被服务器正确校验和受理，只是端点不匹配，此时也应视为"连接成功"
+                    if (errorMsg.Contains("does not support chat") || 
+                        errorMsg.Contains("audio") || 
+                        errorMsg.Contains("not a chat model"))
+                    {
+                        LoggerService.Instance.LogInfo($"API connection is valid, but model is not for chat: {errorMsg}", "AiService.TestConnectionAsync");
+                        return (true, "连接成功 (非对话模型)", stopwatch.ElapsedMilliseconds);
+                    }
+
                     LoggerService.Instance.LogError($"API returned error: {errorMsg} (Type: {completionResult.Error?.Type}, Code: {completionResult.Error?.Code})", "AiService.TestConnectionAsync");
                     return (false, $"连接失败: {errorMsg}", null);
                 }

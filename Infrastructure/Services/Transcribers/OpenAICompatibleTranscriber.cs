@@ -304,12 +304,24 @@ namespace PromptMasterv5.Infrastructure.Services.Transcribers
                 form.Add(fileContent, "file", "audio.wav");
                 form.Add(new StringContent(model), "model");
 
-                // Add FunASR-style hotwords if available
+                // Add FunASR-style hotwords or OpenAI-style prompt if available
                 if (hotwords != null && hotwords.Count > 0)
                 {
-                    var hotwordStr = string.Join(" ", hotwords.Select(w => $"{w} 20"));
-                    form.Add(new StringContent(hotwordStr), "hotword");
-                    LoggerService.Instance.LogInfo($"Sending hotwords: {hotwordStr}", "OpenAICompatibleTranscriber.TranscribeFileAsync");
+                    bool useFunAsrStyle = model.Contains("sensevoice", StringComparison.OrdinalIgnoreCase) || 
+                                          model.Contains("funasr", StringComparison.OrdinalIgnoreCase);
+
+                    if (useFunAsrStyle)
+                    {
+                        var hotwordStr = string.Join(" ", hotwords.Select(w => $"{w} 20"));
+                        form.Add(new StringContent(hotwordStr), "hotword");
+                        LoggerService.Instance.LogInfo($"Sending hotwords (FunASR/SenseVoice style): {hotwordStr}", "OpenAICompatibleTranscriber.TranscribeFileAsync");
+                    }
+                    else
+                    {
+                        var promptStr = string.Join(", ", hotwords);
+                        form.Add(new StringContent(promptStr), "prompt");
+                        LoggerService.Instance.LogInfo($"Sending prompt (OpenAI/Whisper style): {promptStr}", "OpenAICompatibleTranscriber.TranscribeFileAsync");
+                    }
                 }
 
                 request.Content = form;
