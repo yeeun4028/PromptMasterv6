@@ -221,7 +221,7 @@ namespace PromptMasterv6
             services.AddHttpClient<TencentService>();
 
             services.AddSingleton<ClipboardService>();
-            services.AddSingleton<IAudioService, AudioService>();
+
         }
 
         /// <summary>

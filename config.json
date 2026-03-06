@@ -314,11 +314,4 @@
         }
     ],
     "DefaultWebTargetName": "Gemini",
-    "EnableDoubleEnterSend": true,
-    "VoiceApiBaseUrl": "https://api.openai.com/v1",
-    "VoiceApiKey": "",
-    "VoiceApiModel": "whisper-1",
-    "VoiceTriggerHotkey": "RightAlt",
-    "VoiceCommandConfigPath": "voice_commands.json",
-    "VoiceModelId": "e44f1971-9b38-47bf-9811-13fe4dbd810a"
-}
+    "EnableDoubleEnterSend": true}

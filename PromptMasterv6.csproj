@@ -35,7 +35,7 @@
     <PackageReference Include="Markdig.Wpf" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
     <PackageReference Include="MouseKeyHook" />
-    <PackageReference Include="NAudio" />
+
     <PackageReference Include="NHotkey.Wpf" />
     <PackageReference Include="ReverseMarkdown" />
     <PackageReference Include="System.Reactive" />

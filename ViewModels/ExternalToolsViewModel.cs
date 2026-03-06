@@ -22,7 +22,7 @@ namespace PromptMasterv6.ViewModels
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
         private readonly GoogleService _googleService;
-        private readonly IAudioService _audioService;
+
 
         // 缓存配置查询结果，避免每次访问都创建新的 ObservableCollection
         private List<ApiProfile>? _cachedOcrProfiles;
@@ -99,7 +99,6 @@ namespace PromptMasterv6.ViewModels
             GoogleService googleService,
             IDialogService dialogService,
             IWindowManager windowManager,
-            IAudioService audioService,
             ClipboardService clipboardService)
         {
             _settingsService = settingsService;
@@ -109,7 +108,7 @@ namespace PromptMasterv6.ViewModels
             _googleService = googleService;
             _dialogService = dialogService;
             _windowManager = windowManager;
-            _audioService = audioService;
+            _windowManager = windowManager;
             _clipboardService = clipboardService;
             
             LoggerService.Instance.LogInfo("ExternalToolsViewModel initialized", "ExternalToolsViewModel.ctor");
@@ -196,8 +195,7 @@ namespace PromptMasterv6.ViewModels
                     else
                     {
                         System.Windows.Clipboard.SetText(ocrResult);
-                        // Play Shutter Sound
-                        await _audioService.PlayShutterSoundAsync();
+                        // Shutter sound removed
                     }
                 }
             }
@@ -304,8 +302,7 @@ namespace PromptMasterv6.ViewModels
                     try { System.Windows.Clipboard.SetText(translatedResult); } catch { }
                 }
 
-                // Play Shutter Sound
-                await _audioService.PlayShutterSoundAsync();
+                // Shutter sound removed as part of voice residue cleanup
 
                 // 3. Show Result
                 _windowManager.ShowTranslationPopup(translatedResult ?? "翻译失败", actionRect);
