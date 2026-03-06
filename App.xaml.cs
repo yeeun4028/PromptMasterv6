@@ -111,8 +111,6 @@ namespace PromptMasterv6
                 
                 var launchBarWindow = _serviceProvider.GetRequiredService<PromptMasterv6.Views.LaunchBarWindow>();
                 launchBarWindow.Show(); // Trigger Window_Loaded → UpdateVisibility()
-                
-                // Voice hotkey removed
 
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
             }
@@ -195,10 +193,6 @@ namespace PromptMasterv6
             services.AddHttpClient("NativeAiClient")
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
-            // 注册 VoiceClient（用于语音识别）
-            // services.AddHttpClient("VoiceClient")
-            //     .SetHandlerLifetime(TimeSpan.FromMinutes(5));
-
             // Configuration Service (单例，所有 VM 共享配置)
             services.AddSingleton<ISettingsService, SettingsService>();
 
@@ -226,11 +220,6 @@ namespace PromptMasterv6
             services.AddHttpClient<GoogleService>();
             services.AddHttpClient<TencentService>();
 
-            // Voice Control Services - 已移除
-            // services.AddSingleton<IVoiceService, VoiceService>();
-            // services.AddSingleton<ICommandExecutionService, CommandExecutionService>();
-            // services.AddTransient<VoiceControlViewModel>();
-            
             services.AddSingleton<ClipboardService>();
             services.AddSingleton<IAudioService, AudioService>();
         }

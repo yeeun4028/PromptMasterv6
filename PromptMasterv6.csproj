@@ -28,12 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="voice_commands.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Betalgo.OpenAI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="gong-wpf-dragdrop" />

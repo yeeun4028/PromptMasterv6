@@ -403,6 +403,6 @@ namespace PromptMasterv6.Views
 
         // Connection Test Methods
         // Baidu test methods moved to SettingsViewModel
-        // Tencent, Youdao, Google, Xunfei test methods moved to SettingsViewModel
+        // Tencent, Youdao, Google test methods moved to SettingsViewModel
     }
 }

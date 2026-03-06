@@ -149,10 +149,6 @@ namespace PromptMasterv6.ViewModels
         [ObservableProperty] private string? googleTestStatus;
         [ObservableProperty] private System.Windows.Media.Brush googleTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-        // 讯飞测试
-        [ObservableProperty] private string? xunfeiTestStatus;
-        [ObservableProperty] private System.Windows.Media.Brush xunfeiTestStatusColor = System.Windows.Media.Brushes.Gray;
-
         #endregion
 
         #region Configuration Access (通过 SettingsService)
@@ -802,7 +798,6 @@ namespace PromptMasterv6.ViewModels
                         LoadTencentCredentials();
                         LoadYoudaoCredentials();
                         LoadGoogleCredentials();
-                        LoadXunfeiCredentials();
                         
                         // 尝试重新应用设置
                         ApplyTheme();
@@ -1400,15 +1395,6 @@ namespace PromptMasterv6.ViewModels
             {
                 _mainViewModel.ExternalToolsVM.RefreshProfiles();
             }
-        }
-
-        /// <summary>
-        /// 加载讯飞凭据
-        /// </summary>
-        private void LoadXunfeiCredentials()
-        {
-            // 讯飞凭据直接存储在 Config 中，无需额外处理
-            // UI 直接绑定到 Config.XunfeiAppId, Config.XunfeiApiKey, Config.XunfeiApiSecret
         }
 
         /// <summary>
