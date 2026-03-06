@@ -14,7 +14,7 @@
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:converters="clr-namespace:PromptMasterv6.Converters"
         mc:Ignorable="d"
-        Title="PromptMaster v5" 
+        Title="PromptMaster v6" 
         Height="600" Width="1000"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"

@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         PromptMaster Auto-Fill (Universal AI)
+// @name         PromptMasterv6 Auto-Fill (Universal AI)
 // @namespace    http://tampermonkey.net/
 // @version      1.2
 // @description  自动将 URL 中的 ?q= 参数填入 DeepSeek/Gemini/AI Studio/GLM/Qwen/Doubao 的输入框并发送。
-// @author       PromptMaster
+// @author       PromptMasterv6
 // @match        *://chat.deepseek.com/*
 // @match        *://gemini.google.com/*
 // @match        *://aistudio.google.com/*
@@ -23,7 +23,7 @@
 
     if (!prompt) return;
 
-    console.log('[PromptMaster] Detected prompt:', prompt);
+    console.log('[PromptMasterv6] Detected prompt:', prompt);
 
     // 2. 深度查找函数 (支持 Shadow DOM)
     function findDeep(selector, root = document) {
@@ -68,7 +68,7 @@
     const timer = setInterval(() => {
         retryCount++;
         if (retryCount > maxRetries) {
-            console.log('[PromptMaster] Timeout searching for input.');
+            console.log('[PromptMasterv6] Timeout searching for input.');
             clearInterval(timer);
             return;
         }
@@ -93,7 +93,7 @@
 
         if (inputEl) {
             clearInterval(timer);
-            console.log('[PromptMaster] Input element found:', inputEl);
+            console.log('[PromptMasterv6] Input element found:', inputEl);
 
             // 1. 聚焦
             inputEl.focus();
@@ -129,11 +129,11 @@
                 }
 
                 if (btn) {
-                    console.log('[PromptMaster] Clicking send button:', btn);
+                    console.log('[PromptMasterv6] Clicking send button:', btn);
                     btn.click();
                 } else {
                     // Gemini 通常需要点击按钮，模拟 Enter 可能只是换行
-                    console.log('[PromptMaster] No send button found, trying Enter key...');
+                    console.log('[PromptMasterv6] No send button found, trying Enter key...');
                     const enterEvent = new KeyboardEvent('keydown', {
                         bubbles: true, cancelable: true, keyCode: 13, which: 13, key: 'Enter'
                     });

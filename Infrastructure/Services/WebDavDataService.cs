@@ -31,7 +31,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
 
             var client = GetClient(config);
-            string remotePath = $"{config.RemoteFolderName}/PromptMasterData.json";
+            string remotePath = $"{config.RemoteFolderName}/PromptMasterv6Data.json";
 
             var data = new AppData
             {
@@ -65,7 +65,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
 
             var client = GetClient(config);
-            string remotePath = $"{config.RemoteFolderName}/PromptMasterData.json";
+            string remotePath = $"{config.RemoteFolderName}/PromptMasterv6Data.json";
 
             try
             {

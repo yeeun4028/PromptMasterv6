@@ -175,7 +175,7 @@ namespace PromptMasterv6.Core.Models
         [ObservableProperty]
         private bool enableDoubleEnterSend = true;
 
-        public string RemoteFolderName { get; set; } = "PromptMaster";
+        public string RemoteFolderName { get; set; } = "PromptMasterv6";
 
         [ObservableProperty]
         private string proxyAddress = "http://127.0.0.1:10808";

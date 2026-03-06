@@ -243,7 +243,7 @@ namespace PromptMasterv6
         {
             // 使用 WS_OVERLAPPEDWINDOW 样式，使窗口成为顶层窗口
             // taskkill 会向所有顶层窗口发送 WM_CLOSE
-            var parameters = new HwndSourceParameters("PromptMasterMessageWindow")
+            var parameters = new HwndSourceParameters("PromptMasterv6MessageWindow")
             {
                 WindowStyle = 0x00CF0000, // WS_OVERLAPPEDWINDOW (可关闭、有标题栏等)
                 ExtendedWindowStyle = 0x00000080, // WS_EX_TOOLWINDOW (不在任务栏显示)
@@ -327,7 +327,7 @@ namespace PromptMasterv6
                     }
                 }
 
-                _notifyIcon.Text = "PromptMaster v5";
+                _notifyIcon.Text = "PromptMaster v6";
                 _notifyIcon.Visible = true;
 
                 // 使用 WPF ContextMenu 代替 WinForms 菜单

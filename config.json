@@ -1,5 +1,5 @@
 {
-    "RemoteFolderName": "PromptMaster",
+    "RemoteFolderName": "PromptMasterv6",
     "WebDavUrl": "https://dav.jianguoyun.com/dav/",
     "UserName": "ywj4028@163.com",
     "Password": "Ebd5M9c13E69ncrk9baBnF4j6l8MHjJ7hXcBzLllfrpZzwaG9K1BrMcTEtllIShD",
@@ -251,7 +251,6 @@
     "ScreenshotTranslateHotkey": "Alt+S",
     "SelectedTextTranslateHotkey": "Alt+D",
     "OcrHotkey": "F9",
-
     "LauncherHotkey": "Ctrl+Shift+S",
     "LauncherRunAsAdmin": false,
     "LauncherSearchPaths": [
@@ -314,4 +313,5 @@
         }
     ],
     "DefaultWebTargetName": "Gemini",
-    "EnableDoubleEnterSend": true}
+    "EnableDoubleEnterSend": true
+}

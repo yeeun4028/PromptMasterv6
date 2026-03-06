@@ -26,7 +26,7 @@ namespace PromptMasterv6
         private System.Threading.Mutex? _singleInstanceMutex;
         private bool _ownsMutex;
         private const string MutexName = "PromptMasterv6_SingleInstance_Mutex";
-        private const string WindowTitle = "PromptMaster v5";
+        private const string WindowTitle = "PromptMaster v6";
 
         public App()
         {

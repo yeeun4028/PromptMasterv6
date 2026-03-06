@@ -751,7 +751,7 @@ namespace PromptMasterv6.ViewModels
             {
                 Title = "导出配置",
                 Filter = "配置文件压缩包 (*.zip)|*.zip",
-                FileName = $"PromptMaster_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip"
+                FileName = $"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip"
             };
 
             var owner = System.Windows.Application.Current.Windows
