@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace PromptMasterv5.Utils
+namespace PromptMasterv6.Utils
 {
     public class InverseBoolConverter : IValueConverter
     {

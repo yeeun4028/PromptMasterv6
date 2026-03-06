@@ -1,9 +1,9 @@
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
+﻿using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
 using System.IO.Compression;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     /// <summary>
     /// 配置管理服务实现

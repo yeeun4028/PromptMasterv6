@@ -1,18 +1,18 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using PromptMasterv5.Infrastructure.Helpers;
+using PromptMasterv6.Infrastructure.Helpers;
 using HandyControl.Controls;
 using HandyControl.Data;
 
-namespace PromptMasterv5.ViewModels
+namespace PromptMasterv6.ViewModels
 {
     public partial class ExternalToolsViewModel : ObservableObject
     {

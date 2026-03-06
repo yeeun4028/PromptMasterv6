@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class TranslationPopup : Window
     {

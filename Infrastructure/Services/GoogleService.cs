@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Models;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     public class GoogleService
     {

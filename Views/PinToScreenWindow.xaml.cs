@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
@@ -6,8 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
 
 using WpfBrush = System.Windows.Media.Brush;
 using WpfThickness = System.Windows.Thickness;
@@ -16,7 +16,7 @@ using WpfCursors = System.Windows.Input.Cursors;
 using WpfCursor = System.Windows.Input.Cursor;
 using WpfClipboard = System.Windows.Clipboard;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class PinToScreenWindow : Window
     {

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace PromptMasterv5.Infrastructure.Helpers
+namespace PromptMasterv6.Infrastructure.Helpers
 {
     public static class InputHelper
     {

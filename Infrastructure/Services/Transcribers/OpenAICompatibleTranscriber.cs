@@ -1,7 +1,7 @@
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,7 +11,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace PromptMasterv5.Infrastructure.Services.Transcribers
+namespace PromptMasterv6.Infrastructure.Services.Transcribers
 {
     /// <summary>
     /// OpenAI 兼容 API 语音转写器

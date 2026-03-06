@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Models;
 
-namespace PromptMasterv5.Services
+namespace PromptMasterv6.Services
 {
     public class BaiduService
     {

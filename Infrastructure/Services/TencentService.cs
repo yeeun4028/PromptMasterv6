@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -9,10 +9,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
 
-namespace PromptMasterv5.Services
+namespace PromptMasterv6.Services
 {
     public class TencentService
     {

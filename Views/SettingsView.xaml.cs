@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -7,9 +7,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.IO;
 using System.Linq;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
-using PromptMasterv5.ViewModels;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.ViewModels;
 using WinFormsCursor = System.Windows.Forms.Cursor;
 
 // 解决 WPF 和 WinForms 的命名冲突
@@ -18,7 +18,7 @@ using TextBox = System.Windows.Controls.TextBox;
 using ListBox = System.Windows.Controls.ListBox;
 using Color = System.Windows.Media.Color;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class SettingsView : System.Windows.Controls.UserControl
     {

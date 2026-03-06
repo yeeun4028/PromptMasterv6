@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PromptMasterv5.Converters
+namespace PromptMasterv6.Converters
 {
     public class CountToVisibilityConverter : IValueConverter
     {

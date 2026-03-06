@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace PromptMasterv5.Converters
+namespace PromptMasterv6.Converters
 {
     /// <summary>
     /// 将 SVG Path Data 字符串转换为 Geometry。

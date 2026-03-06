@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using PromptMasterv5.ViewModels;
+using PromptMasterv6.ViewModels;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class LauncherWindow : Window
     {

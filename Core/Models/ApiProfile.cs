@@ -1,8 +1,8 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using PromptMasterv5.Infrastructure.Converters;
+using PromptMasterv6.Infrastructure.Converters;
 
-namespace PromptMasterv5.Core.Models
+namespace PromptMasterv6.Core.Models
 {
     public enum ApiProvider
     {

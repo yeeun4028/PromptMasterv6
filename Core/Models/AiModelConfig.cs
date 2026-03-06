@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace PromptMasterv5.Core.Models
+namespace PromptMasterv6.Core.Models
 {
     public partial class AiModelConfig : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
     {

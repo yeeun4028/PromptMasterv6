@@ -1,9 +1,9 @@
-using NHotkey;
+﻿using NHotkey;
 using NHotkey.Wpf;
 using System;
 using System.Windows.Input;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     /// <summary>
     /// 热键服务

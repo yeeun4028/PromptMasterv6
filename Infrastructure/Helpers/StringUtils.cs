@@ -1,6 +1,6 @@
-using System.Linq;
+﻿using System.Linq;
 
-namespace PromptMasterv5.Infrastructure.Helpers
+namespace PromptMasterv6.Infrastructure.Helpers
 {
     /// <summary>
     /// 字符串工具类

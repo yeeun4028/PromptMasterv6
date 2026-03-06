@@ -1,11 +1,11 @@
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services.Transcribers;
+﻿using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services.Transcribers;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     /// <summary>
     /// 语音服务

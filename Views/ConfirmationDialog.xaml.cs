@@ -1,6 +1,6 @@
-using System.Windows;
+﻿using System.Windows;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class ConfirmationDialog : Window
     {

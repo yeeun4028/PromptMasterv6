@@ -1,8 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace PromptMasterv5.Core.Models
+namespace PromptMasterv6.Core.Models
 {
     public enum ThemeType
     {

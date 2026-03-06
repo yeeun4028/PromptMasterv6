@@ -1,10 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GongSolutions.Wpf.DragDrop;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.ViewModels.Messages;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.ViewModels.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
 using DragDropEffects = System.Windows.DragDropEffects;
 
-namespace PromptMasterv5.ViewModels
+namespace PromptMasterv6.ViewModels
 {
     public partial class SidebarViewModel : ObservableObject
     {

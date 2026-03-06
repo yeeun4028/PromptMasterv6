@@ -1,8 +1,8 @@
-
+﻿
 using System.Collections.Generic;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Models;
 
-namespace PromptMasterv5.ViewModels
+namespace PromptMasterv6.ViewModels
 {
     public class PromptGroup
     {

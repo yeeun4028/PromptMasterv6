@@ -1,47 +1,47 @@
-{
-  "打开计算器": {
-    "Name": "打开计算器",
+﻿{
+  "打开计算�?: {
+    "Name": "打开计算�?,
     "ActionPath": "calc.exe",
-    "Description": "启动并打开系统自带的计算器程序。"
+    "Description": "启动并打开系统自带的计算器程序�?
   },
   "关机": {
     "Name": "关机",
-    "ActionPath": "D:\\Program Files\\PromptMasterv5\\脚本\\关机.ahk",
-    "Description": "一键安全退出Edge浏览器，物理阻断系统网络代理并彻底强杀V2rayN等代理软件内核，最后强制断电关机，略过所有拦截警告。"
+    "ActionPath": "D:\\Program Files\\PromptMasterv6\\脚本\\关机.ahk",
+    "Description": "一键安全退出Edge浏览器，物理阻断系统网络代理并彻底强杀V2rayN等代理软件内核，最后强制断电关机，略过所有拦截警告�?
   },
   "打开Claude": {
     "Name": "打开Claude",
     "ActionPath": "D:\\MyAiProjects\\Claude启动.bat",
-    "Description": "运行批处理脚本以启动 Claude 相关的服务或客户端。"
+    "Description": "运行批处理脚本以启动 Claude 相关的服务或客户端�?
   },
-  "清理任务栏": {
+  "清理任务�?: {
     "Name": "清理文件",
-    "ActionPath": "D:\\Program Files\\PromptMasterv5\\脚本\\清理任务栏.ahk",
-    "Description": "用于静默关闭所有已打开的文件夹界面，并强制结束记事本、计算器、Typora和WinRAR等程序的进程，用于清理桌面工作区环境。"
+    "ActionPath": "D:\\Program Files\\PromptMasterv6\\脚本\\清理任务�?ahk",
+    "Description": "用于静默关闭所有已打开的文件夹界面，并强制结束记事本、计算器、Typora和WinRAR等程序的进程，用于清理桌面工作区环境�?
   },
   "关闭音乐": {
     "Name": "关闭音乐",
-    "ActionPath": "D:\\Program Files\\PromptMasterv5\\脚本\\关闭音乐.ahk",
-    "Description": "静默查找并强制结束 AIMP 音乐播放器的进程。"
+    "ActionPath": "D:\\Program Files\\PromptMasterv6\\脚本\\关闭音乐.ahk",
+    "Description": "静默查找并强制结�?AIMP 音乐播放器的进程�?
   },
   "关闭P5": {
     "Name": "关闭P5",
-    "ActionPath": "D:\\Program Files\\PromptMasterv5\\脚本\\kill_promptmaster5.vbs",
-    "Description": "完全静默地关闭 PromptMaster v5 程序自身，强制结束相关进程。"
+    "ActionPath": "D:\\Program Files\\PromptMasterv6\\脚本\\kill_promptmaster6.vbs",
+    "Description": "完全静默地关�?PromptMaster v6 程序自身，强制结束相关进程�?
   },
   "打开音乐": {
     "Name": "打开音乐",
     "ActionPath": "D:\\Program Files\\AIMP\\AIMP.exe",
-    "Description": "启动并打开 AIMP 音乐播放器。"
+    "Description": "启动并打开 AIMP 音乐播放器�?
   },
   "重启": {
     "Name": "重启",
-    "ActionPath": "D:\\Program Files\\PromptMasterv5\\脚本\\重启.ahk",
-    "Description": "一键安全退出Edge浏览器，物理阻断系统网络代理并彻底强杀V2rayN等代理软件内核，最后强制重启电脑，略过所有拦截警告。"
+    "ActionPath": "D:\\Program Files\\PromptMasterv6\\脚本\\重启.ahk",
+    "Description": "一键安全退出Edge浏览器，物理阻断系统网络代理并彻底强杀V2rayN等代理软件内核，最后强制重启电脑，略过所有拦截警告�?
   },
-  "打开记事本": {
-    "Name": "打开记事本",
+  "打开记事�?: {
+    "Name": "打开记事�?,
     "ActionPath": "notepad.exe",
-    "Description": "启动并打开系统自带的文本编辑器（记事本）。"
+    "Description": "启动并打开系统自带的文本编辑器（记事本）�?
   }
 }

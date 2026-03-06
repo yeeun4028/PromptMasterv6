@@ -1,9 +1,9 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
-using PromptMasterv5.ViewModels;
+using PromptMasterv6.ViewModels;
 using System.Windows.Threading;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class SettingsWindow : Window
     {

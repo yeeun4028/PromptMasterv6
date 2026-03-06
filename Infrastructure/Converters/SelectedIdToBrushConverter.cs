@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace PromptMasterv5.Infrastructure.Converters
+namespace PromptMasterv6.Infrastructure.Converters
 {
     public class SelectedIdToBrushConverter : IValueConverter
     {

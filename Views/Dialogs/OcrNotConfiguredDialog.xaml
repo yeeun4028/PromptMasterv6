@@ -1,4 +1,4 @@
-<Window x:Class="PromptMasterv5.Views.Dialogs.OcrNotConfiguredDialog"
+﻿<Window x:Class="PromptMasterv6.Views.Dialogs.OcrNotConfiguredDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="未配置 OCR" Height="220" Width="400"

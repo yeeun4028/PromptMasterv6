@@ -1,6 +1,6 @@
-using System.Windows;
+﻿using System.Windows;
 
-namespace PromptMasterv5.Views.Dialogs
+namespace PromptMasterv6.Views.Dialogs
 {
     public partial class OcrNotConfiguredDialog : Window
     {

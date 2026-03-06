@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace PromptMasterv5.Infrastructure.Helpers
+namespace PromptMasterv6.Infrastructure.Helpers
 {
     public static class TrayMenuHelper
     {

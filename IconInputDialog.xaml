@@ -1,4 +1,4 @@
-﻿<Window x:Class="PromptMasterv5.IconInputDialog"
+﻿<Window x:Class="PromptMasterv6.IconInputDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="设置图标" Height="340" Width="380"

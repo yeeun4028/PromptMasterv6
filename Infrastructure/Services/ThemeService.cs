@@ -1,8 +1,8 @@
-using PromptMasterv5.Core.Models;
+﻿using PromptMasterv6.Core.Models;
 using System.Windows;
 using Application = System.Windows.Application;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     /// <summary>
     /// 主题服务

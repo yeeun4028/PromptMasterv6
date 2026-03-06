@@ -1,9 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
-using PromptMasterv5.Infrastructure.Converters;
+using PromptMasterv6.Infrastructure.Converters;
 
-namespace PromptMasterv5.Core.Models
+namespace PromptMasterv6.Core.Models
 {
     /// <summary>
     /// 语音识别引擎类型

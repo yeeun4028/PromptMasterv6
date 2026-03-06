@@ -1,14 +1,14 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace PromptMasterv5.ViewModels
+namespace PromptMasterv6.ViewModels
 {
     public partial class VoiceControlViewModel : ObservableObject
     {

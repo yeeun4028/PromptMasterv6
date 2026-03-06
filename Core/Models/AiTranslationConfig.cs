@@ -1,7 +1,7 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace PromptMasterv5.Core.Models
+namespace PromptMasterv6.Core.Models
 {
     /// <summary>
     /// AI 翻译提示词配置（收藏）

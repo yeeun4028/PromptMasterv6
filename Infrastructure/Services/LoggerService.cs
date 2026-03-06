@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     /// <summary>
     /// Provides thread-safe logging functionality with automatic log rotation

@@ -1,6 +1,6 @@
-using PromptMasterv5.Core.Models;
+﻿using PromptMasterv6.Core.Models;
 
-namespace PromptMasterv5.Core.Interfaces
+namespace PromptMasterv6.Core.Interfaces
 {
     /// <summary>
     /// 提供应用程序配置管理服务

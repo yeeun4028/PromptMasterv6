@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -9,9 +9,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Infrastructure.Services;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class ScreenCaptureOverlay : Window
     {

@@ -1,19 +1,19 @@
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Views;
-using PromptMasterv5.ViewModels;
+﻿using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Views;
+using PromptMasterv6.ViewModels;
 using System.Windows;
 using Application = System.Windows.Application;
-using PromptMasterv5.Infrastructure.Helpers;
+using PromptMasterv6.Infrastructure.Helpers;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Media.Imaging;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Models;
 using System.IO;
 
 using WpfClipboard = System.Windows.Clipboard;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     public class WindowManager : IWindowManager
     {

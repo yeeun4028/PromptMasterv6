@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
 
-namespace PromptMasterv5
+namespace PromptMasterv6
 {
     public partial class IconInputDialog : Window
     {

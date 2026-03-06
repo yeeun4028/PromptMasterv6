@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
-namespace PromptMasterv5.Core.Interfaces
+namespace PromptMasterv6.Core.Interfaces
 {
     public interface IVoiceService : IDisposable
     {

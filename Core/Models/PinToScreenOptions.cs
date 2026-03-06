@@ -1,7 +1,7 @@
-using MediaColor = System.Windows.Media.Color;
+﻿using MediaColor = System.Windows.Media.Color;
 using MediaColors = System.Windows.Media.Colors;
 
-namespace PromptMasterv5.Core.Models
+namespace PromptMasterv6.Core.Models
 {
     /// <summary>
     /// 贴图（钉图）功能的配置选项

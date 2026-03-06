@@ -1,4 +1,4 @@
-global using PromptMasterv5.Core.Interfaces;
-global using PromptMasterv5.Core.Models;
-global using PromptMasterv5.Infrastructure.Services;
-global using PromptMasterv5.Services;
+﻿global using PromptMasterv6.Core.Interfaces;
+global using PromptMasterv6.Core.Models;
+global using PromptMasterv6.Infrastructure.Services;
+global using PromptMasterv6.Services;

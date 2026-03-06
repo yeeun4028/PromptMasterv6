@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -7,7 +7,7 @@ using FormsClipboard = System.Windows.Forms.Clipboard;
 using System.Windows.Forms; // For SendKeys
 using System.Windows.Automation; // For UI Automation
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     /// <summary>
     /// 剪贴板操作服务

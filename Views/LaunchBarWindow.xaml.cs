@@ -1,6 +1,6 @@
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
-using PromptMasterv5.ViewModels;
+﻿using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.ViewModels;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -10,7 +10,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class LaunchBarWindow : Window
     {

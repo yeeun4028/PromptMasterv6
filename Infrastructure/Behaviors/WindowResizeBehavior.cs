@@ -1,9 +1,9 @@
-using Microsoft.Xaml.Behaviors;
+﻿using Microsoft.Xaml.Behaviors;
 using System;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 
-namespace PromptMasterv5.Infrastructure.Behaviors
+namespace PromptMasterv6.Infrastructure.Behaviors
 {
     public class WindowResizeBehavior : Behavior<Thumb>
     {

@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PromptMasterv5.Infrastructure.Helpers
+namespace PromptMasterv6.Infrastructure.Helpers
 {
     public static class EncryptionHelper
     {

@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Models;
 
-namespace PromptMasterv5.Core.Interfaces
+namespace PromptMasterv6.Core.Interfaces
 {
     public interface IWindowManager
     {

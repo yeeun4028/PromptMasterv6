@@ -1,4 +1,4 @@
-namespace PromptMasterv5.Core.Models
+﻿namespace PromptMasterv6.Core.Models
 {
     public class VoiceCommand
     {

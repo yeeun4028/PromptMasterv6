@@ -1,11 +1,11 @@
-using Gma.System.MouseKeyHook;
+﻿using Gma.System.MouseKeyHook;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Input;
 
-namespace PromptMasterv5.Infrastructure.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     public class GlobalKeyService : IDisposable
     {

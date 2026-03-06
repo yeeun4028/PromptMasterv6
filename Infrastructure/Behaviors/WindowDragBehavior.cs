@@ -1,8 +1,8 @@
-using Microsoft.Xaml.Behaviors;
+﻿using Microsoft.Xaml.Behaviors;
 using System.Windows;
 using System.Windows.Input;
 
-namespace PromptMasterv5.Infrastructure.Behaviors
+namespace PromptMasterv6.Infrastructure.Behaviors
 {
     public class WindowDragBehavior : Behavior<FrameworkElement>
     {

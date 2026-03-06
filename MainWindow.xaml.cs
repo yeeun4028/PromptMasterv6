@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PromptMasterv5.ViewModels;
+using PromptMasterv6.ViewModels;
 using System.Text;
 using System.Windows.Media;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using System.Linq;
@@ -19,7 +19,7 @@ using System.Windows.Documents;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 using Gma.System.MouseKeyHook;
-using PromptMasterv5.Infrastructure.Helpers;
+using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
@@ -34,9 +34,9 @@ using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv5.ViewModels.Messages;
+using PromptMasterv6.ViewModels.Messages;
 
-namespace PromptMasterv5
+namespace PromptMasterv6
 {
     public partial class MainWindow : Window
     {
@@ -361,7 +361,7 @@ namespace PromptMasterv5
                 };
 
                 // Subscribe to AI routing events
-                var cmdService = (Application.Current as App)?.ServiceProvider.GetService<PromptMasterv5.Core.Interfaces.ICommandExecutionService>();
+                var cmdService = (Application.Current as App)?.ServiceProvider.GetService<PromptMasterv6.Core.Interfaces.ICommandExecutionService>();
                 if (cmdService != null)
                 {
                     cmdService.OnRoutingStarted += (s, ev) => 

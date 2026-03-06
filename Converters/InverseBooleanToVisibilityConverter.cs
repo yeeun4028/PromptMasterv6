@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PromptMasterv5
+namespace PromptMasterv6
 {
     public class InverseBooleanToVisibilityConverter : IValueConverter
     {

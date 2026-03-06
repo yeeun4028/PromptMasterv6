@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Windows;
-using PromptMasterv5.ViewModels;
+using PromptMasterv6.ViewModels;
 
-namespace PromptMasterv5.Views
+namespace PromptMasterv6.Views
 {
     public partial class VoiceControlWindow : Window
     {

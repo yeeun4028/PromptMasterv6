@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 
-namespace PromptMasterv5.Infrastructure.Services;
+namespace PromptMasterv6.Infrastructure.Services;
 
 public static class BrowserUrlDetector
 {

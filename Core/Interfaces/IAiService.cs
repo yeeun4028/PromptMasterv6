@@ -1,9 +1,9 @@
-using PromptMasterv5.Core.Models;
+﻿using PromptMasterv6.Core.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OpenAI.ObjectModels.RequestModels;
 
-namespace PromptMasterv5.Core.Interfaces
+namespace PromptMasterv6.Core.Interfaces
 {
     public interface IAiService
     {

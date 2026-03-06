@@ -1,8 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Services;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace PromptMasterv5.ViewModels
+namespace PromptMasterv6.ViewModels
 {
     public partial class LauncherViewModel : ObservableObject
     {
@@ -63,7 +63,7 @@ namespace PromptMasterv5.ViewModels
             {
                 var appDataPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PromptMasterv5", "launcher_orders.json");
+                    "PromptMasterv6", "launcher_orders.json");
                 if (File.Exists(appDataPath))
                 {
                     var json = File.ReadAllText(appDataPath);
@@ -101,7 +101,7 @@ namespace PromptMasterv5.ViewModels
             {
                 var appDataPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PromptMasterv5", "launcher_orders.json");
+                    "PromptMasterv6", "launcher_orders.json");
                 var dir = Path.GetDirectoryName(appDataPath);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir!);

@@ -1,19 +1,19 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Infrastructure.Services;
-using PromptMasterv5.ViewModels;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.ViewModels;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using TextBox = System.Windows.Controls.TextBox;
 using WpfControl = System.Windows.Controls.Control;
 using Cursors = System.Windows.Input.Cursors;
 
-namespace PromptMasterv5
+namespace PromptMasterv6
 {
     // 修改这一行，显式继承 System.Windows.Application
     public partial class App : System.Windows.Application
@@ -25,7 +25,7 @@ namespace PromptMasterv5
 
         private System.Threading.Mutex? _singleInstanceMutex;
         private bool _ownsMutex;
-        private const string MutexName = "PromptMasterv5_SingleInstance_Mutex";
+        private const string MutexName = "PromptMasterv6_SingleInstance_Mutex";
         private const string WindowTitle = "PromptMaster v5";
 
         public App()
@@ -109,7 +109,7 @@ namespace PromptMasterv5
                 MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 MainWindow.Show();
                 
-                var launchBarWindow = _serviceProvider.GetRequiredService<PromptMasterv5.Views.LaunchBarWindow>();
+                var launchBarWindow = _serviceProvider.GetRequiredService<PromptMasterv6.Views.LaunchBarWindow>();
                 launchBarWindow.Show(); // Trigger Window_Loaded → UpdateVisibility()
                 
                 // Initialize Voice Hotkey
@@ -213,7 +213,7 @@ namespace PromptMasterv5
             services.AddTransient<LauncherViewModel>(); 
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<PromptMasterv5.Views.LaunchBarWindow>();
+            services.AddSingleton<PromptMasterv6.Views.LaunchBarWindow>();
 
             services.AddSingleton<ILauncherService, LauncherService>();
             services.AddSingleton<IAiService, AiService>();

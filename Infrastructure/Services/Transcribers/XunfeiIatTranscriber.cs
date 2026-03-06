@@ -1,7 +1,7 @@
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
 using System;
 using System.IO;
 using System.Net.WebSockets;
@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PromptMasterv5.Infrastructure.Services.Transcribers
+namespace PromptMasterv6.Infrastructure.Services.Transcribers
 {
     /// <summary>
     /// 讯飞语音听写器

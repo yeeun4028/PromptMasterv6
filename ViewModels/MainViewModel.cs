@@ -1,14 +1,14 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GongSolutions.Wpf.DragDrop;
 using Markdig;
 using Microsoft.Extensions.DependencyInjection;
-using PromptMasterv5.Core.Interfaces;
-using PromptMasterv5.Core.Models;
-using PromptMasterv5.Infrastructure.Helpers;
-using PromptMasterv5.Infrastructure.Services;
-using PromptMasterv5.ViewModels.Messages;
+using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
+using PromptMasterv6.Infrastructure.Helpers;
+using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.ViewModels.Messages;
 using ReverseMarkdown;
 
 
@@ -32,7 +32,7 @@ using MessageBox = System.Windows.MessageBox;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace PromptMasterv5.ViewModels;
+namespace PromptMasterv6.ViewModels;
 
 public partial class MainViewModel : ObservableObject, IDisposable
 {
@@ -664,7 +664,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void ChangeFileIcon(PromptItem? file)
     {
         if (file == null) return;
-        var dialog = new PromptMasterv5.IconInputDialog(file.IconGeometry);
+        var dialog = new PromptMasterv6.IconInputDialog(file.IconGeometry);
         if (dialog.ShowDialog() == true)
         {
             file.IconGeometry = dialog.ResultGeometry;
