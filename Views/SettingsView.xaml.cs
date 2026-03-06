@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,7 +25,6 @@ namespace PromptMasterv6.Views
         private int _selectedExternalToolsSubTab = 0;
 
         private int _selectedAiSubTab = 0;
-        private int _selectedVoiceControlSubTab = 0;
 
         public SettingsView()
         {
@@ -44,21 +43,6 @@ namespace PromptMasterv6.Views
 
             // Initialize Sync sub-tab to WebDAV tab
             UpdateSyncSubTab(0);
-
-            // Initialize Voice Control sub-tab to Engine tab
-            UpdateVoiceControlSubTab(0);
-            
-            // Subscribe to VoiceProvider changes
-            if (ViewModel?.Config != null)
-            {
-                ViewModel.Config.PropertyChanged += (s, ev) =>
-                {
-                    if (ev.PropertyName == nameof(AppConfig.VoiceProvider))
-                    {
-                        UpdateVoiceProviderUI();
-                    }
-                };
-            }
         }
 
         // Baidu and Tencent credentials methods moved to SettingsViewModel
@@ -334,66 +318,6 @@ namespace PromptMasterv6.Views
         }
 
 
-        private void VoiceTriggerHotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (ViewModel == null) return;
-
-            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
-
-            // Delete to clear
-            if (key == Key.Delete || key == Key.Back)
-            {
-                e.Handled = true;
-                ViewModel.Config.VoiceTriggerHotkey = "";
-                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateVoiceTriggerHotkey();
-                return;
-            }
-
-            e.Handled = true;
-
-            // Voice control hotkey uses explicit Key names, including for modifiers.
-            // Let's gather currently pressed modifiers exactly (Left/Right)
-            var sb = new StringBuilder();
-
-            bool lCtrl = Keyboard.IsKeyDown(Key.LeftCtrl);
-            bool rCtrl = Keyboard.IsKeyDown(Key.RightCtrl);
-            bool lAlt = Keyboard.IsKeyDown(Key.LeftAlt);
-            bool rAlt = Keyboard.IsKeyDown(Key.RightAlt);
-            bool lShift = Keyboard.IsKeyDown(Key.LeftShift);
-            bool rShift = Keyboard.IsKeyDown(Key.RightShift);
-            bool lWin = Keyboard.IsKeyDown(Key.LWin);
-            bool rWin = Keyboard.IsKeyDown(Key.RWin);
-
-            // If the key strictly IS a modifier, we don't treat it as the "main" key if other modifiers are pressed, 
-            // actually we just collect what's pressed. But a hotkey is usually modifiers + 1 main key.
-            // If the user presses LCtrl, it fires KeyDown(LCtrl). 
-            // If they hold LCtrl and press T, it fires KeyDown(T).
-            // So we add all pressed modifiers first.
-            
-            bool isModifierKey = key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin;
-
-            // We want to avoid adding the key twice if it's both in IsKeyDown and e.Key
-            if (lCtrl && key != Key.LeftCtrl) sb.Append("LeftCtrl+");
-            if (rCtrl && key != Key.RightCtrl) sb.Append("RightCtrl+");
-            if (lAlt && key != Key.LeftAlt) sb.Append("LeftAlt+");
-            if (rAlt && key != Key.RightAlt) sb.Append("RightAlt+");
-            if (lShift && key != Key.LeftShift) sb.Append("LeftShift+");
-            if (rShift && key != Key.RightShift) sb.Append("RightShift+");
-            if (lWin && key != Key.LWin) sb.Append("LWin+");
-            if (rWin && key != Key.RWin) sb.Append("RWin+");
-
-            sb.Append(key.ToString());
-
-            if (sender is TextBox tb)
-            {
-                ViewModel.Config.VoiceTriggerHotkey = sb.ToString();
-                tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateVoiceTriggerHotkey();
-            }
-        }
-
-
         // External Tools Sub-Tab Navigation
         private void ExternalToolsSubTab_Click(object sender, RoutedEventArgs e)
         {
@@ -480,59 +404,5 @@ namespace PromptMasterv6.Views
         // Connection Test Methods
         // Baidu test methods moved to SettingsViewModel
         // Tencent, Youdao, Google, Xunfei test methods moved to SettingsViewModel
-
-        #region Voice Control Sub-Tab Navigation
-
-        private void VoiceControlSubTab_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
-            {
-                UpdateVoiceControlSubTab(tabIndex);
-            }
-        }
-
-        private void UpdateVoiceControlSubTab(int tabIndex)
-        {
-            _selectedVoiceControlSubTab = tabIndex;
-
-            // Update button states
-            if (BtnVoiceEngineTab != null) BtnVoiceEngineTab.Tag = tabIndex == 0 ? "Selected" : "0";
-            if (BtnXunfeiConfigTab != null) BtnXunfeiConfigTab.Tag = tabIndex == 1 ? "Selected" : "1";
-            if (BtnVoiceCommandsTab != null) BtnVoiceCommandsTab.Tag = tabIndex == 2 ? "Selected" : "2";
-
-            // Show/hide tab content
-            if (VoiceEngineTab != null) VoiceEngineTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
-            if (XunfeiConfigTab != null) XunfeiConfigTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
-            if (VoiceCommandsTab != null) VoiceCommandsTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
-
-            // Update voice provider UI
-            UpdateVoiceProviderUI();
-        }
-
-        private void UpdateVoiceProviderUI()
-        {
-            if (ViewModel?.Config == null) return;
-
-            var isXunfei = ViewModel.Config.VoiceProvider == VoiceProvider.Xunfei;
-
-            // Show/hide OpenAI model selection
-            if (OpenAIModelSelection != null)
-                OpenAIModelSelection.Visibility = isXunfei ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        #endregion
-
-        #region Xunfei Configuration
-
-        private void XunfeiApiSecretBox_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel == null) return;
-            if (sender is PasswordBox pb)
-            {
-                ViewModel.Config.XunfeiApiSecret = pb.Password;
-            }
-        }
-
-        #endregion
     }
 }

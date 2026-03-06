@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -359,33 +359,6 @@ namespace PromptMasterv6
                     _routingAnimState = !_routingAnimState;
                     _notifyIcon.Icon = _routingAnimState ? _processingIcon : _defaultIcon;
                 };
-
-                // Subscribe to AI routing events
-                var cmdService = (Application.Current as App)?.ServiceProvider.GetService<PromptMasterv6.Core.Interfaces.ICommandExecutionService>();
-                if (cmdService != null)
-                {
-                    cmdService.OnRoutingStarted += (s, ev) => 
-                    {
-                        Application.Current.Dispatcher.Invoke(() => 
-                        {
-                            _routingAnimState = false;
-                            _routingAnimTimer?.Start();
-                            if (_notifyIcon != null) _notifyIcon.Text = "PromptMaster v5 - AI 路由中...";
-                        });
-                    };
-                    cmdService.OnRoutingFinished += (s, ev) => 
-                    {
-                        Application.Current.Dispatcher.Invoke(() => 
-                        {
-                            _routingAnimTimer?.Stop();
-                            if (_notifyIcon != null) 
-                            {
-                                _notifyIcon.Icon = _defaultIcon;
-                                _notifyIcon.Text = "PromptMaster v5";
-                            }
-                        });
-                    };
-                }
             }
             catch (Exception ex)
             {

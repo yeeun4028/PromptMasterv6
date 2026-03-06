@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
@@ -51,24 +51,6 @@ namespace PromptMasterv6.ViewModels
         [ObservableProperty] private bool isSettingsOpen;
         [ObservableProperty] private int selectedSettingsTab;
         [ObservableProperty] private bool isNavigationVisible = true;
-
-        #endregion
-
-        #region Observable Properties - Proxy Settings
-
-        public string ProxyAddress
-        {
-            get => Config.ProxyAddress;
-            set
-            {
-                if (Config.ProxyAddress != value)
-                {
-                    Config.ProxyAddress = value;
-                    OnPropertyChanged();
-                    _settingsService.SaveConfig();
-                }
-            }
-        }
 
         #endregion
 
@@ -502,84 +484,6 @@ namespace PromptMasterv6.ViewModels
 
         #endregion
 
-        #region Commands - Voice Control
-
-        [RelayCommand]
-        private void OpenVoiceCommandsConfig()
-        {
-            try
-            {
-                // Ensure the file exists
-                string configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Config.VoiceCommandConfigPath);
-                if (!System.IO.File.Exists(configPath))
-                {
-                    // Create default file if not exists (although AppConfig should handle it, double check)
-                    System.IO.File.WriteAllText(configPath, 
-                        "{\n  \"打开计算器\": {\n    \"Name\": \"打开计算器\",\n    \"ActionPath\": \"calc.exe\",\n    \"Description\": \"启动系统计算器\"\n  },\n  \"打开记事本\": {\n    \"Name\": \"打开记事本\",\n    \"ActionPath\": \"notepad.exe\",\n    \"Description\": \"启动系统记事本\"\n  }\n}");
-                }
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = configPath,
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex)
-            {
-                _dialogService.ShowAlert($"无法打开配置文件: {ex.Message}", "错误");
-                LoggerService.Instance.LogException(ex, "Failed to open voice command config", "SettingsViewModel.OpenVoiceCommandsConfig");
-            }
-        }
-        
-        public void UpdateVoiceTriggerHotkey()
-        {
-            try
-            {
-                 // Re-register hotkey in GlobalKeyService via MainViewModel or direct service access if available
-                 // For now, we just save config, GlobalKeyService should listen to config changes or be manually updated
-                 // Since we don't have direct access to GlobalKeyService's registration method from here easily without exposing it,
-                 // we rely on the fact that GlobalKeyService might reload on config save or we need to add a method there.
-                 // Actually we have _keyService injected. Let's use it if possible, or just save config.
-                 // In the plan, we said GlobalKeyService would use AppConfig.
-                 
-                _settingsService.SaveConfig();
-                
-                 // Trigger re-registration in GlobalKeyService
-                 _keyService.UpdateVoiceHotkey(Config.VoiceTriggerHotkey);
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogException(ex, "Failed to update voice trigger hotkey", "SettingsViewModel.UpdateVoiceTriggerHotkey");
-            }
-        }
-
-        [RelayCommand]
-        private void OpenVoiceCommandCache()
-        {
-            try
-            {
-                string cachePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Config.VoiceCommandCacheConfigPath);
-                if (!System.IO.File.Exists(cachePath))
-                {
-                    System.IO.File.WriteAllText(cachePath, "{}");
-                }
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = cachePath,
-                    UseShellExecute = true
-                });
-                LoggerService.Instance.LogInfo("Opened Voice Command Cache", "SettingsViewModel.OpenVoiceCommandCache");
-            }
-            catch (Exception ex)
-            {
-                _dialogService.ShowAlert($"无法打开缓存文件: {ex.Message}", "错误");
-                LoggerService.Instance.LogException(ex, "Failed to open intent cache", "SettingsViewModel.OpenVoiceCommandCache");
-            }
-        }
-
-        #endregion
-
         #region Commands - Sync & Restore
 
         [RelayCommand]
@@ -663,20 +567,6 @@ namespace PromptMasterv6.ViewModels
                 _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
                 _mainViewModel.UpdateFilesViewFilter();
                 _mainViewModel.FilesView?.Refresh();
-
-                // Restore voice commands and intent cache
-                var voiceCommandService = (System.Windows.Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
-                if (voiceCommandService != null)
-                {
-                    if (data.VoiceCommandsV2 != null && data.VoiceCommandsV2.Count > 0)
-                    {
-                        voiceCommandService.SetCommands(data.VoiceCommandsV2);
-                    }
-                    if (data.VoiceCommandIntentCache != null && data.VoiceCommandIntentCache.Count > 0)
-                    {
-                        voiceCommandService.SetIntentCache(data.VoiceCommandIntentCache);
-                    }
-                }
 
                 // Save to local
                 await _mainViewModel.PerformLocalBackup();
@@ -779,20 +669,6 @@ namespace PromptMasterv6.ViewModels
                 _mainViewModel.UpdateFilesViewFilter();
                 _mainViewModel.FilesView?.Refresh();
 
-                // Restore voice commands and intent cache for local restore
-                var voiceCommandService = (System.Windows.Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
-                if (voiceCommandService != null)
-                {
-                    if (data.VoiceCommandsV2 != null && data.VoiceCommandsV2.Count > 0)
-                    {
-                        voiceCommandService.SetCommands(data.VoiceCommandsV2);
-                    }
-                    if (data.VoiceCommandIntentCache != null && data.VoiceCommandIntentCache.Count > 0)
-                    {
-                        voiceCommandService.SetIntentCache(data.VoiceCommandIntentCache);
-                    }
-                }
-
                 RestoreStatus = $"✅ 本地恢复成功: {selected.FileName}";
                 RestoreStatusColor = System.Windows.Media.Brushes.Green;
             }
@@ -814,11 +690,7 @@ namespace PromptMasterv6.ViewModels
 
             try
             {
-                var voiceCommandService = (System.Windows.Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
-                var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, VoiceCommand>();
-                var intentCache = voiceCommandService?.GetIntentCache() ?? new Dictionary<string, string>();
-                
-                await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files, voiceCommands, intentCache);
+                await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files);
                 _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now; // Update sync time
                 _mainViewModel.IsDirty = false; // Reset dirty state indicator
                 _mainViewModel.IsEditMode = false; // Switch to preview mode on successful backup
@@ -1250,97 +1122,6 @@ namespace PromptMasterv6.ViewModels
                 GoogleTestStatus = $"测试出错: {ex.Message}";
                 GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
                 LoggerService.Instance.LogException(ex, "Failed to test Google", "SettingsViewModel.TestGoogle");
-            }
-        }
-
-        #endregion
-
-        #region Commands - Xunfei API Testing
-
-        [RelayCommand]
-        private async Task TestXunfeiConnection()
-        {
-            if (string.IsNullOrWhiteSpace(Config.XunfeiAppId) ||
-                string.IsNullOrWhiteSpace(Config.XunfeiApiKey) ||
-                string.IsNullOrWhiteSpace(Config.XunfeiApiSecret))
-            {
-                XunfeiTestStatus = "请先填写 AppID、API Key 和 API Secret";
-                XunfeiTestStatusColor = System.Windows.Media.Brushes.Red;
-                _dialogService.ShowAlert("请先填写 AppID、API Key 和 API Secret", "配置不完整");
-                return;
-            }
-
-            XunfeiTestStatus = "测试中...";
-            XunfeiTestStatusColor = System.Windows.Media.Brushes.Gray;
-
-            try
-            {
-                _settingsService.SaveConfig();
-
-                var transcriber = new Infrastructure.Services.Transcribers.XunfeiIatTranscriber(_settingsService);
-
-                bool connectionSuccess = await TestXunfeiWebSocketAsync(transcriber);
-
-                if (connectionSuccess)
-                {
-                    XunfeiTestStatus = "连接成功！讯飞语音听写 API 配置正确";
-                    XunfeiTestStatusColor = System.Windows.Media.Brushes.Green;
-                    _dialogService.ShowToast("连接成功！讯飞语音听写 API 配置正确。", "测试通过");
-                }
-                else
-                {
-                    XunfeiTestStatus = "连接失败，请检查配置参数";
-                    XunfeiTestStatusColor = System.Windows.Media.Brushes.Red;
-                    _dialogService.ShowToast("连接失败，请检查配置参数是否正确。", "测试失败");
-                }
-            }
-            catch (Exception ex)
-            {
-                XunfeiTestStatus = $"测试出错: {ex.Message}";
-                XunfeiTestStatusColor = System.Windows.Media.Brushes.Red;
-                _dialogService.ShowAlert($"测试出错: {ex.Message}", "错误");
-                LoggerService.Instance.LogException(ex, "Failed to test Xunfei connection", "SettingsViewModel.TestXunfeiConnection");
-            }
-        }
-
-        private async Task<bool> TestXunfeiWebSocketAsync(Infrastructure.Services.Transcribers.XunfeiIatTranscriber transcriber)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-
-            EventHandler<Exception>? errorHandler = null;
-            EventHandler? startedHandler = null;
-
-            errorHandler = (s, e) =>
-            {
-                tcs.TrySetResult(false);
-            };
-
-            startedHandler = (s, e) =>
-            {
-                tcs.TrySetResult(true);
-            };
-
-            transcriber.OnError += errorHandler;
-            transcriber.OnRecordingStarted += startedHandler;
-
-            try
-            {
-                transcriber.StartRecording();
-
-                var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(5000));
-
-                if (completedTask == tcs.Task)
-                {
-                    return await tcs.Task;
-                }
-
-                return transcriber.IsRecording;
-            }
-            finally
-            {
-                _ = transcriber.StopRecordingAndTranscribeAsync();
-                transcriber.OnError -= errorHandler;
-                transcriber.OnRecordingStarted -= startedHandler;
             }
         }
 

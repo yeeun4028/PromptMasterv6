@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GongSolutions.Wpf.DragDrop;
@@ -44,7 +44,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly ClipboardService _clipboardService;
     private readonly IWindowManager _windowManager; // Injected
     private readonly ISettingsService _settingsService;
-    private readonly ICommandExecutionService _commandExecutionService;
     private readonly ThemeService _themeService;
     private readonly HotkeyService _hotkeyService;
 
@@ -63,8 +62,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly Subject<System.Reactive.Unit> _saveLocalSettingsSubject = new();
 
     // Event handlers for proper unsubscription
-    private EventHandler? _onVoiceControlKeyDownHandler;
-    private EventHandler? _onVoiceControlTriggeredHandler;
     private EventHandler? _onLauncherTriggeredHandler;
     private PropertyChangedEventHandler? _settingsVMPropertyChangedHandler;
     private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
@@ -240,8 +237,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ExternalToolsViewModel externalToolsVM,
         IDialogService dialogService,
         ClipboardService clipboardService,
-          IWindowManager windowManager,
-          ICommandExecutionService commandExecutionService) // Injected
+          IWindowManager windowManager) // Injected
     {
         Pipeline = new MarkdownPipelineBuilder()
             .DisableHtml()
@@ -256,16 +252,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _settingsService = settingsService;
         _settingsService = settingsService;
         _windowManager = windowManager; // Assigned
-        _commandExecutionService = commandExecutionService;
         _themeService = new ThemeService();
         _hotkeyService = new HotkeyService();
         
-        _commandExecutionService.CommandsChanged += (_, __) => 
-        {
-             // Mark as dirty so sync prompt appears
-             Application.Current.Dispatcher.Invoke(() => RequestSave());
-        };
-
         SidebarVM = sidebarVM;
         ChatVM = chatVM;
         SettingsVM = settingsVM;
@@ -364,12 +353,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _onLauncherTriggeredHandler = (_, __) => HandleLauncherTriggered();
         _keyService.OnLauncherTriggered += _onLauncherTriggeredHandler;
 
-        _onVoiceControlKeyDownHandler = (_, __) => HandleVoiceControlKeyDown();
-        _keyService.OnVoiceControlKeyDown += _onVoiceControlKeyDownHandler;
-
-        _onVoiceControlTriggeredHandler = (_, __) => HandleVoiceControlKeyUp();
-        _keyService.OnVoiceControlTriggered += _onVoiceControlTriggeredHandler;
-        // Initialize hotkeys from config before starting
         _keyService.LauncherHotkeyString = Config.LauncherHotkey;
         // Initialize GlobalKeyService unconditionally to support Launcher
         try { _keyService.Start(); }
@@ -466,17 +449,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        // Restore voice commands from sync data
-        if (data.VoiceCommandsV2 != null && data.VoiceCommandsV2.Count > 0)
-        {
-            _commandExecutionService.SetCommands(data.VoiceCommandsV2);
-        }
-        else if (data.VoiceCommands != null && data.VoiceCommands.Count > 0)
-        {
-            var migrated = data.VoiceCommands.ToDictionary(kvp => kvp.Key, kvp => new VoiceCommand { Name = kvp.Key, ActionPath = kvp.Value });
-            _commandExecutionService.SetCommands(migrated);
-        }
-
         FilesView = CollectionViewSource.GetDefaultView(Files);
         UpdateFilesViewFilter();
         FilesView?.Refresh();
@@ -492,54 +464,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
 
         IsDirty = false; // Initial load is consistent with source
-    }
-
-    private void HandleVoiceControlKeyDown()
-    {
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-            try
-            {
-                // If already open and listening, ignore repeated KeyDown
-                var existing = Application.Current.Windows.OfType<Views.VoiceControlWindow>().FirstOrDefault();
-                if (existing != null) return;
-
-                var app = Application.Current as App;
-                if (app != null)
-                {
-                    var vm = app.ServiceProvider.GetRequiredService<VoiceControlViewModel>();
-                    var window = new Views.VoiceControlWindow(vm);
-                    window.Show();
-                    vm.StartRecordingSession();
-                }
-            }
-            catch (Exception ex)
-            {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to start voice control", "MainViewModel.HandleVoiceControlKeyDown");
-            }
-        });
-    }
-
-    private void HandleVoiceControlKeyUp()
-    {
-        Application.Current.Dispatcher.Invoke(async () =>
-        {
-            try
-            {
-                var existing = Application.Current.Windows.OfType<Views.VoiceControlWindow>().FirstOrDefault();
-                if (existing == null) return;
-
-                var vm = existing.DataContext as VoiceControlViewModel;
-                if (vm != null && vm.IsListening)
-                {
-                    await vm.StopAndProcess();
-                }
-            }
-            catch (Exception ex)
-            {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to stop voice control", "MainViewModel.HandleVoiceControlKeyUp");
-            }
-        });
     }
 
     public void UpdateFilesViewFilter()
@@ -1010,10 +934,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             try
             {
-                var voiceCommandService = (Application.Current as App)?.ServiceProvider.GetRequiredService<ICommandExecutionService>();
-                var voiceCommands = voiceCommandService?.GetCommands() ?? new Dictionary<string, VoiceCommand>();
-                var intentCache = voiceCommandService?.GetIntentCache() ?? new Dictionary<string, string>();
-                await _localDataService.SaveAsync(Folders, Files, voiceCommands, intentCache);
+                await _localDataService.SaveAsync(Folders, Files);
             }
             catch (Exception ex)
             {
@@ -1177,10 +1098,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             if (_onLauncherTriggeredHandler != null)
                 _keyService.OnLauncherTriggered -= _onLauncherTriggeredHandler;
-            if (_onVoiceControlKeyDownHandler != null)
-                _keyService.OnVoiceControlKeyDown -= _onVoiceControlKeyDownHandler;
-            if (_onVoiceControlTriggeredHandler != null)
-                _keyService.OnVoiceControlTriggered -= _onVoiceControlTriggeredHandler;
             _keyService.Dispose();
         }
 
@@ -1208,9 +1125,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         // Unregister WeakReferenceMessenger
         WeakReferenceMessenger.Default.UnregisterAll(this);
-
-        // Dispose services
-        _commandExecutionService?.Dispose();
 
         GC.SuppressFinalize(this);
     }

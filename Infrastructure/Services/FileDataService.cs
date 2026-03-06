@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,15 +14,13 @@ namespace PromptMasterv6.Infrastructure.Services
         private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data.json");
         public string BackupDirectory => Path.GetDirectoryName(_filePath) ?? "";
 
-        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, Dictionary<string, VoiceCommand> voiceCommands, Dictionary<string, string> intentCache)
+        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
         {
             var config = ConfigService.Load();
             var data = new AppData
             {
                 Folders = new List<FolderItem>(folders),
                 Files = new List<PromptItem>(files),
-                VoiceCommandsV2 = voiceCommands ?? new(),
-                VoiceCommandIntentCache = intentCache ?? new(),
                 ApiProfiles = new List<ApiProfile>(config.ApiProfiles),
                 SavedModels = new List<AiModelConfig>(config.SavedModels)
             };

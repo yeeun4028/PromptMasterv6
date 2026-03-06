@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Controls;
@@ -112,10 +112,7 @@ namespace PromptMasterv6
                 var launchBarWindow = _serviceProvider.GetRequiredService<PromptMasterv6.Views.LaunchBarWindow>();
                 launchBarWindow.Show(); // Trigger Window_Loaded → UpdateVisibility()
                 
-                // Initialize Voice Hotkey
-                var keyService = _serviceProvider.GetRequiredService<GlobalKeyService>();
-                var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
-                keyService.UpdateVoiceHotkey(settingsService.Config.VoiceTriggerHotkey);
+                // Voice hotkey removed
 
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
             }
@@ -199,8 +196,8 @@ namespace PromptMasterv6
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
             // 注册 VoiceClient（用于语音识别）
-            services.AddHttpClient("VoiceClient")
-                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+            // services.AddHttpClient("VoiceClient")
+            //     .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
             // Configuration Service (单例，所有 VM 共享配置)
             services.AddSingleton<ISettingsService, SettingsService>();
@@ -229,10 +226,10 @@ namespace PromptMasterv6
             services.AddHttpClient<GoogleService>();
             services.AddHttpClient<TencentService>();
 
-            // Voice Control Services
-            services.AddSingleton<IVoiceService, VoiceService>();
-            services.AddSingleton<ICommandExecutionService, CommandExecutionService>();
-            services.AddTransient<VoiceControlViewModel>();
+            // Voice Control Services - 已移除
+            // services.AddSingleton<IVoiceService, VoiceService>();
+            // services.AddSingleton<ICommandExecutionService, CommandExecutionService>();
+            // services.AddTransient<VoiceControlViewModel>();
             
             services.AddSingleton<ClipboardService>();
             services.AddSingleton<IAudioService, AudioService>();

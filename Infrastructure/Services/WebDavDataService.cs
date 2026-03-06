@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace PromptMasterv6.Infrastructure.Services
             });
         }
 
-        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, Dictionary<string, VoiceCommand> voiceCommands, Dictionary<string, string> intentCache)
+        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
         {
             var config = ConfigService.Load();
             if (string.IsNullOrEmpty(config.UserName) || string.IsNullOrEmpty(config.Password))
@@ -37,10 +37,6 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 Folders = new List<FolderItem>(folders),
                 Files = new List<PromptItem>(files),
-                VoiceCommandsV2 = voiceCommands ?? new(),
-                VoiceCommandIntentCache = intentCache ?? new(),
-                // ApiProfiles 和 SavedModels 不再通过 WebDAV 同步
-                // 这些配置仅通过本地 config.json 保存
                 ApiProfiles = new List<ApiProfile>(),
                 SavedModels = new List<AiModelConfig>()
             };
