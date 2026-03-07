@@ -888,7 +888,7 @@
                                             <Setter Property="FontSize" Value="13"/>
                                             <Setter Property="Foreground" Value="{DynamicResource Block3EditorTextBrush}"/>
                                             <Setter Property="TextAlignment" Value="Left"/>
-                                            <Setter Property="PagePadding" Value="30,30,30,50"/>
+                                            <Setter Property="PagePadding" Value="30,0,30,50"/>
                                             <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
                                             <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
                                             <Setter Property="Background" Value="Transparent"/>
