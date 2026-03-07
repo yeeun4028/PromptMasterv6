@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,10 +28,41 @@ namespace PromptMasterv6.Infrastructure.Services
         private static readonly ConcurrentLruCache<string, OpenAIService> _serviceCache 
             = new ConcurrentLruCache<string, OpenAIService>(MaxCacheSize);
 
+        private static readonly ConcurrentDictionary<string, HttpClient> _httpClientPool = new ConcurrentDictionary<string, HttpClient>();
+
         public AiService(IHttpClientFactory httpClientFactory, ISettingsService settingsService)
         {
             _httpClientFactory = httpClientFactory;
             _settingsService = settingsService;
+        }
+
+        private HttpClient GetPooledHttpClient(bool useProxy)
+        {
+            string proxyAddress = string.Empty;
+            if (useProxy && _settingsService.Config != null)
+            {
+                proxyAddress = _settingsService.Config.ProxyAddress?.Trim() ?? string.Empty;
+            }
+
+            string cacheKey = string.IsNullOrEmpty(proxyAddress) ? "DIRECT" : $"PROXY_{proxyAddress}";
+
+            return _httpClientPool.GetOrAdd(cacheKey, key =>
+            {
+                LoggerService.Instance.LogInfo($"[HttpClient Pool] Creating new instance for route: {key}", "AiService");
+
+                var handler = new SocketsHttpHandler
+                {
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                    UseProxy = !string.IsNullOrEmpty(proxyAddress),
+                    Proxy = !string.IsNullOrEmpty(proxyAddress) ? new WebProxy(proxyAddress) { BypassProxyOnLocal = false } : null,
+                    MaxConnectionsPerServer = 100
+                };
+
+                return new HttpClient(handler, disposeHandler: false)
+                {
+                    Timeout = TimeSpan.FromMinutes(2)
+                };
+            });
         }
 
         private OpenAIService GetOrCreateOpenAiService(string apiKey, string baseUrl, bool useProxy = false)
@@ -49,44 +81,7 @@ namespace PromptMasterv6.Infrastructure.Services
                 BaseDomain = baseUrl
             };
 
-            HttpClient httpClient;
-            
-            if (useProxy)
-            {
-                var proxyAddress = _settingsService.Config?.ProxyAddress;
-                if (!string.IsNullOrWhiteSpace(proxyAddress))
-                {
-                    var handler = new HttpClientHandler
-                    {
-                        UseProxy = true,
-                        Proxy = new WebProxy(proxyAddress) { BypassProxyOnLocal = false }
-                    };
-                    httpClient = new HttpClient(handler);
-                    LoggerService.Instance.LogInfo($"HttpClient created with proxy: {proxyAddress}", "AiService.CreateOpenAiServiceInternal");
-                }
-                else
-                {
-                    var handler = new HttpClientHandler
-                    {
-                        UseProxy = false,
-                        Proxy = null
-                    };
-                    httpClient = new HttpClient(handler);
-                    LoggerService.Instance.LogInfo("HttpClient created without proxy (proxy address empty)", "AiService.CreateOpenAiServiceInternal");
-                }
-            }
-            else
-            {
-                var handler = new HttpClientHandler
-                {
-                    UseProxy = false,
-                    Proxy = null
-                };
-                httpClient = new HttpClient(handler);
-                LoggerService.Instance.LogInfo("HttpClient created with explicit bypass (UseProxy=false)", "AiService.CreateOpenAiServiceInternal");
-            }
-            
-            httpClient.Timeout = TimeSpan.FromMinutes(2);
+            HttpClient httpClient = GetPooledHttpClient(useProxy);
 
             return new OpenAIService(options, httpClient);
         }
@@ -572,54 +567,17 @@ Begin extraction now:";
         /// <summary>
         /// 发送原生 HTTP 请求（非迭代器方法，可以安全使用 try-catch）
         /// </summary>
-        private async Task<(HttpResponseMessage? Response, string? Error)> NativeStreamSendAsync(string url, string apiKey, string jsonContent, bool useProxy = false)
+        private async Task<(HttpResponseMessage? Response, string? Error)> NativeStreamSendAsync(string url, string apiKey, string jsonContent, bool useProxy = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                HttpClient httpClient;
-                
-                if (useProxy)
-                {
-                    var proxyAddress = _settingsService.Config?.ProxyAddress;
-                    if (!string.IsNullOrWhiteSpace(proxyAddress))
-                    {
-                        var handler = new HttpClientHandler
-                        {
-                            UseProxy = true,
-                            Proxy = new WebProxy(proxyAddress) { BypassProxyOnLocal = false }
-                        };
-                        httpClient = new HttpClient(handler);
-                        LoggerService.Instance.LogInfo($"[GLM Native] HttpClient created with proxy: {proxyAddress}", "AiService.NativeStreamSendAsync");
-                    }
-                    else
-                    {
-                        var handler = new HttpClientHandler
-                        {
-                            UseProxy = false,
-                            Proxy = null
-                        };
-                        httpClient = new HttpClient(handler);
-                        LoggerService.Instance.LogInfo("[GLM Native] HttpClient created without proxy (proxy address empty)", "AiService.NativeStreamSendAsync");
-                    }
-                }
-                else
-                {
-                    var handler = new HttpClientHandler
-                    {
-                        UseProxy = false,
-                        Proxy = null
-                    };
-                    httpClient = new HttpClient(handler);
-                    LoggerService.Instance.LogInfo("[GLM Native] HttpClient created with explicit bypass (UseProxy=false)", "AiService.NativeStreamSendAsync");
-                }
-                
-                httpClient.Timeout = TimeSpan.FromMinutes(2);
+                HttpClient httpClient = GetPooledHttpClient(useProxy);
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, url);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
                 request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
                 return (response, null);
             }
             catch (Exception ex)
