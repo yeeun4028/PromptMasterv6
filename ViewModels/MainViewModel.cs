@@ -233,6 +233,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
           IWindowManager windowManager) // Injected
     {
         Pipeline = new MarkdownPipelineBuilder()
+            .UseSoftlineBreakAsHardlineBreak()
             .DisableHtml()
             .Build();
 
