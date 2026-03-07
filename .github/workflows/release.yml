@@ -29,7 +29,7 @@ jobs:
       # Publish parameters:
       # -c Release: Release configuration
       # -r win-x64: Target win-x64 platform
-      # --self-contained false: Framework-dependent
+      # --self-contained false: Framework-dependent (依赖用户电脑上的 .NET 8)
       # -p:PublishSingleFile=true: Generate single executable
       # -o publish: Output to 'publish' directory
       run: >
@@ -48,8 +48,8 @@ jobs:
         $ReleaseFolder = "PromptMasterv6-$Version-win-x64"
         New-Item -ItemType Directory -Force -Path $ReleaseFolder
         
-        # Copy the single-file executable
-        Copy-Item -Path "publish/PromptMasterv6.exe" -Destination $ReleaseFolder/
+        # 【核心修复部分】：将 publish 目录下所有的文件（包含 exe 和必不可少的 runtimeconfig.json 等）全部复制
+        Copy-Item -Path "publish/*" -Destination $ReleaseFolder/ -Recurse
         
         # Copy specific configuration files
         if (Test-Path "config.json") {
