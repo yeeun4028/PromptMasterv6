@@ -35,7 +35,7 @@ namespace PromptMasterv6.Services
 
         #region 翻译功能
 
-        public Task<string> TranslateAsync(string content, ApiProfile profile, string from = "auto", string to = "zh")
+        public Task<string> TranslateAsync(string content, ApiProfile profile, string from = "auto", string to = "zh", CancellationToken cancellationToken = default)
         {
             if (profile == null) return Task.FromResult("错误: 未配置百度翻译 AppID 或 SecretKey");
 
@@ -45,10 +45,10 @@ namespace PromptMasterv6.Services
             if (!IsAllDigits(appId))
                 return Task.FromResult("错误: 翻译配置 Key1 必须是 AppID（纯数字），您可能误填了 OCR 的 API Key。");
 
-            return TranslateCoreAsync(content, appId, secretKey, from, to);
+            return TranslateCoreAsync(content, appId, secretKey, from, to, cancellationToken);
         }
 
-        private async Task<string> TranslateCoreAsync(string content, string appId, string secretKey, string from, string to)
+        private async Task<string> TranslateCoreAsync(string content, string appId, string secretKey, string from, string to, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(secretKey))
                 return "错误: 未配置百度翻译 AppID 或 SecretKey";
@@ -75,9 +75,9 @@ namespace PromptMasterv6.Services
 
                 using (var requestContent = new FormUrlEncodedContent(postData))
                 {
-                    var response = await _httpClient.PostAsync(url, requestContent).ConfigureAwait(false);
+                    var response = await _httpClient.PostAsync(url, requestContent, cancellationToken).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    var jsonResult = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var jsonResult = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
                     using (JsonDocument doc = JsonDocument.Parse(jsonResult))
                     {
@@ -107,6 +107,10 @@ namespace PromptMasterv6.Services
                 }
                 return "错误: 未能解析翻译结果，JSON 结构不匹配";
             }
+            catch (OperationCanceledException)
+            {
+                return "翻译请求已取消";
+            }
             catch (Exception ex)
             {
                 return $"翻译请求异常: {ex.Message}";
@@ -117,17 +121,17 @@ namespace PromptMasterv6.Services
 
         #region OCR 功能
 
-        public Task<string> OcrAsync(byte[] imageBytes, ApiProfile profile, string languageType = "CHN_ENG")
+        public Task<string> OcrAsync(byte[] imageBytes, ApiProfile profile, string languageType = "CHN_ENG", CancellationToken cancellationToken = default)
         {
             if (profile == null) return Task.FromResult("错误: 未配置百度 OCR API Key 或 Secret Key");
 
             var apiKey = (profile.Key1 ?? "").Trim();
             var secretKey = (profile.Key2 ?? "").Trim();
 
-            return OcrCoreAsync(imageBytes, apiKey, secretKey, languageType);
+            return OcrCoreAsync(imageBytes, apiKey, secretKey, languageType, cancellationToken);
         }
 
-        private async Task<string> OcrCoreAsync(byte[] imageBytes, string apiKey, string secretKey, string languageType)
+        private async Task<string> OcrCoreAsync(byte[] imageBytes, string apiKey, string secretKey, string languageType, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(secretKey))
                 return "错误: 未配置百度 OCR API Key 或 Secret Key";
@@ -136,7 +140,11 @@ namespace PromptMasterv6.Services
 
             try
             {
-                imageBytes = await OptimizeImageAsync(imageBytes).ConfigureAwait(false);
+                imageBytes = await OptimizeImageAsync(imageBytes, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return "图片处理已取消";
             }
             catch (Exception ex)
             {
@@ -145,7 +153,7 @@ namespace PromptMasterv6.Services
 
             try
             {
-                string token = await GetOcrAccessTokenAsync(apiKey, secretKey).ConfigureAwait(false);
+                string token = await GetOcrAccessTokenAsync(apiKey, secretKey, cancellationToken).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(token)) return "错误: 无法获取 Access Token，请检查 Key 配置是否正确。";
 
                 string url = $"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={token}";
@@ -160,8 +168,8 @@ namespace PromptMasterv6.Services
                     new KeyValuePair<string, string>("probability", "false")
                 });
 
-                var response = await _httpClient.PostAsync(url, content).ConfigureAwait(false);
-                var jsonResult = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var response = await _httpClient.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
+                var jsonResult = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
                 using (JsonDocument doc = JsonDocument.Parse(jsonResult))
                 {
@@ -212,20 +220,24 @@ namespace PromptMasterv6.Services
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                return "OCR 请求已取消";
+            }
             catch (Exception ex)
             {
                 return $"OCR 请求异常: {ex.Message}";
             }
         }
 
-        private async Task<string> GetOcrAccessTokenAsync(string apiKey, string secretKey)
+        private async Task<string> GetOcrAccessTokenAsync(string apiKey, string secretKey, CancellationToken cancellationToken)
         {
             string cacheKey = apiKey;
             
             if (_tokenCache.TryGetValue(cacheKey, out var cached) && DateTime.Now < cached.expire)
                 return cached.token;
 
-            await _tokenLock.WaitAsync().ConfigureAwait(false);
+            await _tokenLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 if (_tokenCache.TryGetValue(cacheKey, out cached) && DateTime.Now < cached.expire)
@@ -233,8 +245,8 @@ namespace PromptMasterv6.Services
 
                 string url = $"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={apiKey}&client_secret={secretKey}";
 
-                var response = await _httpClient.PostAsync(url, null).ConfigureAwait(false);
-                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var response = await _httpClient.PostAsync(url, null, cancellationToken).ConfigureAwait(false);
+                var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
                 using (JsonDocument doc = JsonDocument.Parse(json))
                 {
@@ -250,6 +262,10 @@ namespace PromptMasterv6.Services
                         return token;
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
@@ -295,9 +311,13 @@ namespace PromptMasterv6.Services
 
         #region 图片优化逻辑
 
-        private Task<byte[]> OptimizeImageAsync(byte[] originalBytes)
+        private Task<byte[]> OptimizeImageAsync(byte[] originalBytes, CancellationToken cancellationToken)
         {
-            return Task.Run(() => OptimizeImageCore(originalBytes));
+            return Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return OptimizeImageCore(originalBytes);
+            }, cancellationToken);
         }
 
         private byte[] OptimizeImageCore(byte[] originalBytes)
