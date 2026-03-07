@@ -827,7 +827,7 @@
 
                                 <Grid>
                                     <TextBox x:Name="Block3ContentEditor"
-                                             Margin="0,19,0,0"
+                                             Margin="0,25,0,0"
                                              ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
                                              Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
                                              AcceptsReturn="True"
@@ -861,7 +861,7 @@
                                 </TextBox>
                                 </Grid>
 
-                                <md:MarkdownViewer Margin="0,20,0,0"
+                                <md:MarkdownViewer Margin="0,15,0,0"
                                                   Loaded="MarkdownViewer_Loaded"
                                                   ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
                                                   Markdown="{Binding PreviewContent}"
@@ -906,7 +906,7 @@
                                         </Style>
                                     </md:MarkdownViewer.Style>
                                 </md:MarkdownViewer>
-                                <TextBlock Margin="5,20,5,5"
+                                <TextBlock Margin="5,25,5,5"
                                            Text="在此处键入内容..."
                                            Foreground="{DynamicResource PlaceholderTextBrush}"
                                            FontFamily="Segoe UI, Microsoft YaHei UI"
