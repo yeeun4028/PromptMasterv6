@@ -878,6 +878,8 @@
 
                                         <!-- 抹平富文本内置段落间距 -->
                                         <Style x:Key="{x:Static md:Styles.ParagraphStyleKey}" TargetType="{x:Type Paragraph}">
+                                            <Setter Property="LineHeight" Value="30"/>
+                                            <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
                                             <Setter Property="Margin" Value="0,0,0,12"/>
                                         </Style>
 
