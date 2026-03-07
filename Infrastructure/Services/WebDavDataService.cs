@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Core.Interfaces;
@@ -13,6 +12,12 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class WebDavDataService : IDataService
     {
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
         private WebDavClient GetClient(AppConfig config)
         {
             return new WebDavClient(new WebDavClientParams
@@ -22,12 +27,12 @@ namespace PromptMasterv6.Infrastructure.Services
             });
         }
 
-        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
+        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.Load();
             if (string.IsNullOrEmpty(config.UserName) || string.IsNullOrEmpty(config.Password))
             {
-                throw new Exception("请先在设置中填写 WebDAV 账号和密码！");
+                throw new InvalidOperationException("请先在设置中填写 WebDAV 账号和密码！");
             }
 
             var client = GetClient(config);
@@ -40,23 +45,20 @@ namespace PromptMasterv6.Infrastructure.Services
                 ApiProfiles = new List<ApiProfile>(),
                 SavedModels = new List<AiModelConfig>()
             };
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-            string jsonString = JsonSerializer.Serialize(data, options);
-            using var contentStream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
 
-            var response = await client.PutFile(remotePath, contentStream);
+            using var contentStream = new MemoryStream();
+            await JsonSerializer.SerializeAsync(contentStream, data, _jsonOptions, cancellationToken).ConfigureAwait(false);
+            contentStream.Position = 0;
+
+            var response = await client.PutFile(remotePath, contentStream).ConfigureAwait(false);
 
             if (!response.IsSuccessful)
             {
-                throw new Exception($"WebDAV错误 {response.StatusCode}: {response.Description}");
+                throw new InvalidOperationException($"WebDAV 错误 {response.StatusCode}: {response.Description}");
             }
         }
 
-        public async Task<AppData> LoadAsync()
+        public async Task<AppData> LoadAsync(CancellationToken cancellationToken = default)
         {
             var config = ConfigService.Load();
             if (string.IsNullOrEmpty(config.UserName) || string.IsNullOrEmpty(config.Password))
@@ -69,18 +71,22 @@ namespace PromptMasterv6.Infrastructure.Services
 
             try
             {
-                var response = await client.GetRawFile(remotePath);
-                if (!response.IsSuccessful) return new AppData();
+                var response = await client.GetRawFile(remotePath).ConfigureAwait(false);
+                
+                if (!response.IsSuccessful || response.Stream == null)
+                    return new AppData();
 
-                using var streamReader = new StreamReader(response.Stream);
-                string jsonString = await streamReader.ReadToEndAsync();
-                return JsonSerializer.Deserialize<AppData>(jsonString) ?? new AppData();
+                using (response.Stream)
+                {
+                    var data = await JsonSerializer.DeserializeAsync<AppData>(response.Stream, _jsonOptions, cancellationToken).ConfigureAwait(false);
+                    return data ?? new AppData();
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                LoggerService.Instance.LogError($"WebDav LoadAsync Failed: {ex.Message}", "WebDavDataService");
                 return new AppData();
             }
         }
-
     }
 }

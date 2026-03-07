@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Core.Interfaces;
@@ -11,10 +12,16 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class FileDataService : IDataService
     {
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
         private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data.json");
         public string BackupDirectory => Path.GetDirectoryName(_filePath) ?? "";
 
-        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files)
+        public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, CancellationToken cancellationToken = default)
         {
             var config = ConfigService.Load();
             var data = new AppData
@@ -24,23 +31,16 @@ namespace PromptMasterv6.Infrastructure.Services
                 ApiProfiles = new List<ApiProfile>(config.ApiProfiles),
                 SavedModels = new List<AiModelConfig>(config.SavedModels)
             };
-            var options = new JsonSerializerOptions 
-            { 
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
 
             string tempPath = _filePath + ".tmp";
             
             try
             {
-                // 1. Write to temp file
                 using (FileStream createStream = File.Create(tempPath))
                 {
-                    await JsonSerializer.SerializeAsync(createStream, data, options);
+                    await JsonSerializer.SerializeAsync(createStream, data, _jsonOptions, cancellationToken).ConfigureAwait(false);
                 }
 
-                // 2. Perform safe rotation (Atomic Write)
                 if (File.Exists(_filePath))
                 {
                     RotateBackups(_filePath, 5);
@@ -48,18 +48,14 @@ namespace PromptMasterv6.Infrastructure.Services
 
                 File.Move(tempPath, _filePath, overwrite: true);
                 
-                // --- 新增：自动导出所有的提示词为 .md 文件 ---
-                _ = Task.Run(() => ExportPromptsToMarkdown(folders, files));
+                _ = Task.Run(() => ExportPromptsToMarkdown(folders, files), cancellationToken);
 
-                // 记录保存成功
                 LoggerService.Instance.LogInfo($"数据已保存到 {_filePath} ({data.Files.Count} 个提示词)", "FileDataService.SaveAsync");
             }
             catch (Exception ex)
             {
-                // 记录保存失败
                 LoggerService.Instance.LogException(ex, $"保存数据到 {_filePath} 失败", "FileDataService.SaveAsync");
                 
-                // Verify if temp file exists and delete it if operation failed
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); }
                 catch (Exception delEx)
                 {
@@ -81,11 +77,9 @@ namespace PromptMasterv6.Infrastructure.Services
                 var folderDict = folders.ToDictionary(f => f.Id, f => f.Name);
                 var generatedFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. 获取目前 MyPrompts 文件夹里所有的现存 .md 文件，准备做对比删除
                 var existingFiles = new HashSet<string>(Directory.GetFiles(exportDir, "*.md"), StringComparer.OrdinalIgnoreCase);
                 var filesToKeep = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 2. 遍历保存每一个提示词
                 foreach (var file in files)
                 {
                     if (string.IsNullOrWhiteSpace(file.Title)) continue;
@@ -96,13 +90,9 @@ namespace PromptMasterv6.Infrastructure.Services
                         folderName = $"[{fName}] ";
                     }
 
-                    // 构造基础文件名： [文件夹名] 标题
                     string rawName = $"{folderName}{file.Title}";
-                    
-                    // 替换非法字符
                     string safeName = string.Join("_", rawName.Split(Path.GetInvalidFileNameChars()));
 
-                    // 处理重名 (如果有完全重名的，在其后追加 (1), (2)...)
                     string finalName = safeName;
                     int counter = 1;
                     while (generatedFileNames.Contains(finalName))
@@ -115,7 +105,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     string filePath = Path.Combine(exportDir, $"{finalName}.md");
                     filesToKeep.Add(filePath);
 
-                    // 只有当文件不存在，或者内容有差异时才写入，减少磁盘损耗
                     bool shouldWrite = true;
                     if (File.Exists(filePath))
                     {
@@ -142,11 +131,9 @@ namespace PromptMasterv6.Infrastructure.Services
         {
             try 
             {
-                // Delete the oldest backup
                 string oldestBackup = $"{originalPath}.bak{maxBackups}";
                 if (File.Exists(oldestBackup)) File.Delete(oldestBackup);
 
-                // Shift existing backups down
                 for (int i = maxBackups - 1; i >= 1; i--)
                 {
                     string source = $"{originalPath}.bak{i}";
@@ -154,7 +141,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     if (File.Exists(source)) File.Move(source, dest);
                 }
 
-                // Move current file to bak1
                 string bak1 = $"{originalPath}.bak1";
                 if (File.Exists(originalPath)) File.Move(originalPath, bak1);
             }
@@ -198,13 +184,11 @@ namespace PromptMasterv6.Infrastructure.Services
 
             try
             {
-                // Verify content
                 using FileStream openStream = File.OpenRead(backupPath);
-                var data = await JsonSerializer.DeserializeAsync<AppData>(openStream);
+                var data = await JsonSerializer.DeserializeAsync<AppData>(openStream).ConfigureAwait(false);
 
                 if (data != null)
                 {
-                    // Copy to data.json
                     File.Copy(backupPath, _filePath, overwrite: true);
                     return data;
                 }
@@ -216,27 +200,24 @@ namespace PromptMasterv6.Infrastructure.Services
             return null;
         }
 
-        public async Task<AppData> LoadAsync()
+        public async Task<AppData> LoadAsync(CancellationToken cancellationToken = default)
         {
             if (!File.Exists(_filePath)) return new AppData();
 
             try
             {
                 using FileStream openStream = File.OpenRead(_filePath);
-                var data = await JsonSerializer.DeserializeAsync<AppData>(openStream) ?? new AppData();
+                var data = await JsonSerializer.DeserializeAsync<AppData>(openStream, _jsonOptions, cancellationToken).ConfigureAwait(false) ?? new AppData();
                 
-                // 记录加载成功
                 LoggerService.Instance.LogInfo($"从 {_filePath} 加载了 {data.Files?.Count ?? 0} 个提示词", "FileDataService.LoadAsync");
                 
                 return data;
             }
             catch (Exception ex)
             {
-                // 记录加载失败
                 LoggerService.Instance.LogException(ex, $"从 {_filePath} 加载数据失败", "FileDataService.LoadAsync");
                 return new AppData();
             }
         }
-
     }
 }
