@@ -608,6 +608,71 @@
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
+                                <Button Command="{Binding ToggleEditModeCommand}" Style="{StaticResource ActionBtnStyle}">
+                                    <Button.ToolTip>
+                                        <ToolTip Style="{StaticResource Block1ToolTipStyle}">
+                                            <TextBlock>
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                                <Setter Property="Text" Value="点击锁定并保存"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsEditMode}" Value="False">
+                                                                <Setter Property="Text" Value="点击解锁编辑"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Path Data="{StaticResource IconLockOpenThin}">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path" BasedOn="{StaticResource ActionIconPathStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                                <Path Data="{StaticResource IconLockClosedThin}">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path" BasedOn="{StaticResource ActionIconPathStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
+                                <Button Command="{Binding ManualBackupCommand}" Style="{StaticResource ActionBtnStyle}">
+                                    <Button.ToolTip>
+                                        <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="备份到云端"/>
+                                    </Button.ToolTip>
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <Path x:Name="IconPath" 
+                                                  Data="{StaticResource IconCloudUpload}"
+                                                  Style="{StaticResource ActionIconPathStyle}"/>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding DataContext.IsDirty, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                    <Setter TargetName="IconPath" Property="Fill" Value="#E53935"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
                                     <TextBlock Text="{Binding SyncTimeDisplay}" 
@@ -762,82 +827,6 @@
                                     <b:Interaction.Behaviors>
                                         <behaviors:WindowDragBehavior/>
                                     </b:Interaction.Behaviors>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-
-
-                                        <!-- ★★★ 新增：手动备份按钮 ★★★ -->
-                                        <Button Command="{Binding ManualBackupCommand}" Style="{StaticResource ActionBtnStyle}">
-                                            <Button.ToolTip>
-                                                <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="备份到云端"/>
-                                            </Button.ToolTip>
-                                            <Button.ContentTemplate>
-                                                <DataTemplate>
-                                                    <Path x:Name="IconPath" 
-                                                          Data="{StaticResource IconCloudUpload}"
-                                                          Style="{StaticResource SmallHeaderIconStyle}"/>
-                                                    <DataTemplate.Triggers>
-                                                        <DataTrigger Binding="{Binding DataContext.IsDirty, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                                                            <Setter TargetName="IconPath" Property="Fill" Value="#E53935"/>
-                                                        </DataTrigger>
-                                                    </DataTemplate.Triggers>
-                                                </DataTemplate>
-                                            </Button.ContentTemplate>
-                                        </Button>
-                                        <Button Command="{Binding ToggleEditModeCommand}" Style="{StaticResource ActionBtnStyle}">
-                                            <Button.ToolTip>
-                                                <ToolTip>
-                                                    <TextBlock>
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding PlacementTarget.DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=ToolTip}}" Value="True">
-                                                                        <Setter Property="Text" Value="点击锁定并保存"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding PlacementTarget.DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=ToolTip}}" Value="False">
-                                                                        <Setter Property="Text" Value="点击解锁编辑"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </ToolTip>
-                                            </Button.ToolTip>
-                                            <Button.ContentTemplate>
-                                                <DataTemplate>
-                                                    <Grid>
-                                                        <Path Data="{StaticResource IconLockOpenThin}">
-                                                            <Path.Style>
-                                                                <Style TargetType="Path" BasedOn="{StaticResource SmallHeaderIconStyle}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
-                                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Path.Style>
-                                                        </Path>
-                                                        <Path Data="{StaticResource IconLockClosedThin}">
-                                                            <Path.Style>
-                                                                <Style TargetType="Path" BasedOn="{StaticResource SmallHeaderIconStyle}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Path.Style>
-                                                        </Path>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </Button.ContentTemplate>
-                                        </Button>
-
-                                        <!-- ★★★ 已移除：最大化与关闭按钮，实现极致极简 ★★★ -->
-                                    </StackPanel>
                                 </Grid>
 
                                 <Grid Grid.Row="1">
