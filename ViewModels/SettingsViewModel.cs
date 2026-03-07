@@ -49,7 +49,6 @@ namespace PromptMasterv6.ViewModels
 
         [ObservableProperty] private bool isSettingsOpen;
         [ObservableProperty] private int selectedSettingsTab;
-        [ObservableProperty] private bool isNavigationVisible = true;
 
         #endregion
 
@@ -208,12 +207,6 @@ namespace PromptMasterv6.ViewModels
             {
                 _windowManager.CloseWindow(_mainViewModel);
             }
-        }
-
-        [RelayCommand]
-        private void ToggleNavigation()
-        {
-            IsNavigationVisible = !IsNavigationVisible;
         }
 
         #endregion

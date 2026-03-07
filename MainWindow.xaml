@@ -70,7 +70,6 @@
 
         <utils:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
         <utils:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
-        <utils:NavigationWidthConverter x:Key="NavigationWidthConverter"/>
         <converters:StringVisibilityConverter x:Key="StringVisibilityConverter"/>
 
         <Style x:Key="Block1ToolTipStyle" TargetType="ToolTip">
@@ -510,14 +509,7 @@
             <Border Background="{DynamicResource ShellBackground}" CornerRadius="5">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition>
-                            <ColumnDefinition.Width>
-                                <MultiBinding Converter="{StaticResource NavigationWidthConverter}" Mode="TwoWay">
-                                    <Binding Path="IsNavigationVisible"/>
-                                    <Binding Path="LocalConfig.Block1Width" Mode="TwoWay"/>
-                                </MultiBinding>
-                            </ColumnDefinition.Width>
-                        </ColumnDefinition>
+                        <ColumnDefinition Width="{Binding LocalConfig.Block1Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" MinWidth="20"/>
                         <ColumnDefinition Width="{Binding LocalConfig.Block2Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
@@ -529,7 +521,6 @@
                     </Border>
 
                     <Border Grid.Column="0" 
-                            Visibility="{Binding IsNavigationVisible, Converter={StaticResource BoolToVis}}"
                             Background="{DynamicResource Block1Background}" 
                             CornerRadius="5,0,0,5">
                         <Grid>
@@ -635,7 +626,6 @@
                     </Border>
 
                     <GridSplitter Grid.Column="0" 
-                                  Visibility="{Binding IsNavigationVisible, Converter={StaticResource BoolToVis}}"
                                   Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Transparent" ShowsPreview="True"/>
 
                     <Border Grid.Column="1" Background="{DynamicResource Block2Background}">
@@ -850,26 +840,7 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Button Command="{Binding ToggleNavigationCommand}" Style="{StaticResource ActionBtnStyle}" ToolTip="切换侧边栏">
-                                            <Button.ContentTemplate>
-                                                <DataTemplate>
-                                                    <Grid>
-                                                        <Path x:Name="ChevronPath" Stroke="{DynamicResource HeaderIconBrush}" StrokeThickness="1.5" Stretch="None" Data="{StaticResource IconChevronLeft}"/>
-                                                    </Grid>
-                                                    <DataTemplate.Triggers>
-                                                        <DataTrigger Binding="{Binding DataContext.IsNavigationVisible, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                                                            <Setter TargetName="ChevronPath" Property="Data" Value="{StaticResource IconChevronLeft}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding DataContext.IsNavigationVisible, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
-                                                            <Setter TargetName="ChevronPath" Property="Data" Value="{StaticResource IconChevronRight}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                                                            <Setter TargetName="ChevronPath" Property="Stroke" Value="{DynamicResource HeaderIconHoverBrush}"/>
-                                                        </DataTrigger>
-                                                    </DataTemplate.Triggers>
-                                                </DataTemplate>
-                                            </Button.ContentTemplate>
-                                        </Button>
+
 
                                         <!-- ★★★ 新增：手动备份按钮 ★★★ -->
                                         <Button Command="{Binding ManualBackupCommand}" Style="{StaticResource ActionBtnStyle}">

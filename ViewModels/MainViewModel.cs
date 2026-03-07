@@ -105,12 +105,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         set { if (SettingsVM != null) SettingsVM.SelectedSettingsTab = value; }
     }
 
-    public bool IsNavigationVisible
-    {
-        get => SettingsVM?.IsNavigationVisible ?? true;
-        set { if (SettingsVM != null) SettingsVM.IsNavigationVisible = value; }
-    }
-
     public bool IsRestoreConfirmVisible
     {
         get => SettingsVM?.IsRestoreConfirmVisible ?? false;
@@ -276,9 +270,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 case nameof(SettingsVM.SelectedSettingsTab):
                     OnPropertyChanged(nameof(SelectedSettingsTab));
                     OnPropertyChanged(nameof(SelectedSettingsTabName));
-                    break;
-                case nameof(SettingsVM.IsNavigationVisible):
-                    OnPropertyChanged(nameof(IsNavigationVisible));
                     break;
                 case nameof(SettingsVM.IsRestoreConfirmVisible):
                     OnPropertyChanged(nameof(IsRestoreConfirmVisible));
@@ -591,14 +582,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             RequestSave();
         }
     }
-
-    [RelayCommand]
-    private void ToggleNavigation()
-    {
-        SettingsVM.ToggleNavigationCommand.Execute(null);
-    }
-
-
 
     [RelayCommand]
     private void AddAiModel() => SettingsVM.AddAiModelCommand.Execute(null);
