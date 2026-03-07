@@ -836,49 +836,7 @@
                                             </Button.ContentTemplate>
                                         </Button>
 
-                                        <Button x:Name="MaximizeRestoreButton" Click="MaximizeRestoreButton_Click" Style="{StaticResource ActionBtnStyle}">
-                                            <Button.ToolTip>
-                                                <ToolTip>
-                                                    <TextBlock>
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding PlacementTarget.(Window.WindowState), RelativeSource={RelativeSource AncestorType=ToolTip}}" Value="Maximized">
-                                                                        <Setter Property="Text" Value="还原窗口"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding PlacementTarget.(Window.WindowState), RelativeSource={RelativeSource AncestorType=ToolTip}}" Value="Normal">
-                                                                        <Setter Property="Text" Value="最大化窗口"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </ToolTip>
-                                            </Button.ToolTip>
-                                            <Button.ContentTemplate>
-                                                <DataTemplate>
-                                                    <Grid>
-                                                        <Path x:Name="MaximizeIcon" Data="{StaticResource IconMaximizeThin}" Style="{StaticResource SmallHeaderIconStyle}"/>
-                                                        <Path x:Name="RestoreIcon" Data="{StaticResource IconRestoreThin}" Style="{StaticResource SmallHeaderIconStyle}" Visibility="Collapsed"/>
-                                                    </Grid>
-                                                    <DataTemplate.Triggers>
-                                                        <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
-                                                            <Setter TargetName="MaximizeIcon" Property="Visibility" Value="Collapsed"/>
-                                                            <Setter TargetName="RestoreIcon" Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </DataTemplate.Triggers>
-                                                </DataTemplate>
-                                            </Button.ContentTemplate>
-                                        </Button>
-
-                                        <Button Click="CloseButton_Click" Style="{StaticResource ActionBtnStyle}" ToolTip="关闭窗口 (隐藏)">
-                                            <Button.ContentTemplate>
-                                                <DataTemplate>
-                                                    <Path Data="{StaticResource IconCloseThin}" Style="{StaticResource SmallHeaderIconStyle}"/>
-                                                </DataTemplate>
-                                            </Button.ContentTemplate>
-                                        </Button>
-
+                                        <!-- ★★★ 已移除：最大化与关闭按钮，实现极致极简 ★★★ -->
                                     </StackPanel>
                                 </Grid>
 
