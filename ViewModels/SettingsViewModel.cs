@@ -30,7 +30,6 @@ namespace PromptMasterv6.ViewModels
         private readonly FileDataService _localDataService;
         private readonly GlobalKeyService _keyService;
         private readonly IDialogService _dialogService;
-        private readonly ThemeService _themeService;
         private readonly HotkeyService _hotkeyService;
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
@@ -176,7 +175,6 @@ namespace PromptMasterv6.ViewModels
             _localDataService = localDataService;
             _keyService = keyService;
             _dialogService = dialogService;
-            _themeService = new ThemeService();
             _hotkeyService = new HotkeyService();
             _baiduService = baiduService;
             _tencentService = tencentService;
@@ -216,31 +214,6 @@ namespace PromptMasterv6.ViewModels
         private void ToggleNavigation()
         {
             IsNavigationVisible = !IsNavigationVisible;
-        }
-
-        #endregion
-
-        #region Commands - Theme Management
-
-        [RelayCommand]
-        private void ToggleTheme()
-        {
-            LocalConfig.Theme = LocalConfig.Theme == ThemeType.Dark ? ThemeType.Light : ThemeType.Dark;
-            ApplyTheme();
-            _settingsService.SaveLocalConfig();
-        }
-
-        public void ApplyTheme()
-        {
-            var app = System.Windows.Application.Current;
-            if (app?.Resources == null) return;
-
-            ApplyTheme(LocalConfig.Theme);
-        }
-
-        private void ApplyTheme(ThemeType theme)
-        {
-            _themeService.ApplyTheme(theme);
         }
 
         #endregion
@@ -800,7 +773,6 @@ namespace PromptMasterv6.ViewModels
                         LoadGoogleCredentials();
                         
                         // 尝试重新应用设置
-                        ApplyTheme();
                         UpdateWindowHotkeys();
                         UpdateExternalToolsHotkeys();
                         

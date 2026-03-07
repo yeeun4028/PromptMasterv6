@@ -7,8 +7,9 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- 1. HandyControl 默认主题 -->
-                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                <!-- 1. HandyControl 默认暗色主题 -->
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDark.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
 
                 <!-- 2. ★★★ 新增：GitHub Markdown 主题 ★★★ -->
                 <ResourceDictionary Source="Themes/GitHubMarkdownTheme.xaml"/>
@@ -95,33 +96,33 @@
             <SolidColorBrush x:Key="SidebarBackground" Color="#2E3033"/>
             <SolidColorBrush x:Key="CardBackground" Color="#363B40"/>
 
-            <SolidColorBrush x:Key="Block1Background" Color="#E8E7E7"/>
-            <SolidColorBrush x:Key="Block2Background" Color="#E8E7E7"/>
-            <SolidColorBrush x:Key="Block3Background" Color="#EDEDED"/>
-            <SolidColorBrush x:Key="Block4Background" Color="#EDEDED"/>
+            <SolidColorBrush x:Key="Block1Background" Color="#2E3033"/>
+            <SolidColorBrush x:Key="Block2Background" Color="#2E3033"/>
+            <SolidColorBrush x:Key="Block3Background" Color="#363B40"/>
+            <SolidColorBrush x:Key="Block4Background" Color="#363B40"/>
 
-            <SolidColorBrush x:Key="PrimaryTextBrush" Color="#E6E8EA"/>
-            <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B0B4B8"/>
-            <SolidColorBrush x:Key="PlaceholderTextBrush" Color="#ABB0B6"/>
+            <SolidColorBrush x:Key="PrimaryTextBrush" Color="#ACBFBE"/>
+            <SolidColorBrush x:Key="SecondaryTextBrush" Color="#ACBFBE"/>
+            <SolidColorBrush x:Key="PlaceholderTextBrush" Color="#ACBFBE"/>
             <SolidColorBrush x:Key="DividerBrush" Color="#4A4F55"/>
             <SolidColorBrush x:Key="ListItemHoverBackgroundBrush" Color="#3A3F45"/>
             <SolidColorBrush x:Key="ListItemSelectedBackgroundBrush" Color="#444A52"/>
-            <SolidColorBrush x:Key="InputFocusBackgroundBrush" Color="#2E3033"/>
+            <SolidColorBrush x:Key="InputFocusBackgroundBrush" Color="Transparent"/>
 
             <SolidColorBrush x:Key="TextCaretBrush" Color="#B8BFC6"/>
             <SolidColorBrush x:Key="Block3EditorTextBrush" Color="#B8BFC6"/>
             <SolidColorBrush x:Key="Block3EditorCaretBrush" Color="#B8BFC6"/>
             <SolidColorBrush x:Key="Block3EditorSelectionBrush" Color="#4A89DC"/>
 
-            <SolidColorBrush x:Key="TextPrimary" Color="#E6E8EA"/>
-            <SolidColorBrush x:Key="TextSecondary" Color="#B0B4B8"/>
+            <SolidColorBrush x:Key="TextPrimary" Color="#ACBFBE"/>
+            <SolidColorBrush x:Key="TextSecondary" Color="#ACBFBE"/>
             <SolidColorBrush x:Key="DividerColor" Color="#4A4F55"/>
-            <SolidColorBrush x:Key="HintBrush" Color="#8A8F96"/>
+            <SolidColorBrush x:Key="HintBrush" Color="#ACBFBE"/>
 
-            <SolidColorBrush x:Key="ActionIconBrush" Color="#B0B4B8"/>
-            <SolidColorBrush x:Key="ActionIconHoverBrush" Color="#E6E8EA"/>
-            <SolidColorBrush x:Key="HeaderIconBrush" Color="#B0B4B8"/>
-            <SolidColorBrush x:Key="HeaderIconHoverBrush" Color="#E6E8EA"/>
+            <SolidColorBrush x:Key="ActionIconBrush" Color="#ACBFBE"/>
+            <SolidColorBrush x:Key="ActionIconHoverBrush" Color="#ACBFBE"/>
+            <SolidColorBrush x:Key="HeaderIconBrush" Color="#ACBFBE"/>
+            <SolidColorBrush x:Key="HeaderIconHoverBrush" Color="#ACBFBE"/>
 
             <!-- Launcher Tab Style -->
             <Style x:Key="TabRadioButtonStyle" TargetType="RadioButton">

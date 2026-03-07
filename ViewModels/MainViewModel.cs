@@ -44,7 +44,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly ClipboardService _clipboardService;
     private readonly IWindowManager _windowManager; // Injected
     private readonly ISettingsService _settingsService;
-    private readonly ThemeService _themeService;
     private readonly HotkeyService _hotkeyService;
 
     // 编译后的正则表达式，用于解析变量 {{xxx}}
@@ -250,9 +249,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _clipboardService = clipboardService;
         _settingsService = settingsService;
-        _settingsService = settingsService;
         _windowManager = windowManager; // Assigned
-        _themeService = new ThemeService();
         _hotkeyService = new HotkeyService();
         
         SidebarVM = sidebarVM;
@@ -361,9 +358,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             LoggerService.Instance.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.ctor");
         }
 
-        // 委托给 SettingsViewModel 处理主题和快捷键
+        // 委托给 SettingsViewModel 处理快捷键
         SettingsVM.SetMainViewModel(this);
-        SettingsVM.ApplyTheme();
         UpdateWindowHotkeys(); // 使用 MainViewModel 的版本，因为它注册窗口切换快捷键
         SettingsVM.UpdateExternalToolsHotkeys(); // Initialize external tool hotkeys
 
@@ -602,12 +598,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         SettingsVM.ToggleNavigationCommand.Execute(null);
     }
 
-    [RelayCommand]
-    private void ToggleTheme()
-    {
-        SettingsVM.ToggleThemeCommand.Execute(null);
-    }
-
 
 
     [RelayCommand]
@@ -836,11 +826,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (win == null) return;
 
         win.ToggleWindowVisibility();
-    }
-
-    private void ApplyTheme(ThemeType theme)
-    {
-        _themeService.ApplyTheme(theme);
     }
 
     private static string NormalizeSymbols(string s) =>
