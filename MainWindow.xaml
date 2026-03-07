@@ -839,8 +839,7 @@
                                              CaretBrush="{DynamicResource Block3EditorCaretBrush}"
                                              SelectionBrush="{DynamicResource Block3EditorSelectionBrush}"
                                              SelectionOpacity="1"
-                                             FontSize="14"
-                                             TextBlock.LineHeight="26"
+                                             FontSize="13"
                                              TextOptions.TextFormattingMode="Ideal"
                                              TextOptions.TextRenderingMode="ClearType"
                                              Padding="5"
@@ -880,13 +879,16 @@
                                         <!-- 抹平富文本内置段落间距 -->
                                         <Style TargetType="{x:Type Paragraph}">
                                             <Setter Property="Margin" Value="0"/>
+                                            <Setter Property="LineHeight" Value="20"/>
+                                            <Setter Property="LineStackingStrategy" Value="MaxHeight"/>
                                         </Style>
 
                                         <Style x:Key="{x:Static md:Styles.DocumentStyleKey}" TargetType="{x:Type FlowDocument}">
                                             <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
-                                            <Setter Property="FontSize" Value="16"/>
+                                            <Setter Property="FontSize" Value="13"/>
                                             <Setter Property="Foreground" Value="{DynamicResource Block3EditorTextBrush}"/>
-                                            <Setter Property="LineHeight" Value="26"/>
+                                            <Setter Property="LineHeight" Value="20"/>
+                                            <Setter Property="LineStackingStrategy" Value="MaxHeight"/>
                                             <Setter Property="TextAlignment" Value="Left"/>
                                             <Setter Property="PagePadding" Value="30,30,30,50"/>
                                             <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
