@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GongSolutions.Wpf.DragDrop;
@@ -54,7 +54,7 @@ namespace PromptMasterv6.ViewModels
             if (SelectedFolder == null) return;
             if (Files == null) return;
 
-            var f = new PromptItem { Title = "", Content = "", FolderId = SelectedFolder.Id, LastModified = DateTime.Now };
+            var f = new PromptItem { Title = "未命名提示词", Content = "", FolderId = SelectedFolder.Id, LastModified = DateTime.Now, IsRenaming = true };
             Files.Add(f);
             WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(f, EnterEditMode: true));
             WeakReferenceMessenger.Default.Send<RequestSaveMessage>();

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
 namespace PromptMasterv6.Core.Models
@@ -40,5 +40,9 @@ namespace PromptMasterv6.Core.Models
         [ObservableProperty]
         private DateTime updatedAt = DateTime.Now;
 
+        // ★★★ 新增：界面重命名状态，不参与序列化 ★★★
+        [System.Text.Json.Serialization.JsonIgnore]
+        [ObservableProperty]
+        private bool isRenaming;
     }
 }

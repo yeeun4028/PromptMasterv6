@@ -140,6 +140,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
         SafeParseVariables(value?.Content ?? "");
     }
 
+    [RelayCommand]
+    private void RenameFile(PromptItem? item)
+    {
+        if (item != null)
+        {
+            item.IsRenaming = true;
+        }
+    }
+
     private string? SafeConvertHtmlToMarkdown(string? content)
     {
         try

@@ -779,11 +779,6 @@ namespace PromptMasterv6
             CheckAndExitEditMode();
         }
 
-        private void Block3TitleEditor_LostFocus(object sender, RoutedEventArgs e)
-        {
-            CheckAndExitEditMode();
-        }
-
         private void CheckAndExitEditMode()
         {
             if (ViewModel == null || !ViewModel.IsEditMode) return;
@@ -799,14 +794,56 @@ namespace PromptMasterv6
         private bool IsBlock3Editor(DependencyObject? obj)
         {
             if (obj == null) return false;
-            if (obj == Block3TitleEditor) return true;
             if (obj == Block3ContentEditor) return true;
             
             // 检查是否是编辑器的子元素（例如右键菜单或内部结构）
-            if (Block3TitleEditor != null && Block3TitleEditor.IsAncestorOf(obj)) return true;
             if (Block3ContentEditor != null && Block3ContentEditor.IsAncestorOf(obj)) return true;
             
             return false;
+        }
+
+        private void FileInlineEditor_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem && promptItem.IsRenaming)
+            {
+                textBox.Focus();
+                textBox.SelectAll();
+            }
+        }
+
+        private void FileInlineEditor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem)
+            {
+                if (e.Key == Key.Enter)
+                {
+                    promptItem.IsRenaming = false;
+                    ViewModel?.RequestSaveCommand.Execute(null);
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    if (string.IsNullOrWhiteSpace(promptItem.Title))
+                    {
+                        promptItem.Title = "未命名提示词";
+                    }
+                    promptItem.IsRenaming = false;
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void FileInlineEditor_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem)
+            {
+                if (string.IsNullOrWhiteSpace(promptItem.Title))
+                {
+                    promptItem.Title = "未命名提示词";
+                }
+                promptItem.IsRenaming = false;
+                ViewModel?.RequestSaveCommand.Execute(null);
+            }
         }
 
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
