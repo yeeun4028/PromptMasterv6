@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -75,9 +75,9 @@ namespace PromptMasterv6.Services
 
                 using (var requestContent = new FormUrlEncodedContent(postData))
                 {
-                    var response = await _httpClient.PostAsync(url, requestContent);
+                    var response = await _httpClient.PostAsync(url, requestContent).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    var jsonResult = await response.Content.ReadAsStringAsync();
+                    var jsonResult = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                     using (JsonDocument doc = JsonDocument.Parse(jsonResult))
                     {
@@ -136,7 +136,7 @@ namespace PromptMasterv6.Services
 
             try
             {
-                imageBytes = await OptimizeImageAsync(imageBytes);
+                imageBytes = await OptimizeImageAsync(imageBytes).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -145,7 +145,7 @@ namespace PromptMasterv6.Services
 
             try
             {
-                string token = await GetOcrAccessTokenAsync(apiKey, secretKey);
+                string token = await GetOcrAccessTokenAsync(apiKey, secretKey).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(token)) return "错误: 无法获取 Access Token，请检查 Key 配置是否正确。";
 
                 string url = $"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={token}";
@@ -160,8 +160,8 @@ namespace PromptMasterv6.Services
                     new KeyValuePair<string, string>("probability", "false")
                 });
 
-                var response = await _httpClient.PostAsync(url, content);
-                var jsonResult = await response.Content.ReadAsStringAsync();
+                var response = await _httpClient.PostAsync(url, content).ConfigureAwait(false);
+                var jsonResult = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 using (JsonDocument doc = JsonDocument.Parse(jsonResult))
                 {
@@ -225,7 +225,7 @@ namespace PromptMasterv6.Services
             if (_tokenCache.TryGetValue(cacheKey, out var cached) && DateTime.Now < cached.expire)
                 return cached.token;
 
-            await _tokenLock.WaitAsync();
+            await _tokenLock.WaitAsync().ConfigureAwait(false);
             try
             {
                 if (_tokenCache.TryGetValue(cacheKey, out cached) && DateTime.Now < cached.expire)
@@ -233,8 +233,8 @@ namespace PromptMasterv6.Services
 
                 string url = $"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={apiKey}&client_secret={secretKey}";
 
-                var response = await _httpClient.PostAsync(url, null);
-                var json = await response.Content.ReadAsStringAsync();
+                var response = await _httpClient.PostAsync(url, null).ConfigureAwait(false);
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 using (JsonDocument doc = JsonDocument.Parse(json))
                 {
