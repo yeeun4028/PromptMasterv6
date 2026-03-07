@@ -1,1 +1,0 @@
-Root -> MainWindow[] -> Border[] -> AdornerDecorator[] -> ContentPresenter[] -> Grid[] -> Growl[] -> Grid[PART_GridMain] -> StackPanel[] -> TextBlock[] [TEXTBlock=0001/01/01 00:00:00]
