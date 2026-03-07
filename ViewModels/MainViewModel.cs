@@ -222,6 +222,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private bool isDirty;
 
+    // 记录进入编辑模式时的原始内容，用于判断内容是否真正发生变化
+    private string? _originalContentBeforeEdit;
+
     public MarkdownPipeline Pipeline { get; }
 
     [ObservableProperty] private string? previewContent;
@@ -641,13 +644,23 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         if (IsEditMode)
         {
-            SelectedFile.LastModified = DateTime.Now;
+            // 检查内容是否真正发生了变化
+            bool contentChanged = !string.Equals(_originalContentBeforeEdit, SelectedFile.Content, StringComparison.Ordinal);
+
+            if (contentChanged)
+            {
+                SelectedFile.LastModified = DateTime.Now;
+                RequestSave();
+            }
+
             IsEditMode = false;
-            RequestSave();
             PreviewContent = ConvertHtmlToMarkdown(SelectedFile.Content);
+            _originalContentBeforeEdit = null; // 清除记录
             return;
         }
 
+        // 进入编辑模式时，记录当前内容
+        _originalContentBeforeEdit = SelectedFile.Content;
         IsEditMode = true;
     }
 
