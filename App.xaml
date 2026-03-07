@@ -105,9 +105,9 @@
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="#ACBFBE"/>
             <SolidColorBrush x:Key="PlaceholderTextBrush" Color="#ACBFBE"/>
             <SolidColorBrush x:Key="DividerBrush" Color="#4A4F55"/>
-            <SolidColorBrush x:Key="ListItemHoverBackgroundBrush" Color="#3A3F45"/>
+            <SolidColorBrush x:Key="ListItemHoverBackgroundBrush" Color="#32363A"/>
             <SolidColorBrush x:Key="ListItemSelectedBackgroundBrush" Color="#444A52"/>
-            <SolidColorBrush x:Key="InputFocusBackgroundBrush" Color="Transparent"/>
+            <SolidColorBrush x:Key="InputFocusBackgroundBrush" Color="#25272B"/>
 
             <SolidColorBrush x:Key="TextCaretBrush" Color="#B8BFC6"/>
             <SolidColorBrush x:Key="Block3EditorTextBrush" Color="#B8BFC6"/>
