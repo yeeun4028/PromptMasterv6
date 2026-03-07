@@ -25,7 +25,7 @@ jobs:
     - name: 3. 还原依赖项
       run: dotnet restore
 
-    - name: 4. 执行发布 (完全映射你的本地 VS 配置)
+    - name: 4. 执行发布 (完全映射你的本地 VS 配置，强制 7MB 单文件)
       run: >
         dotnet publish PromptMasterv6.csproj 
         -c Release 
@@ -35,33 +35,43 @@ jobs:
         -p:PublishSingleFile=true 
         -o publish
 
-    - name: 5. 组装发布包 (提取exe, ico, pdb及json配置)
+    - name: 5. 组装发布包 (提取exe，并将 json 独立压缩成 config.zip)
       shell: pwsh
       run: |
-        # 创建临时文件夹用于压缩
         $Version = "${{ github.ref_name }}"
         $ReleaseFolder = "PromptMasterv6-$Version-win-x64"
+        
+        # 创建最终要发给用户的外层文件夹
         New-Item -ItemType Directory -Force -Path $ReleaseFolder
         
-        # 提取 publish 目录下的所有文件（就是你提到的 exe, pdb, ico 这三个文件）
+        # 提取 publish 目录下的所有程序文件 (exe, pdb, ico等)
         Copy-Item -Path "publish/*" -Destination $ReleaseFolder/ -Recurse
         
-        # 提取根目录的配置文件
+        # === 新增逻辑：将配置文件打包成 config.zip ===
+        $ConfigTempFolder = "TempConfigForZip"
+        New-Item -ItemType Directory -Force -Path $ConfigTempFolder
+        $HasConfig = $false
+        
         if (Test-Path "config.json") {
-            Copy-Item -Path "config.json" -Destination $ReleaseFolder/
-            Write-Host "已成功打包 config.json"
-        } else {
-            Write-Host "警告: 未找到 config.json"
+            Copy-Item -Path "config.json" -Destination $ConfigTempFolder/
+            $HasConfig = $true
+            Write-Host "已提取 config.json"
         }
         
         if (Test-Path "local_settings.json") {
-            Copy-Item -Path "local_settings.json" -Destination $ReleaseFolder/
-            Write-Host "已成功打包 local_settings.json"
-        } else {
-            Write-Host "警告: 未找到 local_settings.json"
+            Copy-Item -Path "local_settings.json" -Destination $ConfigTempFolder/
+            $HasConfig = $true
+            Write-Host "已提取 local_settings.json"
         }
         
-        # 将文件夹打包成 ZIP
+        if ($HasConfig) {
+            # 将这两个 json 文件压缩成 config.zip，直接存放到 exe 所在的目录中
+            Compress-Archive -Path "$ConfigTempFolder/*" -DestinationPath "$ReleaseFolder/config.zip" -Force
+            Write-Host "成功生成 config.zip 并放置在程序目录中"
+        }
+        # ===============================================
+        
+        # 将整个发布文件夹打包成最终对外的 ZIP 包
         Compress-Archive -Path "$ReleaseFolder/*" -DestinationPath "$ReleaseFolder.zip" -Force
 
     - name: 6. 自动创建 GitHub Release
