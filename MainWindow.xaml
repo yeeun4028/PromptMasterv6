@@ -827,7 +827,7 @@
 
                                 <Grid>
                                     <TextBox x:Name="Block3ContentEditor"
-                                             Margin="0,25,0,0"
+                                             Margin="0,40,0,0"
                                              ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
                                              Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
                                              AcceptsReturn="True"
@@ -860,7 +860,7 @@
                                 </TextBox>
                                 </Grid>
 
-                                <md:MarkdownViewer Margin="0,15,0,0"
+                                <md:MarkdownViewer Margin="0,40,0,0"
                                                   Loaded="MarkdownViewer_Loaded"
                                                   ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
                                                   Markdown="{Binding PreviewContent}"
