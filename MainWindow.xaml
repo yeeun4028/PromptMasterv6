@@ -384,11 +384,12 @@
         <Style x:Key="ActionBtnStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="0,5"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" Width="40" Height="40" CornerRadius="4" ToolTip="{TemplateBinding Content}">
+                        <Border Background="{TemplateBinding Background}" Width="32" Height="32" CornerRadius="4" ToolTip="{TemplateBinding Content}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -757,7 +758,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" Margin="0,0,0,10" Background="Transparent">
+                                <Grid Grid.Row="0" Height="40" Margin="0,5,0,5" Background="Transparent">
                                     <b:Interaction.Behaviors>
                                         <behaviors:WindowDragBehavior/>
                                     </b:Interaction.Behaviors>
