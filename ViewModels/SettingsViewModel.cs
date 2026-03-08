@@ -52,6 +52,15 @@ namespace PromptMasterv6.ViewModels
         [ObservableProperty] private bool isSettingsOpen;
         [ObservableProperty] private int selectedSettingsTab;
 
+        [RelayCommand]
+        private void SelectSettingsTab(string tabIndexStr)
+        {
+            if (int.TryParse(tabIndexStr, out int tabIndex))
+            {
+                SelectedSettingsTab = tabIndex;
+            }
+        }
+
         #endregion
 
         #region Observable Properties - AI Model Management
