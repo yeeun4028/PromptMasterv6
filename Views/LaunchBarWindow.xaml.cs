@@ -1,6 +1,8 @@
-﻿using PromptMasterv6.Core.Models;
+using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.ViewModels;
+using PromptMasterv6.ViewModels.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -22,8 +24,6 @@ namespace PromptMasterv6.Views
             _mainViewModel = mainViewModel;
             this.DataContext = _mainViewModel;
             
-            
-            // Re-evaluate visibility when config changes
             _mainViewModel.Config.PropertyChanged += Config_PropertyChanged;
         }
 
@@ -49,7 +49,6 @@ namespace PromptMasterv6.Views
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Calculate taskbar height (or breadth) to use as top margin
             double taskbarHeight = SystemParameters.PrimaryScreenHeight - SystemParameters.WorkArea.Height;
             if (taskbarHeight <= 0)
             {
@@ -57,21 +56,19 @@ namespace PromptMasterv6.Views
             }
             if (taskbarHeight <= 0)
             {
-                taskbarHeight = 48; // Sensible default
+                taskbarHeight = 48;
             }
 
             double topPos = SystemParameters.WorkArea.Top;
             if (topPos == 0)
             {
-                // If taskbar is at bottom or sides, leave a gap at the top equivalent to the taskbar height
                 topPos = taskbarHeight;
             }
 
-            // Lock to primary screen left edge, adjust top and height
             this.Top = topPos;
             this.Height = SystemParameters.WorkArea.Height - (topPos - SystemParameters.WorkArea.Top);
             this.Left = 0;
-            UpdateWidth(); // Ensure the width is set from code-behind (overrides/supplements XAML binding)
+            UpdateWidth();
             
             UpdateVisibility();
         }
@@ -85,7 +82,6 @@ namespace PromptMasterv6.Views
             else
             {
                 this.Show();
-                // Ensure it stays on top without stealing focus constantly
                 this.Topmost = true;
             }
         }
@@ -102,7 +98,6 @@ namespace PromptMasterv6.Views
 
         private void MoveCursorToScreenCenter()
         {
-            // Get DPI scale factor
             double dpiX = 1.0;
             double dpiY = 1.0;
             var source = PresentationSource.FromVisual(this);
@@ -112,7 +107,6 @@ namespace PromptMasterv6.Views
                 dpiY = source.CompositionTarget.TransformToDevice.M22;
             }
 
-            // Convert WPF logical coordinates to physical pixels
             int centerX = (int)((SystemParameters.PrimaryScreenWidth / 2) * dpiX);
             int centerY = (int)((SystemParameters.PrimaryScreenHeight / 2) * dpiY);
             NativeMethods.SetCursorPos(centerX, centerY);
@@ -120,7 +114,6 @@ namespace PromptMasterv6.Views
 
         private void ExecuteLaunchBarAction(LaunchBarItem item)
         {
-            // Simple debounce/cooldown mechanism to prevent multiple triggers from mouse hovering over multiple items quickly
             if ((DateTime.Now - _lastActionTime).TotalMilliseconds < 500)
             {
                 return;
@@ -131,25 +124,24 @@ namespace PromptMasterv6.Views
             {
                 if (item.ActionType == LaunchBarActionType.BuiltIn)
                 {
-                    // Handle built-in commands
                     switch (item.ActionTarget)
                     {
                         case "ToggleWindow":
-                            _mainViewModel.SimulateFullWindowHotkey();
+                            WeakReferenceMessenger.Default.Send(new ToggleWindowMessage());
                             break;
                         case "ScreenshotTranslate":
-                        case "Translate": // config.json saves "Translate" for screenshot translation
-                            _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null);
+                        case "Translate":
+                            WeakReferenceMessenger.Default.Send(new TriggerTranslateMessage());
                             break;
                         case "OcrOnly":
-                        case "Ocr": // Settings saves "Ocr" as ActionTarget for screenshot OCR
-                            _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null);
+                        case "Ocr":
+                            WeakReferenceMessenger.Default.Send(new TriggerOcrMessage());
                             break;
                         case "Launcher":
-                            _mainViewModel.HandleLauncherTriggered();
+                            WeakReferenceMessenger.Default.Send(new TriggerLauncherMessage());
                             break;
                         case "PinImage":
-                            _mainViewModel.ExternalToolsVM.TriggerPinToScreenCommand.Execute(null);
+                            WeakReferenceMessenger.Default.Send(new TriggerPinToScreenMessage());
                             break;
                     }
                 }
@@ -165,7 +157,6 @@ namespace PromptMasterv6.Views
                     }
                 }
 
-                // Move cursor to screen center after triggering the action
                 MoveCursorToScreenCenter();
             }
             catch (Exception ex)
@@ -179,9 +170,6 @@ namespace PromptMasterv6.Views
         {
             base.OnSourceInitialized(e);
             
-            // Set WS_EX_NOACTIVATE to ensure this window NEVER takes focus, 
-            // even when this.Show() is called or it is clicked, preventing it from
-            // stealing focus from other popups (like TranslationPopup)
             var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
             IntPtr exStyle = Infrastructure.Services.NativeMethods.GetWindowLongPtr(hwnd, Infrastructure.Services.NativeMethods.GWL_EXSTYLE);
             Infrastructure.Services.NativeMethods.SetWindowLongPtr(hwnd, Infrastructure.Services.NativeMethods.GWL_EXSTYLE, (IntPtr)((long)exStyle | Infrastructure.Services.NativeMethods.WS_EX_NOACTIVATE));

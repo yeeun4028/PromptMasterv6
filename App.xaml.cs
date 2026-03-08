@@ -196,13 +196,13 @@ namespace PromptMasterv6
             // Configuration Service (单例，所有 VM 共享配置)
             services.AddSingleton<ISettingsService, SettingsService>();
 
-            // ViewModels
-            services.AddSingleton<SettingsViewModel>();
-            services.AddSingleton<SidebarViewModel>();
+            // ViewModels (Transient - 生命周期跟随 View)
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<SidebarViewModel>();
+            services.AddTransient<ExternalToolsViewModel>();
+            services.AddTransient<LauncherViewModel>();
+            services.AddTransient<MainViewModel>();
 
-            services.AddSingleton<ExternalToolsViewModel>();
-            services.AddTransient<LauncherViewModel>(); 
-            services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<PromptMasterv6.Views.LaunchBarWindow>();
 

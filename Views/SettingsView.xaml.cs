@@ -10,9 +10,7 @@ using System.Linq;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.ViewModels;
-using WinFormsCursor = System.Windows.Forms.Cursor;
 
-// 解决 WPF 和 WinForms 的命名冲突
 using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
 using ListBox = System.Windows.Controls.ListBox;
@@ -34,20 +32,12 @@ namespace PromptMasterv6.Views
 
         private void SettingsView_Loaded(object sender, RoutedEventArgs e)
         {
-            // Initialize external tools sub-tab to Main tab
             UpdateExternalToolsSubTab(0);
-            
-
-            // Initialize AI sub-tab to Main tab
             UpdateAiSubTab(0);
-
-            // Initialize Sync sub-tab to WebDAV tab
             UpdateSyncSubTab(0);
         }
 
-        // Baidu and Tencent credentials methods moved to SettingsViewModel
-
-        private MainViewModel? ViewModel => DataContext as MainViewModel;
+        private SettingsViewModel? ViewModel => DataContext as SettingsViewModel;
 
         private void WebDavPasswordBox_Loaded(object sender, RoutedEventArgs e)
         {
@@ -73,7 +63,6 @@ namespace PromptMasterv6.Views
 
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
 
-            // Delete to clear
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
@@ -107,13 +96,12 @@ namespace PromptMasterv6.Views
 
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
 
-            // Delete to clear
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
                 ViewModel.Config.LauncherHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateLauncherHotkey();
+                ViewModel.UpdateLauncherHotkey();
                 return;
             }
 
@@ -131,7 +119,7 @@ namespace PromptMasterv6.Views
 
                 ViewModel.Config.LauncherHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateLauncherHotkey();
+                ViewModel.UpdateLauncherHotkey();
             }
         }
 
@@ -182,13 +170,12 @@ namespace PromptMasterv6.Views
 
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
 
-            // Delete to clear
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
                 ViewModel.Config.ScreenshotTranslateHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
+                ViewModel.UpdateExternalToolsHotkeys();
                 return;
             }
 
@@ -207,7 +194,7 @@ namespace PromptMasterv6.Views
             {
                 ViewModel.Config.ScreenshotTranslateHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
+                ViewModel.UpdateExternalToolsHotkeys();
             }
         }
 
@@ -218,13 +205,12 @@ namespace PromptMasterv6.Views
 
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
 
-            // Delete to clear
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
                 ViewModel.Config.OcrHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
+                ViewModel.UpdateExternalToolsHotkeys();
                 return;
             }
 
@@ -243,7 +229,7 @@ namespace PromptMasterv6.Views
             {
                 ViewModel.Config.OcrHotkey = sb.ToString();
                 tb.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
+                ViewModel.UpdateExternalToolsHotkeys();
             }
         }
 
@@ -253,13 +239,12 @@ namespace PromptMasterv6.Views
 
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
 
-            // Delete to clear
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
                 ViewModel.Config.PinToScreenHotkey = "";
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
+                ViewModel.UpdateExternalToolsHotkeys();
                 return;
             }
 
@@ -278,7 +263,7 @@ namespace PromptMasterv6.Views
             {
                 ViewModel.Config.PinToScreenHotkey = sb.ToString();
                 tb2.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                ViewModel.SettingsVM.UpdateExternalToolsHotkeys();
+                ViewModel.UpdateExternalToolsHotkeys();
             }
         }
 
@@ -288,7 +273,6 @@ namespace PromptMasterv6.Views
 
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
 
-            // Delete to clear
             if (key == Key.Delete || key == Key.Back)
             {
                 e.Handled = true;
@@ -318,7 +302,6 @@ namespace PromptMasterv6.Views
         }
 
 
-        // External Tools Sub-Tab Navigation
         private void ExternalToolsSubTab_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
@@ -332,7 +315,6 @@ namespace PromptMasterv6.Views
         {
             _selectedExternalToolsSubTab = tabIndex;
 
-            // Update button states directly - much simpler!
             if (BtnMainTab != null) BtnMainTab.Tag = tabIndex == 0 ? "Selected" : "0";
             if (BtnBaiduTab != null) BtnBaiduTab.Tag = tabIndex == 1 ? "Selected" : "1";
             if (BtnTencentTab != null) BtnTencentTab.Tag = tabIndex == 2 ? "Selected" : "2";
@@ -341,7 +323,6 @@ namespace PromptMasterv6.Views
             if (BtnExternalAiTranslateTab != null) BtnExternalAiTranslateTab.Tag = tabIndex == 5 ? "Selected" : "5";
 
 
-            // Show/hide tab content
             if (ExternalToolsMainTab != null) ExternalToolsMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsBaiduTab != null) ExternalToolsBaiduTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsTencentTab != null) ExternalToolsTencentTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
@@ -350,7 +331,6 @@ namespace PromptMasterv6.Views
             if (ExternalToolsAiTranslateTab != null) ExternalToolsAiTranslateTab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // AI Sub-Tab Navigation
         private void AiSubTab_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is string tagStr)
@@ -364,13 +344,9 @@ namespace PromptMasterv6.Views
         {
             _selectedAiSubTab = tabIndex;
 
-            // Tab 2 (Translations) and Tab 3 (Selection Assistant) removed
-
-            // Show/hide tab content
             if (AiMainTab != null) AiMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // Sync Sub-Tab Handlers
         private int _selectedSyncSubTab = 0;
 
         private void SyncSubTab_Click(object sender, RoutedEventArgs e)
@@ -386,23 +362,13 @@ namespace PromptMasterv6.Views
         {
             _selectedSyncSubTab = tabIndex;
 
-            // Update button states
             if (BtnSyncWebDavTab != null) BtnSyncWebDavTab.Tag = tabIndex == 0 ? "Selected" : "0";
             if (BtnSyncDataTab != null) BtnSyncDataTab.Tag = tabIndex == 1 ? "Selected" : "1";
             if (BtnSyncLogTab != null) BtnSyncLogTab.Tag = tabIndex == 2 ? "Selected" : "2";
 
-            // Show/hide tab content
             if (SyncWebDavTab != null) SyncWebDavTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (SyncDataTab != null) SyncDataTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
             if (SyncLogTab != null) SyncLogTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
         }
-
-        // Google credentials methods moved to SettingsViewModel
-
-        // AI Translation Config methods moved to SettingsViewModel
-
-        // Connection Test Methods
-        // Baidu test methods moved to SettingsViewModel
-        // Tencent, Youdao, Google test methods moved to SettingsViewModel
     }
 }

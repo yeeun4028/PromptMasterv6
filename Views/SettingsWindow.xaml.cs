@@ -1,7 +1,9 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using PromptMasterv6.ViewModels;
 using System.Windows.Threading;
+using CommunityToolkit.Mvvm.Messaging;
+using PromptMasterv6.ViewModels.Messages;
 
 namespace PromptMasterv6.Views
 {
@@ -12,7 +14,7 @@ namespace PromptMasterv6.Views
             InitializeComponent();
         }
 
-        public void SetDataContext(MainViewModel viewModel)
+        public void SetDataContext(SettingsViewModel viewModel)
         {
             DataContext = viewModel;
             SettingsViewContent.DataContext = viewModel;
@@ -30,11 +32,9 @@ namespace PromptMasterv6.Views
         {
             e.Handled = true;
             
-            // 捕获鼠标，阻止事件传播
             Mouse.Capture(this, CaptureMode.SubTree);
             Mouse.Capture(null);
             
-            // 延迟关闭，确保事件完全处理
             Dispatcher.BeginInvoke(() =>
             {
                 Close();
@@ -43,9 +43,9 @@ namespace PromptMasterv6.Views
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (DataContext is MainViewModel mainVM)
+            if (DataContext is SettingsViewModel settingsVM)
             {
-                mainVM.SettingsVM.IsSettingsOpen = false;
+                settingsVM.IsSettingsOpen = false;
             }
         }
     }

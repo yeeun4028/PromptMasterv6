@@ -5,6 +5,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PromptMasterv6.ViewModels;
+using PromptMasterv6.ViewModels.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Text;
 using System.Windows.Media;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -32,9 +34,6 @@ using WpfControl = System.Windows.Controls.Control;
 using WinFormsCursor = System.Windows.Forms.Cursor;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
-
-using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.ViewModels.Messages;
 
 namespace PromptMasterv6
 {
@@ -290,14 +289,6 @@ namespace PromptMasterv6
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MainViewModel.IsSettingsOpen))
-            {
-                if (ViewModel.IsSettingsOpen)
-                {
-                    StopHideTimer();
-                    this.Topmost = false;
-                }
-            }
         }
 
 
@@ -632,7 +623,8 @@ namespace PromptMasterv6
             try
             {
                 Title = "正在备份到云端... 请勿关闭";
-                await ViewModel.BackupToCloudAsync();
+                WeakReferenceMessenger.Default.Send(new RequestBackupMessage());
+                await Task.Delay(1000);
             }
             catch (Exception ex)
             {
@@ -640,7 +632,6 @@ namespace PromptMasterv6
             }
             finally
             {
-                // 设置标志位，下次 Close() 时直接跳过对话框
                 _isBackupExiting = true;
                 _isExiting = true;
                 this.Close();

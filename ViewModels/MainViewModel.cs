@@ -60,67 +60,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
     private readonly Subject<System.Reactive.Unit> _saveLocalSettingsSubject = new();
 
-    // Event handlers for proper unsubscription
     private EventHandler? _onLauncherTriggeredHandler;
-    private PropertyChangedEventHandler? _settingsVMPropertyChangedHandler;
     private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
 
     private bool _isSimulatingKeys;
     public void SetSimulatingKeys(bool value) => _isSimulatingKeys = value;
 
-    public SidebarViewModel SidebarVM { get; }
-    public SettingsViewModel SettingsVM { get; }
-    public ExternalToolsViewModel ExternalToolsVM { get; }
-
-
     [ObservableProperty] private AppConfig config;
     [ObservableProperty] private LocalSettings localConfig;
     [ObservableProperty] private bool isFullMode = true;
 
-    // Expose SettingsService for MainWindow
     public ISettingsService SettingsService => _settingsService;
-
-
-    // 委托属性：转发到 SettingsViewModel（保持 XAML 兼容性）
-    public bool IsSettingsOpen
-    {
-        get => SettingsVM?.IsSettingsOpen ?? false;
-        set 
-        { 
-            if (SettingsVM != null) 
-            {
-                SettingsVM.IsSettingsOpen = value;
-                if (value)
-                {
-                    _windowManager.ShowSettingsWindow(this);
-                }
-            }
-        }
-    }
-
-    public int SelectedSettingsTab
-    {
-        get => SettingsVM?.SelectedSettingsTab ?? 0;
-        set { if (SettingsVM != null) SettingsVM.SelectedSettingsTab = value; }
-    }
-
-    public bool IsRestoreConfirmVisible
-    {
-        get => SettingsVM?.IsRestoreConfirmVisible ?? false;
-        set { if (SettingsVM != null) SettingsVM.IsRestoreConfirmVisible = value; }
-    }
-
-    public string? RestoreStatus
-    {
-        get => SettingsVM?.RestoreStatus;
-        set { if (SettingsVM != null) SettingsVM.RestoreStatus = value; }
-    }
-
-    public System.Windows.Media.Brush RestoreStatusColor
-    {
-        get => SettingsVM?.RestoreStatusColor ?? System.Windows.Media.Brushes.Green;
-        set { if (SettingsVM != null) SettingsVM.RestoreStatusColor = value; }
-    }
 
     [ObservableProperty] private string syncTimeDisplay = "Now";
     [ObservableProperty] private ICollectionView? filesView;
@@ -231,16 +181,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public MainViewModel(
         ISettingsService settingsService,
-        SettingsViewModel settingsVM,
         IAiService aiService,
         WebDavDataService dataService,
         FileDataService localDataService,
         GlobalKeyService keyService,
-        SidebarViewModel sidebarVM,
-        ExternalToolsViewModel externalToolsVM,
         IDialogService dialogService,
         ClipboardService clipboardService,
-          IWindowManager windowManager) // Injected
+        IWindowManager windowManager)
     {
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
@@ -254,47 +201,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _clipboardService = clipboardService;
         _settingsService = settingsService;
-        _windowManager = windowManager; // Assigned
+        _windowManager = windowManager;
         _hotkeyService = new HotkeyService();
-        
-        SidebarVM = sidebarVM;
-        SettingsVM = settingsVM;
-        ExternalToolsVM = externalToolsVM;
-        ExternalToolsVM.SetMainViewModel(this);
 
-        // 通过 SettingsService 获取配置（而不是直接加载）
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
-
-        // 设置双向引用（SettingsVM 需要访问 MainVM 的一些数据）
-        SettingsVM.SetMainViewModel(this);
-
-        // 订阅 SettingsVM 的属性变更，传播到 MainVM 的委托属性
-        _settingsVMPropertyChangedHandler = (sender, e) =>
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(SettingsVM.IsSettingsOpen):
-                    OnPropertyChanged(nameof(IsSettingsOpen));
-                    break;
-                case nameof(SettingsVM.SelectedSettingsTab):
-                    OnPropertyChanged(nameof(SelectedSettingsTab));
-                    OnPropertyChanged(nameof(SelectedSettingsTabName));
-                    break;
-                case nameof(SettingsVM.IsRestoreConfirmVisible):
-                    OnPropertyChanged(nameof(IsRestoreConfirmVisible));
-                    break;
-                case nameof(SettingsVM.RestoreStatus):
-                    OnPropertyChanged(nameof(RestoreStatus));
-                    break;
-                case nameof(SettingsVM.RestoreStatusColor):
-                    OnPropertyChanged(nameof(RestoreStatusColor));
-                    break;
-            }
-        };
-        SettingsVM.PropertyChanged += _settingsVMPropertyChangedHandler;
-
-        SidebarVM.Files = Files;
 
         WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, __) =>
         {
@@ -318,6 +229,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
         });
         WeakReferenceMessenger.Default.Register<RequestMoveFileToFolderMessage>(this, (_, m) => MoveFileToFolder(m.File, m.TargetFolder));
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, __) => RequestSave());
+        WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, __) => await PerformLocalBackup());
+        WeakReferenceMessenger.Default.Register<ToggleWindowMessage>(this, (_, __) => ToggleMainWindow());
+        WeakReferenceMessenger.Default.Register<TriggerLauncherMessage>(this, (_, __) => HandleLauncherTriggered());
+        WeakReferenceMessenger.Default.Register<JumpToEditPromptMessage>(this, (_, m) =>
+        {
+            if (m.File != null)
+            {
+                SelectedFile = m.File;
+                IsEditMode = true;
+            }
+        });
+        WeakReferenceMessenger.Default.Register<RequestPromptFileMessage>(this, (r, m) =>
+        {
+            var file = Files.FirstOrDefault(f => f.Id == m.PromptId);
+            m.Reply(new PromptFileResponseMessage { File = file });
+        });
 
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -348,17 +275,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _keyService.OnLauncherTriggered += _onLauncherTriggeredHandler;
 
         _keyService.LauncherHotkeyString = Config.LauncherHotkey;
-        // Initialize GlobalKeyService unconditionally to support Launcher
         try { _keyService.Start(); }
         catch (Exception ex)
         {
             LoggerService.Instance.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.ctor");
         }
 
-        // 委托给 SettingsViewModel 处理快捷键
-        SettingsVM.SetMainViewModel(this);
-        UpdateWindowHotkeys(); // 使用 MainViewModel 的版本，因为它注册窗口切换快捷键
-        SettingsVM.UpdateExternalToolsHotkeys(); // Initialize external tool hotkeys
+        UpdateWindowHotkeys();
 
         _ = InitializeAsync();
     }
@@ -406,38 +329,31 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         Files = new ObservableCollection<PromptItem>(data.Files ?? new());
 
-        // 附加自动保存监听器
         Files.CollectionChanged += OnFilesCollectionChanged;
         foreach (var item in Files)
         {
             item.PropertyChanged += OnFilePropertyChanged;
         }
 
-        SidebarVM.Files = Files;
-
-        // ⚠️ 关键修复：使用同一个集合引用，而不是创建新集合
         Folders = new ObservableCollection<FolderItem>(data.Folders ?? new());
         if (Folders.Count == 0)
         {
             var defaultFolder = new FolderItem { Name = "默认" };
             Folders.Add(defaultFolder);
-            SidebarVM.SelectedFolder = defaultFolder;
+            SelectedFolder = defaultFolder;
         }
         else
         {
-            SidebarVM.SelectedFolder = Folders.FirstOrDefault();
+            SelectedFolder = Folders.FirstOrDefault();
         }
 
-        // 将同一个集合引用赋值给 SidebarVM
-        SidebarVM.Folders = Folders;
-
-        if (SidebarVM.SelectedFolder != null)
+        if (SelectedFolder != null)
         {
             foreach (var f in Files)
             {
                 if (string.IsNullOrWhiteSpace(f.FolderId))
                 {
-                    f.FolderId = SidebarVM.SelectedFolder.Id;
+                    f.FolderId = SelectedFolder.Id;
                 }
             }
         }
@@ -446,7 +362,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         UpdateFilesViewFilter();
         FilesView?.Refresh();
 
-        // 自动选择第一个文件，以便 Block3 默认显示内容
         if (FilesView != null && !FilesView.IsEmpty)
         {
             var firstItem = FilesView.Cast<PromptItem>().FirstOrDefault();
@@ -456,14 +371,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        IsDirty = false; // Initial load is consistent with source
+        IsDirty = false;
     }
 
     public void UpdateFilesViewFilter()
     {
         if (FilesView == null) return;
 
-        var selectedFolderId = SidebarVM.SelectedFolder?.Id;
+        var selectedFolderId = SelectedFolder?.Id;
         FilesView.Filter = item =>
         {
             if (item is not PromptItem f) return false;
@@ -478,7 +393,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         IsFullMode = true;
     }
 
-    // Hotkey handlers (called by SettingsViewModel)
     public void OnWindowHotkeyPressed()
     {
         ToggleMainWindow();
@@ -491,44 +405,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void ToggleModeViaHotkey()
     {
-        // Mini mode removed, always ensure full mode
         EnterFullMode();
     }
-
-    public string SelectedSettingsTabName => SelectedSettingsTab switch
-    {
-        0 => "基础",
-        1 => "发送方式",
-        2 => "外部工具",
-        3 => "发送",
-        4 => "高级",
-        _ => "设置"
-    };
 
     [RelayCommand]
     private void OpenSettings()
     {
-        IsSettingsOpen = true;
+        _windowManager.ShowSettingsWindow();
     }
 
     [RelayCommand]
-    private void SaveSettings()
-    {
-        SettingsVM.IsSettingsOpen = false;
-        _settingsService.SaveConfig();
-        _settingsService.SaveLocalConfig();
-        UpdateWindowHotkeys();
-        _windowManager.CloseSettingsWindow();
-    }
-
-    [RelayCommand]
-    private void SelectSettingsTab(string tabIndex)
-    {
-        if (int.TryParse(tabIndex, out int idx)) SelectedSettingsTab = idx;
-    }
-
-    [RelayCommand]
-
     private void ImportMarkdownFiles()
     {
         string filter = "Markdown 文件 (*.md;*.markdown)|*.md;*.markdown|所有文件 (*.*)|*.*";
@@ -536,12 +422,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         if (files == null || files.Length == 0) return;
 
-        var targetFolder = SidebarVM.SelectedFolder;
+        var targetFolder = SelectedFolder;
         if (targetFolder == null)
         {
             targetFolder = new FolderItem { Name = "导入" };
-            SidebarVM.Folders.Add(targetFolder);
-            SidebarVM.SelectedFolder = targetFolder;
+            Folders.Add(targetFolder);
+            SelectedFolder = targetFolder;
         }
 
         foreach (var filePath in files)
@@ -588,43 +474,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             RequestSave();
         }
     }
-
-    [RelayCommand]
-    private void AddAiModel() => SettingsVM.AddAiModelCommand.Execute(null);
-
-    [RelayCommand]
-    private void DeleteAiModel(AiModelConfig? model) => SettingsVM.DeleteAiModelCommand.Execute(model);
-
-
-    [RelayCommand]
-    private void ShowRestoreConfirm() => SettingsVM.ShowRestoreConfirmCommand.Execute(null);
-
-    [RelayCommand]
-    private void CancelRestoreConfirm() => SettingsVM.CancelRestoreConfirmCommand.Execute(null);
-
-    [RelayCommand]
-    private void ManualRestore() => SettingsVM.ManualRestoreCommand.Execute(null);
-
-    [RelayCommand]
-    private void ManualLocalRestore() => SettingsVM.ManualLocalRestoreCommand.Execute(null);
-
-
-    public async Task BackupToCloudAsync()
-    {
-        if (SettingsVM?.ManualBackupCommand is IAsyncRelayCommand cmd)
-        {
-            await cmd.ExecuteAsync(null);
-        }
-    }
-
-    [RelayCommand]
-    private void ManualBackup() => SettingsVM.ManualBackupCommand.Execute(null);
-
-    [RelayCommand]
-    private void OpenLogFolder() => SettingsVM.OpenLogFolderCommand.Execute(null);
-
-    [RelayCommand]
-    private void ClearLogs() => SettingsVM.ClearLogsCommand.Execute(null);
 
     [RelayCommand]
     private void ToggleEditMode()
@@ -1019,13 +868,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         return finalContent;
     }
 
-
-    [RelayCommand]
-    private void TriggerOcr() => ExternalToolsVM.TriggerOcrCommand.Execute(null);
-
-    [RelayCommand]
-    private void TriggerTranslate() => ExternalToolsVM.TriggerTranslateCommand.Execute(null);
-
     public void HandleLauncherTriggered()
     {
         Application.Current.Dispatcher.Invoke(() =>
@@ -1085,19 +927,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _keyService.Dispose();
         }
 
-        // Unsubscribe from SettingsVM PropertyChanged
-        if (SettingsVM != null && _settingsVMPropertyChangedHandler != null)
-        {
-            SettingsVM.PropertyChanged -= _settingsVMPropertyChangedHandler;
-        }
-
-        // Unsubscribe from LocalConfig PropertyChanged
         if (LocalConfig != null && _localConfigPropertyChangedHandler != null)
         {
             LocalConfig.PropertyChanged -= _localConfigPropertyChangedHandler;
         }
 
-        // Unsubscribe from Files collection events
         if (Files != null)
         {
             Files.CollectionChanged -= OnFilesCollectionChanged;
@@ -1107,7 +941,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        // Unregister WeakReferenceMessenger
         WeakReferenceMessenger.Default.UnregisterAll(this);
 
         GC.SuppressFinalize(this);

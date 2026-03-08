@@ -144,16 +144,18 @@ namespace PromptMasterv6.Infrastructure.Services
             });
         }
 
-        public void ShowSettingsWindow(object viewModel)
+        public void ShowSettingsWindow()
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var mainWindow = Application.Current.MainWindow;
                 var window = new SettingsWindow();
                 
-                if (viewModel is ViewModels.MainViewModel mainVM)
+                var app = Application.Current as App;
+                var settingsVM = app?.ServiceProvider.GetRequiredService<SettingsViewModel>();
+                if (settingsVM != null)
                 {
-                    window.SetDataContext(mainVM);
+                    window.SetDataContext(settingsVM);
                 }
                 
                 window.Owner = mainWindow;

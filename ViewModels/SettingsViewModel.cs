@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Services;
+using PromptMasterv6.ViewModels.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -376,12 +378,10 @@ namespace PromptMasterv6.ViewModels
                 _hotkeyService.TryRemoveHotkey("OcrOnly");
                 _hotkeyService.TryRemoveHotkey("PinToScreen");
 
-                // Register new hotkeys from external tools settings
-                _hotkeyService.RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => _mainViewModel.ExternalToolsVM.TriggerTranslateCommand.Execute(null));
-                _hotkeyService.RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => _mainViewModel.ExternalToolsVM.TriggerOcrCommand.Execute(null));
-                _hotkeyService.RegisterWindowHotkey("PinToScreen", Config.PinToScreenHotkey, () => _mainViewModel.ExternalToolsVM.TriggerPinToScreenCommand.Execute(null));
+                _hotkeyService.RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => WeakReferenceMessenger.Default.Send(new TriggerTranslateMessage()));
+                _hotkeyService.RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => WeakReferenceMessenger.Default.Send(new TriggerOcrMessage()));
+                _hotkeyService.RegisterWindowHotkey("PinToScreen", Config.PinToScreenHotkey, () => WeakReferenceMessenger.Default.Send(new TriggerPinToScreenMessage()));
                 
-                // Update Launcher Hotkey
                 UpdateLauncherHotkey();
             }
             catch (Exception ex)
@@ -484,54 +484,12 @@ namespace PromptMasterv6.ViewModels
 
                 if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))
                 {
-                    // It's possible it's really empty, or it failed silently (WebDavDataService swallows errors)
-                    // But if it's empty, we treat it as "No data found"
                     RestoreStatus = "❌ 云端没有数据可恢复 (或连接失败)";
                     RestoreStatusColor = System.Windows.Media.Brushes.Red;
                     return;
                 }
 
-                // Clear current data
-                _mainViewModel.Files.Clear();
-                _mainViewModel.SidebarVM.Folders.Clear();
-
-                // Restore folders
-                if (data.Folders != null && data.Folders.Count > 0)
-                {
-                    foreach (var folder in data.Folders)
-                    {
-                        _mainViewModel.SidebarVM.Folders.Add(folder);
-                    }
-                    _mainViewModel.SidebarVM.SelectedFolder = _mainViewModel.SidebarVM.Folders.FirstOrDefault();
-                }
-                else
-                {
-                    var defaultFolder = new FolderItem { Name = "默认" };
-                    _mainViewModel.SidebarVM.Folders.Add(defaultFolder);
-                    _mainViewModel.SidebarVM.SelectedFolder = defaultFolder;
-                }
-
-                // Restore files
-                if (data.Files != null && data.Files.Count > 0)
-                {
-                    foreach (var file in data.Files)
-                    {
-                        // Ensure FolderId integrity
-                        if (string.IsNullOrWhiteSpace(file.FolderId) && _mainViewModel.SidebarVM.SelectedFolder != null)
-                        {
-                            file.FolderId = _mainViewModel.SidebarVM.SelectedFolder.Id;
-                        }
-                        _mainViewModel.Files.Add(file);
-                    }
-                }
-
-                // Update view (调用 MainViewModel 的方法)
-                _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
-                _mainViewModel.UpdateFilesViewFilter();
-                _mainViewModel.FilesView?.Refresh();
-
-                // Save to local
-                await _mainViewModel.PerformLocalBackup();
+                ApplyRestoredData(data);
 
                 RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
                 RestoreStatusColor = System.Windows.Media.Brushes.Green;
@@ -544,6 +502,45 @@ namespace PromptMasterv6.ViewModels
                 RestoreStatusColor = System.Windows.Media.Brushes.Red;
                 LoggerService.Instance.LogException(ex, "Failed to restore from cloud", "SettingsViewModel.ManualRestore");
             }
+        }
+
+        private void ApplyRestoredData(AppData data)
+        {
+            if (_mainViewModel == null) return;
+
+            _mainViewModel.Files.Clear();
+            _mainViewModel.Folders.Clear();
+
+            if (data.Folders != null && data.Folders.Count > 0)
+            {
+                foreach (var folder in data.Folders)
+                {
+                    _mainViewModel.Folders.Add(folder);
+                }
+                _mainViewModel.SelectedFolder = _mainViewModel.Folders.FirstOrDefault();
+            }
+            else
+            {
+                var defaultFolder = new FolderItem { Name = "默认" };
+                _mainViewModel.Folders.Add(defaultFolder);
+                _mainViewModel.SelectedFolder = defaultFolder;
+            }
+
+            if (data.Files != null && data.Files.Count > 0)
+            {
+                foreach (var file in data.Files)
+                {
+                    if (string.IsNullOrWhiteSpace(file.FolderId) && _mainViewModel.SelectedFolder != null)
+                    {
+                        file.FolderId = _mainViewModel.SelectedFolder.Id;
+                    }
+                    _mainViewModel.Files.Add(file);
+                }
+            }
+
+            _mainViewModel.UpdateFilesViewFilter();
+            _mainViewModel.FilesView?.Refresh();
+            WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
         }
 
         [RelayCommand]
@@ -596,40 +593,7 @@ namespace PromptMasterv6.ViewModels
                     throw new Exception("读取备份文件失败");
                 }
 
-                // Restore logic (same as cloud restore basically)
-                // Clear current data
-                _mainViewModel.Files.Clear();
-                _mainViewModel.SidebarVM.Folders.Clear();
-
-                // Restore folders
-                if (data.Folders != null && data.Folders.Count > 0)
-                {
-                    foreach (var folder in data.Folders)
-                    {
-                        _mainViewModel.SidebarVM.Folders.Add(folder);
-                    }
-                    _mainViewModel.SidebarVM.SelectedFolder = _mainViewModel.SidebarVM.Folders.FirstOrDefault();
-                }
-                else
-                {
-                    var defaultFolder = new FolderItem { Name = "默认" };
-                    _mainViewModel.SidebarVM.Folders.Add(defaultFolder);
-                    _mainViewModel.SidebarVM.SelectedFolder = defaultFolder;
-                }
-
-                // Restore files
-                if (data.Files != null && data.Files.Count > 0)
-                {
-                    foreach (var file in data.Files)
-                    {
-                        _mainViewModel.Files.Add(file);
-                    }
-                }
-
-                // Update view
-                _mainViewModel.SidebarVM.Files = _mainViewModel.Files;
-                _mainViewModel.UpdateFilesViewFilter();
-                _mainViewModel.FilesView?.Refresh();
+                ApplyRestoredData(data);
 
                 RestoreStatus = $"✅ 本地恢复成功: {selected.FileName}";
                 RestoreStatusColor = System.Windows.Media.Brushes.Green;
@@ -652,11 +616,11 @@ namespace PromptMasterv6.ViewModels
 
             try
             {
-                await _dataService.SaveAsync(_mainViewModel.SidebarVM.Folders, _mainViewModel.Files);
-                _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now; // Update sync time
-                _mainViewModel.IsDirty = false; // Reset dirty state indicator
-                _mainViewModel.IsEditMode = false; // Switch to preview mode on successful backup
-                _settingsService.SaveLocalConfig(); // Persist the sync time
+                await _dataService.SaveAsync(_mainViewModel.Folders, _mainViewModel.Files);
+                _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now;
+                _mainViewModel.IsDirty = false;
+                _mainViewModel.IsEditMode = false;
+                _settingsService.SaveLocalConfig();
                 LoggerService.Instance.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
             }
             catch (Exception ex)
@@ -769,14 +733,8 @@ namespace PromptMasterv6.ViewModels
                         UpdateWindowHotkeys();
                         UpdateExternalToolsHotkeys();
                         
-                        // 刷新外部工具配置
-                        if (_mainViewModel?.ExternalToolsVM != null)
-                        {
-                            _mainViewModel.ExternalToolsVM.RefreshProfiles();
-                        }
+                        WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
                         
-                        // 由于配置可能发生彻底变化，建议用户重启或重新初始化一些状态
-                        // 这里我们刷新一下当前 ViewState
                         OnPropertyChanged(nameof(Config));
                         OnPropertyChanged(nameof(LocalConfig));
 
@@ -1094,14 +1052,12 @@ namespace PromptMasterv6.ViewModels
         {
             var promptId = Config.AiTranslationPromptId;
             if (string.IsNullOrWhiteSpace(promptId)) return;
-            if (_mainViewModel == null) return;
 
-            var prompt = _mainViewModel.Files.FirstOrDefault(f => f.Id == promptId);
-            if (prompt != null)
+            var msg = new RequestPromptFileMessage { PromptId = promptId };
+            WeakReferenceMessenger.Default.Send(msg);
+            if (msg.HasReceivedResponse && msg.Response != null && msg.Response.File != null)
             {
-                _mainViewModel.SelectedFile = prompt;
-                _mainViewModel.IsEditMode = true;
-                _mainViewModel.SaveSettingsCommand.Execute(null);
+                WeakReferenceMessenger.Default.Send(new JumpToEditPromptMessage { File = msg.Response.File });
             }
         }
 
@@ -1112,8 +1068,9 @@ namespace PromptMasterv6.ViewModels
             var promptTitle = "";
             if (!string.IsNullOrWhiteSpace(promptId))
             {
-                var prompt = _mainViewModel?.Files.FirstOrDefault(f => f.Id == promptId);
-                promptTitle = prompt?.Title ?? "";
+                var msg = new RequestPromptFileMessage { PromptId = promptId };
+                WeakReferenceMessenger.Default.Send(msg);
+                promptTitle = msg.HasReceivedResponse ? msg.Response?.File?.Title ?? "" : "";
             }
 
             var config = new AiTranslationConfig
@@ -1227,10 +1184,7 @@ namespace PromptMasterv6.ViewModels
 
             _settingsService.SaveConfig();
 
-            if (_mainViewModel?.ExternalToolsVM != null)
-            {
-                _mainViewModel.ExternalToolsVM.RefreshProfiles();
-            }
+            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
         }
 
         /// <summary>
@@ -1311,10 +1265,7 @@ namespace PromptMasterv6.ViewModels
 
             _settingsService.SaveConfig();
 
-            if (_mainViewModel?.ExternalToolsVM != null)
-            {
-                _mainViewModel.ExternalToolsVM.RefreshProfiles();
-            }
+            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
         }
 
         /// <summary>
@@ -1356,10 +1307,7 @@ namespace PromptMasterv6.ViewModels
 
             _settingsService.SaveConfig();
 
-            if (_mainViewModel?.ExternalToolsVM != null)
-            {
-                _mainViewModel.ExternalToolsVM.RefreshProfiles();
-            }
+            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
         }
 
         /// <summary>
@@ -1430,10 +1378,7 @@ namespace PromptMasterv6.ViewModels
 
             _settingsService.SaveConfig();
 
-            if (_mainViewModel?.ExternalToolsVM != null)
-            {
-                _mainViewModel.ExternalToolsVM.RefreshProfiles();
-            }
+            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
         }
 
         #endregion

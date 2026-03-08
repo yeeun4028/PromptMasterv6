@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.ViewModels.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -75,14 +77,6 @@ namespace PromptMasterv6.ViewModels
             
             OnPropertyChanged(nameof(OcrProfiles));
             OnPropertyChanged(nameof(TranslateProfiles));
-        }
-
-        // Reference to MainViewModel to access Files/Folders if needed for AI Translation Prompt
-        private MainViewModel? _mainViewModel;
-
-        public void SetMainViewModel(MainViewModel mainViewModel)
-        {
-            _mainViewModel = mainViewModel;
         }
 
         public AppConfig Config => _settingsService.Config;
@@ -166,11 +160,7 @@ namespace PromptMasterv6.ViewModels
                 {
                     if (_dialogService.ShowOcrNotConfiguredDialog())
                     {
-                        if (_mainViewModel != null)
-                        {
-                            _mainViewModel.OpenSettingsCommand.Execute(null);
-                            _mainViewModel.SelectSettingsTabCommand.Execute("2");
-                        }
+                        WeakReferenceMessenger.Default.Send(new OpenSettingsMessage { TabIndex = 2 });
                     }
                     return;
                 }
@@ -227,11 +217,7 @@ namespace PromptMasterv6.ViewModels
                     {
                         if (_dialogService.ShowOcrNotConfiguredDialog())
                         {
-                            if (_mainViewModel != null)
-                            {
-                                _mainViewModel.OpenSettingsCommand.Execute(null);
-                                _mainViewModel.SelectSettingsTabCommand.Execute("2");
-                            }
+                            WeakReferenceMessenger.Default.Send(new OpenSettingsMessage { TabIndex = 2 });
                         }
                         return;
                     }
@@ -503,12 +489,13 @@ namespace PromptMasterv6.ViewModels
 
 输入：";
             
-            if (!string.IsNullOrWhiteSpace(Config.AiTranslationPromptId) && _mainViewModel != null)
+            if (!string.IsNullOrWhiteSpace(Config.AiTranslationPromptId))
             {
-                var promptFile = _mainViewModel.Files.FirstOrDefault(f => f.Id == Config.AiTranslationPromptId);
-                if (promptFile != null && !string.IsNullOrWhiteSpace(promptFile.Content))
+                var msg = new RequestPromptFileMessage { PromptId = Config.AiTranslationPromptId };
+                WeakReferenceMessenger.Default.Send(msg);
+                if (msg.HasReceivedResponse && msg.Response != null && msg.Response.File != null && !string.IsNullOrWhiteSpace(msg.Response.File.Content))
                 {
-                    systemPrompt = promptFile.Content;
+                    systemPrompt = msg.Response.File.Content;
                 }
             }
             return systemPrompt;
