@@ -69,57 +69,7 @@ namespace PromptMasterv6.Views
             this.Activate();
             this.Focus();
             
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.None;
-
-            if (_screenBitmap == null)
-            {
-                 CaptureFullScreenFallback();
-            }
-        }
-
-        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
-        private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
-
-        private static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);
-
-        private void CaptureFullScreenFallback()
-        {
-            IntPtr originalContext = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
-            try
-            {
-                int minX = int.MaxValue, minY = int.MaxValue;
-                int maxX = int.MinValue, maxY = int.MinValue;
-
-                foreach (var screen in System.Windows.Forms.Screen.AllScreens)
-                {
-                    minX = Math.Min(minX, screen.Bounds.X);
-                    minY = Math.Min(minY, screen.Bounds.Y);
-                    maxX = Math.Max(maxX, screen.Bounds.Right);
-                    maxY = Math.Max(maxY, screen.Bounds.Bottom);
-                }
-
-                int width = maxX - minX;
-                int height = maxY - minY;
-
-                if (width <= 0 || height <= 0) return;
-
-                _screenBitmap = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                using (var g = Graphics.FromImage(_screenBitmap))
-                {
-                    g.CopyFromScreen(minX, minY, 0, 0, new System.Drawing.Size(width, height), CopyPixelOperation.SourceCopy);
-                }
-
-                SetBackgroundFromBitmap(_screenBitmap);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Screen capture error: {ex.Message}");
-            }
-            finally
-            {
-                SetThreadDpiAwarenessContext(originalContext);
-            }
+            Mouse.OverrideCursor = System.Windows.Input.Cursors.Cross;
         }
 
         private void SetBackgroundFromBitmap(Bitmap bmp)
@@ -238,7 +188,7 @@ namespace PromptMasterv6.Views
                 }
                 catch (Exception ex)
                 {
-                    LoggerService.Instance.LogError($"Processing callback failed: {ex.Message}", "ScreenCaptureOverlay");
+                    LoggerService.Instance.LogError($"Processing failed: {ex.Message}", "ScreenCaptureOverlay");
                 }
             }
 
@@ -273,18 +223,7 @@ namespace PromptMasterv6.Views
             {
                 if (_screenBitmap == null)
                 {
-                    int screenLeft = (int)SystemParameters.VirtualScreenLeft;
-                    int screenTop = (int)SystemParameters.VirtualScreenTop;
-
-                    using var bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                    using (var g = Graphics.FromImage(bmp))
-                    {
-                        g.CopyFromScreen(screenLeft + x, screenTop + y, 0, 0, new System.Drawing.Size(width, height));
-                    }
-                    
-                    using var ms = new MemoryStream();
-                    bmp.Save(ms, ImageFormat.Png);
-                    CapturedImageBytes = ms.ToArray();
+                    CapturedImageBytes = null;
                     return;
                 }
 

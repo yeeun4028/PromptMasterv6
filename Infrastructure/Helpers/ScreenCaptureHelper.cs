@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PromptMasterv6.Infrastructure.Helpers
@@ -47,6 +48,11 @@ namespace PromptMasterv6.Infrastructure.Helpers
             {
                 SetThreadDpiAwarenessContext(originalContext);
             }
+        }
+
+        public static Task<Bitmap?> CaptureFullScreenAsync()
+        {
+            return Task.Run(() => CaptureFullScreen());
         }
     }
 }

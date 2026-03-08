@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Media.Imaging;
 using PromptMasterv6.Core.Models;
 using System.IO;
+using System.Linq;
 
 using WpfClipboard = System.Windows.Clipboard;
 
@@ -27,53 +28,36 @@ namespace PromptMasterv6.Infrastructure.Services
 
         private async Task<(byte[]? bytes, System.Windows.Rect rect)> ShowCaptureWindowWithRectAsync(Func<byte[], System.Windows.Rect, Task>? onCaptureProcessing = null)
         {
-            if (_isCapturing)
-            {
-                LoggerService.Instance.LogWarning("截图重入被拦截，当前已有截图任务在运行", "WindowManager");
-                return (null, default);
-            }
-
+            if (_isCapturing) return (null, default);
             _isCapturing = true;
+
             try
             {
-                Bitmap? screenBmp = null;
-                try
-                {
-                    screenBmp = Helpers.ScreenCaptureHelper.CaptureFullScreen();
-                }
-                catch (Exception ex)
-                {
-                    LoggerService.Instance.LogError($"Failed to capture screen instantly: {ex.Message}", "WindowManager");
-                    return (null, default);
-                }
+                bool needsDelay = false;
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    foreach (Window win in Application.Current.Windows)
-                    {
-                        if (win is TranslationPopup popup && popup.IsLoaded && !popup.IsClosing)
-                        {
-                            popup.Close();
-                        }
-                    }
+                    var popups = Application.Current.Windows.OfType<TranslationPopup>().Where(p => p.IsLoaded && !p.IsClosing).ToList();
+                    foreach (var p in popups) p.Close();
+                    if (popups.Count > 0) needsDelay = true;
+
+                    var launchBars = Application.Current.Windows.OfType<LaunchBarWindow>().Where(w => w.IsVisible).ToList();
+                    foreach (var lb in launchBars) lb.Hide();
+                    if (launchBars.Count > 0) needsDelay = true;
                 });
+
+                if (needsDelay)
+                {
+                    await Task.Delay(150);
+                }
+
+                Bitmap? screenBmp = await ScreenCaptureHelper.CaptureFullScreenAsync();
+                if (screenBmp == null) return (null, default);
 
                 return await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     var mainWin = Application.Current.MainWindow as MainWindow;
                     if (mainWin != null) mainWin.SuppressAutoActivation = true;
-
-                    IntPtr previousHwnd = NativeMethods.GetForegroundWindow();
-
-                    var launchBarWindows = new System.Collections.Generic.List<LaunchBarWindow>();
-                    foreach (Window win in Application.Current.Windows)
-                    {
-                        if (win is LaunchBarWindow lbw && lbw.IsVisible)
-                        {
-                            launchBarWindows.Add(lbw);
-                            lbw.Hide();
-                        }
-                    }
 
                     var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
                     screenBmp = null;
@@ -90,19 +74,8 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                     finally
                     {
-                        foreach (var lbw in launchBarWindows)
-                        {
-                            lbw.Show();
-                        }
-
-                        if (previousHwnd != IntPtr.Zero)
-                        {
-                            var currentMainHwnd = new System.Windows.Interop.WindowInteropHelper(Application.Current.MainWindow).Handle;
-                            if (previousHwnd != currentMainHwnd)
-                            {
-                                NativeMethods.SetForegroundWindow(previousHwnd);
-                            }
-                        }
+                        var launchBars = Application.Current.Windows.OfType<LaunchBarWindow>().ToList();
+                        foreach (var lb in launchBars) lb.Show();
 
                         if (mainWin != null)
                         {
