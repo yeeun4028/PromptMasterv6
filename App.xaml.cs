@@ -199,7 +199,7 @@ namespace PromptMasterv6
             // ViewModels
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<SidebarViewModel>();
-            services.AddSingleton<ChatViewModel>();
+
             services.AddSingleton<ExternalToolsViewModel>();
             services.AddTransient<LauncherViewModel>(); 
             services.AddSingleton<MainViewModel>();

@@ -69,7 +69,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public void SetSimulatingKeys(bool value) => _isSimulatingKeys = value;
 
     public SidebarViewModel SidebarVM { get; }
-    public ChatViewModel ChatVM { get; }
     public SettingsViewModel SettingsVM { get; }
     public ExternalToolsViewModel ExternalToolsVM { get; }
 
@@ -237,7 +236,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         WebDavDataService dataService,
         FileDataService localDataService,
         GlobalKeyService keyService,
-        ChatViewModel chatVM,
         SidebarViewModel sidebarVM,
         ExternalToolsViewModel externalToolsVM,
         IDialogService dialogService,
@@ -260,7 +258,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _hotkeyService = new HotkeyService();
         
         SidebarVM = sidebarVM;
-        ChatVM = chatVM;
         SettingsVM = settingsVM;
         ExternalToolsVM = externalToolsVM;
         ExternalToolsVM.SetMainViewModel(this);
@@ -298,10 +295,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         SettingsVM.PropertyChanged += _settingsVMPropertyChangedHandler;
 
         SidebarVM.Files = Files;
-
-        ChatVM.ConfigProvider = () => Config;
-        ChatVM.LocalConfigProvider = () => LocalConfig;
-        ChatVM.FilesProvider = () => Files;
 
         WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, __) =>
         {
