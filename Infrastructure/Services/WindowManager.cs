@@ -1,4 +1,4 @@
-﻿using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Views;
 using PromptMasterv6.ViewModels;
 using System.Windows;
@@ -17,120 +17,108 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class WindowManager : IWindowManager
     {
+        private bool _isCapturing = false;
+
         public async Task<byte[]?> ShowCaptureWindowAsync(Func<byte[], System.Windows.Rect, Task>? onCaptureProcessing = null)
         {
-            // 内部调用带定位信息的重载，丢弃 rect
             var (bytes, _) = await ShowCaptureWindowWithRectAsync(onCaptureProcessing);
             return bytes;
         }
 
         private async Task<(byte[]? bytes, System.Windows.Rect rect)> ShowCaptureWindowWithRectAsync(Func<byte[], System.Windows.Rect, Task>? onCaptureProcessing = null)
         {
-            // 1. Capture screen instantly before any UI thread manipulation or window closing
-            // This is the "Static Screen Freeze" approach. It prevents tooltips from hiding when focus changes.
-            Bitmap? screenBmp = null;
-            try 
+            if (_isCapturing)
             {
-                screenBmp = Helpers.ScreenCaptureHelper.CaptureFullScreen();
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogError($"Failed to capture screen instantly: {ex.Message}", "WindowManager");
+                LoggerService.Instance.LogWarning("截图重入被拦截，当前已有截图任务在运行", "WindowManager");
                 return (null, default);
             }
 
-            // 2. Cleanup: Close any existing TranslationPopup windows AFTER capture
-            bool anyClosed = await Application.Current.Dispatcher.InvokeAsync(() =>
+            _isCapturing = true;
+            try
             {
-                var existingPopups = new System.Collections.Generic.List<Window>();
-                foreach (Window win in Application.Current.Windows)
+                Bitmap? screenBmp = null;
+                try
                 {
-                    if (win is TranslationPopup)
-                    {
-                        existingPopups.Add(win);
-                    }
+                    screenBmp = Helpers.ScreenCaptureHelper.CaptureFullScreen();
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.Instance.LogError($"Failed to capture screen instantly: {ex.Message}", "WindowManager");
+                    return (null, default);
                 }
 
-                foreach (var popup in existingPopups)
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    try
+                    foreach (Window win in Application.Current.Windows)
                     {
-                        if (popup.IsLoaded)
+                        if (win is TranslationPopup popup && popup.IsLoaded && !popup.IsClosing)
                         {
                             popup.Close();
                         }
                     }
-                    catch (Exception)
-                    {
-                        // Ignore race conditions where window is already closing
-                    }
-                }
-                
-                return existingPopups.Count > 0;
-            });
+                });
 
-            // 3. Show Overlay on UI thread using the static background image
-            return await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                var mainWin = Application.Current.MainWindow as MainWindow;
-                if (mainWin != null) mainWin.SuppressAutoActivation = true;
-
-                IntPtr previousHwnd = NativeMethods.GetForegroundWindow();
-
-                // Temporarily hide LaunchBarWindow so it doesn't block the capture overlay.
-                var launchBarWindows = new System.Collections.Generic.List<LaunchBarWindow>();
-                foreach (Window win in Application.Current.Windows)
+                return await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    if (win is LaunchBarWindow lbw && lbw.IsVisible)
-                    {
-                        launchBarWindows.Add(lbw);
-                        lbw.Hide();
-                    }
-                }
+                    var mainWin = Application.Current.MainWindow as MainWindow;
+                    if (mainWin != null) mainWin.SuppressAutoActivation = true;
 
-                // 将 screenBmp 的所有权转交给 ScreenCaptureOverlay，
-                // 由它在使用后负责释放（OnClosed 中 Dispose）。
-                // WindowManager 不持有引用，彻底杜绝此处的位图泄漏。
-                var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
-                screenBmp = null; // 显式释放引用，所有权已转交
+                    IntPtr previousHwnd = NativeMethods.GetForegroundWindow();
 
-                byte[]? result = null;
-                System.Windows.Rect capturedRect = default;
-                try
-                {
-                    if (capture.ShowDialog() == true)
+                    var launchBarWindows = new System.Collections.Generic.List<LaunchBarWindow>();
+                    foreach (Window win in Application.Current.Windows)
                     {
-                        result = capture.CapturedImageBytes;
-                        capturedRect = capture.CapturedRect;
-                    }
-                }
-                finally
-                {
-                    // Restore LaunchBarWindow visibility after capture dialog closes
-                    foreach (var lbw in launchBarWindows)
-                    {
-                        lbw.Show();
-                    }
-
-                    if (previousHwnd != IntPtr.Zero)
-                    {
-                        var currentMainHwnd = new System.Windows.Interop.WindowInteropHelper(Application.Current.MainWindow).Handle;
-                        if (previousHwnd != currentMainHwnd)
+                        if (win is LaunchBarWindow lbw && lbw.IsVisible)
                         {
-                            NativeMethods.SetForegroundWindow(previousHwnd);
+                            launchBarWindows.Add(lbw);
+                            lbw.Hide();
                         }
                     }
 
-                    if (mainWin != null)
+                    var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
+                    screenBmp = null;
+
+                    byte[]? result = null;
+                    System.Windows.Rect capturedRect = default;
+                    try
                     {
-                        Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                        if (capture.ShowDialog() == true)
                         {
-                            mainWin.SuppressAutoActivation = false;
-                        }), System.Windows.Threading.DispatcherPriority.Background);
+                            result = capture.CapturedImageBytes;
+                            capturedRect = capture.CapturedRect;
+                        }
                     }
-                }
-                return (result, capturedRect);
-            });
+                    finally
+                    {
+                        foreach (var lbw in launchBarWindows)
+                        {
+                            lbw.Show();
+                        }
+
+                        if (previousHwnd != IntPtr.Zero)
+                        {
+                            var currentMainHwnd = new System.Windows.Interop.WindowInteropHelper(Application.Current.MainWindow).Handle;
+                            if (previousHwnd != currentMainHwnd)
+                            {
+                                NativeMethods.SetForegroundWindow(previousHwnd);
+                            }
+                        }
+
+                        if (mainWin != null)
+                        {
+                            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                mainWin.SuppressAutoActivation = false;
+                            }), System.Windows.Threading.DispatcherPriority.Background);
+                        }
+                    }
+                    return (result, capturedRect);
+                });
+            }
+            finally
+            {
+                _isCapturing = false;
+            }
         }
 
         public void ShowTranslationPopup(string text, System.Windows.Rect? placementTarget = null)
@@ -141,9 +129,6 @@ namespace PromptMasterv6.Infrastructure.Services
                 if (placementTarget.HasValue)
                 {
                     popup.SetPlacementTarget(placementTarget.Value);
-                    
-                    // Basic boundary check to ensure it doesn't spawn partially off-screen
-                    // (Optional, but good UX. We can rely on user dragging if needed for now)
                 }
                 popup.Show();
                 popup.Activate();
@@ -230,7 +215,6 @@ namespace PromptMasterv6.Infrastructure.Services
                 var bitmap = LoadBitmapFromBytes(imageBytes);
                 if (bitmap != null)
                 {
-                    // 将贴图窗口定位于用户框选区域的左上角
                     var location = capturedRect == default
                         ? (System.Windows.Point?)null
                         : new System.Windows.Point(capturedRect.X, capturedRect.Y);
@@ -257,7 +241,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                // 尝试从剪贴板获取文件
                 if (WpfClipboard.ContainsFileDropList())
                 {
                     var files = WpfClipboard.GetFileDropList();
@@ -312,7 +295,6 @@ namespace PromptMasterv6.Infrastructure.Services
         {
             if (image == null) return;
 
-            // 确保图片可跨线程访问
             if (!image.IsFrozen)
             {
                 image.Freeze();

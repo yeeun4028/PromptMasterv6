@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -26,7 +26,6 @@ namespace PromptMasterv6.Views
         
         public byte[]? CapturedImageBytes { get; private set; }
 
-        /// <summary>用户框选的逻辑区域（WPF 坐标）</summary>
         public System.Windows.Rect CapturedRect { get; private set; }
 
         public ScreenCaptureOverlay(Bitmap? capturedScreen = null, Func<byte[], System.Windows.Rect, Task>? processingCallback = null)
@@ -36,10 +35,7 @@ namespace PromptMasterv6.Views
             
             if (capturedScreen != null)
             {
-                // 直接使用传入位图，不克隆，此对象拥有所有权并负责释放
                 _screenBitmap = capturedScreen;
-                
-                // Set the Window Background to the captured static screen
                 SetBackgroundFromBitmap(_screenBitmap);
             }
 
@@ -57,13 +53,11 @@ namespace PromptMasterv6.Views
 
         private void ScreenCaptureOverlay_Loaded(object sender, RoutedEventArgs e)
         {
-            // Span the entire virtual screen (all monitors) in logical WPF units
             this.Left = SystemParameters.VirtualScreenLeft;
             this.Top = SystemParameters.VirtualScreenTop;
             this.Width = SystemParameters.VirtualScreenWidth;
             this.Height = SystemParameters.VirtualScreenHeight;
 
-            // 诊断日志：覆盖层窗口 vs 截图位图
             var diagSource = PresentationSource.FromVisual(this);
             double diagDpiX = diagSource?.CompositionTarget?.TransformToDevice.M11 ?? -1;
             LoggerService.Instance.LogInfo(
@@ -72,16 +66,13 @@ namespace PromptMasterv6.Views
                 $"DPI Scale from PresentationSource={diagDpiX}",
                 "ScreenCaptureOverlay");
 
-            // Ensure we are active and focused
             this.Activate();
             this.Focus();
             
-            // Hide cursor for custom crosshair
             Mouse.OverrideCursor = System.Windows.Input.Cursors.None;
 
             if (_screenBitmap == null)
             {
-                // Fallback if no bitmap passed (shouldn't happen with new logic, but safe)
                  CaptureFullScreenFallback();
             }
         }
@@ -144,7 +135,7 @@ namespace PromptMasterv6.Views
 
                 this.Background = new ImageBrush(bitmapSource)
                 {
-                    Stretch = Stretch.Fill, // Use Fill to map the physical image boundaries exactly to the logical window boundaries
+                    Stretch = Stretch.Fill,
                     AlignmentX = AlignmentX.Left,
                     AlignmentY = AlignmentY.Top
                 };
@@ -166,7 +157,6 @@ namespace PromptMasterv6.Views
             SelectionRect.Height = 0;
             SelectionRect.Visibility = Visibility.Visible;
 
-            // Hide guides when selection starts - they will not reappear for this session
             HorizontalGuide.Visibility = Visibility.Collapsed;
             VerticalGuide.Visibility = Visibility.Collapsed;
 
@@ -177,7 +167,6 @@ namespace PromptMasterv6.Views
         {
             var currentPoint = e.GetPosition(SelectionCanvas);
 
-            // Update Full-screen Crosshair only if visible
             if (HorizontalGuide.Visibility == Visibility.Visible)
             {
                 HorizontalGuide.X1 = 0;
@@ -193,8 +182,6 @@ namespace PromptMasterv6.Views
 
             if (!_isSelecting) return;
 
-
-            
             double x = Math.Min(_startPoint.X, currentPoint.X);
             double y = Math.Min(_startPoint.Y, currentPoint.Y);
             double width = Math.Abs(currentPoint.X - _startPoint.X);
@@ -211,15 +198,15 @@ namespace PromptMasterv6.Views
             if (!_isSelecting) return;
             
             _isSelecting = false;
+            
             SelectionCanvas.ReleaseMouseCapture();
+            Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
 
-            // Get final selection bounds
             double x = Canvas.GetLeft(SelectionRect);
             double y = Canvas.GetTop(SelectionRect);
             double width = SelectionRect.Width;
             double height = SelectionRect.Height;
 
-            // Minimum selection size
             if (width < 10 || height < 10)
             {
                 DialogResult = false;
@@ -227,18 +214,13 @@ namespace PromptMasterv6.Views
                 return;
             }
 
-            // Capture the selected region
             CaptureSelectedRegion((int)x, (int)y, (int)width, (int)height);
-            // 保存用户框选的逻辑坐标，用于后续贴图定位
             CapturedRect = new System.Windows.Rect(x, y, width, height);
             
             if (_processingCallback != null && CapturedImageBytes != null)
             {
                 EnterProcessingState();
                 
-                // Calculate Spinner Position (logic for UI remains same)
-                // But we pass the logical Rect to ViewModel
-                // Get DPI scale factor
                 var source = PresentationSource.FromVisual(this);
                 double dpiX = 1.0;
                 double dpiY = 1.0;
@@ -248,12 +230,16 @@ namespace PromptMasterv6.Views
                     dpiY = source.CompositionTarget.TransformToDevice.M22;
                 }
 
-                // x, y, width, height are already Lognical because they come from Canvas.GetLeft (WPF coordinates)
                 var selectionRect = new Rect(x, y, width, height);
 
-                // We use Dispatcher to ensure UI update logic happens before we await (EnterProcessingState is sync)
-                // But we act async here.
-                await _processingCallback(CapturedImageBytes, selectionRect);
+                try
+                {
+                    await _processingCallback(CapturedImageBytes, selectionRect).ConfigureAwait(true);
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.Instance.LogError($"Processing callback failed: {ex.Message}", "ScreenCaptureOverlay");
+                }
             }
 
             DialogResult = true;
@@ -265,26 +251,19 @@ namespace PromptMasterv6.Views
             _isProcessing = true;
             SelectionCanvas.IsHitTestVisible = false;
             
-            // Calculate final selection bounds before hiding
             double rectX = Canvas.GetLeft(SelectionRect);
             double rectY = Canvas.GetTop(SelectionRect);
             double rectW = SelectionRect.Width;
             double rectH = SelectionRect.Height;
 
-            // Hide UI elements to show "Processing" state (clean feedback)
             SelectionRect.Visibility = Visibility.Collapsed;
             HorizontalGuide.Visibility = Visibility.Collapsed;
             VerticalGuide.Visibility = Visibility.Collapsed;
-            // Cursor remains None as per requirement
             
-            // Show Loading Spinner at bottom-right of selection
-            // Align center of spinner (16x16) to the corner
             Canvas.SetLeft(LoadingSpinner, rectX + rectW - 8);
             Canvas.SetTop(LoadingSpinner, rectY + rectH - 8);
             LoadingSpinner.Visibility = Visibility.Visible;
 
-            // Force redraw/update
-            // 通知 WPF 渲染线程刷新 UI，避免使用 DoEvents() 可能引发的重入问题
             Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
         }
 
@@ -294,7 +273,6 @@ namespace PromptMasterv6.Views
             {
                 if (_screenBitmap == null)
                 {
-                    // Fallback: capture directly
                     int screenLeft = (int)SystemParameters.VirtualScreenLeft;
                     int screenTop = (int)SystemParameters.VirtualScreenTop;
 
@@ -310,15 +288,12 @@ namespace PromptMasterv6.Views
                     return;
                 }
 
-                // 使用 WPF 原生的屏幕坐标转换，自动处理多屏异构 DPI
                 var logicalTopLeft = new System.Windows.Point(x, y);
                 var logicalBottomRight = new System.Windows.Point(x + width, y + height);
 
-                // 让 WPF 底层自己处理多屏幕的 DPI 缩放映射
                 var physTopLeft = this.PointToScreen(logicalTopLeft);
                 var physBottomRight = this.PointToScreen(logicalBottomRight);
 
-                // 计算在 _screenBitmap (完整物理大图) 上的准确裁剪坐标
                 int physX = (int)physTopLeft.X - System.Windows.Forms.SystemInformation.VirtualScreen.Left;
                 int physY = (int)physTopLeft.Y - System.Windows.Forms.SystemInformation.VirtualScreen.Top;
                 int physWidth = (int)(physBottomRight.X - physTopLeft.X);
@@ -330,7 +305,6 @@ namespace PromptMasterv6.Views
                     $"Physical crop=[{physX},{physY} {physWidth}x{physHeight}]",
                     "ScreenCaptureOverlay");
 
-                // Ensure bounds
                 physX = Math.Max(0, physX);
                 physY = Math.Max(0, physY);
                 if (physX + physWidth > _screenBitmap.Width) physWidth = _screenBitmap.Width - physX;
@@ -385,7 +359,7 @@ namespace PromptMasterv6.Views
 
         protected override void OnClosed(EventArgs e)
         {
-            Mouse.OverrideCursor = null; // Reset cursor
+            Mouse.OverrideCursor = null;
             _screenBitmap?.Dispose();
             base.OnClosed(e);
         }
