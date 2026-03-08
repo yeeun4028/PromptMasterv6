@@ -22,6 +22,8 @@ public class TriggerPinToScreenMessage { }
 
 public class ToggleWindowMessage { }
 
+public class ToggleMainWindowMessage { }
+
 public class RefreshExternalToolsMessage { }
 
 public class RequestPromptFileMessage : RequestMessage<PromptFileResponseMessage>

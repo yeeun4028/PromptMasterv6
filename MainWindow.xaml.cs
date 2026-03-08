@@ -76,6 +76,11 @@ namespace PromptMasterv6
 
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
 
+            WeakReferenceMessenger.Default.Register<ToggleMainWindowMessage>(this, (_, __) =>
+            {
+                ToggleWindowVisibility();
+            });
+
             // 【关键修复】：多重保障机制，绝对防御幽灵图标
             // 1. WPF 应用正常退出时触发
             Application.Current.Exit += Current_Exit;

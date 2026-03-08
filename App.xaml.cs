@@ -110,7 +110,10 @@ namespace PromptMasterv6
                 MainWindow.Show();
                 
                 var launchBarWindow = _serviceProvider.GetRequiredService<PromptMasterv6.Views.LaunchBarWindow>();
-                launchBarWindow.Show(); // Trigger Window_Loaded → UpdateVisibility()
+                launchBarWindow.Show();
+
+                var shortcutCoordinator = _serviceProvider.GetRequiredService<GlobalShortcutCoordinator>();
+                shortcutCoordinator.Start(); // Trigger Window_Loaded → UpdateVisibility()
 
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
             }
@@ -213,6 +216,8 @@ namespace PromptMasterv6
             services.AddSingleton<WebDavDataService>();
             services.AddSingleton<FileDataService>();
             services.AddSingleton<GlobalKeyService>();
+            services.AddSingleton<HotkeyService>();
+            services.AddSingleton<GlobalShortcutCoordinator>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IWindowManager, WindowManager>();
 

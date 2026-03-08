@@ -362,54 +362,17 @@ namespace PromptMasterv6.ViewModels
 
         public void UpdateWindowHotkeys()
         {
-            try
-            {
-                _hotkeyService.TryRemoveHotkey("ToggleWindow");
-                _hotkeyService.TryRemoveHotkey("ToggleWindowSingle");
-
-                // Register Full window hotkey using helper method
-                _hotkeyService.RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => _mainViewModel?.OnWindowHotkeyPressed());
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogException(ex, "Failed to update window hotkeys", "SettingsViewModel.UpdateWindowHotkeys");
-            }
+            WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
         }
 
         public void UpdateExternalToolsHotkeys()
         {
-            if (_mainViewModel == null) return;
-
-            try 
-            {
-                // Remove old hotkeys
-                _hotkeyService.TryRemoveHotkey("ScreenshotTranslate");
-                _hotkeyService.TryRemoveHotkey("OcrOnly");
-                _hotkeyService.TryRemoveHotkey("PinToScreen");
-
-                _hotkeyService.RegisterWindowHotkey("ScreenshotTranslate", Config.ScreenshotTranslateHotkey, () => WeakReferenceMessenger.Default.Send(new TriggerTranslateMessage()));
-                _hotkeyService.RegisterWindowHotkey("OcrOnly", Config.OcrHotkey, () => WeakReferenceMessenger.Default.Send(new TriggerOcrMessage()));
-                _hotkeyService.RegisterWindowHotkey("PinToScreen", Config.PinToScreenHotkey, () => WeakReferenceMessenger.Default.Send(new TriggerPinToScreenMessage()));
-                
-                UpdateLauncherHotkey();
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogException(ex, "Failed to update external tools hotkeys", "SettingsViewModel.UpdateExternalToolsHotkeys");
-            }
+            WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
         }
 
         public void UpdateLauncherHotkey()
         {
-            try
-            {
-                _keyService.LauncherHotkeyString = Config.LauncherHotkey;
-                // 注意：此处不调用 SaveConfig()，调用方负责在需要时保存
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogException(ex, "Failed to update launcher hotkey", "SettingsViewModel.UpdateLauncherHotkey");
-            }
+            WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
         }
 
         #endregion
