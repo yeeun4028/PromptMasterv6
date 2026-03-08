@@ -107,30 +107,14 @@ namespace PromptMasterv6.Views
             SelectionRect.Height = 0;
             SelectionRect.Visibility = Visibility.Visible;
 
-            HorizontalGuide.Visibility = Visibility.Collapsed;
-            VerticalGuide.Visibility = Visibility.Collapsed;
-
             SelectionCanvas.CaptureMouse();
         }
 
         private void Canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            var currentPoint = e.GetPosition(SelectionCanvas);
-
-            if (HorizontalGuide.Visibility == Visibility.Visible)
-            {
-                HorizontalGuide.X1 = 0;
-                HorizontalGuide.X2 = SelectionCanvas.ActualWidth;
-                HorizontalGuide.Y1 = currentPoint.Y;
-                HorizontalGuide.Y2 = currentPoint.Y;
-
-                VerticalGuide.X1 = currentPoint.X;
-                VerticalGuide.X2 = currentPoint.X;
-                VerticalGuide.Y1 = 0;
-                VerticalGuide.Y2 = SelectionCanvas.ActualHeight;
-            }
-
             if (!_isSelecting) return;
+
+            var currentPoint = e.GetPosition(SelectionCanvas);
 
             double x = Math.Min(_startPoint.X, currentPoint.X);
             double y = Math.Min(_startPoint.Y, currentPoint.Y);
@@ -207,8 +191,6 @@ namespace PromptMasterv6.Views
             double rectH = SelectionRect.Height;
 
             SelectionRect.Visibility = Visibility.Collapsed;
-            HorizontalGuide.Visibility = Visibility.Collapsed;
-            VerticalGuide.Visibility = Visibility.Collapsed;
             
             Canvas.SetLeft(LoadingSpinner, rectX + rectW - 8);
             Canvas.SetTop(LoadingSpinner, rectY + rectH - 8);

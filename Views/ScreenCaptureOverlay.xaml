@@ -1,4 +1,4 @@
-﻿<Window x:Class="PromptMasterv6.Views.ScreenCaptureOverlay"
+<Window x:Class="PromptMasterv6.Views.ScreenCaptureOverlay"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Select Region" 
@@ -23,10 +23,6 @@
                 MouseMove="Canvas_MouseMove"
                 MouseLeftButtonUp="Canvas_MouseLeftButtonUp">
             
-            <!-- Full-screen Crosshair Guides -->
-            <Line x:Name="HorizontalGuide" Stroke="#00BFFF" StrokeThickness="1" SnapsToDevicePixels="True" IsHitTestVisible="False"/>
-            <Line x:Name="VerticalGuide" Stroke="#00BFFF" StrokeThickness="1" SnapsToDevicePixels="True" IsHitTestVisible="False"/>
-
             <!-- Loading Animation -->
             <Grid x:Name="LoadingSpinner" Width="16" Height="16" Visibility="Collapsed">
                 <Grid.RenderTransform>
