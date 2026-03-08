@@ -42,14 +42,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IAiService _aiService;
     private readonly IDialogService _dialogService;
     private readonly ClipboardService _clipboardService;
-    private readonly IWindowManager _windowManager; // Injected
+    private readonly IWindowManager _windowManager;
     private readonly ISettingsService _settingsService;
     private readonly HotkeyService _hotkeyService;
 
-    // 编译后的正则表达式，用于解析变量 {{xxx}}
     private static readonly Regex VariableRegex = new(@"\{\{(.*?)\}\}", RegexOptions.Compiled);
     
-    // 编译后的正则表达式，用于检测 HTML 标签（带超时保护）
     private static readonly Regex HtmlTagRegex = new(
         @"<(p|div|br|span|a|img|ul|ol|li|table|tr|td|th|h[1-6]|strong|em|b|i|u|code|pre|blockquote|script|style|iframe|form|input|button)[\s>/]",
         RegexOptions.IgnoreCase | RegexOptions.Compiled,
@@ -81,6 +79,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<PromptItem> files = new();
 
     [ObservableProperty] private PromptItem? selectedFile;
+
+    [ObservableProperty] private SidebarViewModel? sidebarVM;
+    [ObservableProperty] private WorkspaceViewModel? workspaceVM;
 
     partial void OnSelectedFileChanged(PromptItem? value)
     {

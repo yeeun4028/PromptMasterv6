@@ -38,3 +38,8 @@ public class JumpToEditPromptMessage
 {
     public PromptItem? File { get; set; }
 }
+
+public class NavigationMessage
+{
+    public object? TargetViewModel { get; set; }
+}

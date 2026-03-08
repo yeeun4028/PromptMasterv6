@@ -1,9 +1,11 @@
-﻿<Application x:Class="PromptMasterv6.App"
+<Application x:Class="PromptMasterv6.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PromptMasterv6"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
-             xmlns:rootConverters="clr-namespace:PromptMasterv6.Converters">
+             xmlns:rootConverters="clr-namespace:PromptMasterv6.Converters"
+             xmlns:vm="clr-namespace:PromptMasterv6.ViewModels"
+             xmlns:views="clr-namespace:PromptMasterv6.Views">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -14,6 +16,13 @@
                 <!-- 2. ★★★ 新增：GitHub Markdown 主题 ★★★ -->
                 <ResourceDictionary Source="Themes/GitHubMarkdownTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- ===============================================
+                 隐式数据模板：ViewModel 到 View 的自动映射
+                 =============================================== -->
+            <DataTemplate DataType="{x:Type vm:WorkspaceViewModel}">
+                <views:WorkspaceView />
+            </DataTemplate>
 
             <!-- ===============================================
                  以下是项目原有的本地资源，保持不变

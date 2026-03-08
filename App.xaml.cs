@@ -201,6 +201,7 @@ namespace PromptMasterv6
             services.AddTransient<SidebarViewModel>();
             services.AddTransient<ExternalToolsViewModel>();
             services.AddTransient<LauncherViewModel>();
+            services.AddTransient<WorkspaceViewModel>();
             services.AddTransient<MainViewModel>();
 
             services.AddSingleton<MainWindow>();
