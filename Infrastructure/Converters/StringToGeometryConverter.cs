@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -18,10 +18,10 @@ namespace PromptMasterv6.Infrastructure.Converters
                 }
                 catch
                 {
-                    return DependencyProperty.UnsetValue; // 解析失败 → 触发 FallbackValue
+                    return DependencyProperty.UnsetValue;
                 }
             }
-            return DependencyProperty.UnsetValue; // null 或空字符串 → 触发 FallbackValue
+            return DependencyProperty.UnsetValue;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
