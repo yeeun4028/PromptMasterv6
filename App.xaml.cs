@@ -191,6 +191,7 @@ namespace PromptMasterv6
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
             services.AddSingleton<SettingsService>();
+            services.AddSingleton<AppConfig>(sp => sp.GetRequiredService<SettingsService>().Config);
             services.AddSingleton<WindowRegistry>();
 
             services.AddTransient<SettingsViewModel>();
