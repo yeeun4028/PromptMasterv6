@@ -2,6 +2,7 @@ using MediatR;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Main.Search;
 
@@ -9,9 +10,9 @@ public record SearchOnGitHubCommand(string Query) : IRequest;
 
 public class SearchOnGitHubHandler : IRequestHandler<SearchOnGitHubCommand>
 {
-    private readonly IDialogService _dialogService;
+    private readonly DialogService _dialogService;
 
-    public SearchOnGitHubHandler(IDialogService dialogService)
+    public SearchOnGitHubHandler(DialogService dialogService)
     {
         _dialogService = dialogService;
     }

@@ -1,16 +1,15 @@
-﻿using PromptMasterv6.Core.Interfaces;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Infrastructure.Services;
 
-public class WebTargetService : IWebTargetService
+public class WebTargetService
 {
-    private readonly IClipboardService _clipboardService;
-    private readonly IDialogService _dialogService;
+    private readonly ClipboardService _clipboardService;
+    private readonly DialogService _dialogService;
 
-    public WebTargetService(IClipboardService clipboardService, IDialogService dialogService)
+    public WebTargetService(ClipboardService clipboardService, DialogService dialogService)
     {
         _clipboardService = clipboardService;
         _dialogService = dialogService;

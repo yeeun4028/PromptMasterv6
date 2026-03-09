@@ -1,11 +1,10 @@
-using PromptMasterv6.Core.Interfaces;
 using ReverseMarkdown;
 using System;
 using System.Text.RegularExpressions;
 
 namespace PromptMasterv6.Infrastructure.Services;
 
-public class ContentConverterService : IContentConverterService
+public class ContentConverterService
 {
     private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Compiled);
 

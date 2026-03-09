@@ -1,7 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.Messages;
@@ -19,11 +18,11 @@ namespace PromptMasterv6.Features.ExternalTools
     public partial class ExternalToolsViewModel : ObservableObject
     {
         private bool _isCapturing;
-        private readonly ISettingsService _settingsService;
-        private readonly IAiService _aiService;
-        private readonly IBaiduService _baiduService;
-        private readonly ITencentService _tencentService;
-        private readonly IGoogleService _googleService;
+        private readonly SettingsService _settingsService;
+        private readonly AiService _aiService;
+        private readonly BaiduService _baiduService;
+        private readonly TencentService _tencentService;
+        private readonly GoogleService _googleService;
 
         private List<ApiProfile>? _cachedOcrProfiles;
         private List<ApiProfile>? _cachedTranslateProfiles;
@@ -72,19 +71,19 @@ namespace PromptMasterv6.Features.ExternalTools
         public AppConfig Config => _settingsService.Config;
         public LocalSettings LocalConfig => _settingsService.LocalConfig;
 
-        private readonly IDialogService _dialogService;
-        private readonly IWindowManager _windowManager;
-        private readonly IClipboardService _clipboardService;
+        private readonly DialogService _dialogService;
+        private readonly WindowManager _windowManager;
+        private readonly ClipboardService _clipboardService;
         
         public ExternalToolsViewModel(
-            ISettingsService settingsService,
-            IAiService aiService,
-            IBaiduService baiduService,
-            ITencentService tencentService,
-            IGoogleService googleService,
-            IDialogService dialogService,
-            IWindowManager windowManager,
-            IClipboardService clipboardService)
+            SettingsService settingsService,
+            AiService aiService,
+            BaiduService baiduService,
+            TencentService tencentService,
+            GoogleService googleService,
+            DialogService dialogService,
+            WindowManager windowManager,
+            ClipboardService clipboardService)
         {
             _settingsService = settingsService;
             _aiService = aiService;

@@ -33,16 +33,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IDataService _dataService;
     private readonly IDataService _localDataService;
-    private readonly IGlobalKeyService _keyService;
-    private readonly IAiService _aiService;
-    private readonly IDialogService _dialogService;
-    private readonly IClipboardService _clipboardService;
-    private readonly IWindowManager _windowManager;
-    private readonly ISettingsService _settingsService;
-    private readonly IHotkeyService _hotkeyService;
-    private readonly IVariableService _variableService;
-    private readonly IContentConverterService _contentConverterService;
-    private readonly IWebTargetService _webTargetService;
+    private readonly GlobalKeyService _keyService;
+    private readonly AiService _aiService;
+    private readonly DialogService _dialogService;
+    private readonly ClipboardService _clipboardService;
+    private readonly WindowManager _windowManager;
+    private readonly SettingsService _settingsService;
+    private readonly HotkeyService _hotkeyService;
+    private readonly VariableService _variableService;
+    private readonly ContentConverterService _contentConverterService;
+    private readonly WebTargetService _webTargetService;
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
@@ -58,7 +58,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LocalSettings localConfig;
     [ObservableProperty] private bool isFullMode = true;
 
-    public ISettingsService SettingsService => _settingsService;
+    public SettingsService SettingsService => _settingsService;
 
     [ObservableProperty] private string syncTimeDisplay = "Now";
     [ObservableProperty] private ICollectionView? filesView;
@@ -117,18 +117,18 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
 
     public MainViewModel(
-        ISettingsService settingsService,
-        IAiService aiService,
+        SettingsService settingsService,
+        AiService aiService,
         [Microsoft.Extensions.DependencyInjection.FromKeyedServices("cloud")] IDataService dataService,
         [Microsoft.Extensions.DependencyInjection.FromKeyedServices("local")] IDataService localDataService,
-        IGlobalKeyService keyService,
-        IDialogService dialogService,
-        IClipboardService clipboardService,
-        IWindowManager windowManager,
-        IHotkeyService hotkeyService,
-        IVariableService variableService,
-        IContentConverterService contentConverterService,
-        IWebTargetService webTargetService)
+        GlobalKeyService keyService,
+        DialogService dialogService,
+        ClipboardService clipboardService,
+        WindowManager windowManager,
+        HotkeyService hotkeyService,
+        VariableService variableService,
+        ContentConverterService contentConverterService,
+        WebTargetService webTargetService)
     {
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()

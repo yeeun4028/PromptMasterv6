@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
-using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class WindowRegistry : IWindowRegistry
+    public class WindowRegistry
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly Dictionary<Type, Type> _windowMappings = new();

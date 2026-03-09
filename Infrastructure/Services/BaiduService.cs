@@ -11,11 +11,10 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class BaiduService : IBaiduService
+    public class BaiduService
     {
         private readonly HttpClient _httpClient;
         private readonly SemaphoreSlim _tokenLock = new SemaphoreSlim(1, 1);

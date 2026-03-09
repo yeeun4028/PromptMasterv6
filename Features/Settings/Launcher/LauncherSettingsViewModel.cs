@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Windows;
 
@@ -8,11 +8,11 @@ namespace PromptMasterv6.Features.Settings.Launcher;
 
 public partial class LauncherSettingsViewModel : ObservableObject
 {
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsService _settingsService;
 
     public AppConfig Config => _settingsService.Config;
 
-    public LauncherSettingsViewModel(ISettingsService settingsService)
+    public LauncherSettingsViewModel(SettingsService settingsService)
     {
         _settingsService = settingsService;
     }

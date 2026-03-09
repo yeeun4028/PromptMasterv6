@@ -1,4 +1,3 @@
-﻿using PromptMasterv6.Core.Interfaces;
 using System.Windows;
 using Application = System.Windows.Application;
 using PromptMasterv6.Infrastructure.Helpers;
@@ -12,12 +11,12 @@ using WpfClipboard = System.Windows.Clipboard;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class WindowManager : IWindowManager
+    public class WindowManager
     {
-        private readonly IWindowRegistry _windowRegistry;
+        private readonly WindowRegistry _windowRegistry;
         private bool _isCapturing = false;
 
-        public WindowManager(IWindowRegistry windowRegistry)
+        public WindowManager(WindowRegistry windowRegistry)
         {
             _windowRegistry = windowRegistry;
         }

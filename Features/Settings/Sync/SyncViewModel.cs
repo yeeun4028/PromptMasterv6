@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
 using PromptMasterv6.Core.Messages;
@@ -14,11 +13,11 @@ namespace PromptMasterv6.Features.Settings.Sync;
 
 public partial class SyncViewModel : ObservableObject
 {
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsService _settingsService;
     private readonly IDataService _dataService;
     private readonly FileDataService _localDataService;
-    private readonly IDialogService _dialogService;
-    private readonly IWindowManager _windowManager;
+    private readonly DialogService _dialogService;
+    private readonly WindowManager _windowManager;
 
     private MainViewModel? _mainViewModel;
 
@@ -35,11 +34,11 @@ public partial class SyncViewModel : ObservableObject
     }
 
     public SyncViewModel(
-        ISettingsService settingsService,
+        SettingsService settingsService,
         IDataService dataService,
         FileDataService localDataService,
-        IDialogService dialogService,
-        IWindowManager windowManager)
+        DialogService dialogService,
+        WindowManager windowManager)
     {
         _settingsService = settingsService;
         _dataService = dataService;

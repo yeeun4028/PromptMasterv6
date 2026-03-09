@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,9 +14,9 @@ namespace PromptMasterv6.Features.Launcher
 {
     public partial class LauncherViewModel : ObservableObject
     {
-        private readonly ILauncherService _launcherService;
-        private readonly ISettingsService _settingsService;
-        private readonly IWindowManager _windowManager;
+        private readonly LauncherService _launcherService;
+        private readonly SettingsService _settingsService;
+        private readonly WindowManager _windowManager;
         private Dictionary<string, int> _itemOrders = new();
 
         [ObservableProperty]
@@ -43,9 +43,9 @@ namespace PromptMasterv6.Features.Launcher
         public AppConfig Config => _settingsService.Config;
 
         public LauncherViewModel(
-            ILauncherService launcherService, 
-            ISettingsService settingsService,
-            IWindowManager windowManager)
+            LauncherService launcherService, 
+            SettingsService settingsService,
+            WindowManager windowManager)
         {
             _launcherService = launcherService;
             _settingsService = settingsService;

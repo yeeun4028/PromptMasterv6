@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Features.ExternalTools.Messages;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Features.ExternalTools.Messages;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,11 +14,11 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 {
     public partial class ApiCredentialsViewModel : ObservableObject
     {
-        private readonly ISettingsService _settingsService;
-        private readonly IDialogService _dialogService;
-        private readonly IBaiduService _baiduService;
-        private readonly ITencentService _tencentService;
-        private readonly IGoogleService _googleService;
+        private readonly SettingsService _settingsService;
+        private readonly DialogService _dialogService;
+        private readonly BaiduService _baiduService;
+        private readonly TencentService _tencentService;
+        private readonly GoogleService _googleService;
 
         public AppConfig Config => _settingsService.Config;
 
@@ -75,11 +74,11 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         #endregion
 
         public ApiCredentialsViewModel(
-            ISettingsService settingsService,
-            IDialogService dialogService,
-            IBaiduService baiduService,
-            ITencentService tencentService,
-            IGoogleService googleService)
+            SettingsService settingsService,
+            DialogService dialogService,
+            BaiduService baiduService,
+            TencentService tencentService,
+            GoogleService googleService)
         {
             _settingsService = settingsService;
             _dialogService = dialogService;

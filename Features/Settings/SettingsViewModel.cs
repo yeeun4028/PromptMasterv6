@@ -1,7 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.ExternalTools.Messages;
@@ -20,13 +19,13 @@ namespace PromptMasterv6.Features.Settings
 {
     public partial class SettingsViewModel : ObservableObject
     {
-        private readonly ISettingsService _settingsService;
-        private readonly IAiService _aiService;
+        private readonly SettingsService _settingsService;
+        private readonly AiService _aiService;
         private readonly IDataService _dataService;
         private readonly FileDataService _localDataService;
-        private readonly IDialogService _dialogService;
-        private readonly IHotkeyService _hotkeyService;
-        private readonly IWindowManager _windowManager;
+        private readonly DialogService _dialogService;
+        private readonly HotkeyService _hotkeyService;
+        private readonly WindowManager _windowManager;
 
         private MainViewModel? _mainViewModel;
 
@@ -95,13 +94,13 @@ namespace PromptMasterv6.Features.Settings
         #endregion
 
         public SettingsViewModel(
-            ISettingsService settingsService,
-            IAiService aiService,
+            SettingsService settingsService,
+            AiService aiService,
             IDataService dataService,
             FileDataService localDataService,
-            IDialogService dialogService,
-            IHotkeyService hotkeyService,
-            IWindowManager windowManager,
+            DialogService dialogService,
+            HotkeyService hotkeyService,
+            WindowManager windowManager,
             AiModelsViewModel aiModelsVM,
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,

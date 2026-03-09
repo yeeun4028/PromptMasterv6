@@ -1,22 +1,21 @@
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class GlobalShortcutCoordinator : IGlobalShortcutCoordinator
+    public class GlobalShortcutCoordinator
     {
-        private readonly ISettingsService _settingsService;
-        private readonly IHotkeyService _hotkeyService;
-        private readonly IGlobalKeyService _globalKeyService;
-        private readonly IWindowManager _windowManager;
+        private readonly SettingsService _settingsService;
+        private readonly HotkeyService _hotkeyService;
+        private readonly GlobalKeyService _globalKeyService;
+        private readonly WindowManager _windowManager;
 
         public GlobalShortcutCoordinator(
-            ISettingsService settingsService,
-            IHotkeyService hotkeyService,
-            IGlobalKeyService globalKeyService,
-            IWindowManager windowManager)
+            SettingsService settingsService,
+            HotkeyService hotkeyService,
+            GlobalKeyService globalKeyService,
+            WindowManager windowManager)
         {
             _settingsService = settingsService;
             _hotkeyService = hotkeyService;

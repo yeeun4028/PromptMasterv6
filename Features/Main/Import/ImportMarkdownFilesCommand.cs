@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Main.Import;
 
@@ -46,9 +47,9 @@ public class ImportMarkdownFilesHandler : IRequestHandler<ImportMarkdownFilesCom
 
 public class ShowImportFileDialogHandler : IRequestHandler<ShowImportFileDialogCommand, string[]?>
 {
-    private readonly IDialogService _dialogService;
+    private readonly DialogService _dialogService;
 
-    public ShowImportFileDialogHandler(IDialogService dialogService)
+    public ShowImportFileDialogHandler(DialogService dialogService)
     {
         _dialogService = dialogService;
     }

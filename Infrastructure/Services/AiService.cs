@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,6 @@ using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
-using PromptMasterv6.Core.Interfaces;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -18,10 +17,10 @@ using System.Threading;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class AiService : IAiService
+    public class AiService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ISettingsService _settingsService;
+        private readonly SettingsService _settingsService;
 
         private const int MaxCacheSize = 10;
         private static readonly ConcurrentLruCache<string, OpenAIService> _serviceCache 
@@ -29,7 +28,7 @@ namespace PromptMasterv6.Infrastructure.Services
 
         private static readonly ConcurrentDictionary<string, HttpClient> _httpClientPool = new ConcurrentDictionary<string, HttpClient>();
 
-        public AiService(IHttpClientFactory httpClientFactory, ISettingsService settingsService)
+        public AiService(IHttpClientFactory httpClientFactory, SettingsService settingsService)
         {
             _httpClientFactory = httpClientFactory;
             _settingsService = settingsService;

@@ -2,6 +2,7 @@ using MediatR;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Main.Clipboard;
 
@@ -12,12 +13,12 @@ public record CopyCompiledTextCommand(
 
 public class CopyCompiledTextHandler : IRequestHandler<CopyCompiledTextCommand>
 {
-    private readonly IVariableService _variableService;
-    private readonly IClipboardService _clipboardService;
+    private readonly VariableService _variableService;
+    private readonly ClipboardService _clipboardService;
 
     public CopyCompiledTextHandler(
-        IVariableService variableService,
-        IClipboardService clipboardService)
+        VariableService variableService,
+        ClipboardService clipboardService)
     {
         _variableService = variableService;
         _clipboardService = clipboardService;

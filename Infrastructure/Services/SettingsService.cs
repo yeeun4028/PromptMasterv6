@@ -1,14 +1,9 @@
-﻿using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using System.IO.Compression;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    /// <summary>
-    /// 配置管理服务实现
-    /// 作为配置的单一真实来源，所有 ViewModel 通过此服务访问配置
-    /// </summary>
-    public class SettingsService : ISettingsService
+    public class SettingsService
     {
         // Icon path constants (extracted to avoid inline string issues)
         private static readonly string PerplexityIconData =

@@ -10,11 +10,10 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class TencentService : ITencentService
+    public class TencentService
     {
         private readonly HttpClient _httpClient;
 

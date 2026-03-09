@@ -1,12 +1,11 @@
-﻿using PromptMasterv6.Core.Interfaces;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PromptMasterv6.Infrastructure.Services;
 
-public class VariableService : IVariableService
+public class VariableService
 {
     private static readonly Regex VariableRegex = new(@"\{\{(.*?)\}\}", RegexOptions.Compiled);
 

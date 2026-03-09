@@ -1,11 +1,10 @@
 using Microsoft.Win32;
-using PromptMasterv6.Core.Interfaces;
 using System.Windows;
 using System.Windows.Forms;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class DialogService : IDialogService
+    public class DialogService
     {
         public void ShowAlert(string message, string title)
         {

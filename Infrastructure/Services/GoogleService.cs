@@ -4,11 +4,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class GoogleService : IGoogleService
+    public class GoogleService
     {
         private readonly HttpClient _httpClient;
 

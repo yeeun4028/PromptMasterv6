@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Linq;
@@ -10,8 +9,8 @@ namespace PromptMasterv6.Features.Settings.AiModels;
 
 public partial class AiModelsViewModel : ObservableObject
 {
-    private readonly ISettingsService _settingsService;
-    private readonly IAiService _aiService;
+    private readonly SettingsService _settingsService;
+    private readonly AiService _aiService;
 
     [ObservableProperty] private string? testStatus;
     [ObservableProperty] private System.Windows.Media.Brush testStatusColor = System.Windows.Media.Brushes.Gray;
@@ -21,7 +20,7 @@ public partial class AiModelsViewModel : ObservableObject
 
     public AppConfig Config => _settingsService.Config;
 
-    public AiModelsViewModel(ISettingsService settingsService, IAiService aiService)
+    public AiModelsViewModel(SettingsService settingsService, AiService aiService)
     {
         _settingsService = settingsService;
         _aiService = aiService;

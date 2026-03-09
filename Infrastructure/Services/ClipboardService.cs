@@ -5,11 +5,10 @@ using System.Windows;
 using WpfClipboard = System.Windows.Clipboard;
 using FormsClipboard = System.Windows.Forms.Clipboard;
 using System.Windows.Forms;
-using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class ClipboardService : IClipboardService
+    public class ClipboardService
     {
         public void SetClipboard(string text)
         {

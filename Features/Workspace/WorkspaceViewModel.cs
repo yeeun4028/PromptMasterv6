@@ -19,13 +19,13 @@ namespace PromptMasterv6.Features.Workspace
     public partial class WorkspaceViewModel : ObservableObject
     {
         private readonly IDataService _dataService;
-        private readonly IAiService _aiService;
-        private readonly IDialogService _dialogService;
-        private readonly IClipboardService _clipboardService;
-        private readonly ISettingsService _settingsService;
-        private readonly IVariableService _variableService;
-        private readonly IContentConverterService _contentConverterService;
-        private readonly IWebTargetService _webTargetService;
+        private readonly AiService _aiService;
+        private readonly DialogService _dialogService;
+        private readonly ClipboardService _clipboardService;
+        private readonly SettingsService _settingsService;
+        private readonly VariableService _variableService;
+        private readonly ContentConverterService _contentConverterService;
+        private readonly WebTargetService _webTargetService;
 
         [ObservableProperty] private ObservableCollection<PromptItem> files = new();
         [ObservableProperty] private PromptItem? selectedFile;
@@ -51,14 +51,14 @@ namespace PromptMasterv6.Features.Workspace
         }
 
         public WorkspaceViewModel(
-            ISettingsService settingsService,
+            SettingsService settingsService,
             IDataService dataService,
-            IAiService aiService,
-            IDialogService dialogService,
-            IClipboardService clipboardService,
-            IVariableService variableService,
-            IContentConverterService contentConverterService,
-            IWebTargetService webTargetService)
+            AiService aiService,
+            DialogService dialogService,
+            ClipboardService clipboardService,
+            VariableService variableService,
+            ContentConverterService contentConverterService,
+            WebTargetService webTargetService)
         {
             _settingsService = settingsService;
             _dataService = dataService;

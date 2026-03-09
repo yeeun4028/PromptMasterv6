@@ -2,6 +2,7 @@ using MediatR;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Main.WebTargets;
 
@@ -15,14 +16,14 @@ public record ExecuteWebTargetCommand(
 
 public class ExecuteWebTargetHandler : IRequestHandler<ExecuteWebTargetCommand>
 {
-    private readonly IVariableService _variableService;
-    private readonly IWebTargetService _webTargetService;
-    private readonly IDialogService _dialogService;
+    private readonly VariableService _variableService;
+    private readonly WebTargetService _webTargetService;
+    private readonly DialogService _dialogService;
 
     public ExecuteWebTargetHandler(
-        IVariableService variableService,
-        IWebTargetService webTargetService,
-        IDialogService dialogService)
+        VariableService variableService,
+        WebTargetService webTargetService,
+        DialogService dialogService)
     {
         _variableService = variableService;
         _webTargetService = webTargetService;

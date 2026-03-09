@@ -2,11 +2,10 @@ using NHotkey;
 using NHotkey.Wpf;
 using System;
 using System.Windows.Input;
-using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class HotkeyService : IHotkeyService
+    public class HotkeyService
     {
         public void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
         {

@@ -366,7 +366,7 @@ namespace PromptMasterv6.Features.Main
                 var app = Application.Current as App;
                 if (app == null) return;
 
-                var windowManager = app.ServiceProvider.GetRequiredService<Core.Interfaces.IWindowManager>();
+                var windowManager = app.ServiceProvider.GetRequiredService<WindowManager>();
                 await windowManager.ShowPinToScreenFromCaptureAsync();
             }
             catch (Exception ex)
@@ -382,7 +382,7 @@ namespace PromptMasterv6.Features.Main
                 var app = Application.Current as App;
                 if (app == null) return;
 
-                var windowManager = app.ServiceProvider.GetRequiredService<Core.Interfaces.IWindowManager>();
+                var windowManager = app.ServiceProvider.GetRequiredService<WindowManager>();
                 if (!windowManager.ShowPinToScreenFromClipboard())
                 {
                     HandyControl.Controls.Growl.Warning("剪贴板中没有图片");
@@ -401,7 +401,7 @@ namespace PromptMasterv6.Features.Main
                 var app = Application.Current as App;
                 if (app == null) return;
 
-                var windowManager = app.ServiceProvider.GetRequiredService<Core.Interfaces.IWindowManager>();
+                var windowManager = app.ServiceProvider.GetRequiredService<WindowManager>();
                 windowManager.CloseAllPinToScreenWindows();
             }
             catch (Exception ex)

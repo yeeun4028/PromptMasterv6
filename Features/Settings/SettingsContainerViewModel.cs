@@ -1,7 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Main;
 using PromptMasterv6.Features.Settings.AiModels;
 using PromptMasterv6.Features.Settings.Sync;
@@ -14,8 +13,8 @@ namespace PromptMasterv6.Features.Settings;
 
 public partial class SettingsContainerViewModel : ObservableObject
 {
-    private readonly ISettingsService _settingsService;
-    private readonly IWindowManager _windowManager;
+    private readonly SettingsService _settingsService;
+    private readonly WindowManager _windowManager;
     private readonly MainViewModel _mainViewModel;
 
     [ObservableProperty] private bool isSettingsOpen;
@@ -29,8 +28,8 @@ public partial class SettingsContainerViewModel : ObservableObject
     public LocalSettings LocalConfig => _settingsService.LocalConfig;
 
     public SettingsContainerViewModel(
-        ISettingsService settingsService,
-        IWindowManager windowManager,
+        SettingsService settingsService,
+        WindowManager windowManager,
         MainViewModel mainViewModel,
         AiModelsViewModel aiModelsVM,
         SyncViewModel syncVM,

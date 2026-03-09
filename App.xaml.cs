@@ -104,7 +104,7 @@ namespace PromptMasterv6
                 var launchBarWindow = _serviceProvider.GetRequiredService<LaunchBarWindow>();
                 launchBarWindow.Show();
 
-                var shortcutCoordinator = _serviceProvider.GetRequiredService<IGlobalShortcutCoordinator>();
+                var shortcutCoordinator = _serviceProvider.GetRequiredService<GlobalShortcutCoordinator>();
                 shortcutCoordinator.Start();
 
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
@@ -178,9 +178,8 @@ namespace PromptMasterv6
             services.AddHttpClient("NativeAiClient")
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
-            services.AddSingleton<ISettingsService, SettingsService>();
-
-            services.AddSingleton<IWindowRegistry, WindowRegistry>();
+            services.AddSingleton<SettingsService>();
+            services.AddSingleton<WindowRegistry>();
 
             services.AddTransient<SettingsViewModel>();
             services.AddTransient<SidebarViewModel>();
@@ -194,25 +193,24 @@ namespace PromptMasterv6
             services.AddTransient<LauncherWindow>();
             services.AddTransient<SettingsWindow>();
 
-            services.AddSingleton<ILauncherService, LauncherService>();
-            services.AddSingleton<IAiService, AiService>();
+            services.AddSingleton<LauncherService>();
+            services.AddSingleton<AiService>();
             services.AddKeyedSingleton<IDataService, WebDavDataService>("cloud");
             services.AddKeyedSingleton<IDataService, FileDataService>("local");
-            services.AddSingleton<IGlobalKeyService, GlobalKeyService>();
-            services.AddSingleton<IHotkeyService, HotkeyService>();
-            services.AddSingleton<IGlobalShortcutCoordinator, GlobalShortcutCoordinator>();
-            services.AddSingleton<IDialogService, DialogService>();
-            services.AddSingleton<IWindowManager, WindowManager>();
+            services.AddSingleton<GlobalKeyService>();
+            services.AddSingleton<HotkeyService>();
+            services.AddSingleton<GlobalShortcutCoordinator>();
+            services.AddSingleton<DialogService>();
+            services.AddSingleton<WindowManager>();
 
-            services.AddHttpClient<IBaiduService, BaiduService>();
-            services.AddHttpClient<IGoogleService, GoogleService>();
-            services.AddHttpClient<ITencentService, TencentService>();
+            services.AddHttpClient<BaiduService>();
+            services.AddHttpClient<GoogleService>();
+            services.AddHttpClient<TencentService>();
 
-            services.AddSingleton<IClipboardService, ClipboardService>();
-
-            services.AddSingleton<IVariableService, VariableService>();
-            services.AddSingleton<IContentConverterService, ContentConverterService>();
-            services.AddSingleton<IWebTargetService, WebTargetService>();
+            services.AddSingleton<ClipboardService>();
+            services.AddSingleton<VariableService>();
+            services.AddSingleton<ContentConverterService>();
+            services.AddSingleton<WebTargetService>();
 
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
@@ -222,7 +220,7 @@ namespace PromptMasterv6
 
         }
 
-        private static void RegisterWindows(IWindowRegistry registry)
+        private static void RegisterWindows(WindowRegistry registry)
         {
             registry.RegisterWindow<LauncherViewModel, LauncherWindow>();
             registry.RegisterWindow<SettingsViewModel, SettingsWindow>();

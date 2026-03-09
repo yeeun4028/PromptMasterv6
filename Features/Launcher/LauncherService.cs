@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Launcher
 {
-    public class LauncherService : ILauncherService
+    public class LauncherService
     {
         private List<LauncherItem> _cache = new();
 
