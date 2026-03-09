@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
+using PromptMasterv6.Features.Launcher.Execution;
 using PromptMasterv6.Features.Launcher.Orders;
 using PromptMasterv6.Infrastructure.Services;
 using System;
@@ -157,32 +158,13 @@ namespace PromptMasterv6.Features.Launcher
         }
 
         [RelayCommand]
-        private void ExecuteItem(LauncherItem item)
+        private async Task ExecuteItem(LauncherItem item)
         {
-            try
-            {
-                if (item?.Action != null)
-                {
-                    item.Action.Invoke();
-                }
-                else if (!string.IsNullOrEmpty(item?.FilePath))
-                {
-                    var info = new ProcessStartInfo(item.FilePath) { UseShellExecute = true };
-                    
-                    if (_settingsService.Config.LauncherRunAsAdmin)
-                    {
-                        info.Verb = "runas";
-                    }
+            if (item == null) return;
 
-                    Process.Start(info);
-                }
-                
-                RequestClose?.Invoke();
-            }
-            catch (Exception ex)
-            {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to execute launcher item", "LauncherViewModel.ExecuteItem");
-            }
+            await _mediator.Send(new ExecuteLauncherItemCommand(item, Config.LauncherRunAsAdmin));
+            
+            RequestClose?.Invoke();
         }
 
         public Action? RequestClose { get; set; }
