@@ -14,11 +14,13 @@ namespace PromptMasterv6.Infrastructure.Services
     public class WindowManager
     {
         private readonly WindowRegistry _windowRegistry;
+        private readonly LoggerService _logger;
         private bool _isCapturing = false;
 
-        public WindowManager(WindowRegistry windowRegistry)
+        public WindowManager(WindowRegistry windowRegistry, LoggerService logger)
         {
             _windowRegistry = windowRegistry;
+            _logger = logger;
         }
 
         public async Task<byte[]?> ShowCaptureWindowAsync(Func<byte[], System.Windows.Rect, Task>? onCaptureProcessing = null)
@@ -195,7 +197,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"从截图创建贴图失败: {ex.Message}", "WindowManager");
+                _logger.LogError($"从截图创建贴图失败: {ex.Message}", "WindowManager");
             }
         }
 
@@ -226,12 +228,12 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                LoggerService.Instance.LogInfo("剪贴板中没有图片", "WindowManager");
+                _logger.LogInfo("剪贴板中没有图片", "WindowManager");
                 return false;
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"从剪贴板创建贴图失败: {ex.Message}", "WindowManager");
+                _logger.LogError($"从剪贴板创建贴图失败: {ex.Message}", "WindowManager");
                 return false;
             }
         }
@@ -242,7 +244,7 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 if (!File.Exists(filePath))
                 {
-                    LoggerService.Instance.LogError($"文件不存在: {filePath}", "WindowManager");
+                    _logger.LogError($"文件不存在: {filePath}", "WindowManager");
                     return false;
                 }
 
@@ -258,7 +260,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"从文件创建贴图失败: {ex.Message}", "WindowManager");
+                _logger.LogError($"从文件创建贴图失败: {ex.Message}", "WindowManager");
                 return false;
             }
         }
@@ -297,7 +299,7 @@ namespace PromptMasterv6.Infrastructure.Services
             bitmap.EndInit();
             bitmap.Freeze();
 
-            LoggerService.Instance.LogInfo(
+            _logger.LogInfo(
                 $"[PIN-DIAG] LoadBitmapFromBytes: PixelWidth={bitmap.PixelWidth}, PixelHeight={bitmap.PixelHeight}, " +
                 $"DpiX={bitmap.DpiX}, DpiY={bitmap.DpiY}, " +
                 $"Width(DIPs)={bitmap.Width}, Height(DIPs)={bitmap.Height}",

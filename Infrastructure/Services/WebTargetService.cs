@@ -8,11 +8,13 @@ public class WebTargetService
 {
     private readonly ClipboardService _clipboardService;
     private readonly DialogService _dialogService;
+    private readonly LoggerService _logger;
 
-    public WebTargetService(ClipboardService clipboardService, DialogService dialogService)
+    public WebTargetService(ClipboardService clipboardService, DialogService dialogService, LoggerService logger)
     {
         _clipboardService = clipboardService;
         _dialogService = dialogService;
+        _logger = logger;
     }
 
     public async Task OpenWebTargetAsync(WebTarget target, string content, bool hideMainWindow = true)
@@ -54,7 +56,7 @@ public class WebTargetService
         }
         catch (Exception ex)
         {
-            LoggerService.Instance.LogException(ex, "OpenWebTarget Failed", "WebTargetService.OpenWebTargetAsync");
+            _logger.LogException(ex, "OpenWebTarget Failed", "WebTargetService.OpenWebTargetAsync");
             _dialogService.ShowAlert($"打开网页失败: {ex.Message}", "错误");
         }
 

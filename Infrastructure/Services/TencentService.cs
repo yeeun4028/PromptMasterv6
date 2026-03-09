@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -16,8 +16,9 @@ namespace PromptMasterv6.Infrastructure.Services
     public class TencentService
     {
         private readonly HttpClient _httpClient;
+        private readonly LoggerService _logger;
 
-        public TencentService(HttpClient httpClient)
+        public TencentService(HttpClient httpClient, LoggerService logger)
         {
             var handler = new HttpClientHandler
             {
@@ -27,6 +28,7 @@ namespace PromptMasterv6.Infrastructure.Services
             
             _httpClient = new HttpClient(handler);
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            _logger = logger;
         }
 
         #region Translation
@@ -81,7 +83,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Tencent Translate Failed", "TencentService");
+                _logger.LogException(ex, "Tencent Translate failed", "TencentService.TranslateCoreAsync");
                 return $"Error: {ex.Message}";
             }
         }
@@ -149,7 +151,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Tencent OCR Failed", "TencentService");
+                _logger.LogException(ex, "Tencent OCR Failed", "TencentService");
                 return $"Error: {ex.Message}";
             }
         }
@@ -295,7 +297,7 @@ namespace PromptMasterv6.Infrastructure.Services
                                 resultBytes = outStream.ToArray();
                             }
 
-                            LoggerService.Instance.LogInfo($"Image Optimized: Original {originalBytes.Length / 1024}KB -> Optimized {resultBytes.Length / 1024}KB (Scale: {scale:F2})", "TencentService.OptimizeImage");
+                            _logger.LogInfo($"Image Optimized: Original {originalBytes.Length / 1024}KB -> Optimized {resultBytes.Length / 1024}KB (Scale: {scale:F2})", "TencentService.OptimizeImage");
                             return resultBytes;
                         }
                     }
@@ -305,7 +307,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Image Optimization Failed", "TencentService");
+                _logger.LogException(ex, "Image Optimization Failed", "TencentService");
                 return originalBytes;
             }
         }

@@ -14,22 +14,15 @@ namespace PromptMasterv6.Features.Launcher.Orders
     {
         public Task<Dictionary<string, int>> Handle(GetLauncherOrdersQuery request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var appDataPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PromptMasterv6", "launcher_orders.json");
+            var appDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PromptMasterv6", "launcher_orders.json");
 
-                if (File.Exists(appDataPath))
-                {
-                    var json = File.ReadAllText(appDataPath);
-                    var result = JsonSerializer.Deserialize<Dictionary<string, int>>(json) ?? new Dictionary<string, int>();
-                    return Task.FromResult(result);
-                }
-            }
-            catch (Exception ex)
+            if (File.Exists(appDataPath))
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to load launcher orders", "GetLauncherOrdersHandler");
+                var json = File.ReadAllText(appDataPath);
+                var result = JsonSerializer.Deserialize<Dictionary<string, int>>(json) ?? new Dictionary<string, int>();
+                return Task.FromResult(result);
             }
 
             return Task.FromResult(new Dictionary<string, int>());

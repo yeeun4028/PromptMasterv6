@@ -9,10 +9,16 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class GlobalKeyService
     {
+        private readonly LoggerService _logger;
         private IKeyboardMouseEvents? _globalHook;
 
         private string _sequenceBuffer = "";
         private DateTime _lastSequenceTime = DateTime.MinValue;
+
+        public GlobalKeyService(LoggerService logger)
+        {
+            _logger = logger;
+        }
 
         public string AlwaysOnTopSequence { get; set; } = "";
 
@@ -71,7 +77,7 @@ namespace PromptMasterv6.Infrastructure.Services
                 if (!isFunctionKey)
                 {
                     enabled = false;
-                    LoggerService.Instance.LogWarning(
+                    _logger.LogWarning(
                         $"Hotkey '{hotkeyStr}' disabled: regular keys require at least one modifier (Ctrl/Alt/Shift/Win)",
                         "GlobalKeyService.ParseHotkey");
                 }

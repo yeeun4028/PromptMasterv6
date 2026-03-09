@@ -18,6 +18,7 @@ public partial class SyncViewModel : ObservableObject
     private readonly FileDataService _localDataService;
     private readonly DialogService _dialogService;
     private readonly WindowManager _windowManager;
+    private readonly LoggerService _logger;
 
     private MainViewModel? _mainViewModel;
 
@@ -38,13 +39,15 @@ public partial class SyncViewModel : ObservableObject
         IDataService dataService,
         FileDataService localDataService,
         DialogService dialogService,
-        WindowManager windowManager)
+        WindowManager windowManager,
+        LoggerService logger)
     {
         _settingsService = settingsService;
         _dataService = dataService;
         _localDataService = localDataService;
         _dialogService = dialogService;
         _windowManager = windowManager;
+        _logger = logger;
     }
 
     [RelayCommand]
@@ -91,13 +94,13 @@ public partial class SyncViewModel : ObservableObject
             RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
             RestoreStatusColor = System.Windows.Media.Brushes.Green;
 
-            LoggerService.Instance.LogInfo($"Restored {data.Folders?.Count ?? 0} folders and {data.Files?.Count ?? 0} files", "SyncViewModel.ManualRestore");
+            _logger.LogInfo($"Restored {data.Folders?.Count ?? 0} folders and {data.Files?.Count ?? 0} files", "SyncViewModel.ManualRestore");
         }
         catch (Exception ex)
         {
             RestoreStatus = $"❌ 恢复失败: {ex.Message}";
             RestoreStatusColor = System.Windows.Media.Brushes.Red;
-            LoggerService.Instance.LogException(ex, "Failed to restore from cloud", "SyncViewModel.ManualRestore");
+            _logger.LogException(ex, "Failed to restore from cloud", "SyncViewModel.ManualRestore");
         }
     }
 
@@ -153,7 +156,7 @@ public partial class SyncViewModel : ObservableObject
         if (service == null) return;
 
         var backups = service.GetBackups();
-        LoggerService.Instance.LogInfo($"Found {backups.Count} backups in {service.BackupDirectory}", "SyncViewModel.ManualLocalRestore");
+        _logger.LogInfo($"Found {backups.Count} backups in {service.BackupDirectory}", "SyncViewModel.ManualLocalRestore");
 
         if (backups.Count == 0)
         {
@@ -213,13 +216,13 @@ public partial class SyncViewModel : ObservableObject
             _mainViewModel.IsDirty = false;
             _mainViewModel.IsEditMode = false;
             _settingsService.SaveLocalConfig();
-            LoggerService.Instance.LogInfo("Manual cloud backup successful", "SyncViewModel.ManualBackup");
+            _logger.LogInfo("Manual cloud backup successful", "SyncViewModel.ManualBackup");
             _dialogService.ShowToast("云端备份成功！", "Success");
         }
         catch (Exception ex)
         {
             _dialogService.ShowAlert($"备份失败: {ex.Message}", "错误");
-            LoggerService.Instance.LogException(ex, "Failed to manual backup", "SyncViewModel.ManualBackup");
+            _logger.LogException(ex, "Failed to manual backup", "SyncViewModel.ManualBackup");
         }
     }
 
@@ -292,7 +295,7 @@ public partial class SyncViewModel : ObservableObject
     {
         try
         {
-            var logPath = LoggerService.Instance.GetLogDirectory();
+            var logPath = _logger.GetLogDirectory();
             if (System.IO.Directory.Exists(logPath))
             {
                 System.Diagnostics.Process.Start("explorer.exe", logPath);
@@ -304,7 +307,7 @@ public partial class SyncViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            LoggerService.Instance.LogException(ex, "Failed to open log folder", "SyncViewModel.OpenLogFolder");
+            _logger.LogException(ex, "Failed to open log folder", "SyncViewModel.OpenLogFolder");
             _dialogService.ShowAlert($"无法打开日志文件夹: {ex.Message}", "错误");
         }
     }
@@ -314,12 +317,12 @@ public partial class SyncViewModel : ObservableObject
     {
         try
         {
-            LoggerService.Instance.ClearLogs();
+            _logger.ClearLogs();
             _dialogService.ShowToast("日志已清除", "Success");
         }
         catch (Exception ex)
         {
-            LoggerService.Instance.LogException(ex, "Failed to clear logs", "SyncViewModel.ClearLogs");
+            _logger.LogException(ex, "Failed to clear logs", "SyncViewModel.ClearLogs");
             _dialogService.ShowAlert($"清除日志失败: {ex.Message}", "错误");
         }
     }

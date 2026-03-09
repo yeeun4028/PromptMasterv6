@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
@@ -17,6 +18,7 @@ using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Shared.Dialogs;
+using PromptMasterv6.Features.Shared.Behaviors;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using TextBox = System.Windows.Controls.TextBox;
@@ -169,6 +171,14 @@ namespace PromptMasterv6
 
         private static void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<LoggerService>(sp => LoggerService.Instance);
+            
+            services.AddMediatR(cfg => 
+            {
+                cfg.RegisterServicesFromAssembly(typeof(App).Assembly);
+                cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
+            });
+
             services.AddTransient<ZhipuCompatHandler>();
 
             services.AddHttpClient("AiServiceClient")

@@ -25,16 +25,8 @@ public class SearchOnGitHubHandler : IRequestHandler<SearchOnGitHubCommand>
             return Task.CompletedTask;
         }
 
-        try
-        {
-            var url = $"https://github.com/search?q={System.Uri.EscapeDataString(request.Query)}";
-            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-        }
-        catch (System.Exception ex)
-        {
-            Infrastructure.Services.LoggerService.Instance.LogException(ex, "SearchOnGitHub Failed", "SearchOnGitHubHandler");
-            _dialogService.ShowAlert($"打开 GitHub 失败: {ex.Message}", "错误");
-        }
+        var url = $"https://github.com/search?q={System.Uri.EscapeDataString(request.Query)}";
+        Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
 
         return Task.CompletedTask;
     }

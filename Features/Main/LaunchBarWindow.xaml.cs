@@ -16,11 +16,13 @@ namespace PromptMasterv6.Features.Main
     public partial class LaunchBarWindow : Window
     {
         private readonly MainViewModel _mainViewModel;
+        private readonly LoggerService _logger;
 
-        public LaunchBarWindow(MainViewModel mainViewModel)
+        public LaunchBarWindow(MainViewModel mainViewModel, LoggerService logger)
         {
             InitializeComponent();
             _mainViewModel = mainViewModel;
+            _logger = logger;
             this.DataContext = _mainViewModel;
             
             _mainViewModel.Config.PropertyChanged += Config_PropertyChanged;
@@ -160,7 +162,7 @@ namespace PromptMasterv6.Features.Main
             }
             catch (Exception ex)
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, $"Failed to execute launch bar action: {item.Label}", "LaunchBarWindow");
+                _logger.LogException(ex, $"Failed to execute launch bar action: {item.Label}", "LaunchBarWindow");
             }
         }
 

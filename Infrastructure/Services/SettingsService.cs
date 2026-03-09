@@ -5,7 +5,8 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class SettingsService
     {
-        // Icon path constants (extracted to avoid inline string issues)
+        private readonly LoggerService _logger;
+
         private static readonly string PerplexityIconData =
             "M905.728 304.512h-98.432V118.528a32.832 32.832 0 0 0-18.816-29.76 34.112 34.112 0 0 0-35.008 4.352L544.704 266.88V75.84A33.088 33.088 0 0 0 512 43.008a33.152 33.152 0 0 0-32.896 32.832v191.488l-208.64-174.208a32 32 0 0 0-35.008-4.352 32.832 32.832 0 0 0-18.816 29.76v186.048h-98.56a33.024 33.024 0 0 0-32.768 32.768v350.08c0 17.92 14.912 32.832 32.832 32.832h98.432v185.984a32.96 32.96 0 0 0 32.896 32.768 34.112 34.112 0 0 0 20.928-7.424l208.768-173.696v191.424c0 17.92 14.848 32.896 32.832 32.896 17.92 0 32.832-14.976 32.832-32.896v-191.424l208.704 173.696a34.112 34.112 0 0 0 20.992 7.488 32.832 32.832 0 0 0 32.832-32.832v-186.048h98.496c17.92 0 32.768-14.848 32.768-32.768V337.28a33.088 33.088 0 0 0-32.832-32.832z" +
             " m-164.032-115.968v115.968H602.496l139.2-115.968z" +
@@ -31,14 +32,14 @@ namespace PromptMasterv6.Infrastructure.Services
             "-2.844444 9.784889-6.371556 19.342222-9.443556 29.240889" +
             "-1.877333 6.257778-4.835556 7.623111-11.662222 4.892445" +
             "a196.608 196.608 0 0 1-61.724444-41.415112" +
-            "c-30.435556-29.013333-58.026667-61.098667-92.330667-86.243555" +
+            "-c-30.435556-29.013333-58.026667-61.098667-92.330667-86.243555" +
             "a403.285333 403.285333 0 0 0-24.462222-16.497778" +
-            "c-35.043556-33.564444 4.551111-61.212444 13.710222-64.455111 " +
+            "-c-35.043556-33.564444 4.551111-61.212444 13.710222-64.455111 " +
             "9.671111-3.413333 3.356444-15.189333-27.648-15.018667" +
             "-31.004444 0.113778-59.392 10.353778-95.573333 24.007111" +
             "a109.681778 109.681778 0 0 1-16.497778 4.778667 " +
             "345.656889 345.656889 0 0 0-102.513778-3.584" +
-            "c-67.015111 7.395556-120.547556 38.684444-159.914667 92.046222" +
+            "-c-67.015111 7.395556-120.547556 38.684444-159.914667 92.046222" +
             "-47.274667 64.170667-58.424889 137.102222-44.828444 213.105778 " +
             "14.392889 80.156444 55.808 146.488889 119.466667 198.428445 " +
             "66.104889 53.76 142.222222 80.099556 228.920888 75.093333 " +
@@ -146,15 +147,15 @@ namespace PromptMasterv6.Infrastructure.Services
         public AppConfig Config { get; private set; }
         public LocalSettings LocalConfig { get; private set; }
 
-        public SettingsService()
+        public SettingsService(LoggerService logger)
         {
-            // 启动时加载配置
+            _logger = logger;
             Config = ConfigService.Load();
             LocalConfig = LocalConfigService.Load();
 
             InitializeDefaultWebTargets();
 
-            LoggerService.Instance.LogInfo("Settings loaded successfully", "SettingsService.ctor");
+            _logger.LogInfo("Settings loaded successfully", "SettingsService.ctor");
         }
 
         private void InitializeDefaultWebTargets()
@@ -172,43 +173,32 @@ namespace PromptMasterv6.Infrastructure.Services
                 }
             }
 
-            // 1. ChatGPT
             AddIfMissing("ChatGPT", "https://chat.openai.com/?q={0}", 
                 "M12,2L20.66,7V17L12,22L3.34,17V7L12,2Z");
 
-            // 2. Claude
             AddIfMissing("Claude", "https://claude.ai/new?q={0}", 
                 "M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M17,15.5L15.5,17A8,8 0 1,1 15.5,7L17,8.5A6,6 0 1,0 17,15.5Z");
 
-            // 3. Gemini (Google)
             AddIfMissing("Gemini", "https://gemini.google.com/app?q={0}", 
                 "M12,2L14.5,9.5L22,12L14.5,14.5L12,22L9.5,14.5L2,12L9.5,9.5Z");
 
-            // 4. Perplexity
             AddIfMissing("Perplexity", "https://www.perplexity.ai/?q={0}", PerplexityIconData);
 
-            // 5. DeepSeek (深度求索)
             AddIfMissing("DeepSeek", "https://chat.deepseek.com?q={0}", DeepSeekIconData);
 
-            // 6. GLM (智谱清言)
             AddIfMissing("GLM", "https://chatglm.cn/main/all?q={0}",
                 "M20,2H4C2.9,2 2,2.9 2,4V22L6,18H20C21.1,18 22,17.1 22,16V4C22,2.9 21.1,2 20,2M20,16H5.17L4,17.17V4H20V16Z");
 
-            // 7. Qwen (通义千问)
             AddIfMissing("Qwen", "https://tongyi.aliyun.com/qianwen?q={0}", QwenIconData);
 
-            // 8. Doubao (豆包)
             AddIfMissing("Doubao", "https://www.doubao.com/chat/?q={0}", DoubaoIconData);
 
-            // 9. AI Studio (Google)
             AddIfMissing("AI Studio", "https://aistudio.google.com/prompts/new_chat?q={0}",
                 "M12,2L14.5,9.5L22,12L14.5,14.5L12,22L9.5,14.5L2,12L9.5,9.5Z M12,8L13,10.5L15.5,11.5L13,12.5L12,15L11,12.5L8.5,11.5L11,10.5Z");
 
-            // Migration: Ensure all targets have ?q={0} (for Userscript support)
             bool needsSave = false;
             foreach (var target in Config.WebDirectTargets)
             {
-                // Update Perplexity Icon (Migration)
                 if (target.Name.Equals("Perplexity", System.StringComparison.OrdinalIgnoreCase))
                 {
                     if (!target.IconData.Equals(PerplexityIconData))
@@ -218,7 +208,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                // Update DeepSeek Icon (Migration)
                 if (target.Name.Equals("DeepSeek", System.StringComparison.OrdinalIgnoreCase))
                 {
                     if (!target.IconData.Equals(DeepSeekIconData))
@@ -228,7 +217,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                // Update Qwen Icon (Migration)
                 if (target.Name.Equals("Qwen", System.StringComparison.OrdinalIgnoreCase))
                 {
                     if (!target.IconData.Equals(QwenIconData))
@@ -238,7 +226,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                // Update Doubao Icon (Migration)
                 if (target.Name.Equals("Doubao", System.StringComparison.OrdinalIgnoreCase))
                 {
                     if (!target.IconData.Equals(DoubaoIconData))
@@ -248,7 +235,6 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                // List of targets that should have query params now
                 var scriptTargets = new[] { "Gemini", "DeepSeek", "GLM", "Qwen", "Doubao", "AI Studio" };
                 
                 if (scriptTargets.Contains(target.Name, StringComparer.OrdinalIgnoreCase) && !target.UrlTemplate.Contains("{0}"))
@@ -263,7 +249,6 @@ namespace PromptMasterv6.Infrastructure.Services
                 }
             }
 
-            // 仅在有实际变化时才写盘（避免启动时无意义的重复保存）
             if (added || needsSave) SaveConfig();
         }
 
@@ -272,11 +257,11 @@ namespace PromptMasterv6.Infrastructure.Services
             try
             {
                 ConfigService.Save(Config);
-                LoggerService.Instance.LogInfo("AppConfig saved", "SettingsService.SaveConfig");
+                _logger.LogInfo("AppConfig saved", "SettingsService.SaveConfig");
             }
             catch (System.Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to save AppConfig", "SettingsService.SaveConfig");
+                _logger.LogException(ex, "Failed to save AppConfig", "SettingsService.SaveConfig");
                 throw;
             }
         }
@@ -286,11 +271,11 @@ namespace PromptMasterv6.Infrastructure.Services
             try
             {
                 LocalConfigService.Save(LocalConfig);
-                LoggerService.Instance.LogInfo("LocalSettings saved", "SettingsService.SaveLocalConfig");
+                _logger.LogInfo("LocalSettings saved", "SettingsService.SaveLocalConfig");
             }
             catch (System.Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to save LocalSettings", "SettingsService.SaveLocalConfig");
+                _logger.LogException(ex, "Failed to save LocalSettings", "SettingsService.SaveLocalConfig");
                 throw;
             }
         }
@@ -301,11 +286,11 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 Config = ConfigService.Load();
                 LocalConfig = LocalConfigService.Load();
-                LoggerService.Instance.LogInfo("Settings reloaded", "SettingsService.ReloadConfigs");
+                _logger.LogInfo("Settings reloaded", "SettingsService.ReloadConfigs");
             }
             catch (System.Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to reload settings", "SettingsService.ReloadConfigs");
+                _logger.LogException(ex, "Failed to reload settings", "SettingsService.ReloadConfigs");
                 throw;
             }
         }
@@ -314,7 +299,6 @@ namespace PromptMasterv6.Infrastructure.Services
         {
             try
             {
-                // 先保存当前内存中的配置到磁盘，确保导出的是最新状态
                 SaveConfig();
                 SaveLocalConfig();
 
@@ -322,11 +306,6 @@ namespace PromptMasterv6.Infrastructure.Services
                 {
                     System.IO.File.Delete(zipPath);
                 }
-
-                // 创建临时目录来存放要打包的文件
-                // 虽然可以直接从ConfigPath打包，但为了扩展性和安全性，显式指定要打包的文件更稳妥
-                // 这里我们直接利用 System.IO.Compression.ZipFile 的 CreateFromDirectory 或者逐个添加
-                // 由于只打包两个特定文件，手动创建 zip 更灵活
 
                 using (var archive = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
                 {
@@ -344,11 +323,11 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                LoggerService.Instance.LogInfo($"Settings exported to {zipPath}", "SettingsService.ExportSettings");
+                _logger.LogInfo($"Settings exported to {zipPath}", "SettingsService.ExportSettings");
             }
             catch (System.Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to export settings", "SettingsService.ExportSettings");
+                _logger.LogException(ex, "Failed to export settings", "SettingsService.ExportSettings");
                 throw;
             }
         }
@@ -387,14 +366,13 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                 }
 
-                // 导入后重新加载内存中的配置
                 ReloadConfigs();
 
-                LoggerService.Instance.LogInfo($"Settings imported from {zipPath}", "SettingsService.ImportSettings");
+                _logger.LogInfo($"Settings imported from {zipPath}", "SettingsService.ImportSettings");
             }
             catch (System.Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to import settings", "SettingsService.ImportSettings");
+                _logger.LogException(ex, "Failed to import settings", "SettingsService.ImportSettings");
                 throw;
             }
         }

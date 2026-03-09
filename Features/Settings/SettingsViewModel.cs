@@ -26,6 +26,7 @@ namespace PromptMasterv6.Features.Settings
         private readonly DialogService _dialogService;
         private readonly HotkeyService _hotkeyService;
         private readonly WindowManager _windowManager;
+        private readonly LoggerService _logger;
 
         private MainViewModel? _mainViewModel;
 
@@ -101,6 +102,7 @@ namespace PromptMasterv6.Features.Settings
             DialogService dialogService,
             HotkeyService hotkeyService,
             WindowManager windowManager,
+            LoggerService logger,
             AiModelsViewModel aiModelsVM,
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,
@@ -113,13 +115,14 @@ namespace PromptMasterv6.Features.Settings
             _dialogService = dialogService;
             _hotkeyService = hotkeyService;
             _windowManager = windowManager;
+            _logger = logger;
 
             AiModelsVM = aiModelsVM;
             SyncVM = syncVM;
             LauncherSettingsVM = launcherSettingsVM;
             ApiCredentialsVM = apiCredentialsVM;
 
-            LoggerService.Instance.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
+            _logger.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
         }
 
         #region Commands - Settings UI
@@ -317,7 +320,7 @@ namespace PromptMasterv6.Features.Settings
             catch (Exception ex)
             {
                 _dialogService.ShowAlert($"添加文件夹失败: {ex.Message}", "错误");
-                LoggerService.Instance.LogException(ex, "Failed to add launcher search path", "SettingsViewModel.AddLauncherSearchPath");
+                _logger.LogException(ex, "Failed to add launcher search path", "SettingsViewModel.AddLauncherSearchPath");
             }
         }
 
@@ -377,13 +380,13 @@ namespace PromptMasterv6.Features.Settings
                 RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
                 RestoreStatusColor = System.Windows.Media.Brushes.Green;
 
-                LoggerService.Instance.LogInfo($"Restored {data.Folders?.Count ?? 0} folders and {data.Files?.Count ?? 0} files", "SettingsViewModel.ManualRestore");
+                _logger.LogInfo($"Restored {data.Folders?.Count ?? 0} folders and {data.Files?.Count ?? 0} files", "SettingsViewModel.ManualRestore");
             }
             catch (Exception ex)
             {
                 RestoreStatus = $"❌ 恢复失败: {ex.Message}";
                 RestoreStatusColor = System.Windows.Media.Brushes.Red;
-                LoggerService.Instance.LogException(ex, "Failed to restore from cloud", "SettingsViewModel.ManualRestore");
+                _logger.LogException(ex, "Failed to restore from cloud", "SettingsViewModel.ManualRestore");
             }
         }
 
@@ -439,7 +442,7 @@ namespace PromptMasterv6.Features.Settings
             if (service == null) return;
 
             var backups = service.GetBackups();
-            LoggerService.Instance.LogInfo($"Found {backups.Count} backups in {service.BackupDirectory}", "SettingsViewModel.ManualLocalRestore");
+            _logger.LogInfo($"Found {backups.Count} backups in {service.BackupDirectory}", "SettingsViewModel.ManualLocalRestore");
 
             if (backups.Count == 0)
             {
@@ -499,12 +502,12 @@ namespace PromptMasterv6.Features.Settings
                 _mainViewModel.IsDirty = false;
                 _mainViewModel.IsEditMode = false;
                 _settingsService.SaveLocalConfig();
-                LoggerService.Instance.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
+                _logger.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
             }
             catch (Exception ex)
             {
                 _dialogService.ShowAlert($"备份失败: {ex.Message}", "错误");
-                LoggerService.Instance.LogException(ex, "Failed to manual backup", "SettingsViewModel.ManualBackup");
+                _logger.LogException(ex, "Failed to manual backup", "SettingsViewModel.ManualBackup");
             }
         }
 
@@ -517,7 +520,7 @@ namespace PromptMasterv6.Features.Settings
         {
             try
             {
-                var logPath = LoggerService.Instance.GetLogDirectory();
+                var logPath = _logger.GetLogDirectory();
                 if (System.IO.Directory.Exists(logPath))
                 {
                     System.Diagnostics.Process.Start("explorer.exe", logPath);
@@ -529,7 +532,7 @@ namespace PromptMasterv6.Features.Settings
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to open log folder", "SettingsViewModel.OpenLogFolder");
+                _logger.LogException(ex, "Failed to open log folder", "SettingsViewModel.OpenLogFolder");
                 _dialogService.ShowAlert($"无法打开日志文件夹: {ex.Message}", "错误");
             }
         }
@@ -539,11 +542,11 @@ namespace PromptMasterv6.Features.Settings
         {
             try
             {
-                LoggerService.Instance.ClearLogs();
+                _logger.ClearLogs();
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to clear logs", "SettingsViewModel.ClearLogs");
+                _logger.LogException(ex, "Failed to clear logs", "SettingsViewModel.ClearLogs");
                 _dialogService.ShowAlert($"清除日志失败: {ex.Message}", "错误");
             }
         }

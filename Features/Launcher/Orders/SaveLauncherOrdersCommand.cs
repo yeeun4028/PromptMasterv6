@@ -16,25 +16,18 @@ namespace PromptMasterv6.Features.Launcher.Orders
         {
             if (request.Orders == null) return Task.CompletedTask;
 
-            try
+            var appDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PromptMasterv6", "launcher_orders.json");
+            
+            var dir = Path.GetDirectoryName(appDataPath);
+            if (!Directory.Exists(dir))
             {
-                var appDataPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PromptMasterv6", "launcher_orders.json");
-                
-                var dir = Path.GetDirectoryName(appDataPath);
-                if (!Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir!);
-                }
+                Directory.CreateDirectory(dir!);
+            }
 
-                var json = JsonSerializer.Serialize(request.Orders);
-                File.WriteAllText(appDataPath, json);
-            }
-            catch (Exception ex)
-            {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to save launcher orders", "SaveLauncherOrdersHandler");
-            }
+            var json = JsonSerializer.Serialize(request.Orders);
+            File.WriteAllText(appDataPath, json);
 
             return Task.CompletedTask;
         }

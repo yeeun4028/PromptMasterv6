@@ -17,8 +17,14 @@ namespace PromptMasterv6.Infrastructure.Services
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
+        private readonly LoggerService _logger;
         private readonly string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data.json");
         public string BackupDirectory => Path.GetDirectoryName(_filePath) ?? "";
+
+        public FileDataService(LoggerService logger)
+        {
+            _logger = logger;
+        }
 
         public async Task SaveAsync(IEnumerable<FolderItem> folders, IEnumerable<PromptItem> files, CancellationToken cancellationToken = default)
         {
@@ -49,16 +55,16 @@ namespace PromptMasterv6.Infrastructure.Services
                 
                 _ = Task.Run(() => ExportPromptsToMarkdown(folders, files), cancellationToken);
 
-                LoggerService.Instance.LogInfo($"数据已保存到 {_filePath} ({data.Files.Count} 个提示词)", "FileDataService.SaveAsync");
+                _logger.LogInfo($"数据已保存到 {_filePath} ({data.Files.Count} 个提示词)", "FileDataService.SaveAsync");
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, $"保存数据到 {_filePath} 失败", "FileDataService.SaveAsync");
+                _logger.LogException(ex, $"保存数据到 {_filePath} 失败", "FileDataService.SaveAsync");
                 
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); }
                 catch (Exception delEx)
                 {
-                    LoggerService.Instance.LogException(delEx, $"Failed to delete temp file: {tempPath}", "FileDataService.SaveAsync");
+                    _logger.LogException(delEx, $"Failed to delete temp file: {tempPath}", "FileDataService.SaveAsync");
                 }
             }
         }
@@ -122,7 +128,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to export prompts to markdown", "FileDataService.ExportPromptsToMarkdown");
+                _logger.LogException(ex, "Failed to export prompts to markdown", "FileDataService.ExportPromptsToMarkdown");
             }
         }
 
@@ -145,7 +151,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to rotate backups", "FileDataService.RotateBackups");
+                _logger.LogException(ex, "Failed to rotate backups", "FileDataService.RotateBackups");
             }
         }
 
@@ -172,7 +178,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to get backups", "FileDataService.GetBackups");
+                _logger.LogException(ex, "Failed to get backups", "FileDataService.GetBackups");
             }
             return backups.OrderByDescending(x => x.LastModified).ToList();
         }
@@ -194,7 +200,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, $"Failed to restore backup: {backupPath}", "FileDataService.RestoreLocalBackupAsync");
+                _logger.LogException(ex, $"Failed to restore backup: {backupPath}", "FileDataService.RestoreLocalBackupAsync");
             }
             return null;
         }
@@ -208,13 +214,13 @@ namespace PromptMasterv6.Infrastructure.Services
                 using FileStream openStream = File.OpenRead(_filePath);
                 var data = await JsonSerializer.DeserializeAsync<AppData>(openStream, _jsonOptions, cancellationToken).ConfigureAwait(false) ?? new AppData();
                 
-                LoggerService.Instance.LogInfo($"从 {_filePath} 加载了 {data.Files?.Count ?? 0} 个提示词", "FileDataService.LoadAsync");
+                _logger.LogInfo($"从 {_filePath} 加载了 {data.Files?.Count ?? 0} 个提示词", "FileDataService.LoadAsync");
                 
                 return data;
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, $"从 {_filePath} 加载数据失败", "FileDataService.LoadAsync");
+                _logger.LogException(ex, $"从 {_filePath} 加载数据失败", "FileDataService.LoadAsync");
                 return new AppData();
             }
         }

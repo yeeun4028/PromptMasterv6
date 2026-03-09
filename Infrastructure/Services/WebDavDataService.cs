@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -16,6 +16,13 @@ namespace PromptMasterv6.Infrastructure.Services
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
+
+        private readonly LoggerService _logger;
+
+        public WebDavDataService(LoggerService logger)
+        {
+            _logger = logger;
+        }
 
         private WebDavClient GetClient(AppConfig config)
         {
@@ -83,7 +90,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"WebDav LoadAsync Failed: {ex.Message}", "WebDavDataService");
+                _logger.LogError($"WebDav LoadAsync Failed: {ex.Message}", "WebDavDataService");
                 return new AppData();
             }
         }

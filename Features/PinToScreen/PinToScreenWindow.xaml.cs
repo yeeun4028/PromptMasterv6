@@ -12,6 +12,7 @@ namespace PromptMasterv6.Features.PinToScreen
     {
         private static readonly object _syncLock = new object();
         private static readonly List<PinToScreenWindow> _windows = new List<PinToScreenWindow>();
+        private readonly LoggerService _logger;
 
         public BitmapSource? Image { get; private set; }
         public PinToScreenOptions Options { get; private set; }
@@ -45,9 +46,10 @@ namespace PromptMasterv6.Features.PinToScreen
             }
         }
 
-        private PinToScreenWindow(BitmapSource image, PinToScreenOptions? options = null, System.Windows.Point? location = null)
+        private PinToScreenWindow(BitmapSource image, PinToScreenOptions? options = null, System.Windows.Point? location = null, LoggerService? logger = null)
         {
             InitializeComponent();
+            _logger = logger ?? LoggerService.Instance;
 
             Options = options ?? new PinToScreenOptions();
             Image = image;
@@ -91,7 +93,7 @@ namespace PromptMasterv6.Features.PinToScreen
                 {
                     var ps = PresentationSource.FromVisual(this);
                     double winDpi = ps?.CompositionTarget?.TransformToDevice.M11 ?? -1;
-                    LoggerService.Instance.LogInfo(
+                    _logger.LogInfo(
                         $"[PIN-DIAG] Window Loaded: ActualWidth={ActualWidth:F1}, ActualHeight={ActualHeight:F1}, " +
                         $"PinnedImage.ActualWidth={PinnedImage.ActualWidth:F1}, PinnedImage.ActualHeight={PinnedImage.ActualHeight:F1}, " +
                         $"WindowDPI={winDpi:F3}",
@@ -189,7 +191,7 @@ namespace PromptMasterv6.Features.PinToScreen
 
             try
             {
-                LoggerService.Instance.LogInfo(
+                _logger.LogInfo(
                     $"[PIN-DIAG] UpdateImageSize: Image.PixelWidth={Image.PixelWidth}, Image.PixelHeight={Image.PixelHeight}, " +
                     $"Image.DpiX={Image.DpiX}, Image.DpiY={Image.DpiY}, dpiScale={((Image.DpiX > 0 ? Image.DpiX : 96.0) / 96.0):F3}, " +
                     $"scale={scale}, PinnedImage=[{imgWidth:F1}x{imgHeight:F1}], Window=[{winWidth:F1}x{winHeight:F1}]",

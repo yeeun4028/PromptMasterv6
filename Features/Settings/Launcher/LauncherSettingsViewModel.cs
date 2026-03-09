@@ -9,12 +9,14 @@ namespace PromptMasterv6.Features.Settings.Launcher;
 public partial class LauncherSettingsViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
+    private readonly LoggerService _logger;
 
     public AppConfig Config => _settingsService.Config;
 
-    public LauncherSettingsViewModel(SettingsService settingsService)
+    public LauncherSettingsViewModel(SettingsService settingsService, LoggerService logger)
     {
         _settingsService = settingsService;
+        _logger = logger;
     }
 
     [RelayCommand]
@@ -41,7 +43,7 @@ public partial class LauncherSettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to add launcher search path", "LauncherSettingsViewModel.AddLauncherSearchPath");
+            _logger.LogException(ex, "Failed to add launcher search path", "LauncherSettingsViewModel.AddLauncherSearchPath");
         }
     }
 

@@ -7,6 +7,12 @@ namespace PromptMasterv6.Infrastructure.Services;
 public class ContentConverterService
 {
     private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Compiled);
+    private readonly LoggerService _logger;
+
+    public ContentConverterService(LoggerService logger)
+    {
+        _logger = logger;
+    }
 
     public string? ConvertHtmlToMarkdown(string? content)
     {
@@ -19,7 +25,7 @@ public class ContentConverterService
         }
         catch (Exception ex)
         {
-            LoggerService.Instance.LogException(ex, "HTML转Markdown失败", "ContentConverterService.ConvertHtmlToMarkdown");
+            _logger.LogException(ex, "HTML转Markdown失败", "ContentConverterService.ConvertHtmlToMarkdown");
             return content;
         }
     }

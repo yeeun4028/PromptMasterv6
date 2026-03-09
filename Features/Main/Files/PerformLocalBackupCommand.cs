@@ -21,13 +21,6 @@ public class PerformLocalBackupHandler : IRequestHandler<PerformLocalBackupComma
 
     public async Task Handle(PerformLocalBackupCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _localDataService.SaveAsync(request.Folders, request.Files);
-        }
-        catch (System.Exception ex)
-        {
-            Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to perform local backup", "PerformLocalBackupHandler");
-        }
+        await _localDataService.SaveAsync(request.Folders, request.Files);
     }
 }

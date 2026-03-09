@@ -7,6 +7,13 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class HotkeyService
     {
+        private readonly LoggerService _logger;
+
+        public HotkeyService(LoggerService logger)
+        {
+            _logger = logger;
+        }
+
         public void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
         {
             try
@@ -32,7 +39,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, $"Failed to register hotkey: {name}", "HotkeyService.RegisterWindowHotkey");
+                _logger.LogException(ex, $"Failed to register hotkey: {name}", "HotkeyService.RegisterWindowHotkey");
             }
         }
 
@@ -44,7 +51,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, $"Failed to remove hotkey: {name}", "HotkeyService.TryRemoveHotkey");
+                _logger.LogException(ex, $"Failed to remove hotkey: {name}", "HotkeyService.TryRemoveHotkey");
             }
         }
 

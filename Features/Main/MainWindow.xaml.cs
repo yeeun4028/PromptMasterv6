@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -39,6 +39,7 @@ namespace PromptMasterv6.Features.Main
     public partial class MainWindow : Window
     {
         public MainViewModel ViewModel { get; }
+        private readonly LoggerService _logger;
 
         private DateTime _lastVarEnterTime = DateTime.MinValue;
         private DateTime _lastAddEnterTime = DateTime.MinValue;
@@ -60,11 +61,12 @@ namespace PromptMasterv6.Features.Main
         private System.Drawing.Icon? _defaultIcon;
         private System.Drawing.Icon? _processingIcon;
 
-        public MainWindow(MainViewModel viewModel)
+        public MainWindow(MainViewModel viewModel, LoggerService logger)
         {
             InitializeComponent();
 
-            LoggerService.Instance.LogInfo("[MainWindow] Constructor called", "MainWindow");
+            _logger = logger;
+            _logger.LogInfo("[MainWindow] Constructor called", "MainWindow");
 
             this.ShowInTaskbar = false;
 
@@ -85,7 +87,7 @@ namespace PromptMasterv6.Features.Main
 
         private bool ConsoleCtrlHandler(CtrlTypes ctrlType)
         {
-            LoggerService.Instance.LogInfo($"[ConsoleCtrlHandler] Received console event: {ctrlType}", "MainWindow");
+            _logger.LogInfo($"[ConsoleCtrlHandler] Received console event: {ctrlType}", "MainWindow");
             if (ctrlType == CtrlTypes.CTRL_CLOSE_EVENT || 
                 ctrlType == CtrlTypes.CTRL_C_EVENT || 
                 ctrlType == CtrlTypes.CTRL_BREAK_EVENT ||
@@ -123,18 +125,18 @@ namespace PromptMasterv6.Features.Main
 
         private void DisposeNotifyIcon()
         {
-            LoggerService.Instance.LogInfo($"[DisposeNotifyIcon] _notifyIcon={_notifyIcon != null}", "MainWindow");
+            _logger.LogInfo($"[DisposeNotifyIcon] _notifyIcon={_notifyIcon != null}", "MainWindow");
             if (_notifyIcon != null)
             {
                 try
                 {
                     _notifyIcon.Visible = false;
                     _notifyIcon.Dispose();
-                    LoggerService.Instance.LogInfo("[DisposeNotifyIcon] Disposed successfully", "MainWindow");
+                    _logger.LogInfo("[DisposeNotifyIcon] Disposed successfully", "MainWindow");
                 }
                 catch (Exception ex)
                 {
-                    LoggerService.Instance.LogError($"[DisposeNotifyIcon] Error: {ex.Message}", "MainWindow");
+                    _logger.LogError($"[DisposeNotifyIcon] Error: {ex.Message}", "MainWindow");
                 }
                 _notifyIcon = null;
             }
@@ -158,11 +160,11 @@ namespace PromptMasterv6.Features.Main
             if (hwndSource != null)
             {
                 hwndSource.AddHook(WndProc);
-                LoggerService.Instance.LogInfo($"[OnSourceInitialized] WndProc hook attached, Handle={hwndSource.Handle}", "MainWindow");
+                _logger.LogInfo($"[OnSourceInitialized] WndProc hook attached, Handle={hwndSource.Handle}", "MainWindow");
             }
             else
             {
-                LoggerService.Instance.LogError("[OnSourceInitialized] Failed to get HwndSource!", "MainWindow");
+                _logger.LogError("[OnSourceInitialized] Failed to get HwndSource!", "MainWindow");
             }
 
             CreateMessageWindow();
@@ -186,14 +188,14 @@ namespace PromptMasterv6.Features.Main
                     if (cmd == SC_CLOSE)
                     {
                         _isExternalCloseRequest = false;
-                        LoggerService.Instance.LogInfo("[WndProc] SC_CLOSE detected - User clicked close button", "MainWindow");
+                        _logger.LogInfo("[WndProc] SC_CLOSE detected - User clicked close button", "MainWindow");
                     }
                     break;
                 case WM_CLOSE:
-                    LoggerService.Instance.LogInfo($"[WndProc] WM_CLOSE received - _isExternalCloseRequest={_isExternalCloseRequest}, Visibility={this.Visibility}", "MainWindow");
+                    _logger.LogInfo($"[WndProc] WM_CLOSE received - _isExternalCloseRequest={_isExternalCloseRequest}, Visibility={this.Visibility}", "MainWindow");
                     if (_isExternalCloseRequest && !_isExiting)
                     {
-                        LoggerService.Instance.LogInfo("[WndProc] External WM_CLOSE - forcing cleanup and shutdown", "MainWindow");
+                        _logger.LogInfo("[WndProc] External WM_CLOSE - forcing cleanup and shutdown", "MainWindow");
                         _isExiting = true;
                         Cleanup();
                         handled = true;
@@ -206,7 +208,7 @@ namespace PromptMasterv6.Features.Main
                 case WM_QUERYENDSESSION:
                 case WM_ENDSESSION:
                     _isExternalCloseRequest = true;
-                    LoggerService.Instance.LogInfo("[WndProc] ENDSESSION - System shutdown", "MainWindow");
+                    _logger.LogInfo("[WndProc] ENDSESSION - System shutdown", "MainWindow");
                     break;
             }
             return IntPtr.Zero;
@@ -230,14 +232,14 @@ namespace PromptMasterv6.Features.Main
             
             NativeMethods.ShowWindow(_messageHwndSource.Handle, NativeMethods.SW_SHOW);
             
-            LoggerService.Instance.LogInfo($"[CreateMessageWindow] Message window created and shown, Handle={_messageHwndSource.Handle}", "MainWindow");
+            _logger.LogInfo($"[CreateMessageWindow] Message window created and shown, Handle={_messageHwndSource.Handle}", "MainWindow");
         }
 
         private IntPtr MessageWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             if (msg == WM_CLOSE || msg == WM_QUERYENDSESSION || msg == WM_ENDSESSION)
             {
-                LoggerService.Instance.LogInfo($"[MessageWndProc] Received message 0x{msg:X4}, triggering cleanup", "MainWindow");
+                _logger.LogInfo($"[MessageWndProc] Received message 0x{msg:X4}, triggering cleanup", "MainWindow");
                 if (!_isExiting)
                 {
                     _isExiting = true;
@@ -371,7 +373,7 @@ namespace PromptMasterv6.Features.Main
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"贴图截图失败: {ex.Message}", "MainWindow");
+                _logger.LogError($"贴图截图失败: {ex.Message}", "MainWindow");
             }
         }
 
@@ -390,7 +392,7 @@ namespace PromptMasterv6.Features.Main
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"贴图剪贴板失败: {ex.Message}", "MainWindow");
+                _logger.LogError($"贴图剪贴板失败: {ex.Message}", "MainWindow");
             }
         }
 
@@ -406,7 +408,7 @@ namespace PromptMasterv6.Features.Main
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"关闭贴图失败: {ex.Message}", "MainWindow");
+                _logger.LogError($"关闭贴图失败: {ex.Message}", "MainWindow");
             }
         }
 
@@ -418,12 +420,12 @@ namespace PromptMasterv6.Features.Main
             {
                 try
                 {
-                    LoggerService.Instance.LogInfo("执行退出前保存...", "MainWindow.Tray_Exit_Click");
+                    _logger.LogInfo("执行退出前保存...", "MainWindow.Tray_Exit_Click");
                     await ViewModel.PerformLocalBackup();
                 }
                 catch (Exception ex)
                 {
-                    LoggerService.Instance.LogException(ex, "退出前保存失败", "MainWindow.Tray_Exit_Click");
+                    _logger.LogException(ex, "退出前保存失败", "MainWindow.Tray_Exit_Click");
                     System.Diagnostics.Debug.WriteLine($"退出前保存失败: {ex.Message}");
                 }
             }
@@ -437,7 +439,7 @@ namespace PromptMasterv6.Features.Main
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
-            LoggerService.Instance.LogInfo($"[Closing] _isExiting={_isExiting}, _isBackupExiting={_isBackupExiting}, _isExternalCloseRequest={_isExternalCloseRequest}", "MainWindow");
+            _logger.LogInfo($"[Closing] _isExiting={_isExiting}, _isBackupExiting={_isBackupExiting}, _isExternalCloseRequest={_isExternalCloseRequest}", "MainWindow");
             
             if (_isBackupExiting)
             {
@@ -454,7 +456,7 @@ namespace PromptMasterv6.Features.Main
 
             if (_isExternalCloseRequest)
             {
-                LoggerService.Instance.LogInfo("[Closing] External close request - cleaning up and allowing close", "MainWindow");
+                _logger.LogInfo("[Closing] External close request - cleaning up and allowing close", "MainWindow");
                 _isExiting = true;
                 Cleanup();
                 return;
@@ -526,11 +528,11 @@ namespace PromptMasterv6.Features.Main
                 if (double.IsFinite(this.Width)  && this.Width  > 0) config.MainWindowWidth  = Math.Round(this.Width, 1);
                 if (double.IsFinite(this.Height) && this.Height > 0) config.MainWindowHeight = Math.Round(this.Height, 1);
                 
-                LoggerService.Instance.LogInfo($"Window size saved: Width={config.MainWindowWidth}, Height={config.MainWindowHeight}", "MainWindow.SaveWindowPosition");
+                _logger.LogInfo($"Window size saved: Width={config.MainWindowWidth}, Height={config.MainWindowHeight}", "MainWindow.SaveWindowPosition");
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to save window size", "MainWindow.SaveWindowPosition");
+                _logger.LogException(ex, "Failed to save window size", "MainWindow.SaveWindowPosition");
             }
         }
 
@@ -549,11 +551,11 @@ namespace PromptMasterv6.Features.Main
                     this.Height = config.MainWindowHeight;
                 }
 
-                LoggerService.Instance.LogInfo($"Window size restored: Width={this.Width}, Height={this.Height}", "MainWindow.RestoreWindowPosition");
+                _logger.LogInfo($"Window size restored: Width={this.Width}, Height={this.Height}", "MainWindow.RestoreWindowPosition");
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to restore window size", "MainWindow.RestoreWindowPosition");
+                _logger.LogException(ex, "Failed to restore window size", "MainWindow.RestoreWindowPosition");
             }
         }
 
@@ -568,7 +570,7 @@ namespace PromptMasterv6.Features.Main
             }
             catch (Exception ex)
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Exit backup failed", "MainWindow.BackupAndExitAsync");
+                _logger.LogException(ex, "Exit backup failed", "MainWindow.BackupAndExitAsync");
             }
             finally
             {

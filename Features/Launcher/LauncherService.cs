@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Launcher
 {
     public class LauncherService
     {
+        private readonly LoggerService _logger;
         private List<LauncherItem> _cache = new();
+
+        public LauncherService(LoggerService logger)
+        {
+            _logger = logger;
+        }
 
         public async Task<List<LauncherItem>> GetItemsAsync(IEnumerable<string> paths)
         {
@@ -55,7 +62,7 @@ namespace PromptMasterv6.Features.Launcher
                     }
                     catch (Exception ex)
                     {
-                        Infrastructure.Services.LoggerService.Instance.LogException(ex, $"Failed to scan directory during launcher discovery: {path}", "LauncherService.GetItemsAsync");
+                        _logger.LogException(ex, $"Failed to scan directory during launcher discovery: {path}", "LauncherService.GetItemsAsync");
                     }
                 }
 

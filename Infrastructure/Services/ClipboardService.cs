@@ -10,6 +10,13 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class ClipboardService
     {
+        private readonly LoggerService _logger;
+
+        public ClipboardService(LoggerService logger)
+        {
+            _logger = logger;
+        }
+
         public void SetClipboard(string text)
         {
             try
@@ -22,13 +29,13 @@ namespace PromptMasterv6.Infrastructure.Services
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.Instance.LogError($"设置剪贴板失败内部错误: {ex.Message}", "ClipboardService.SetClipboard");
+                        _logger.LogError($"设置剪贴板失败内部错误: {ex.Message}", "ClipboardService.SetClipboard");
                     }
                 });
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"设置剪贴板失败: {ex.Message}", "ClipboardService.SetClipboard");
+                _logger.LogError($"设置剪贴板失败: {ex.Message}", "ClipboardService.SetClipboard");
             }
         }
 
@@ -43,7 +50,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"获取剪贴板失败: {ex.Message}", "ClipboardService.GetClipboard");
+                _logger.LogError($"获取剪贴板失败: {ex.Message}", "ClipboardService.GetClipboard");
                 return null;
             }
         }
@@ -83,7 +90,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"获取剪贴板图片失败: {ex.Message}", "ClipboardService.GetImage");
+                _logger.LogError($"获取剪贴板图片失败: {ex.Message}", "ClipboardService.GetImage");
                 return null;
             }
         }
@@ -100,7 +107,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"粘贴失败: {ex.Message}", "ClipboardService.PasteToActiveWindow");
+                _logger.LogError($"粘贴失败: {ex.Message}", "ClipboardService.PasteToActiveWindow");
             }
         }
 

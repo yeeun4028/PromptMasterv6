@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -19,8 +19,9 @@ namespace PromptMasterv6.Infrastructure.Services
         private readonly HttpClient _httpClient;
         private readonly SemaphoreSlim _tokenLock = new SemaphoreSlim(1, 1);
         private readonly ConcurrentDictionary<string, (string token, DateTime expire)> _tokenCache = new();
+        private readonly LoggerService _logger;
 
-        public BaiduService(HttpClient httpClient)
+        public BaiduService(HttpClient httpClient, LoggerService logger)
         {
             var handler = new HttpClientHandler
             {
@@ -30,6 +31,7 @@ namespace PromptMasterv6.Infrastructure.Services
             
             _httpClient = new HttpClient(handler);
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            _logger = logger;
         }
 
         #region 翻译功能
@@ -370,7 +372,7 @@ namespace PromptMasterv6.Infrastructure.Services
                                 resultBytes = outStream.ToArray();
                             }
 
-                            LoggerService.Instance.LogInfo($"Image Optimized: Original {originalBytes.Length / 1024}KB -> Optimized {resultBytes.Length / 1024}KB (Scale: {scale:F2})", "BaiduService.OptimizeImage");
+                            _logger.LogInfo($"Image Optimized: Original {originalBytes.Length / 1024}KB -> Optimized {resultBytes.Length / 1024}KB (Scale: {scale:F2})", "BaiduService.OptimizeImage");
                             return resultBytes;
                         }
                     }
@@ -380,7 +382,7 @@ namespace PromptMasterv6.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Image Optimization Failed", "BaiduService");
+                _logger.LogException(ex, "Image Optimization Failed", "BaiduService");
                 return originalBytes;
             }
         }

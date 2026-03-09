@@ -21,6 +21,7 @@ namespace PromptMasterv6.Features.ExternalTools
         private bool _isSelecting;
         private bool _isProcessing;
         private Bitmap? _screenBitmap;
+        private readonly LoggerService _logger;
 
         private readonly Func<byte[], System.Windows.Rect, Task>? _processingCallback;
         
@@ -28,10 +29,11 @@ namespace PromptMasterv6.Features.ExternalTools
 
         public System.Windows.Rect CapturedRect { get; private set; }
 
-        public ScreenCaptureOverlay(Bitmap? capturedScreen = null, Func<byte[], System.Windows.Rect, Task>? processingCallback = null)
+        public ScreenCaptureOverlay(Bitmap? capturedScreen = null, Func<byte[], System.Windows.Rect, Task>? processingCallback = null, LoggerService? logger = null)
         {
             InitializeComponent();
             _processingCallback = processingCallback;
+            _logger = logger ?? LoggerService.Instance;
             
             if (capturedScreen != null)
             {
@@ -60,7 +62,7 @@ namespace PromptMasterv6.Features.ExternalTools
 
             var diagSource = PresentationSource.FromVisual(this);
             double diagDpiX = diagSource?.CompositionTarget?.TransformToDevice.M11 ?? -1;
-            LoggerService.Instance.LogInfo(
+            _logger.LogInfo(
                 $"[PIN-DIAG] Overlay Loaded: Window=[{this.Width}x{this.Height}], " +
                 $"_screenBitmap=[{_screenBitmap?.Width}x{_screenBitmap?.Height}], " +
                 $"DPI Scale from PresentationSource={diagDpiX}",
@@ -172,7 +174,7 @@ namespace PromptMasterv6.Features.ExternalTools
                 }
                 catch (Exception ex)
                 {
-                    LoggerService.Instance.LogError($"Processing failed: {ex.Message}", "ScreenCaptureOverlay");
+                    _logger.LogError($"Processing failed: {ex.Message}", "ScreenCaptureOverlay");
                 }
             }
 
@@ -220,7 +222,7 @@ namespace PromptMasterv6.Features.ExternalTools
                 int physWidth = (int)(physBottomRight.X - physTopLeft.X);
                 int physHeight = (int)(physBottomRight.Y - physTopLeft.Y);
 
-                LoggerService.Instance.LogInfo(
+                _logger.LogInfo(
                     $"[PIN-DIAG] CaptureSelectedRegion: _screenBitmap=[{_screenBitmap.Width}x{_screenBitmap.Height}], " +
                     $"Logical selection=[{x},{y} {width}x{height}], " +
                     $"Physical crop=[{physX},{physY} {physWidth}x{physHeight}]",
@@ -233,7 +235,7 @@ namespace PromptMasterv6.Features.ExternalTools
 
                 if (physWidth <= 0 || physHeight <= 0)
                 {
-                    LoggerService.Instance.LogError($"Invalid Capture Dimensions after coordinate transform: {physWidth}x{physHeight}", "ScreenCaptureOverlay");
+                    _logger.LogError($"Invalid Capture Dimensions after coordinate transform: {physWidth}x{physHeight}", "ScreenCaptureOverlay");
                     CapturedImageBytes = null;
                     return;
                 }
@@ -247,7 +249,7 @@ namespace PromptMasterv6.Features.ExternalTools
                         GraphicsUnit.Pixel);
                 }
 
-                LoggerService.Instance.LogInfo(
+                _logger.LogInfo(
                     $"[PIN-DIAG] CaptureSelectedRegion: croppedBmp=[{croppedBmp.Width}x{croppedBmp.Height}]",
                     "ScreenCaptureOverlay");
 
@@ -255,7 +257,7 @@ namespace PromptMasterv6.Features.ExternalTools
                 croppedBmp.Save(stream, ImageFormat.Png);
                 CapturedImageBytes = stream.ToArray();
 
-                LoggerService.Instance.LogInfo(
+                _logger.LogInfo(
                     $"[PIN-DIAG] CaptureSelectedRegion: PNG bytes={CapturedImageBytes.Length}",
                     "ScreenCaptureOverlay");
             }

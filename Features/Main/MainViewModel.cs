@@ -43,6 +43,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly VariableService _variableService;
     private readonly ContentConverterService _contentConverterService;
     private readonly WebTargetService _webTargetService;
+    private readonly LoggerService _logger;
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
@@ -98,7 +99,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            Infrastructure.Services.LoggerService.Instance.LogException(ex, "变量解析失败", "SafeParseVariables");
+            _logger.LogException(ex, "变量解析失败", "SafeParseVariables");
         }
     }
 
@@ -128,7 +129,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         HotkeyService hotkeyService,
         VariableService variableService,
         ContentConverterService contentConverterService,
-        WebTargetService webTargetService)
+        WebTargetService webTargetService,
+        LoggerService logger)
     {
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
@@ -147,6 +149,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _variableService = variableService;
         _contentConverterService = contentConverterService;
         _webTargetService = webTargetService;
+        _logger = logger;
 
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
@@ -222,7 +225,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         try { _keyService.Start(); }
         catch (Exception ex)
         {
-            LoggerService.Instance.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.ctor");
+            _logger.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.ctor");
         }
 
         UpdateWindowHotkeys();
@@ -508,7 +511,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (System.Exception ex)
         {
-            Infrastructure.Services.LoggerService.Instance.LogException(ex, "SearchOnGitHub Failed", "MainViewModel");
+            _logger.LogException(ex, "SearchOnGitHub Failed", "MainViewModel");
             _dialogService.ShowAlert($"打开 GitHub 失败: {ex.Message}", "错误");
         }
     }
@@ -575,7 +578,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            LoggerService.Instance.LogException(ex, "Failed to perform local backup", "MainViewModel.PerformLocalBackup");
+            _logger.LogException(ex, "Failed to perform local backup", "MainViewModel.PerformLocalBackup");
         }
     }
 

@@ -23,6 +23,7 @@ namespace PromptMasterv6.Features.ExternalTools
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
         private readonly GoogleService _googleService;
+        private readonly LoggerService _logger;
 
         private List<ApiProfile>? _cachedOcrProfiles;
         private List<ApiProfile>? _cachedTranslateProfiles;
@@ -83,7 +84,8 @@ namespace PromptMasterv6.Features.ExternalTools
             GoogleService googleService,
             DialogService dialogService,
             WindowManager windowManager,
-            ClipboardService clipboardService)
+            ClipboardService clipboardService,
+            LoggerService logger)
         {
             _settingsService = settingsService;
             _aiService = aiService;
@@ -91,6 +93,7 @@ namespace PromptMasterv6.Features.ExternalTools
             _tencentService = tencentService;
             _googleService = googleService;
             _dialogService = dialogService;
+            _logger = logger;
             _windowManager = windowManager;
             _clipboardService = clipboardService;
             
@@ -98,7 +101,7 @@ namespace PromptMasterv6.Features.ExternalTools
             WeakReferenceMessenger.Default.Register<TriggerTranslateMessage>(this, async (_, _) => await TriggerTranslate());
             WeakReferenceMessenger.Default.Register<TriggerPinToScreenMessage>(this, async (_, _) => await TriggerPinToScreen());
             
-            LoggerService.Instance.LogInfo("ExternalToolsViewModel initialized", "ExternalToolsViewModel.ctor");
+            _logger.LogInfo("ExternalToolsViewModel initialized", "ExternalToolsViewModel.ctor");
             
             EnsureAiProfileExists();
         }

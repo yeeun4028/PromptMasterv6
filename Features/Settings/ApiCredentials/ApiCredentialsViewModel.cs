@@ -19,6 +19,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
         private readonly GoogleService _googleService;
+        private readonly LoggerService _logger;
 
         public AppConfig Config => _settingsService.Config;
 
@@ -78,13 +79,15 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             DialogService dialogService,
             BaiduService baiduService,
             TencentService tencentService,
-            GoogleService googleService)
+            GoogleService googleService,
+            LoggerService logger)
         {
             _settingsService = settingsService;
             _dialogService = dialogService;
             _baiduService = baiduService;
             _tencentService = tencentService;
             _googleService = googleService;
+            _logger = logger;
 
             LoadAllCredentials();
         }
@@ -137,7 +140,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             {
                 BaiduOcrTestStatus = $"测试出错: {ex.Message}";
                 BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                LoggerService.Instance.LogException(ex, "Failed to test Baidu OCR", "ApiCredentialsViewModel.TestBaiduOcr");
+                _logger.LogException(ex, "Failed to test Baidu OCR", "ApiCredentialsViewModel.TestBaiduOcr");
             }
         }
 
@@ -178,7 +181,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             {
                 BaiduTranslateTestStatus = $"测试出错: {ex.Message}";
                 BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                LoggerService.Instance.LogException(ex, "Failed to test Baidu Translate", "ApiCredentialsViewModel.TestBaiduTranslate");
+                _logger.LogException(ex, "Failed to test Baidu Translate", "ApiCredentialsViewModel.TestBaiduTranslate");
             }
         }
 
@@ -224,7 +227,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             {
                 TencentOcrTestStatus = $"测试出错: {ex.Message}";
                 TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                LoggerService.Instance.LogException(ex, "Failed to test Tencent OCR", "ApiCredentialsViewModel.TestTencentOcr");
+                _logger.LogException(ex, "Failed to test Tencent OCR", "ApiCredentialsViewModel.TestTencentOcr");
             }
         }
 
@@ -265,7 +268,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             {
                 TencentTranslateTestStatus = $"测试出错: {ex.Message}";
                 TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                LoggerService.Instance.LogException(ex, "Failed to test Tencent Translate", "ApiCredentialsViewModel.TestTencentTranslate");
+                _logger.LogException(ex, "Failed to test Tencent Translate", "ApiCredentialsViewModel.TestTencentTranslate");
             }
         }
 
@@ -333,7 +336,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             {
                 GoogleTestStatus = $"测试出错: {ex.Message}";
                 GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
-                LoggerService.Instance.LogException(ex, "Failed to test Google", "ApiCredentialsViewModel.TestGoogle");
+                _logger.LogException(ex, "Failed to test Google", "ApiCredentialsViewModel.TestGoogle");
             }
         }
 

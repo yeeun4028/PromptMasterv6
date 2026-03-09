@@ -1,5 +1,4 @@
 using MediatR;
-using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,32 +11,25 @@ namespace PromptMasterv6.Features.Launcher.Execution
     {
         public Task Handle(ExecuteLauncherItemCommand request, CancellationToken cancellationToken)
         {
-            try
+            if (request.Item?.Action != null)
             {
-                if (request.Item?.Action != null)
-                {
-                    request.Item.Action.Invoke();
-                    return Task.CompletedTask;
-                }
-
-                if (!string.IsNullOrEmpty(request.Item?.FilePath))
-                {
-                    var info = new ProcessStartInfo(request.Item.FilePath) 
-                    { 
-                        UseShellExecute = true 
-                    };
-                    
-                    if (request.RunAsAdmin)
-                    {
-                        info.Verb = "runas";
-                    }
-
-                    Process.Start(info);
-                }
+                request.Item.Action.Invoke();
+                return Task.CompletedTask;
             }
-            catch (Exception ex)
+
+            if (!string.IsNullOrEmpty(request.Item?.FilePath))
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "Failed to execute launcher item", "ExecuteLauncherItemHandler");
+                var info = new ProcessStartInfo(request.Item.FilePath) 
+                { 
+                    UseShellExecute = true 
+                };
+                
+                if (request.RunAsAdmin)
+                {
+                    info.Verb = "runas";
+                }
+
+                Process.Start(info);
             }
             
             return Task.CompletedTask;

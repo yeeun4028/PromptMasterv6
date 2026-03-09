@@ -26,6 +26,7 @@ namespace PromptMasterv6.Features.Workspace
         private readonly VariableService _variableService;
         private readonly ContentConverterService _contentConverterService;
         private readonly WebTargetService _webTargetService;
+        private readonly LoggerService _logger;
 
         [ObservableProperty] private ObservableCollection<PromptItem> files = new();
         [ObservableProperty] private PromptItem? selectedFile;
@@ -58,7 +59,8 @@ namespace PromptMasterv6.Features.Workspace
             ClipboardService clipboardService,
             VariableService variableService,
             ContentConverterService contentConverterService,
-            WebTargetService webTargetService)
+            WebTargetService webTargetService,
+            LoggerService logger)
         {
             _settingsService = settingsService;
             _dataService = dataService;
@@ -68,6 +70,7 @@ namespace PromptMasterv6.Features.Workspace
             _variableService = variableService;
             _contentConverterService = contentConverterService;
             _webTargetService = webTargetService;
+            _logger = logger;
 
             Pipeline = new MarkdownPipelineBuilder()
                 .UseSoftlineBreakAsHardlineBreak()
@@ -126,7 +129,7 @@ namespace PromptMasterv6.Features.Workspace
             }
             catch (Exception ex)
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "变量解析失败", "SafeParseVariables");
+                _logger.LogException(ex, "变量解析失败", "SafeParseVariables");
             }
         }
 
@@ -325,7 +328,7 @@ namespace PromptMasterv6.Features.Workspace
             }
             catch (System.Exception ex)
             {
-                Infrastructure.Services.LoggerService.Instance.LogException(ex, "SearchOnGitHub Failed", "WorkspaceViewModel");
+                _logger.LogException(ex, "SearchOnGitHub Failed", "WorkspaceViewModel");
                 _dialogService.ShowAlert($"打开 GitHub 失败: {ex.Message}", "错误");
             }
         }
