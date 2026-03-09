@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -11,10 +11,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Services
 {
-    public class TencentService
+    public class TencentService : ITencentService
     {
         private readonly HttpClient _httpClient;
 

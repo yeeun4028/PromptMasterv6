@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
-using PromptMasterv6.Infrastructure.Converters;
+using PromptMasterv6.Core.Converters;
 
 namespace PromptMasterv6.Core.Models
 {

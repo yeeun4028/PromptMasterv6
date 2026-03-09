@@ -1,3 +1,4 @@
+using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -5,13 +6,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PromptMasterv6.Features.Shared.Services;
-
-public interface IVariableService
-{
-    void ParseVariables(string content, ObservableCollection<VariableItem> variables);
-    string CompileContent(string? content, ObservableCollection<VariableItem> variables, string? additionalInput = null);
-    bool HasVariables(ObservableCollection<VariableItem> variables);
-}
 
 public class VariableService : IVariableService
 {
@@ -46,19 +40,14 @@ public class VariableService : IVariableService
     public string CompileContent(string? content, ObservableCollection<VariableItem> variables, string? additionalInput = null)
     {
         string finalContent = content ?? "";
-
-        if (variables.Count > 0)
+        foreach (var variable in variables)
         {
-            foreach (var variable in variables)
-            {
-                finalContent = finalContent.Replace("{{" + variable.Name + "}}", variable.Value ?? "");
-            }
+            finalContent = finalContent.Replace("{{" + variable.Name + "}}", variable.Value ?? "");
         }
 
-        if (!string.IsNullOrWhiteSpace(additionalInput))
+        if (!string.IsNullOrEmpty(additionalInput))
         {
-            if (!string.IsNullOrWhiteSpace(finalContent)) finalContent += "\n";
-            finalContent += additionalInput;
+            finalContent = finalContent.Replace("{{input}}", additionalInput);
         }
 
         return finalContent;

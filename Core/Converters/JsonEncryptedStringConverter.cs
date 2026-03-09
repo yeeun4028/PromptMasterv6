@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using PromptMasterv6.Infrastructure.Helpers;
+using PromptMasterv6.Core.Helpers;
 
-namespace PromptMasterv6.Infrastructure.Converters
+namespace PromptMasterv6.Core.Converters
 {
     public class JsonEncryptedStringConverter : JsonConverter<string>
     {

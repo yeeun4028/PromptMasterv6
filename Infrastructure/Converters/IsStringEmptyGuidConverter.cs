@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace PromptMasterv6.Converters
+namespace PromptMasterv6.Infrastructure.Converters
 {
     public class IsStringEmptyGuidConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return true; // Treat null as empty
+            if (value == null) return true;
             
             if (value is string str)
             {

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:dd="urn:gong-wpf-dragdrop"
              xmlns:models="clr-namespace:PromptMasterv6.Core.Models"
-             xmlns:converters="clr-namespace:PromptMasterv6.Converters"
+             xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              xmlns:utils="clr-namespace:PromptMasterv6.Utils"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900">
@@ -1504,12 +1504,12 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.BaiduOcrApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduOcrApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.BaiduOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <Grid>
@@ -1526,7 +1526,7 @@
                                                                Margin="0,0,10,0"/>
                                                     <Button Grid.Column="1"
                                                             Content="测试连接"
-                                                            Command="{Binding SettingsVM.TestBaiduOcrCommand}"
+                                                            Command="{Binding ApiCredentialsVM.TestBaiduOcrCommand}"
                                                             Style="{StaticResource TextLinkButtonStyle}"/>
                                                 </Grid>
                                             </StackPanel>
@@ -1539,7 +1539,7 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="App ID" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.BaiduTranslateAppId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduTranslateAppId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
@@ -1561,7 +1561,7 @@
                                                                Margin="0,0,10,0"/>
                                                     <Button Grid.Column="1"
                                                             Content="测试连接"
-                                                            Command="{Binding SettingsVM.TestBaiduTranslateCommand}"
+                                                            Command="{Binding ApiCredentialsVM.TestBaiduTranslateCommand}"
                                                             Style="{StaticResource TextLinkButtonStyle}"/>
                                                 </Grid>
                                             </StackPanel>
@@ -1577,12 +1577,12 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="Secret Id" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.TencentOcrSecretId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentOcrSecretId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.TencentOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <Grid>
@@ -1591,15 +1591,15 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0"
-                                                               Text="{Binding SettingsVM.TencentOcrTestStatus}"
-                                                               Foreground="{Binding SettingsVM.TencentOcrTestStatusColor}"
+                                                               Text="{Binding ApiCredentialsVM.TencentOcrTestStatus}"
+                                                               Foreground="{Binding ApiCredentialsVM.TencentOcrTestStatusColor}"
                                                                VerticalAlignment="Center"
                                                                FontWeight="SemiBold"
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,0,10,0"/>
                                                     <Button Grid.Column="1"
                                                             Content="测试连接"
-                                                            Command="{Binding SettingsVM.TestTencentOcrCommand}"
+                                                            Command="{Binding ApiCredentialsVM.TestTencentOcrCommand}"
                                                             Style="{StaticResource TextLinkButtonStyle}"/>
                                                 </Grid>
                                             </StackPanel>
@@ -1612,12 +1612,12 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="Secret Id" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.TencentTranslateSecretId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentTranslateSecretId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.TencentTranslateSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentTranslateSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <Grid>
@@ -1626,15 +1626,15 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0"
-                                                               Text="{Binding SettingsVM.TencentTranslateTestStatus}"
-                                                               Foreground="{Binding SettingsVM.TencentTranslateTestStatusColor}"
+                                                               Text="{Binding ApiCredentialsVM.TencentTranslateTestStatus}"
+                                                               Foreground="{Binding ApiCredentialsVM.TencentTranslateTestStatusColor}"
                                                                VerticalAlignment="Center"
                                                                FontWeight="SemiBold"
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,0,10,0"/>
                                                     <Button Grid.Column="1"
                                                             Content="测试连接"
-                                                            Command="{Binding SettingsVM.TestTencentCloudCommand}"
+                                                            Command="{Binding ApiCredentialsVM.TestTencentTranslateCommand}"
                                                             Style="{StaticResource TextLinkButtonStyle}"/>
                                                 </Grid>
                                             </StackPanel>
@@ -1650,12 +1650,12 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="App Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.YoudaoOcrAppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoOcrAppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="App Secret" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.YoudaoOcrAppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoOcrAppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -1667,12 +1667,12 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="App Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.YoudaoTranslateAppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoTranslateAppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="App Secret" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.YoudaoTranslateAppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoTranslateAppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <Grid>
@@ -1681,15 +1681,15 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0"
-                                                               Text="{Binding SettingsVM.YoudaoTestStatus}"
-                                                               Foreground="{Binding SettingsVM.YoudaoTestStatusColor}"
+                                                               Text="{Binding ApiCredentialsVM.YoudaoTestStatus}"
+                                                               Foreground="{Binding ApiCredentialsVM.YoudaoTestStatusColor}"
                                                                VerticalAlignment="Center"
                                                                FontWeight="SemiBold"
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,0,10,0"/>
                                                     <Button Grid.Column="1"
                                                             Content="测试连接"
-                                                            Command="{Binding SettingsVM.TestYoudaoCommand}"
+                                                            Command="{Binding ApiCredentialsVM.TestYoudaoCommand}"
                                                             Style="{StaticResource TextLinkButtonStyle}"
                                                             IsEnabled="False"/>
                                                 </Grid>
@@ -1708,13 +1708,13 @@
                                                 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="API Base URL (可选, 支持 Cloudflare 代理)" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.GoogleBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"
+                                                    <TextBox Text="{Binding ApiCredentialsVM.GoogleBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"
                                                              ToolTip="默认为 https://translation.googleapis.com。自定义地址示例：https://my-proxy.workers.dev"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,12">
                                                     <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding SettingsVM.GoogleApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+                                                    <TextBox Text="{Binding ApiCredentialsVM.GoogleApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
                                                 </StackPanel>
 
                                                 <Grid>
@@ -1723,15 +1723,15 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0"
-                                                               Text="{Binding SettingsVM.GoogleTestStatus}"
-                                                               Foreground="{Binding SettingsVM.GoogleTestStatusColor}"
+                                                               Text="{Binding ApiCredentialsVM.GoogleTestStatus}"
+                                                               Foreground="{Binding ApiCredentialsVM.GoogleTestStatusColor}"
                                                                VerticalAlignment="Center"
                                                                FontWeight="SemiBold"
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,0,10,0"/>
                                                     <Button Grid.Column="1"
                                                             Content="测试连接"
-                                                            Command="{Binding SettingsVM.TestGoogleCommand}"
+                                                            Command="{Binding ApiCredentialsVM.TestGoogleCommand}"
                                                             Style="{StaticResource TextLinkButtonStyle}"/>
                                                 </Grid>
                                             </StackPanel>

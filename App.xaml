@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PromptMasterv6"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
-             xmlns:rootConverters="clr-namespace:PromptMasterv6.Converters"
              xmlns:workspace="clr-namespace:PromptMasterv6.Features.Workspace">
     <Application.Resources>
         <ResourceDictionary>
@@ -28,12 +27,12 @@
                  =============================================== -->
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-            <local:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+            <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
             <converters:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
             <converters:StringToVisibilityConverter x:Key="StringToVis" Inverted="False"/>
             <converters:StringToVisibilityConverter x:Key="StringToVisInverted" Inverted="True"/>
 
-            <rootConverters:ApiKeyMaskConverter x:Key="ApiKeyMaskConverter"/>
+            <converters:ApiKeyMaskConverter x:Key="ApiKeyMaskConverter"/>
 
             <!-- Global: Remove default WPF focus dashed rectangle for ALL controls -->
             <!-- Override system-level FocusVisualStyle resource to affect everything -->

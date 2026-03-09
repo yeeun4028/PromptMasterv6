@@ -1,9 +1,5 @@
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Features.PinToScreen;
-using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Launcher;
-using PromptMasterv6.Features.ExternalTools;
-using PromptMasterv6.Features.Settings;
+using PromptMasterv6.Core.Models;
 using System.Windows;
 using Application = System.Windows.Application;
 using PromptMasterv6.Infrastructure.Helpers;
@@ -11,9 +7,10 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Media.Imaging;
-using PromptMasterv6.Core.Models;
 using System.IO;
 using System.Linq;
+using CommunityToolkit.Mvvm.Messaging;
+using PromptMasterv6.Features.Shared.Messages;
 
 using WpfClipboard = System.Windows.Clipboard;
 
@@ -21,7 +18,15 @@ namespace PromptMasterv6.Infrastructure.Services
 {
     public class WindowManager : IWindowManager
     {
+        private readonly IWindowRegistry _windowRegistry;
+        private readonly IServiceProvider _serviceProvider;
         private bool _isCapturing = false;
+
+        public WindowManager(IWindowRegistry windowRegistry, IServiceProvider serviceProvider)
+        {
+            _windowRegistry = windowRegistry;
+            _serviceProvider = serviceProvider;
+        }
 
         public async Task<byte[]?> ShowCaptureWindowAsync(Func<byte[], System.Windows.Rect, Task>? onCaptureProcessing = null)
         {
@@ -40,11 +45,15 @@ namespace PromptMasterv6.Infrastructure.Services
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    var popups = Application.Current.Windows.OfType<TranslationPopup>().Where(p => p.IsLoaded && !p.IsClosing).ToList();
-                    foreach (var p in popups) p.Close();
-                    if (popups.Count > 0) needsDelay = true;
+                    var translationPopups = Application.Current.Windows.OfType<Window>()
+                        .Where(w => w.GetType().Name == "TranslationPopup" && w.IsLoaded && w.IsVisible)
+                        .ToList();
+                    foreach (var p in translationPopups) p.Close();
+                    if (translationPopups.Count > 0) needsDelay = true;
 
-                    var launchBars = Application.Current.Windows.OfType<LaunchBarWindow>().Where(w => w.IsVisible).ToList();
+                    var launchBars = Application.Current.Windows.OfType<Window>()
+                        .Where(w => w.GetType().Name == "LaunchBarWindow" && w.IsVisible)
+                        .ToList();
                     foreach (var lb in launchBars) lb.Hide();
                     if (launchBars.Count > 0) needsDelay = true;
                 });
@@ -59,10 +68,10 @@ namespace PromptMasterv6.Infrastructure.Services
 
                 return await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    var mainWin = Application.Current.MainWindow as MainWindow;
-                    if (mainWin != null) mainWin.SuppressAutoActivation = true;
+                    var mainWin = Application.Current.MainWindow;
+                    if (mainWin != null) mainWin.GetType().GetProperty("SuppressAutoActivation")?.SetValue(mainWin, true);
 
-                    var capture = new ScreenCaptureOverlay(screenBmp, onCaptureProcessing);
+                    var capture = CreateScreenCaptureOverlay(screenBmp, onCaptureProcessing);
                     screenBmp = null;
 
                     byte[]? result = null;
@@ -71,20 +80,23 @@ namespace PromptMasterv6.Infrastructure.Services
                     {
                         if (capture.ShowDialog() == true)
                         {
-                            result = capture.CapturedImageBytes;
-                            capturedRect = capture.CapturedRect;
+                            result = capture.GetType().GetProperty("CapturedImageBytes")?.GetValue(capture) as byte[];
+                            var rectObj = capture.GetType().GetProperty("CapturedRect")?.GetValue(capture);
+                            if (rectObj is System.Windows.Rect r) capturedRect = r;
                         }
                     }
                     finally
                     {
-                        var launchBars = Application.Current.Windows.OfType<LaunchBarWindow>().ToList();
+                        var launchBars = Application.Current.Windows.OfType<Window>()
+                            .Where(w => w.GetType().Name == "LaunchBarWindow")
+                            .ToList();
                         foreach (var lb in launchBars) lb.Show();
 
                         if (mainWin != null)
                         {
                             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                             {
-                                mainWin.SuppressAutoActivation = false;
+                                mainWin.GetType().GetProperty("SuppressAutoActivation")?.SetValue(mainWin, false);
                             }), System.Windows.Threading.DispatcherPriority.Background);
                         }
                     }
@@ -97,14 +109,31 @@ namespace PromptMasterv6.Infrastructure.Services
             }
         }
 
+        private Window CreateScreenCaptureOverlay(Bitmap screenBmp, Func<byte[], System.Windows.Rect, Task>? onCaptureProcessing)
+        {
+            var overlayType = Type.GetType("PromptMasterv6.Features.ExternalTools.ScreenCaptureOverlay, PromptMasterv6");
+            if (overlayType == null)
+            {
+                throw new InvalidOperationException("ScreenCaptureOverlay type not found");
+            }
+            var overlay = Activator.CreateInstance(overlayType, screenBmp, onCaptureProcessing) as Window;
+            return overlay ?? throw new InvalidOperationException("Failed to create ScreenCaptureOverlay");
+        }
+
         public void ShowTranslationPopup(string text, System.Windows.Rect? placementTarget = null)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var popup = new TranslationPopup(text);
+                var popupType = Type.GetType("PromptMasterv6.Features.ExternalTools.TranslationPopup, PromptMasterv6");
+                if (popupType == null) return;
+                
+                var popup = Activator.CreateInstance(popupType, text) as Window;
+                if (popup == null) return;
+
                 if (placementTarget.HasValue)
                 {
-                    popup.SetPlacementTarget(placementTarget.Value);
+                    var setPlacementMethod = popupType.GetMethod("SetPlacementTarget");
+                    setPlacementMethod?.Invoke(popup, new object[] { placementTarget.Value });
                 }
                 popup.Show();
                 popup.Activate();
@@ -122,11 +151,6 @@ namespace PromptMasterv6.Infrastructure.Services
                         win.Close();
                         return;
                     }
-                    if (win is SettingsWindow settingsWin && viewModel is MainViewModel)
-                    {
-                        settingsWin.Close();
-                        return;
-                    }
                 }
             });
         }
@@ -135,15 +159,11 @@ namespace PromptMasterv6.Infrastructure.Services
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var app = Application.Current as App;
-                if (app == null) return;
-                
-                var vm = app.ServiceProvider.GetRequiredService<LauncherViewModel>();
-                var window = new LauncherWindow(vm);
-                
-                vm.RequestClose = () => window.Close();
-                
-                window.Show();
+                var window = _windowRegistry.CreateWindow("LauncherViewModel");
+                if (window != null)
+                {
+                    window.Show();
+                }
             });
         }
 
@@ -152,17 +172,12 @@ namespace PromptMasterv6.Infrastructure.Services
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var mainWindow = Application.Current.MainWindow;
-                var window = new SettingsWindow();
-                
-                var app = Application.Current as App;
-                var settingsVM = app?.ServiceProvider.GetRequiredService<SettingsViewModel>();
-                if (settingsVM != null)
+                var window = _windowRegistry.CreateWindow("SettingsViewModel");
+                if (window != null)
                 {
-                    window.SetDataContext(settingsVM);
+                    window.Owner = mainWindow;
+                    window.Show();
                 }
-                
-                window.Owner = mainWindow;
-                window.Show();
             });
         }
 
@@ -172,16 +187,16 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 foreach (Window win in Application.Current.Windows)
                 {
-                    if (win is SettingsWindow settingsWin)
+                    if (win.GetType().Name == "SettingsWindow")
                     {
-                        settingsWin.Close();
+                        win.Close();
                         return;
                     }
                 }
             });
         }
 
-        #region 贴图功能
+        #region PinToScreen
 
         public async Task ShowPinToScreenFromCaptureAsync(PinToScreenOptions? options = null)
         {
@@ -278,17 +293,29 @@ namespace PromptMasterv6.Infrastructure.Services
                 image.Freeze();
             }
 
-            PinToScreenWindow.PinToScreenAsync(image, options, location);
+            var pinToScreenWindowType = Type.GetType("PromptMasterv6.Features.PinToScreen.PinToScreenWindow, PromptMasterv6");
+            if (pinToScreenWindowType == null) return;
+
+            var method = pinToScreenWindowType.GetMethod("PinToScreenAsync", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            method?.Invoke(null, new object?[] { image, options, location });
         }
 
         public void CloseAllPinToScreenWindows()
         {
-            PinToScreenWindow.CloseAll();
+            var pinToScreenWindowType = Type.GetType("PromptMasterv6.Features.PinToScreen.PinToScreenWindow, PromptMasterv6");
+            if (pinToScreenWindowType == null) return;
+
+            var method = pinToScreenWindowType.GetMethod("CloseAll", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            method?.Invoke(null, null);
         }
 
         public int GetPinToScreenWindowCount()
         {
-            return PinToScreenWindow.OpenWindowCount;
+            var pinToScreenWindowType = Type.GetType("PromptMasterv6.Features.PinToScreen.PinToScreenWindow, PromptMasterv6");
+            if (pinToScreenWindowType == null) return 0;
+
+            var property = pinToScreenWindowType.GetProperty("OpenWindowCount", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            return property?.GetValue(null) as int? ?? 0;
         }
 
         private BitmapSource? LoadBitmapFromBytes(byte[] bytes)

@@ -5,14 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:md="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
              xmlns:hc="https://handyorg.github.io/handycontrol"
-             xmlns:converters="clr-namespace:PromptMasterv6.Converters"
+             xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              xmlns:utils="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="700">
 
     <UserControl.Resources>
         <utils:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
-        <converters:StringVisibilityConverter x:Key="StringVisibilityConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringVisibilityConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Geometry x:Key="IconCopyThin">M20 2H10c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H10V4h10v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z</Geometry>

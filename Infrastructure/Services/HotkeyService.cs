@@ -1,22 +1,13 @@
-﻿using NHotkey;
+using NHotkey;
 using NHotkey.Wpf;
 using System;
 using System.Windows.Input;
+using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    /// <summary>
-    /// 热键服务
-    /// 负责全局热键的注册和管理
-    /// </summary>
-    public class HotkeyService
+    public class HotkeyService : IHotkeyService
     {
-        /// <summary>
-        /// 注册或更新窗口热键
-        /// </summary>
-        /// <param name="name">热键名称</param>
-        /// <param name="hotkeyStr">热键字符串，如 "Ctrl+Shift+P"</param>
-        /// <param name="action">触发时执行的操作</param>
         public void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
         {
             try
@@ -46,9 +37,6 @@ namespace PromptMasterv6.Infrastructure.Services
             }
         }
 
-        /// <summary>
-        /// 移除热键
-        /// </summary>
         public void TryRemoveHotkey(string name)
         {
             try
@@ -61,10 +49,6 @@ namespace PromptMasterv6.Infrastructure.Services
             }
         }
 
-
-        /// <summary>
-        /// 模拟按下指定的热键组合 (例如 "Alt+Space")
-        /// </summary>
         public void SimulateHotkey(string hotkeyStr)
         {
             if (string.IsNullOrWhiteSpace(hotkeyStr)) return;
@@ -80,17 +64,14 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 byte vk = (byte)KeyInterop.VirtualKeyFromKey(key);
 
-                // 按下修饰键（使用 SendInput 替代废弃的 keybd_event）
                 if (modifiers.HasFlag(ModifierKeys.Control)) NativeMethods.SendKey(NativeMethods.VK_CONTROL);
                 if (modifiers.HasFlag(ModifierKeys.Alt))     NativeMethods.SendKey(NativeMethods.VK_MENU);
                 if (modifiers.HasFlag(ModifierKeys.Shift))   NativeMethods.SendKey(NativeMethods.VK_SHIFT);
                 if (modifiers.HasFlag(ModifierKeys.Windows)) NativeMethods.SendKey(NativeMethods.VK_LWIN);
 
-                // 按下并松开目标键
                 NativeMethods.SendKey(vk);
                 NativeMethods.SendKey(vk, keyUp: true);
 
-                // 松开修饰键（反向顺序）
                 if (modifiers.HasFlag(ModifierKeys.Windows)) NativeMethods.SendKey(NativeMethods.VK_LWIN,    keyUp: true);
                 if (modifiers.HasFlag(ModifierKeys.Shift))   NativeMethods.SendKey(NativeMethods.VK_SHIFT,   keyUp: true);
                 if (modifiers.HasFlag(ModifierKeys.Alt))     NativeMethods.SendKey(NativeMethods.VK_MENU,    keyUp: true);

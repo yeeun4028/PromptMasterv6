@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PromptMasterv6
+namespace PromptMasterv6.Infrastructure.Converters
 {
     public class InverseBooleanToVisibilityConverter : IValueConverter
     {

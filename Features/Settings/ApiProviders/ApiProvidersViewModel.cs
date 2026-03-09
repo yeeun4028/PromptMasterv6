@@ -14,9 +14,9 @@ namespace PromptMasterv6.Features.Settings.ApiProviders;
 public partial class ApiProvidersViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
-    private readonly BaiduService _baiduService;
-    private readonly TencentService _tencentService;
-    private readonly GoogleService _googleService;
+    private readonly IBaiduService _baiduService;
+    private readonly ITencentService _tencentService;
+    private readonly IGoogleService _googleService;
 
     public AppConfig Config => _settingsService.Config;
 
@@ -63,9 +63,9 @@ public partial class ApiProvidersViewModel : ObservableObject
 
     public ApiProvidersViewModel(
         ISettingsService settingsService,
-        BaiduService baiduService,
-        TencentService tencentService,
-        GoogleService googleService)
+        IBaiduService baiduService,
+        ITencentService tencentService,
+        IGoogleService googleService)
     {
         _settingsService = settingsService;
         _baiduService = baiduService;

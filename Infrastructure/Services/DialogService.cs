@@ -1,9 +1,7 @@
 using Microsoft.Win32;
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Features.ExternalTools.Dialogs;
 using System.Windows;
-using System.Windows.Forms; // Alias for FolderBrowserDialog if using WinForms one, or use Ookii.Dialogs if available. Using WinForms for now as it's built-in.
-// Note: FolderBrowserDialog is in System.Windows.Forms. Explicitly using full names to avoid conflict.
+using System.Windows.Forms;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
@@ -22,8 +20,6 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public void ShowToast(string message, string type = "Info")
         {
-            // 使用非 Global 的 Growl 调用，避免在 MainWindow 未激活时（如文件对话框打开期间）
-            // HandyControl 创建临时空白 Window
             System.Windows.Application.Current?.Dispatcher.BeginInvoke(new System.Action(() =>
             {
                 switch (type.ToLower())
@@ -102,8 +98,15 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public bool ShowOcrNotConfiguredDialog()
         {
-            var dialog = new OcrNotConfiguredDialog();
-            return dialog.ShowDialog() == true;
+            var dialogType = Type.GetType("PromptMasterv6.Features.ExternalTools.Dialogs.OcrNotConfiguredDialog, PromptMasterv6");
+            if (dialogType == null)
+            {
+                ShowAlert("OCR 未配置，请在设置中配置 OCR 服务。", "提示");
+                return false;
+            }
+            
+            var dialog = System.Activator.CreateInstance(dialogType) as Window;
+            return dialog?.ShowDialog() == true;
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace PromptMasterv6.Converters
+namespace PromptMasterv6.Infrastructure.Converters
 {
     public class HexToSolidColorBrushConverter : IValueConverter
     {
@@ -13,7 +13,7 @@ namespace PromptMasterv6.Converters
             {
                 try
                 {
-                    return new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
+                    return new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
                 }
                 catch
                 {
@@ -25,7 +25,7 @@ namespace PromptMasterv6.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is System.Windows.Media.SolidColorBrush brush)
+            if (value is SolidColorBrush brush)
             {
                 return brush.Color.ToString();
             }

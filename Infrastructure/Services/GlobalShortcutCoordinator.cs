@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Shared.Messages;
-using PromptMasterv6.Features.ExternalTools;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 
@@ -12,14 +11,14 @@ namespace PromptMasterv6.Infrastructure.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ISettingsService _settingsService;
         private readonly HotkeyService _hotkeyService;
-        private readonly GlobalKeyService _globalKeyService;
+        private readonly IGlobalKeyService _globalKeyService;
         private readonly IWindowManager _windowManager;
 
         public GlobalShortcutCoordinator(
             IServiceProvider serviceProvider,
             ISettingsService settingsService,
             HotkeyService hotkeyService,
-            GlobalKeyService globalKeyService,
+            IGlobalKeyService globalKeyService,
             IWindowManager windowManager)
         {
             _serviceProvider = serviceProvider;
@@ -58,8 +57,12 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var externalVM = _serviceProvider.GetRequiredService<ExternalToolsViewModel>();
-                    externalVM.TriggerOcrCommand.Execute(null);
+                    var externalVmType = Type.GetType("PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel, PromptMasterv6");
+                    if (externalVmType == null) return;
+                    
+                    var externalVM = _serviceProvider.GetService(externalVmType);
+                    var command = externalVM?.GetType().GetProperty("TriggerOcrCommand")?.GetValue(externalVM) as System.Windows.Input.ICommand;
+                    command?.Execute(null);
                 });
             });
 
@@ -67,8 +70,12 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var externalVM = _serviceProvider.GetRequiredService<ExternalToolsViewModel>();
-                    externalVM.TriggerTranslateCommand.Execute(null);
+                    var externalVmType = Type.GetType("PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel, PromptMasterv6");
+                    if (externalVmType == null) return;
+                    
+                    var externalVM = _serviceProvider.GetService(externalVmType);
+                    var command = externalVM?.GetType().GetProperty("TriggerTranslateCommand")?.GetValue(externalVM) as System.Windows.Input.ICommand;
+                    command?.Execute(null);
                 });
             });
 
@@ -76,8 +83,12 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var externalVM = _serviceProvider.GetRequiredService<ExternalToolsViewModel>();
-                    externalVM.TriggerPinToScreenCommand.Execute(null);
+                    var externalVmType = Type.GetType("PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel, PromptMasterv6");
+                    if (externalVmType == null) return;
+                    
+                    var externalVM = _serviceProvider.GetService(externalVmType);
+                    var command = externalVM?.GetType().GetProperty("TriggerPinToScreenCommand")?.GetValue(externalVM) as System.Windows.Input.ICommand;
+                    command?.Execute(null);
                 });
             });
 

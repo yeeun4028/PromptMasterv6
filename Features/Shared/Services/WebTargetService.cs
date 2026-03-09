@@ -3,16 +3,9 @@ using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Shared.Services;
-
-public interface IWebTargetService
-{
-    Task OpenWebTargetAsync(WebTarget target, string content, bool hideMainWindow = true);
-    Task SendToDefaultTargetAsync(string content, AppConfig config);
-}
 
 public class WebTargetService : IWebTargetService
 {
@@ -33,26 +26,18 @@ public class WebTargetService : IWebTargetService
             return;
         }
 
-        bool supportsUrlParam = target.UrlTemplate.Contains("{0}");
-        bool useClipboard = !supportsUrlParam || content.Length > 2000;
-        string url;
-
         try
         {
+            bool supportsUrlParam = target.UrlTemplate.Contains("{0}");
+            bool useClipboard = !supportsUrlParam || content.Length > 2000;
+            string url;
+
             if (useClipboard)
             {
                 _clipboardService.SetClipboard(content);
-
-                if (supportsUrlParam)
-                {
-                    try { url = string.Format(target.UrlTemplate, ""); }
-                    catch { url = target.UrlTemplate.Split('?')[0]; }
-                    _dialogService.ShowAlert("提示词过长，已复制到剪贴板，请手动粘贴。", "提示");
-                }
-                else
-                {
-                    url = target.UrlTemplate;
-                }
+                try { url = string.Format(target.UrlTemplate, ""); }
+                catch { url = target.UrlTemplate.Split('?')[0]; }
+                _dialogService.ShowAlert("提示词过长，已复制到剪贴板，请手动粘贴。", "提示");
             }
             else
             {

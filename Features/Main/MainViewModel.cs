@@ -37,7 +37,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IDataService _dataService;
     private readonly IDataService _localDataService;
-    private readonly GlobalKeyService _keyService;
+    private readonly IGlobalKeyService _keyService;
     private readonly IAiService _aiService;
     private readonly IDialogService _dialogService;
     private readonly ClipboardService _clipboardService;
@@ -125,7 +125,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         IAiService aiService,
         WebDavDataService dataService,
         FileDataService localDataService,
-        GlobalKeyService keyService,
+        IGlobalKeyService keyService,
         IDialogService dialogService,
         ClipboardService clipboardService,
         IWindowManager windowManager,

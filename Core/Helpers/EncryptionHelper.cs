@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PromptMasterv6.Infrastructure.Helpers
+namespace PromptMasterv6.Core.Helpers
 {
     public static class EncryptionHelper
     {
-        // 32-byte key derived from "PromptMaster_v5_Secret_Key"
         private static readonly byte[] Key = SHA256.HashData(Encoding.UTF8.GetBytes("PromptMaster_v5_Secret_Key"));
 
         public static string Protect(string plainText)
@@ -19,11 +18,10 @@ namespace PromptMasterv6.Infrastructure.Helpers
                 using (Aes aes = Aes.Create())
                 {
                     aes.Key = Key;
-                    aes.GenerateIV(); // Random IV for each encryption
+                    aes.GenerateIV();
 
                     using (MemoryStream ms = new MemoryStream())
                     {
-                        // Prepend IV to the stream
                         ms.Write(aes.IV, 0, aes.IV.Length);
 
                         using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
@@ -38,7 +36,6 @@ namespace PromptMasterv6.Infrastructure.Helpers
             }
             catch
             {
-                // Fallback to plain text if encryption fails
                 return plainText;
             }
         }
@@ -52,20 +49,17 @@ namespace PromptMasterv6.Infrastructure.Helpers
                 Span<byte> buffer = new Span<byte>(new byte[encryptedText.Length]);
                 if (!Convert.TryFromBase64String(encryptedText, buffer, out int bytesWritten))
                 {
-                    // Not valid Base64, assume plain text (migration scenario)
                     return encryptedText;
                 }
 
                 byte[] cipherBytes = Convert.FromBase64String(encryptedText);
 
-                // Minimum length check: IV (16 bytes) + at least 1 block or padding
                 if (cipherBytes.Length < 16) return encryptedText;
 
                 using (Aes aes = Aes.Create())
                 {
                     aes.Key = Key;
 
-                    // Extract IV
                     byte[] iv = new byte[16];
                     Array.Copy(cipherBytes, 0, iv, 0, 16);
                     aes.IV = iv;
@@ -82,7 +76,6 @@ namespace PromptMasterv6.Infrastructure.Helpers
             }
             catch
             {
-                // Decryption failed (wrong key, invalid data, or actually plain text)
                 return encryptedText;
             }
         }

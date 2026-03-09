@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PromptMasterv6.Converters
+namespace PromptMasterv6.Infrastructure.Converters
 {
-    public class StringVisibilityConverter : IValueConverter
+    public class CountToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string str && !string.IsNullOrEmpty(str))
+            if (value is int count)
             {
-                return Visibility.Visible;
+                return count > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             return Visibility.Collapsed;
         }

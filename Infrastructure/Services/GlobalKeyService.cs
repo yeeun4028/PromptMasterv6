@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Input;
+using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class GlobalKeyService : IDisposable
+    public class GlobalKeyService : IGlobalKeyService
     {
         private IKeyboardMouseEvents? _globalHook;
 

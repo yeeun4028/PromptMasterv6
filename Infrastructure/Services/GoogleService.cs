@@ -1,14 +1,15 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using PromptMasterv6.Core.Models;
+using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class GoogleService
+    public class GoogleService : IGoogleService
     {
         private readonly HttpClient _httpClient;
 

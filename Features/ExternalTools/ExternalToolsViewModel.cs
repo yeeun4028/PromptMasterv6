@@ -22,9 +22,9 @@ namespace PromptMasterv6.Features.ExternalTools
         private bool _isCapturing;
         private readonly ISettingsService _settingsService;
         private readonly IAiService _aiService;
-        private readonly BaiduService _baiduService;
-        private readonly TencentService _tencentService;
-        private readonly GoogleService _googleService;
+        private readonly IBaiduService _baiduService;
+        private readonly ITencentService _tencentService;
+        private readonly IGoogleService _googleService;
 
         private List<ApiProfile>? _cachedOcrProfiles;
         private List<ApiProfile>? _cachedTranslateProfiles;
@@ -79,9 +79,9 @@ namespace PromptMasterv6.Features.ExternalTools
         public ExternalToolsViewModel(
             ISettingsService settingsService,
             IAiService aiService,
-            BaiduService baiduService,
-            TencentService tencentService,
-            GoogleService googleService,
+            IBaiduService baiduService,
+            ITencentService tencentService,
+            IGoogleService googleService,
             IDialogService dialogService,
             IWindowManager windowManager,
             ClipboardService clipboardService)
