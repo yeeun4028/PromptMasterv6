@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace PromptMasterv6.Features.Main.WebTargets;
+namespace PromptMasterv6.Features.Shared.Models;
 
 public partial class WebTarget : ObservableObject
 {

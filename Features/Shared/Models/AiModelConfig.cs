@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace PromptMasterv6.Features.Settings.AiModels;
+namespace PromptMasterv6.Features.Shared.Models;
 
 public partial class AiModelConfig : ObservableObject
 {

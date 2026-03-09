@@ -462,7 +462,7 @@ namespace PromptMasterv6.Features.Main
                 return;
             }
 
-            if (ViewModel.IsDirty)
+            if (ViewModel.FileManagerVM.IsDirty)
             {
                 bool hasWebDav = !string.IsNullOrWhiteSpace(ViewModel.Config.WebDavUrl) 
                               && !string.IsNullOrWhiteSpace(ViewModel.Config.Password);
@@ -637,14 +637,14 @@ namespace PromptMasterv6.Features.Main
                 if (isCtrlEnter)
                 {
                     e.Handled = true;
-                    ViewModel.SendDefaultWebTargetCommand.Execute(null);
+                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
                     return;
                 }
                 
                 if (span < 500 && ViewModel.Config.EnableDoubleEnterSend)
                 {
                     e.Handled = true;
-                    ViewModel.SendDefaultWebTargetCommand.Execute(null);
+                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
                     _lastVarEnterTime = DateTime.MinValue;
                     return;
                 }
@@ -664,12 +664,12 @@ namespace PromptMasterv6.Features.Main
                 if (isCtrlEnter)
                 {
                     e.Handled = true;
-                    ViewModel.SendDefaultWebTargetCommand.Execute(null);
+                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
                 }
                 else if (span < 500 && ViewModel.Config.EnableDoubleEnterSend)
                 {
                     e.Handled = true;
-                    ViewModel.SendDefaultWebTargetCommand.Execute(null);
+                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
                     _lastAddEnterTime = DateTime.MinValue;
                 }
                 else
@@ -712,13 +712,13 @@ namespace PromptMasterv6.Features.Main
 
         private void CheckAndExitEditMode()
         {
-            if (ViewModel == null || !ViewModel.IsEditMode) return;
+            if (ViewModel == null || !ViewModel.ContentEditorVM.IsEditMode) return;
 
             var focused = Keyboard.FocusedElement as DependencyObject;
             if (IsBlock3Editor(focused)) return;
 
-            ViewModel.IsEditMode = false;
-            ViewModel.RequestSaveCommand.Execute(null);
+            ViewModel.ContentEditorVM.IsEditMode = false;
+            ViewModel.FileManagerVM.RequestSaveCommand.Execute(null);
         }
 
         private bool IsBlock3Editor(DependencyObject? obj)
@@ -747,7 +747,7 @@ namespace PromptMasterv6.Features.Main
                 if (e.Key == Key.Enter)
                 {
                     promptItem.IsRenaming = false;
-                    ViewModel?.RequestSaveCommand.Execute(null);
+                    ViewModel?.FileManagerVM.RequestSaveCommand.Execute(null);
                     e.Handled = true;
                 }
                 else if (e.Key == Key.Escape)
@@ -771,7 +771,7 @@ namespace PromptMasterv6.Features.Main
                     promptItem.Title = "未命名提示词";
                 }
                 promptItem.IsRenaming = false;
-                ViewModel?.RequestSaveCommand.Execute(null);
+                ViewModel?.FileManagerVM.RequestSaveCommand.Execute(null);
             }
         }
 

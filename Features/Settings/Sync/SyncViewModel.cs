@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Main;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.ExternalTools.Messages;
 using System;
@@ -19,8 +18,7 @@ public partial class SyncViewModel : ObservableObject
     private readonly DialogService _dialogService;
     private readonly WindowManager _windowManager;
     private readonly LoggerService _logger;
-
-    private MainViewModel? _mainViewModel;
+    private readonly ISessionState _sessionState;
 
     public AppConfig Config => _settingsService.Config;
     public LocalSettings LocalConfig => _settingsService.LocalConfig;
@@ -29,18 +27,14 @@ public partial class SyncViewModel : ObservableObject
     [ObservableProperty] private string? restoreStatus;
     [ObservableProperty] private System.Windows.Media.Brush restoreStatusColor = System.Windows.Media.Brushes.Green;
 
-    public void SetMainViewModel(MainViewModel mainViewModel)
-    {
-        _mainViewModel = mainViewModel;
-    }
-
     public SyncViewModel(
         SettingsService settingsService,
         IDataService dataService,
         FileDataService localDataService,
         DialogService dialogService,
         WindowManager windowManager,
-        LoggerService logger)
+        LoggerService logger,
+        ISessionState sessionState)
     {
         _settingsService = settingsService;
         _dataService = dataService;
@@ -48,6 +42,7 @@ public partial class SyncViewModel : ObservableObject
         _dialogService = dialogService;
         _windowManager = windowManager;
         _logger = logger;
+        _sessionState = sessionState;
     }
 
     [RelayCommand]
@@ -66,12 +61,6 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ManualRestore()
     {
-        if (_mainViewModel == null)
-        {
-            _dialogService.ShowAlert("系统初始化未完成", "错误");
-            return;
-        }
-
         _settingsService.SaveConfig();
 
         IsRestoreConfirmVisible = false;
@@ -106,52 +95,43 @@ public partial class SyncViewModel : ObservableObject
 
     private void ApplyRestoredData(AppData data)
     {
-        if (_mainViewModel == null) return;
-
-        _mainViewModel.Files.Clear();
-        _mainViewModel.Folders.Clear();
+        _sessionState.Files.Clear();
+        _sessionState.Folders.Clear();
 
         if (data.Folders != null && data.Folders.Count > 0)
         {
             foreach (var folder in data.Folders)
             {
-                _mainViewModel.Folders.Add(folder);
+                _sessionState.Folders.Add(folder);
             }
-            _mainViewModel.SelectedFolder = _mainViewModel.Folders.FirstOrDefault();
+            _sessionState.SelectedFolder = _sessionState.Folders.FirstOrDefault();
         }
         else
         {
             var defaultFolder = new FolderItem { Name = "默认" };
-            _mainViewModel.Folders.Add(defaultFolder);
-            _mainViewModel.SelectedFolder = defaultFolder;
+            _sessionState.Folders.Add(defaultFolder);
+            _sessionState.SelectedFolder = defaultFolder;
         }
 
         if (data.Files != null && data.Files.Count > 0)
         {
             foreach (var file in data.Files)
             {
-                if (string.IsNullOrWhiteSpace(file.FolderId) && _mainViewModel.SelectedFolder != null)
+                if (string.IsNullOrWhiteSpace(file.FolderId) && _sessionState.SelectedFolder != null)
                 {
-                    file.FolderId = _mainViewModel.SelectedFolder.Id;
+                    file.FolderId = _sessionState.SelectedFolder.Id;
                 }
-                _mainViewModel.Files.Add(file);
+                _sessionState.Files.Add(file);
             }
         }
 
-        _mainViewModel.UpdateFilesViewFilter();
-        _mainViewModel.FilesView?.Refresh();
+        _sessionState.RefreshFilesView();
         WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
     }
 
     [RelayCommand]
     private async Task ManualLocalRestore()
     {
-        if (_mainViewModel == null)
-        {
-            _dialogService.ShowAlert("系统初始化未完成", "错误");
-            return;
-        }
-
         var service = _localDataService as FileDataService;
         if (service == null) return;
 
@@ -203,18 +183,12 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ManualBackup()
     {
-        if (_mainViewModel == null)
-        {
-            _dialogService.ShowAlert("系统初始化未完成", "错误");
-            return;
-        }
-
         try
         {
-            await _dataService.SaveAsync(_mainViewModel.Folders, _mainViewModel.Files);
-            _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now;
-            _mainViewModel.IsDirty = false;
-            _mainViewModel.IsEditMode = false;
+            await _dataService.SaveAsync(_sessionState.Folders, _sessionState.Files);
+            _sessionState.LocalConfig.LastCloudSyncTime = DateTime.Now;
+            _sessionState.IsDirty = false;
+            _sessionState.IsEditMode = false;
             _settingsService.SaveLocalConfig();
             _logger.LogInfo("Manual cloud backup successful", "SyncViewModel.ManualBackup");
             _dialogService.ShowToast("云端备份成功！", "Success");

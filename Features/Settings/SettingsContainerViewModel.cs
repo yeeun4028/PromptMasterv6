@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Features.Main;
 using PromptMasterv6.Features.Settings.AiModels;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
@@ -15,7 +14,6 @@ public partial class SettingsContainerViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
     private readonly WindowManager _windowManager;
-    private readonly MainViewModel _mainViewModel;
 
     [ObservableProperty] private bool isSettingsOpen;
     [ObservableProperty] private int selectedSettingsTab;
@@ -30,20 +28,16 @@ public partial class SettingsContainerViewModel : ObservableObject
     public SettingsContainerViewModel(
         SettingsService settingsService,
         WindowManager windowManager,
-        MainViewModel mainViewModel,
         AiModelsViewModel aiModelsVM,
         SyncViewModel syncVM,
         LauncherSettingsViewModel launcherSettingsVM)
     {
         _settingsService = settingsService;
         _windowManager = windowManager;
-        _mainViewModel = mainViewModel;
 
         AiModelsVM = aiModelsVM;
         SyncVM = syncVM;
         LauncherSettingsVM = launcherSettingsVM;
-
-        SyncVM.SetMainViewModel(_mainViewModel);
     }
 
     [RelayCommand]
@@ -67,7 +61,6 @@ public partial class SettingsContainerViewModel : ObservableObject
         IsSettingsOpen = false;
         _settingsService.SaveConfig();
         _settingsService.SaveLocalConfig();
-        _windowManager.CloseWindow(_mainViewModel);
     }
 
     public void UpdateWindowHotkeys()

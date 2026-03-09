@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PromptMasterv6.Core.Converters;
 
-namespace PromptMasterv6.Features.Settings.ApiCredentials;
+namespace PromptMasterv6.Features.Shared.Models;
 
 public enum ApiProvider
 {

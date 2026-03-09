@@ -15,7 +15,9 @@ namespace PromptMasterv6.Features.Launcher.Queries
     {
         private readonly LoggerService _logger;
         
-        private static List<LauncherItem> _cache = new();
+        private List<LauncherItem> _cache = new();
+        private readonly object _cacheLock = new();
+        private int _cacheHash;
 
         public GetLauncherItemsHandler(LoggerService logger)
         {
@@ -24,56 +26,74 @@ namespace PromptMasterv6.Features.Launcher.Queries
 
         public async Task<List<LauncherItem>> Handle(GetLauncherItemsQuery request, CancellationToken cancellationToken)
         {
-            if (!request.ForceRefresh && _cache != null && _cache.Any())
+            var pathsList = request.Paths?.ToList() ?? new List<string>();
+            var currentHash = ComputePathsHash(pathsList);
+
+            if (!request.ForceRefresh)
             {
-                return _cache.ToList();
+                lock (_cacheLock)
+                {
+                    if (_cache.Count > 0 && _cacheHash == currentHash)
+                    {
+                        return _cache.ToList();
+                    }
+                }
             }
 
-            return await Task.Run(() =>
-            {
-                var items = new List<LauncherItem>();
-                if (request.Paths == null) return items;
+            var items = new List<LauncherItem>();
 
-                foreach (var path in request.Paths)
+            await Task.Run(() =>
+            {
+                foreach (var path in pathsList)
                 {
                     if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) continue;
 
                     try
                     {
                         var files = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
-                            .Where(f => IsLaunchable(f));
+                            .Where(IsLaunchable);
 
                         foreach (var file in files)
                         {
-                            var baseName = Path.GetFileNameWithoutExtension(file);
-                            var dirPath = Path.GetDirectoryName(file);
-                            var customPngPath = Path.Combine(dirPath!, $"{baseName}.png");
-                            
                             var item = new LauncherItem
                             {
-                                Title = baseName,
                                 FilePath = file,
-                                IconPath = file,
+                                Title = Path.GetFileNameWithoutExtension(file),
                                 Category = GetCategoryFromExtension(file)
                             };
-                            
-                            if (File.Exists(customPngPath))
-                            {
-                                item.CustomImagePath = customPngPath;
-                            }
-                            
+
                             items.Add(item);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogException(ex, $"Failed to scan directory during launcher discovery: {path}", "GetLauncherItemsHandler.Handle");
+                        _logger.LogException(ex, $"Failed to Scan Directory during launcher discovery: {path}", "GetLauncherItemsHandler.Handle");
                     }
                 }
-
-                _cache = items.ToList();
-                return items;
             }, cancellationToken);
+
+            lock (_cacheLock)
+            {
+                _cache = items.ToList();
+                _cacheHash = currentHash;
+            }
+
+            return items;
+        }
+
+        private int ComputePathsHash(List<string> paths)
+        {
+            if (paths == null || paths.Count == 0) return 0;
+            
+            unchecked
+            {
+                int hash = 17;
+                foreach (var path in paths.OrderBy(p => p))
+                {
+                    hash = hash * 31 + (path?.GetHashCode() ?? 0);
+                }
+                return hash;
+            }
         }
 
         private bool IsLaunchable(string filePath)

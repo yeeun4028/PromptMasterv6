@@ -2,9 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using PromptMasterv6.Core.Converters;
-using PromptMasterv6.Features.Settings.ApiCredentials;
-using PromptMasterv6.Features.Settings.AiModels;
-using PromptMasterv6.Features.Main.WebTargets;
 
 namespace PromptMasterv6.Features.Shared.Models;
 
@@ -204,4 +201,25 @@ public partial class AppConfig : ObservableObject
         if (!double.IsFinite(MainWindowHeight) || MainWindowHeight <= 0) MainWindowHeight = 600;
         if (!double.IsFinite(LaunchBarWidth)   || LaunchBarWidth   <= 0) LaunchBarWidth   = 6.0;
     }
+}
+
+public partial class AiTranslationConfig : ObservableObject
+{
+    [ObservableProperty]
+    private string id = Guid.NewGuid().ToString();
+
+    [ObservableProperty]
+    private string promptId = "";
+
+    [ObservableProperty]
+    private string promptTitle = "";
+
+    [ObservableProperty]
+    private string baseUrl = "";
+
+    [ObservableProperty]
+    private string apiKey = "";
+
+    [ObservableProperty]
+    private string model = "";
 }

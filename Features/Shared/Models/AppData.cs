@@ -1,6 +1,3 @@
-using PromptMasterv6.Features.Settings.ApiCredentials;
-using PromptMasterv6.Features.Settings.AiModels;
-
 namespace PromptMasterv6.Features.Shared.Models;
 
 public class AppData

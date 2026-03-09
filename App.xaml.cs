@@ -179,6 +179,8 @@ namespace PromptMasterv6
                 cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
             });
 
+            services.AddSingleton<ISessionState, SessionState>();
+
             services.AddTransient<ZhipuCompatHandler>();
 
             services.AddHttpClient("AiServiceClient")
@@ -196,6 +198,8 @@ namespace PromptMasterv6
             services.AddTransient<ExternalToolsViewModel>();
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
+            services.AddTransient<FileManagerViewModel>();
+            services.AddTransient<ContentEditorViewModel>();
             services.AddTransient<MainViewModel>();
 
             services.AddSingleton<MainWindow>();

@@ -9,11 +9,9 @@ using PromptMasterv6.Features.Settings.AiModels;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
-using PromptMasterv6.Features.Main;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using System.IO;
 
 namespace PromptMasterv6.Features.Settings
 {
@@ -27,14 +25,7 @@ namespace PromptMasterv6.Features.Settings
         private readonly HotkeyService _hotkeyService;
         private readonly WindowManager _windowManager;
         private readonly LoggerService _logger;
-
-        private MainViewModel? _mainViewModel;
-
-        public void SetMainViewModel(MainViewModel mainViewModel)
-        {
-            _mainViewModel = mainViewModel;
-            SyncVM.SetMainViewModel(mainViewModel);
-        }
+        private readonly ISessionState _sessionState;
 
         #region Child ViewModels
 
@@ -106,7 +97,8 @@ namespace PromptMasterv6.Features.Settings
             AiModelsViewModel aiModelsVM,
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,
-            ApiCredentialsViewModel apiCredentialsVM)
+            ApiCredentialsViewModel apiCredentialsVM,
+            ISessionState sessionState)
         {
             _settingsService = settingsService;
             _aiService = aiService;
@@ -116,6 +108,7 @@ namespace PromptMasterv6.Features.Settings
             _hotkeyService = hotkeyService;
             _windowManager = windowManager;
             _logger = logger;
+            _sessionState = sessionState;
 
             AiModelsVM = aiModelsVM;
             SyncVM = syncVM;
@@ -139,15 +132,29 @@ namespace PromptMasterv6.Features.Settings
             IsSettingsOpen = false;
             _settingsService.SaveConfig();
             _settingsService.SaveLocalConfig();
-            if (_mainViewModel != null)
-            {
-                _windowManager.CloseWindow(_mainViewModel);
-            }
         }
 
         #endregion
 
         #region Commands - AI Model Management
+
+        [RelayCommand]
+        private async Task TestAiConnection(AiModelConfig? model)
+        {
+            if (model == null)
+            {
+                 var (success, msg, timeMs) = await _aiService.TestConnectionAsync(Config);
+                 TestStatus = success && timeMs.HasValue ? $"{msg} ({timeMs}ms)" : msg;
+                 TestStatusColor = success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+                 return;
+            }
+
+            TestStatus = "测试中...";
+            TestStatusColor = System.Windows.Media.Brushes.Gray;
+            var (success2, message, responseTimeMs) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
+            TestStatus = success2 && responseTimeMs.HasValue ? $"{message} ({responseTimeMs}ms)" : message;
+            TestStatusColor = success2 ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+        }
 
         [RelayCommand]
         private async Task TestAiTranslationConnection()
@@ -195,24 +202,6 @@ namespace PromptMasterv6.Features.Settings
                 TranslationTestStatus = $"全部失败。\n错误示例: {lastError}";
                 TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
             }
-        }
-
-        [RelayCommand]
-        private async Task TestAiConnection(AiModelConfig? model)
-        {
-            if (model == null)
-            {
-                 var (success, msg, timeMs) = await _aiService.TestConnectionAsync(Config);
-                 TestStatus = success && timeMs.HasValue ? $"{msg} ({timeMs}ms)" : msg;
-                 TestStatusColor = success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
-                 return;
-            }
-
-            TestStatus = "测试中...";
-            TestStatusColor = System.Windows.Media.Brushes.Gray;
-            var (success2, message, responseTimeMs) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
-            TestStatus = success2 && responseTimeMs.HasValue ? $"{message} ({responseTimeMs}ms)" : message;
-            TestStatusColor = success2 ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         [RelayCommand]
@@ -352,12 +341,6 @@ namespace PromptMasterv6.Features.Settings
         [RelayCommand]
         private async Task ManualRestore()
         {
-            if (_mainViewModel == null)
-            {
-                _dialogService.ShowAlert("系统初始化未完成", "错误");
-                return;
-            }
-
             _settingsService.SaveConfig();
 
             IsRestoreConfirmVisible = false;
@@ -392,52 +375,43 @@ namespace PromptMasterv6.Features.Settings
 
         private void ApplyRestoredData(AppData data)
         {
-            if (_mainViewModel == null) return;
-
-            _mainViewModel.Files.Clear();
-            _mainViewModel.Folders.Clear();
+            _sessionState.Files.Clear();
+            _sessionState.Folders.Clear();
 
             if (data.Folders != null && data.Folders.Count > 0)
             {
                 foreach (var folder in data.Folders)
                 {
-                    _mainViewModel.Folders.Add(folder);
+                    _sessionState.Folders.Add(folder);
                 }
-                _mainViewModel.SelectedFolder = _mainViewModel.Folders.FirstOrDefault();
+                _sessionState.SelectedFolder = _sessionState.Folders.FirstOrDefault();
             }
             else
             {
                 var defaultFolder = new FolderItem { Name = "默认" };
-                _mainViewModel.Folders.Add(defaultFolder);
-                _mainViewModel.SelectedFolder = defaultFolder;
+                _sessionState.Folders.Add(defaultFolder);
+                _sessionState.SelectedFolder = defaultFolder;
             }
 
             if (data.Files != null && data.Files.Count > 0)
             {
                 foreach (var file in data.Files)
                 {
-                    if (string.IsNullOrWhiteSpace(file.FolderId) && _mainViewModel.SelectedFolder != null)
+                    if (string.IsNullOrWhiteSpace(file.FolderId) && _sessionState.SelectedFolder != null)
                     {
-                        file.FolderId = _mainViewModel.SelectedFolder.Id;
+                        file.FolderId = _sessionState.SelectedFolder.Id;
                     }
-                    _mainViewModel.Files.Add(file);
+                    _sessionState.Files.Add(file);
                 }
             }
 
-            _mainViewModel.UpdateFilesViewFilter();
-            _mainViewModel.FilesView?.Refresh();
+            _sessionState.RefreshFilesView();
             WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
         }
 
         [RelayCommand]
         private async Task ManualLocalRestore()
         {
-            if (_mainViewModel == null)
-            {
-                _dialogService.ShowAlert("系统初始化未完成", "错误");
-                return;
-            }
-
             var service = _localDataService as FileDataService;
             if (service == null) return;
 
@@ -452,7 +426,7 @@ namespace PromptMasterv6.Features.Settings
 
             var dialog = new BackupSelectionDialog(backups);
             
-            var activeWindow = System.Windows.Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
+            var activeWindow = System.Windows.Application.Current.Windows.OfType<System.Windows.Window>().FirstOrDefault(w => w.IsActive);
             dialog.Owner = activeWindow ?? System.Windows.Application.Current.MainWindow;
 
             if (dialog.ShowDialog() != true || dialog.SelectedBackup == null) return;
@@ -489,20 +463,15 @@ namespace PromptMasterv6.Features.Settings
         [RelayCommand]
         private async Task ManualBackup()
         {
-            if (_mainViewModel == null)
-            {
-                _dialogService.ShowAlert("系统初始化未完成", "错误");
-                return;
-            }
-
             try
             {
-                await _dataService.SaveAsync(_mainViewModel.Folders, _mainViewModel.Files);
-                _mainViewModel.LocalConfig.LastCloudSyncTime = DateTime.Now;
-                _mainViewModel.IsDirty = false;
-                _mainViewModel.IsEditMode = false;
+                await _dataService.SaveAsync(_sessionState.Folders, _sessionState.Files);
+                _sessionState.LocalConfig.LastCloudSyncTime = DateTime.Now;
+                _sessionState.IsDirty = false;
+                _sessionState.IsEditMode = false;
                 _settingsService.SaveLocalConfig();
                 _logger.LogInfo("Manual cloud backup successful", "SettingsViewModel.ManualBackup");
+                _dialogService.ShowToast("云端备份成功！", "Success");
             }
             catch (Exception ex)
             {
