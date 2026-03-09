@@ -4,8 +4,7 @@
              xmlns:local="clr-namespace:PromptMasterv6"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              xmlns:rootConverters="clr-namespace:PromptMasterv6.Converters"
-             xmlns:vm="clr-namespace:PromptMasterv6.ViewModels"
-             xmlns:views="clr-namespace:PromptMasterv6.Views">
+             xmlns:workspace="clr-namespace:PromptMasterv6.Features.Workspace">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -20,8 +19,8 @@
             <!-- ===============================================
                  隐式数据模板：ViewModel 到 View 的自动映射
                  =============================================== -->
-            <DataTemplate DataType="{x:Type vm:WorkspaceViewModel}">
-                <views:WorkspaceView />
+            <DataTemplate DataType="{x:Type workspace:WorkspaceViewModel}">
+                <workspace:WorkspaceView />
             </DataTemplate>
 
             <!-- ===============================================

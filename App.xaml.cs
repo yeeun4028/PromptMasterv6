@@ -6,7 +6,17 @@ using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.ViewModels;
+using PromptMasterv6.Features.Launcher;
+using PromptMasterv6.Features.ExternalTools;
+using PromptMasterv6.Features.Settings;
+using PromptMasterv6.Features.Settings.AiModels;
+using PromptMasterv6.Features.Settings.ApiProviders;
+using PromptMasterv6.Features.Settings.Sync;
+using PromptMasterv6.Features.Settings.Launcher;
+using PromptMasterv6.Features.Sidebar;
+using PromptMasterv6.Features.Workspace;
+using PromptMasterv6.Features.Main;
+using PromptMasterv6.Features.Shared.Services;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using TextBox = System.Windows.Controls.TextBox;
@@ -109,7 +119,7 @@ namespace PromptMasterv6
                 MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 MainWindow.Show();
                 
-                var launchBarWindow = _serviceProvider.GetRequiredService<PromptMasterv6.Views.LaunchBarWindow>();
+                var launchBarWindow = _serviceProvider.GetRequiredService<LaunchBarWindow>();
                 launchBarWindow.Show();
 
                 var shortcutCoordinator = _serviceProvider.GetRequiredService<GlobalShortcutCoordinator>();
@@ -208,7 +218,7 @@ namespace PromptMasterv6
             services.AddTransient<MainViewModel>();
 
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<PromptMasterv6.Views.LaunchBarWindow>();
+            services.AddSingleton<LaunchBarWindow>();
 
             services.AddSingleton<ILauncherService, LauncherService>();
             services.AddSingleton<IAiService, AiService>();
@@ -227,6 +237,16 @@ namespace PromptMasterv6
             services.AddHttpClient<TencentService>();
 
             services.AddSingleton<ClipboardService>();
+
+            services.AddSingleton<IVariableService, VariableService>();
+            services.AddSingleton<IContentConverterService, ContentConverterService>();
+            services.AddSingleton<IWebTargetService, WebTargetService>();
+
+            services.AddSingleton<AiModelsViewModel>();
+            services.AddSingleton<ApiProvidersViewModel>();
+            services.AddSingleton<SyncViewModel>();
+            services.AddSingleton<LauncherSettingsViewModel>();
+            services.AddSingleton<SettingsContainerViewModel>();
 
         }
 

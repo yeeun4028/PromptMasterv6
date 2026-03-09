@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,7 +12,7 @@ namespace PromptMasterv6.Infrastructure.Services
     /// <summary>
     /// 剪贴板操作服务
     /// </summary>
-    public class ClipboardService
+    public class ClipboardService : Core.Interfaces.IClipboardService
     {
         // 虚拟键码现统一由 NativeMethods 提供
 

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.ViewModels;
-using PromptMasterv6.ViewModels.Messages;
+using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Features.ExternalTools;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 

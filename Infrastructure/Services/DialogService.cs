@@ -1,5 +1,6 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Features.ExternalTools.Dialogs;
 using System.Windows;
 using System.Windows.Forms; // Alias for FolderBrowserDialog if using WinForms one, or use Ookii.Dialogs if available. Using WinForms for now as it's built-in.
 // Note: FolderBrowserDialog is in System.Windows.Forms. Explicitly using full names to avoid conflict.
@@ -101,7 +102,7 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public bool ShowOcrNotConfiguredDialog()
         {
-            var dialog = new PromptMasterv6.Views.Dialogs.OcrNotConfiguredDialog();
+            var dialog = new OcrNotConfiguredDialog();
             return dialog.ShowDialog() == true;
         }
     }

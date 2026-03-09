@@ -1,6 +1,9 @@
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Views;
-using PromptMasterv6.ViewModels;
+using PromptMasterv6.Features.PinToScreen;
+using PromptMasterv6.Features.Main;
+using PromptMasterv6.Features.Launcher;
+using PromptMasterv6.Features.ExternalTools;
+using PromptMasterv6.Features.Settings;
 using System.Windows;
 using Application = System.Windows.Application;
 using PromptMasterv6.Infrastructure.Helpers;
@@ -119,7 +122,7 @@ namespace PromptMasterv6.Infrastructure.Services
                         win.Close();
                         return;
                     }
-                    if (win is Views.SettingsWindow settingsWin && viewModel is ViewModels.MainViewModel)
+                    if (win is SettingsWindow settingsWin && viewModel is MainViewModel)
                     {
                         settingsWin.Close();
                         return;
