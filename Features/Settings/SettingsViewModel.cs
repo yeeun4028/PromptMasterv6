@@ -9,9 +9,11 @@ using PromptMasterv6.Features.Settings.AiModels;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
+using PromptMasterv6.Core.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PromptMasterv6.Features.Settings
 {
@@ -88,7 +90,7 @@ namespace PromptMasterv6.Features.Settings
         public SettingsViewModel(
             SettingsService settingsService,
             AiService aiService,
-            IDataService dataService,
+            [FromKeyedServices("cloud")] IDataService dataService,
             FileDataService localDataService,
             DialogService dialogService,
             HotkeyService hotkeyService,

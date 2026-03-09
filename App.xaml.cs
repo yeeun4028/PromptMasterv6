@@ -99,6 +99,9 @@ namespace PromptMasterv6
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
 
+                var windowRegistry = _serviceProvider.GetRequiredService<WindowRegistry>();
+                RegisterWindows(windowRegistry);
+
                 LoggerService.Instance.LogInfo("Creating main window...", "App.OnStartup");
                 MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 MainWindow.Show();
@@ -209,8 +212,11 @@ namespace PromptMasterv6
             services.AddTransient<SettingsWindow>();
 
             services.AddSingleton<AiService>();
-            services.AddKeyedSingleton<IDataService, WebDavDataService>("cloud");
-            services.AddKeyedSingleton<IDataService, FileDataService>("local");
+            services.AddSingleton<FileDataService>();
+            services.AddSingleton<WebDavDataService>();
+            services.AddKeyedSingleton<IDataService>("cloud", (sp, key) => sp.GetRequiredService<WebDavDataService>());
+            services.AddKeyedSingleton<IDataService>("local", (sp, key) => sp.GetRequiredService<FileDataService>());
+            services.AddSingleton<IDataService>(sp => sp.GetRequiredService<WebDavDataService>());
             services.AddSingleton<GlobalKeyService>();
             services.AddSingleton<HotkeyService>();
             services.AddSingleton<GlobalShortcutCoordinator>();
