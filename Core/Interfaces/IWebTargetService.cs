@@ -1,5 +1,4 @@
-using PromptMasterv6.Core.Models;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace PromptMasterv6.Core.Interfaces
 {

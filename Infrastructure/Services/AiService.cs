@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,6 @@ using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
-using PromptMasterv6.Core.Models;
 using PromptMasterv6.Core.Interfaces;
 using System.Net;
 using System.Net.Http;

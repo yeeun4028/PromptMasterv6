@@ -1,10 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Core.Models;
 
 namespace PromptMasterv6.Infrastructure.Services
 {

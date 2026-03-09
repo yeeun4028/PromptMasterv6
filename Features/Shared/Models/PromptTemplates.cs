@@ -1,4 +1,4 @@
-namespace PromptMasterv6.Core.Models;
+namespace PromptMasterv6.Features.Shared.Models;
 
 public class PromptTemplates
 {

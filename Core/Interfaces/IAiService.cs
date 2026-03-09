@@ -1,5 +1,4 @@
-﻿using PromptMasterv6.Core.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using OpenAI.ObjectModels.RequestModels;
 

@@ -1,5 +1,4 @@
-using PromptMasterv6.Core.Models;
-
+﻿
 namespace PromptMasterv6.Features.Main.Messages;
 
 public class RequestPromptFileMessage : CommunityToolkit.Mvvm.Messaging.Messages.RequestMessage<PromptFileResponseMessage>

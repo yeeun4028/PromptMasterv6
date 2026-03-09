@@ -1,9 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Core.Messages;

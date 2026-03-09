@@ -1,5 +1,4 @@
-using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Core.Models;
+﻿using PromptMasterv6.Core.Interfaces;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;

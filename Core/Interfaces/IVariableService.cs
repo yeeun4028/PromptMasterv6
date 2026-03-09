@@ -1,5 +1,4 @@
-using PromptMasterv6.Core.Models;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace PromptMasterv6.Core.Interfaces
 {

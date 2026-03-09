@@ -1,5 +1,4 @@
-﻿using PromptMasterv6.Core.Models;
-
+﻿
 namespace PromptMasterv6.Core.Interfaces
 {
     /// <summary>

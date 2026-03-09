@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -7,7 +7,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.IO;
 using System.Linq;
-using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 
 using Button = System.Windows.Controls.Button;

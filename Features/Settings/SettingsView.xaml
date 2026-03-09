@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:dd="urn:gong-wpf-dragdrop"
-             xmlns:models="clr-namespace:PromptMasterv6.Core.Models"
+             xmlns:models="clr-namespace:PromptMasterv6.Features.Shared.Models"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900">

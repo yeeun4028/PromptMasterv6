@@ -1,7 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using PromptMasterv6.Core.Models;
 
 namespace PromptMasterv6.Features.Settings
 {

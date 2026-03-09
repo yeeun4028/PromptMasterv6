@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,7 +10,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Text;
 using System.Windows.Media;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using System.Windows.Forms;
 using System.Windows.Threading;

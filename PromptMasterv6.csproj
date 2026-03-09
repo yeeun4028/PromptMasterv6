@@ -33,6 +33,7 @@
     <PackageReference Include="gong-wpf-dragdrop" />
     <PackageReference Include="HandyControl" />
     <PackageReference Include="Markdig.Wpf" />
+    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
     <PackageReference Include="MouseKeyHook" />
 

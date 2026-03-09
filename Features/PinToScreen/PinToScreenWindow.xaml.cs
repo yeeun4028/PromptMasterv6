@@ -1,10 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.PinToScreen

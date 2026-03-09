@@ -1,7 +1,6 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using PromptMasterv6.Core.Models;
 
 namespace PromptMasterv6.Core.Interfaces
 {

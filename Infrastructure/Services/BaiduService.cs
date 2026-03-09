@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using PromptMasterv6.Core.Models;
 using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
