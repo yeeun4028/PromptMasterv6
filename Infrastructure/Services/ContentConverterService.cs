@@ -1,10 +1,9 @@
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Infrastructure.Services;
 using ReverseMarkdown;
 using System;
 using System.Text.RegularExpressions;
 
-namespace PromptMasterv6.Features.Shared.Services;
+namespace PromptMasterv6.Infrastructure.Services;
 
 public class ContentConverterService : IContentConverterService
 {

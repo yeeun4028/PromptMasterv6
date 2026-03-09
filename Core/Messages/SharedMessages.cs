@@ -1,4 +1,4 @@
-namespace PromptMasterv6.Features.Shared.Messages;
+namespace PromptMasterv6.Core.Messages;
 
 public sealed record RequestSaveMessage;
 public sealed record RequestBackupMessage;

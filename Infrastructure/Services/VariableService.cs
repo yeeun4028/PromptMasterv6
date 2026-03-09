@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace PromptMasterv6.Features.Shared.Services;
+namespace PromptMasterv6.Infrastructure.Services;
 
 public class VariableService : IVariableService
 {

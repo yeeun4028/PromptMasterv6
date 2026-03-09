@@ -1,27 +1,23 @@
-using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
-    public class GlobalShortcutCoordinator
+    public class GlobalShortcutCoordinator : IGlobalShortcutCoordinator
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly ISettingsService _settingsService;
-        private readonly HotkeyService _hotkeyService;
+        private readonly IHotkeyService _hotkeyService;
         private readonly IGlobalKeyService _globalKeyService;
         private readonly IWindowManager _windowManager;
 
         public GlobalShortcutCoordinator(
-            IServiceProvider serviceProvider,
             ISettingsService settingsService,
-            HotkeyService hotkeyService,
+            IHotkeyService hotkeyService,
             IGlobalKeyService globalKeyService,
             IWindowManager windowManager)
         {
-            _serviceProvider = serviceProvider;
             _settingsService = settingsService;
             _hotkeyService = hotkeyService;
             _globalKeyService = globalKeyService;
@@ -29,7 +25,7 @@ namespace PromptMasterv6.Infrastructure.Services
 
             WeakReferenceMessenger.Default.Register<ReloadDataMessage>(this, (_, __) =>
             {
-            System.Windows.Application.Current.Dispatcher.Invoke(RegisterAllHotkeys);
+                System.Windows.Application.Current.Dispatcher.Invoke(RegisterAllHotkeys);
             });
 
             _globalKeyService.OnLauncherTriggered += (s, e) =>
@@ -57,12 +53,7 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var externalVmType = Type.GetType("PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel, PromptMasterv6");
-                    if (externalVmType == null) return;
-                    
-                    var externalVM = _serviceProvider.GetService(externalVmType);
-                    var command = externalVM?.GetType().GetProperty("TriggerOcrCommand")?.GetValue(externalVM) as System.Windows.Input.ICommand;
-                    command?.Execute(null);
+                    WeakReferenceMessenger.Default.Send(new TriggerOcrMessage());
                 });
             });
 
@@ -70,12 +61,7 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var externalVmType = Type.GetType("PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel, PromptMasterv6");
-                    if (externalVmType == null) return;
-                    
-                    var externalVM = _serviceProvider.GetService(externalVmType);
-                    var command = externalVM?.GetType().GetProperty("TriggerTranslateCommand")?.GetValue(externalVM) as System.Windows.Input.ICommand;
-                    command?.Execute(null);
+                    WeakReferenceMessenger.Default.Send(new TriggerTranslateMessage());
                 });
             });
 
@@ -83,12 +69,7 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var externalVmType = Type.GetType("PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel, PromptMasterv6");
-                    if (externalVmType == null) return;
-                    
-                    var externalVM = _serviceProvider.GetService(externalVmType);
-                    var command = externalVM?.GetType().GetProperty("TriggerPinToScreenCommand")?.GetValue(externalVM) as System.Windows.Input.ICommand;
-                    command?.Execute(null);
+                    WeakReferenceMessenger.Default.Send(new TriggerPinToScreenMessage());
                 });
             });
 

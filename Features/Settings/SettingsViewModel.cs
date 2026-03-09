@@ -3,11 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.ExternalTools.Messages;
 using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Settings.AiModels;
-using PromptMasterv6.Features.Settings.ApiProviders;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
@@ -40,7 +40,6 @@ namespace PromptMasterv6.Features.Settings
         #region Child ViewModels
 
         public AiModelsViewModel AiModelsVM { get; }
-        public ApiProvidersViewModel ApiProvidersVM { get; }
         public SyncViewModel SyncVM { get; }
         public LauncherSettingsViewModel LauncherSettingsVM { get; }
         public ApiCredentialsViewModel ApiCredentialsVM { get; }
@@ -105,7 +104,6 @@ namespace PromptMasterv6.Features.Settings
             IHotkeyService hotkeyService,
             IWindowManager windowManager,
             AiModelsViewModel aiModelsVM,
-            ApiProvidersViewModel apiProvidersVM,
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,
             ApiCredentialsViewModel apiCredentialsVM)
@@ -119,7 +117,6 @@ namespace PromptMasterv6.Features.Settings
             _windowManager = windowManager;
 
             AiModelsVM = aiModelsVM;
-            ApiProvidersVM = apiProvidersVM;
             SyncVM = syncVM;
             LauncherSettingsVM = launcherSettingsVM;
             ApiCredentialsVM = apiCredentialsVM;

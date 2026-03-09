@@ -13,7 +13,7 @@ using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
 
-namespace PromptMasterv6.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     public class TencentService : ITencentService
     {

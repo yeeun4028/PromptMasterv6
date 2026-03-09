@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.Messages;
 using System;
 using System.Collections.ObjectModel;
@@ -75,7 +75,8 @@ namespace PromptMasterv6.Features.ExternalTools
 
         private readonly IDialogService _dialogService;
         private readonly IWindowManager _windowManager;
-
+        private readonly IClipboardService _clipboardService;
+        
         public ExternalToolsViewModel(
             ISettingsService settingsService,
             IAiService aiService,
@@ -84,7 +85,7 @@ namespace PromptMasterv6.Features.ExternalTools
             IGoogleService googleService,
             IDialogService dialogService,
             IWindowManager windowManager,
-            ClipboardService clipboardService)
+            IClipboardService clipboardService)
         {
             _settingsService = settingsService;
             _aiService = aiService;
@@ -93,15 +94,16 @@ namespace PromptMasterv6.Features.ExternalTools
             _googleService = googleService;
             _dialogService = dialogService;
             _windowManager = windowManager;
-            _windowManager = windowManager;
             _clipboardService = clipboardService;
+            
+            WeakReferenceMessenger.Default.Register<TriggerOcrMessage>(this, async (_, _) => await TriggerOcr());
+            WeakReferenceMessenger.Default.Register<TriggerTranslateMessage>(this, async (_, _) => await TriggerTranslate());
+            WeakReferenceMessenger.Default.Register<TriggerPinToScreenMessage>(this, async (_, _) => await TriggerPinToScreen());
             
             LoggerService.Instance.LogInfo("ExternalToolsViewModel initialized", "ExternalToolsViewModel.ctor");
             
             EnsureAiProfileExists();
         }
-
-        private readonly ClipboardService _clipboardService;
         
         private void EnsureAiProfileExists()
         {
@@ -336,16 +338,7 @@ namespace PromptMasterv6.Features.ExternalTools
         {
             try
             {
-                string ocrSystemPrompt = @"# 角色任务
-您是一个纯粹的 OCR 在线引擎。您的唯一任务是识别图像中的所有可见文字。
-
-# 输出要求
-1. 直接输出识别到的文本内容。
-2. 保持原始文本的换行格式。
-3. 不要包含任何开场白（如""图片的文字是...""）。
-4. 不要包含任何解释、注脚或Markdown代码块标记。
-5. 如果图片中没有文字，输出""无文字""。";
-
+                string ocrSystemPrompt = _settingsService.Config.OcrPromptTemplate ?? PromptTemplates.Default.OcrSystemPrompt;
                 return await _aiService.ChatWithImageAsync(imageBytes, model.ApiKey, model.BaseUrl, model.ModelName, ocrSystemPrompt).ConfigureAwait(false);
             }
             catch (Exception)
@@ -421,31 +414,7 @@ namespace PromptMasterv6.Features.ExternalTools
 
         private string GetAiTranslationSystemPrompt()
         {
-            string systemPrompt = @"# 身份与目的
-
-您是一位专业的翻译专家，接收的单词、短语、句子或文档作为输入，并尽最大努力将其尽可能准确、完美地翻译成**简体中文**。
-
-请退后一步，深呼吸，并逐步思考如何实现以下步骤所定义的最佳结果。您有很大的自由度来确保这项工作顺利进行。您是有史以来最优秀的翻译专家。
-
-## 输出部分
-
-- 输入的原始格式必须保持不变。
-
-- 您将逐句翻译，并保持原句的语气。
-
-- 您不会操纵措辞以改变原意。
-
-## 输出说明
-
-- 不要输出警告或注释——只输出请求的翻译。
-
-- 尽可能准确地翻译文档，保持原始文本的 1:1 副本，并将其翻译为**简体中文**。
-
-- 不要更改格式，必须保持原样。
-
-## 输入
-
-输入：";
+            string systemPrompt = _settingsService.Config.TranslationPromptTemplate ?? PromptTemplates.Default.TranslationSystemPrompt;
             
             if (!string.IsNullOrWhiteSpace(Config.AiTranslationPromptId))
             {
@@ -514,33 +483,7 @@ namespace PromptMasterv6.Features.ExternalTools
 
         private string GetAiVisionTranslationSystemPrompt()
         {
-            return @"# Role
-您是有史以来最优秀的**图片内容翻译专家**。您具备顶尖的OCR（光学字符识别）能力和语言转换能力。
-
-# Mission
-您的核心任务是识别图片中的所有文字，并将其精准、完美地翻译成**简体中文**。
-
-# Guidelines & Constraints (必须严格执行)
-
-## 1. 识别与处理逻辑
-- **无文字/无法识别**：如果图片中没有文字或文字模糊无法辨认，直接输出""无文字""。
-- **原文即中文**：如果识别到的文字已经是中文，请直接输出原文，不做修改。
-- **翻译标准**：
-    - 逐句翻译，严格保持原句的语气和意图。
-    - 追求信达雅，确保翻译结果为1:1的精准副本，不随意操纵措辞改变原意。
-
-## 2. 输出格式规范
-- **纯净输出**：**只输出翻译后的内容**。绝对禁止输出任何""图片中的文字是...""、""这里是翻译...""等废话，也不要包含任何警告或注释。
-- **结构保持**：必须严格保持原文的段落结构、换行和格式，不要合并段落或改变排版。
-
-# Workflow
-1. 深呼吸，仔细扫描图片的每一个角落。
-2. 提取文本。
-3. 如果需要翻译，在心中反复推敲最准确的**简体中文**表达。
-4. 按照上述""输出格式规范""直接输出最终结果。
-
-## 输入
-[在此处上传图片]";
+            return _settingsService.Config.VisionTranslationPromptTemplate ?? PromptTemplates.Default.VisionTranslationSystemPrompt;
         }
 
         [RelayCommand]

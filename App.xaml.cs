@@ -13,11 +13,10 @@ using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Settings;
 using PromptMasterv6.Features.Settings.AiModels;
-using PromptMasterv6.Features.Settings.ApiProviders;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
-using PromptMasterv6.Features.Shared.Services;
+using PromptMasterv6.Features.Shared.Dialogs;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using TextBox = System.Windows.Controls.TextBox;
@@ -105,7 +104,7 @@ namespace PromptMasterv6
                 var launchBarWindow = _serviceProvider.GetRequiredService<LaunchBarWindow>();
                 launchBarWindow.Show();
 
-                var shortcutCoordinator = _serviceProvider.GetRequiredService<GlobalShortcutCoordinator>();
+                var shortcutCoordinator = _serviceProvider.GetRequiredService<IGlobalShortcutCoordinator>();
                 shortcutCoordinator.Start();
 
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
@@ -197,12 +196,11 @@ namespace PromptMasterv6
 
             services.AddSingleton<ILauncherService, LauncherService>();
             services.AddSingleton<IAiService, AiService>();
-            services.AddSingleton<IDataService>(sp => sp.GetRequiredService<WebDavDataService>());
-            services.AddSingleton<WebDavDataService>();
-            services.AddSingleton<FileDataService>();
+            services.AddKeyedSingleton<IDataService, WebDavDataService>("cloud");
+            services.AddKeyedSingleton<IDataService, FileDataService>("local");
             services.AddSingleton<IGlobalKeyService, GlobalKeyService>();
             services.AddSingleton<IHotkeyService, HotkeyService>();
-            services.AddSingleton<GlobalShortcutCoordinator>();
+            services.AddSingleton<IGlobalShortcutCoordinator, GlobalShortcutCoordinator>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IWindowManager, WindowManager>();
 
@@ -210,14 +208,13 @@ namespace PromptMasterv6
             services.AddHttpClient<IGoogleService, GoogleService>();
             services.AddHttpClient<ITencentService, TencentService>();
 
-            services.AddSingleton<ClipboardService>();
+            services.AddSingleton<IClipboardService, ClipboardService>();
 
             services.AddSingleton<IVariableService, VariableService>();
             services.AddSingleton<IContentConverterService, ContentConverterService>();
             services.AddSingleton<IWebTargetService, WebTargetService>();
 
             services.AddSingleton<AiModelsViewModel>();
-            services.AddSingleton<ApiProvidersViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
             services.AddSingleton<SettingsContainerViewModel>();
@@ -229,6 +226,16 @@ namespace PromptMasterv6
         {
             registry.RegisterWindow<LauncherViewModel, LauncherWindow>();
             registry.RegisterWindow<SettingsViewModel, SettingsWindow>();
+
+            registry.RegisterScreenCaptureOverlay((screenBitmap, onCaptureProcessing) =>
+                new Features.ExternalTools.ScreenCaptureOverlay(screenBitmap, onCaptureProcessing));
+
+            registry.RegisterTranslationPopup(text =>
+                new Features.ExternalTools.TranslationPopup(text));
+
+            registry.RegisterPinToScreen(Features.PinToScreen.PinToScreenWindow.PinToScreenAsync);
+            registry.RegisterPinToScreenCloseAll(Features.PinToScreen.PinToScreenWindow.CloseAll);
+            registry.RegisterPinToScreenCountProvider(() => Features.PinToScreen.PinToScreenWindow.OpenWindowCount);
         }
 
         private static void OnTextBoxContextMenuOpening(object sender, ContextMenuEventArgs e)

@@ -1,7 +1,7 @@
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Launcher.Messages;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Diagnostics;

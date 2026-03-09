@@ -5,7 +5,7 @@ using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.ExternalTools.Messages;
 using System;
 using System.Linq;

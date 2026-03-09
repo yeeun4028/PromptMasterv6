@@ -14,7 +14,7 @@ using System.Windows.Media;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Core.Interfaces;
 
-namespace PromptMasterv6.Services
+namespace PromptMasterv6.Infrastructure.Services
 {
     public class BaiduService : IBaiduService
     {

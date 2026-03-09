@@ -6,8 +6,7 @@ using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.Messages;
-using PromptMasterv6.Features.Shared.Messages;
-using PromptMasterv6.Features.Shared.Services;
+using PromptMasterv6.Core.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -23,7 +22,7 @@ namespace PromptMasterv6.Features.Workspace
         private readonly IDataService _dataService;
         private readonly IAiService _aiService;
         private readonly IDialogService _dialogService;
-        private readonly ClipboardService _clipboardService;
+        private readonly IClipboardService _clipboardService;
         private readonly ISettingsService _settingsService;
         private readonly IVariableService _variableService;
         private readonly IContentConverterService _contentConverterService;
@@ -57,7 +56,7 @@ namespace PromptMasterv6.Features.Workspace
             IDataService dataService,
             IAiService aiService,
             IDialogService dialogService,
-            ClipboardService clipboardService,
+            IClipboardService clipboardService,
             IVariableService variableService,
             IContentConverterService contentConverterService,
             IWebTargetService webTargetService)

@@ -175,6 +175,16 @@ namespace PromptMasterv6.Core.Models
         [ObservableProperty]
         private bool enableDoubleEnterSend = true;
 
+        // ★★★ Prompt 模板配置 ★★★
+        [ObservableProperty]
+        private string? ocrPromptTemplate;
+
+        [ObservableProperty]
+        private string? translationPromptTemplate;
+
+        [ObservableProperty]
+        private string? visionTranslationPromptTemplate;
+
         public string RemoteFolderName { get; set; } = "PromptMasterv6";
 
         [ObservableProperty]

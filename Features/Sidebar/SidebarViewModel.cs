@@ -5,7 +5,7 @@ using GongSolutions.Wpf.DragDrop;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Features.Main.Messages;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;

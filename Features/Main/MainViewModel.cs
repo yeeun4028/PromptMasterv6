@@ -2,18 +2,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
-using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
-using PromptMasterv6.Infrastructure.Helpers;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Infrastructure.Helpers;
 using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Launcher.Messages;
-using PromptMasterv6.Features.Shared.Messages;
-using PromptMasterv6.Features.Launcher;
+using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Sidebar;
 using PromptMasterv6.Features.Workspace;
-using PromptMasterv6.Features.Shared.Services;
 
 using System;
 using System.Collections.ObjectModel;
@@ -40,10 +37,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IGlobalKeyService _keyService;
     private readonly IAiService _aiService;
     private readonly IDialogService _dialogService;
-    private readonly ClipboardService _clipboardService;
+    private readonly IClipboardService _clipboardService;
     private readonly IWindowManager _windowManager;
     private readonly ISettingsService _settingsService;
-    private readonly HotkeyService _hotkeyService;
+    private readonly IHotkeyService _hotkeyService;
     private readonly IVariableService _variableService;
     private readonly IContentConverterService _contentConverterService;
     private readonly IWebTargetService _webTargetService;
@@ -123,12 +120,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(
         ISettingsService settingsService,
         IAiService aiService,
-        WebDavDataService dataService,
-        FileDataService localDataService,
+        [Microsoft.Extensions.DependencyInjection.FromKeyedServices("cloud")] IDataService dataService,
+        [Microsoft.Extensions.DependencyInjection.FromKeyedServices("local")] IDataService localDataService,
         IGlobalKeyService keyService,
         IDialogService dialogService,
-        ClipboardService clipboardService,
+        IClipboardService clipboardService,
         IWindowManager windowManager,
+        IHotkeyService hotkeyService,
         IVariableService variableService,
         IContentConverterService contentConverterService,
         IWebTargetService webTargetService)
@@ -146,7 +144,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _clipboardService = clipboardService;
         _settingsService = settingsService;
         _windowManager = windowManager;
-        _hotkeyService = new HotkeyService();
+        _hotkeyService = hotkeyService;
         _variableService = variableService;
         _contentConverterService = contentConverterService;
         _webTargetService = webTargetService;
@@ -647,32 +645,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void HandleLauncherTriggered()
     {
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-            foreach (Window w in Application.Current.Windows)
-            {
-                if (w is LauncherWindow)
-                {
-                    w.Activate();
-                    w.Focus();
-                    return;
-                }
-            }
-
-            if (Application.Current is not App app) return;
-            
-            var vm = app.ServiceProvider.GetRequiredService<LauncherViewModel>();
-            var win = new LauncherWindow
-            {
-                DataContext = vm
-            };
-
-            vm.RequestClose = () => win.Close();
-
-            win.Show();
-            win.Activate();
-            win.Focus();
-        });
+        _windowManager.ShowLauncherWindow();
     }
 
     private bool _disposed = false;

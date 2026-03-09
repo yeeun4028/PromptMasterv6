@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Models;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
@@ -11,6 +13,12 @@ namespace PromptMasterv6.Infrastructure.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly Dictionary<Type, Type> _windowMappings = new();
         private readonly Dictionary<string, Type> _windowMappingsByName = new();
+
+        private Func<System.Drawing.Bitmap, Func<byte[], Rect, Task>?, Window>? _screenCaptureOverlayFactory;
+        private Func<string, Window>? _translationPopupFactory;
+        private Action<BitmapSource, PinToScreenOptions?, System.Windows.Point?>? _pinToScreenAction;
+        private Action? _closeAllPinToScreenAction;
+        private Func<int>? _pinToScreenCountProvider;
 
         public WindowRegistry(IServiceProvider serviceProvider)
         {
@@ -78,6 +86,60 @@ namespace PromptMasterv6.Infrastructure.Services
                 }
             }
             return window;
+        }
+
+        public void RegisterScreenCaptureOverlay(Func<System.Drawing.Bitmap, Func<byte[], Rect, Task>?, Window> factory)
+        {
+            _screenCaptureOverlayFactory = factory;
+        }
+
+        public Window CreateScreenCaptureOverlay(System.Drawing.Bitmap screenBitmap, Func<byte[], Rect, Task>? onCaptureProcessing)
+        {
+            if (_screenCaptureOverlayFactory == null)
+                throw new InvalidOperationException("ScreenCaptureOverlay factory not registered");
+            return _screenCaptureOverlayFactory(screenBitmap, onCaptureProcessing);
+        }
+
+        public void RegisterTranslationPopup(Func<string, Window> factory)
+        {
+            _translationPopupFactory = factory;
+        }
+
+        public Window CreateTranslationPopup(string text)
+        {
+            if (_translationPopupFactory == null)
+                throw new InvalidOperationException("TranslationPopup factory not registered");
+            return _translationPopupFactory(text);
+        }
+
+        public void RegisterPinToScreen(Action<BitmapSource, PinToScreenOptions?, System.Windows.Point?> pinAction)
+        {
+            _pinToScreenAction = pinAction;
+        }
+
+        public void PinToScreen(BitmapSource image, PinToScreenOptions? options, System.Windows.Point? location)
+        {
+            _pinToScreenAction?.Invoke(image, options, location);
+        }
+
+        public void RegisterPinToScreenCloseAll(Action closeAllAction)
+        {
+            _closeAllPinToScreenAction = closeAllAction;
+        }
+
+        public void CloseAllPinToScreenWindows()
+        {
+            _closeAllPinToScreenAction?.Invoke();
+        }
+
+        public void RegisterPinToScreenCountProvider(Func<int> countProvider)
+        {
+            _pinToScreenCountProvider = countProvider;
+        }
+
+        public int GetPinToScreenWindowCount()
+        {
+            return _pinToScreenCountProvider?.Invoke() ?? 0;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Dialogs;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Text;

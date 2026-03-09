@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Infrastructure.Helpers
 {

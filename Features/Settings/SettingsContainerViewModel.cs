@@ -5,11 +5,10 @@ using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Models;
 using PromptMasterv6.Features.Main;
 using PromptMasterv6.Features.Settings.AiModels;
-using PromptMasterv6.Features.Settings.ApiProviders;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Core.Messages;
 using System;
 
 namespace PromptMasterv6.Features.Settings;
@@ -24,7 +23,6 @@ public partial class SettingsContainerViewModel : ObservableObject
     [ObservableProperty] private int selectedSettingsTab;
 
     public AiModelsViewModel AiModelsVM { get; }
-    public ApiProvidersViewModel ApiProvidersVM { get; }
     public SyncViewModel SyncVM { get; }
     public LauncherSettingsViewModel LauncherSettingsVM { get; }
 
@@ -36,7 +34,6 @@ public partial class SettingsContainerViewModel : ObservableObject
         IWindowManager windowManager,
         MainViewModel mainViewModel,
         AiModelsViewModel aiModelsVM,
-        ApiProvidersViewModel apiProvidersVM,
         SyncViewModel syncVM,
         LauncherSettingsViewModel launcherSettingsVM)
     {
@@ -45,7 +42,6 @@ public partial class SettingsContainerViewModel : ObservableObject
         _mainViewModel = mainViewModel;
 
         AiModelsVM = aiModelsVM;
-        ApiProvidersVM = apiProvidersVM;
         SyncVM = syncVM;
         LauncherSettingsVM = launcherSettingsVM;
 

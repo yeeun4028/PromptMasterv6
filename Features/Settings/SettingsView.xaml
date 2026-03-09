@@ -6,7 +6,6 @@
              xmlns:dd="urn:gong-wpf-dragdrop"
              xmlns:models="clr-namespace:PromptMasterv6.Core.Models"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
-             xmlns:utils="clr-namespace:PromptMasterv6.Utils"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>
@@ -18,7 +17,7 @@
         <SolidColorBrush x:Key="DangerHoverBrush" Color="#C62828"/>
 
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <utils:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
         <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
 
         <!-- Icons -->
