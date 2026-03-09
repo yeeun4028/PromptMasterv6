@@ -1,13 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
+using PromptMasterv6.Features.Launcher.Orders;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Launcher
@@ -17,6 +17,7 @@ namespace PromptMasterv6.Features.Launcher
         private readonly LauncherService _launcherService;
         private readonly SettingsService _settingsService;
         private readonly WindowManager _windowManager;
+        private readonly IMediator _mediator;
         private Dictionary<string, int> _itemOrders = new();
 
         [ObservableProperty]
@@ -45,36 +46,26 @@ namespace PromptMasterv6.Features.Launcher
         public LauncherViewModel(
             LauncherService launcherService, 
             SettingsService settingsService,
-            WindowManager windowManager)
+            WindowManager windowManager,
+            IMediator mediator)
         {
             _launcherService = launcherService;
             _settingsService = settingsService;
             _windowManager = windowManager;
+            _mediator = mediator;
             
-            LoadItemOrders();
-            InitializeItems();
+            InitializeItemsAsync();
         }
 
-        private void LoadItemOrders()
+        private async void InitializeItemsAsync()
         {
-            try
-            {
-                var appDataPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PromptMasterv6", "launcher_orders.json");
-                if (File.Exists(appDataPath))
-                {
-                    var json = File.ReadAllText(appDataPath);
-                    _itemOrders = JsonSerializer.Deserialize<Dictionary<string, int>>(json) ?? new();
-                }
-            }
-            catch
-            {
-                _itemOrders = new();
-            }
+            _itemOrders = await _mediator.Send(new GetLauncherOrdersQuery());
+            
+            await LoadDiscoveredItemsAsync();
+            UpdateFilter();
         }
 
-        public void MoveItem(LauncherItem source, LauncherItem target)
+        public async void MoveItem(LauncherItem source, LauncherItem target)
         {
             if (source == null || target == null || source == target) return;
 
@@ -94,18 +85,7 @@ namespace PromptMasterv6.Features.Launcher
                 _itemOrders[key] = i;
             }
             
-            try
-            {
-                var appDataPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PromptMasterv6", "launcher_orders.json");
-                var dir = Path.GetDirectoryName(appDataPath);
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir!);
-                var json = JsonSerializer.Serialize(_itemOrders);
-                File.WriteAllText(appDataPath, json);
-            }
-            catch { }
+            await _mediator.Send(new SaveLauncherOrdersCommand(_itemOrders));
 
             UpdateFilter();
         }
@@ -113,12 +93,6 @@ namespace PromptMasterv6.Features.Launcher
         public void SelectCategory(string category)
         {
             CurrentCategory = category;
-            UpdateFilter();
-        }
-
-        private async void InitializeItems()
-        {
-            await LoadDiscoveredItemsAsync();
             UpdateFilter();
         }
 
