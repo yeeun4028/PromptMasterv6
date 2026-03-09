@@ -203,7 +203,6 @@ namespace PromptMasterv6
             services.AddTransient<LauncherWindow>();
             services.AddTransient<SettingsWindow>();
 
-            services.AddSingleton<LauncherService>();
             services.AddSingleton<AiService>();
             services.AddKeyedSingleton<IDataService, WebDavDataService>("cloud");
             services.AddKeyedSingleton<IDataService, FileDataService>("local");
@@ -218,9 +217,6 @@ namespace PromptMasterv6
             services.AddHttpClient<TencentService>();
 
             services.AddSingleton<ClipboardService>();
-            services.AddSingleton<VariableService>();
-            services.AddSingleton<ContentConverterService>();
-            services.AddSingleton<WebTargetService>();
 
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();

@@ -1,34 +1,38 @@
 using MediatR;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using PromptMasterv6.Infrastructure.Services;
 
-namespace PromptMasterv6.Features.Main.Clipboard;
-
-public record CopyCompiledTextCommand(
-    string? Content,
-    ObservableCollection<VariableItem> Variables,
-    string AdditionalInput) : IRequest;
-
-public class CopyCompiledTextHandler : IRequestHandler<CopyCompiledTextCommand>
+namespace PromptMasterv6.Features.Main.Clipboard
 {
-    private readonly VariableService _variableService;
-    private readonly ClipboardService _clipboardService;
+    public record CopyCompiledTextCommand(
+        string? Content,
+        Dictionary<string, string> Variables,
+        string? AdditionalInput = null) : IRequest;
 
-    public CopyCompiledTextHandler(
-        VariableService variableService,
-        ClipboardService clipboardService)
+    public class CopyCompiledTextHandler : IRequestHandler<CopyCompiledTextCommand>
     {
-        _variableService = variableService;
-        _clipboardService = clipboardService;
-    }
+        private readonly IMediator _mediator;
+        private readonly ClipboardService _clipboardService;
 
-    public Task Handle(CopyCompiledTextCommand request, CancellationToken cancellationToken)
-    {
-        var text = _variableService.CompileContent(request.Content, request.Variables, request.AdditionalInput);
-        if (string.IsNullOrWhiteSpace(text)) return Task.CompletedTask;
-        _clipboardService.SetClipboard(text);
-        return Task.CompletedTask;
+        public CopyCompiledTextHandler(
+            IMediator mediator,
+            ClipboardService clipboardService)
+        {
+            _mediator = mediator;
+            _clipboardService = clipboardService;
+        }
+
+        public async Task Handle(CopyCompiledTextCommand request, CancellationToken cancellationToken)
+        {
+            var text = await _mediator.Send(new Variables.CompileContentQuery(
+                request.Content, 
+                request.Variables, 
+                request.AdditionalInput));
+            
+            if (string.IsNullOrWhiteSpace(text)) return;
+            _clipboardService.SetClipboard(text);
+        }
     }
 }

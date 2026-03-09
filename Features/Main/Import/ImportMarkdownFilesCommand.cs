@@ -1,63 +1,50 @@
 using MediatR;
-using System.Collections.ObjectModel;
+using PromptMasterv6.Features.Shared.Models;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PromptMasterv6.Infrastructure.Services;
 
-namespace PromptMasterv6.Features.Main.Import;
-
-public record ImportMarkdownFilesCommand(
-    string[]? Files,
-    FolderItem? SelectedFolder,
-    ObservableCollection<FolderItem> Folders) : IRequest<FolderItem?>;
-
-public record ShowImportFileDialogCommand() : IRequest<string[]?>;
-
-public class ImportMarkdownFilesHandler : IRequestHandler<ImportMarkdownFilesCommand, FolderItem?>
+namespace PromptMasterv6.Features.Main.Import
 {
-    public Task<FolderItem?> Handle(ImportMarkdownFilesCommand request, CancellationToken cancellationToken)
+    public record ImportMarkdownFilesCommand(string[] Files, string TargetFolderId) : IRequest<List<PromptItem>>;
+
+    public class ImportMarkdownFilesHandler : IRequestHandler<ImportMarkdownFilesCommand, List<PromptItem>>
     {
-        if (request.Files == null || request.Files.Length == 0)
-            return Task.FromResult<FolderItem?>(null);
-
-        var targetFolder = request.SelectedFolder;
-        if (targetFolder == null)
+        public async Task<List<PromptItem>> Handle(ImportMarkdownFilesCommand request, CancellationToken cancellationToken)
         {
-            targetFolder = new FolderItem { Name = "导入" };
-            request.Folders.Add(targetFolder);
-        }
+            var importedItems = new List<PromptItem>();
 
-        foreach (var filePath in request.Files)
-        {
-            try
+            if (request.Files == null || request.Files.Length == 0)
+                return importedItems;
+
+            foreach (var filePath in request.Files)
             {
-                var content = File.ReadAllText(filePath);
-                var title = Path.GetFileNameWithoutExtension(filePath);
                 cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    var content = await File.ReadAllTextAsync(filePath, cancellationToken);
+                    var title = Path.GetFileNameWithoutExtension(filePath);
+                    
+                    var item = new PromptItem
+                    {
+                        Id = Guid.NewGuid().ToString("N"),
+                        Title = title,
+                        Content = content,
+                        FolderId = request.TargetFolderId,
+                        LastModified = DateTime.Now
+                    };
+                    
+                    importedItems.Add(item);
+                }
+                catch
+                {
+                }
             }
-            catch
-            {
-            }
+
+            return importedItems;
         }
-
-        return Task.FromResult<FolderItem?>(targetFolder);
-    }
-}
-
-public class ShowImportFileDialogHandler : IRequestHandler<ShowImportFileDialogCommand, string[]?>
-{
-    private readonly DialogService _dialogService;
-
-    public ShowImportFileDialogHandler(DialogService dialogService)
-    {
-        _dialogService = dialogService;
-    }
-
-    public Task<string[]?> Handle(ShowImportFileDialogCommand request, CancellationToken cancellationToken)
-    {
-        string filter = "Markdown 文件 (*.md;*.markdown)|*.md;*.markdown|所有文件 (*.*)|*.*";
-        var files = _dialogService.ShowOpenFilesDialog(filter);
-        return Task.FromResult(files);
     }
 }

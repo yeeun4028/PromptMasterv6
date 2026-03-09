@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using PromptMasterv6.Features.Launcher.Execution;
 using PromptMasterv6.Features.Launcher.Orders;
+using PromptMasterv6.Features.Launcher.Queries;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,6 @@ namespace PromptMasterv6.Features.Launcher
 {
     public partial class LauncherViewModel : ObservableObject
     {
-        private readonly LauncherService _launcherService;
         private readonly SettingsService _settingsService;
         private readonly WindowManager _windowManager;
         private readonly IMediator _mediator;
@@ -45,12 +45,10 @@ namespace PromptMasterv6.Features.Launcher
         public AppConfig Config => _settingsService.Config;
 
         public LauncherViewModel(
-            LauncherService launcherService, 
             SettingsService settingsService,
             WindowManager windowManager,
             IMediator mediator)
         {
-            _launcherService = launcherService;
             _settingsService = settingsService;
             _windowManager = windowManager;
             _mediator = mediator;
@@ -104,7 +102,7 @@ namespace PromptMasterv6.Features.Launcher
                 var paths = _settingsService.Config.LauncherSearchPaths;
                 if (paths == null || !paths.Any()) return;
 
-                var discovered = await _launcherService.GetItemsAsync(paths);
+                var discovered = await _mediator.Send(new GetLauncherItemsQuery(paths));
                 foreach (var item in discovered)
                 {
                     Items.Add(item);

@@ -1,25 +1,30 @@
-﻿using System;
+using MediatR;
+using PromptMasterv6.Infrastructure.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using PromptMasterv6.Infrastructure.Services;
 
-namespace PromptMasterv6.Features.Launcher
+namespace PromptMasterv6.Features.Launcher.Queries
 {
-    public class LauncherService
+    public record GetLauncherItemsQuery(IEnumerable<string> Paths, bool ForceRefresh = false) : IRequest<List<LauncherItem>>;
+
+    public class GetLauncherItemsHandler : IRequestHandler<GetLauncherItemsQuery, List<LauncherItem>>
     {
         private readonly LoggerService _logger;
-        private List<LauncherItem> _cache = new();
+        
+        private static List<LauncherItem> _cache = new();
 
-        public LauncherService(LoggerService logger)
+        public GetLauncherItemsHandler(LoggerService logger)
         {
             _logger = logger;
         }
 
-        public async Task<List<LauncherItem>> GetItemsAsync(IEnumerable<string> paths)
+        public async Task<List<LauncherItem>> Handle(GetLauncherItemsQuery request, CancellationToken cancellationToken)
         {
-            if (_cache != null && _cache.Any())
+            if (!request.ForceRefresh && _cache != null && _cache.Any())
             {
                 return _cache.ToList();
             }
@@ -27,9 +32,9 @@ namespace PromptMasterv6.Features.Launcher
             return await Task.Run(() =>
             {
                 var items = new List<LauncherItem>();
-                if (paths == null) return items;
+                if (request.Paths == null) return items;
 
-                foreach (var path in paths)
+                foreach (var path in request.Paths)
                 {
                     if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) continue;
 
@@ -62,18 +67,13 @@ namespace PromptMasterv6.Features.Launcher
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogException(ex, $"Failed to scan directory during launcher discovery: {path}", "LauncherService.GetItemsAsync");
+                        _logger.LogException(ex, $"Failed to scan directory during launcher discovery: {path}", "GetLauncherItemsHandler.Handle");
                     }
                 }
 
                 _cache = items.ToList();
                 return items;
-            });
-        }
-
-        public void ClearCache()
-        {
-            _cache.Clear();
+            }, cancellationToken);
         }
 
         private bool IsLaunchable(string filePath)

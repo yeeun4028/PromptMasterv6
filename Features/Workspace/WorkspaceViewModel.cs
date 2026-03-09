@@ -2,9 +2,13 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
+using MediatR;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Main.Variables;
+using PromptMasterv6.Features.Main.Clipboard;
+using PromptMasterv6.Features.Main.WebTargets;
 using PromptMasterv6.Core.Messages;
 using System;
 using System.Collections.ObjectModel;
@@ -23,10 +27,8 @@ namespace PromptMasterv6.Features.Workspace
         private readonly DialogService _dialogService;
         private readonly ClipboardService _clipboardService;
         private readonly SettingsService _settingsService;
-        private readonly VariableService _variableService;
-        private readonly ContentConverterService _contentConverterService;
-        private readonly WebTargetService _webTargetService;
         private readonly LoggerService _logger;
+        private readonly IMediator _mediator;
 
         [ObservableProperty] private ObservableCollection<PromptItem> files = new();
         [ObservableProperty] private PromptItem? selectedFile;
@@ -47,8 +49,13 @@ namespace PromptMasterv6.Features.Workspace
         partial void OnSelectedFileChanged(PromptItem? value)
         {
             IsEditMode = false;
-            PreviewContent = _contentConverterService.ConvertHtmlToMarkdown(value?.Content);
+            _ = UpdatePreviewContentAsync(value?.Content);
             SafeParseVariables(value?.Content ?? "");
+        }
+
+        private async Task UpdatePreviewContentAsync(string? content)
+        {
+            PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(content));
         }
 
         public WorkspaceViewModel(
@@ -57,20 +64,16 @@ namespace PromptMasterv6.Features.Workspace
             AiService aiService,
             DialogService dialogService,
             ClipboardService clipboardService,
-            VariableService variableService,
-            ContentConverterService contentConverterService,
-            WebTargetService webTargetService,
-            LoggerService logger)
+            LoggerService logger,
+            IMediator mediator)
         {
             _settingsService = settingsService;
             _dataService = dataService;
             _aiService = aiService;
             _dialogService = dialogService;
             _clipboardService = clipboardService;
-            _variableService = variableService;
-            _contentConverterService = contentConverterService;
-            _webTargetService = webTargetService;
             _logger = logger;
+            _mediator = mediator;
 
             Pipeline = new MarkdownPipelineBuilder()
                 .UseSoftlineBreakAsHardlineBreak()
@@ -120,12 +123,23 @@ namespace PromptMasterv6.Features.Workspace
             });
         }
 
-        private void SafeParseVariables(string content)
+        private async void SafeParseVariables(string content)
         {
             try
             {
-                _variableService.ParseVariables(content, Variables);
-                HasVariables = _variableService.HasVariables(Variables);
+                var varNames = await _mediator.Send(new ParseVariablesQuery(content));
+                
+                for (int i = Variables.Count - 1; i >= 0; i--)
+                {
+                    if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
+                }
+
+                foreach (var name in varNames)
+                {
+                    if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
+                }
+
+                HasVariables = Variables.Count > 0;
             }
             catch (Exception ex)
             {
@@ -223,7 +237,7 @@ namespace PromptMasterv6.Features.Workspace
         }
 
         [RelayCommand]
-        private void ToggleEditMode()
+        private async Task ToggleEditMode()
         {
             if (SelectedFile == null)
             {
@@ -242,7 +256,7 @@ namespace PromptMasterv6.Features.Workspace
                 }
 
                 IsEditMode = false;
-                PreviewContent = _contentConverterService.ConvertHtmlToMarkdown(SelectedFile.Content);
+                PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(SelectedFile.Content));
                 _originalContentBeforeEdit = null;
                 return;
             }
@@ -252,11 +266,10 @@ namespace PromptMasterv6.Features.Workspace
         }
 
         [RelayCommand]
-        private void CopyCompiledText()
+        private async Task CopyCompiledText()
         {
-            var text = _variableService.CompileContent(SelectedFile?.Content, Variables, AdditionalInput);
-            if (string.IsNullOrWhiteSpace(text)) return;
-            _clipboardService.SetClipboard(text);
+            var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+            await _mediator.Send(new CopyCompiledTextCommand(SelectedFile?.Content, variablesDict, AdditionalInput));
         }
 
         [RelayCommand]
@@ -276,8 +289,9 @@ namespace PromptMasterv6.Features.Workspace
                 }
             }
 
-            var content = _variableService.CompileContent(SelectedFile?.Content, Variables, AdditionalInput);
-            await _webTargetService.SendToDefaultTargetAsync(content, Config);
+            var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+            var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
+            await _mediator.Send(new SendToDefaultTargetCommand(content, Config.WebDirectTargets, Config.DefaultWebTargetName));
             AdditionalInput = "";
         }
 
@@ -298,8 +312,9 @@ namespace PromptMasterv6.Features.Workspace
                 }
             }
 
-            var content = _variableService.CompileContent(SelectedFile?.Content, Variables, AdditionalInput);
-            await _webTargetService.OpenWebTargetAsync(target, content);
+            var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+            var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
+            await _mediator.Send(new ExecuteWebTargetCommand(target, content));
             AdditionalInput = "";
         }
 
@@ -361,15 +376,26 @@ namespace PromptMasterv6.Features.Workspace
             RequestSave();
         }
 
-        private void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private async void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(PromptItem.LastModified))
                 return;
 
             if (e.PropertyName == nameof(PromptItem.Content) && sender == SelectedFile)
             {
-                _variableService.ParseVariables(SelectedFile?.Content ?? "", Variables);
-                HasVariables = _variableService.HasVariables(Variables);
+                var varNames = await _mediator.Send(new ParseVariablesQuery(SelectedFile?.Content ?? ""));
+                
+                for (int i = Variables.Count - 1; i >= 0; i--)
+                {
+                    if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
+                }
+
+                foreach (var name in varNames)
+                {
+                    if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
+                }
+
+                HasVariables = Variables.Count > 0;
             }
 
             RequestSave();

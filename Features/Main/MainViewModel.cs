@@ -1,7 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
+using MediatR;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Infrastructure.Helpers;
@@ -10,6 +11,9 @@ using PromptMasterv6.Features.Launcher.Messages;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Sidebar;
 using PromptMasterv6.Features.Workspace;
+using PromptMasterv6.Features.Main.Variables;
+using PromptMasterv6.Features.Main.Clipboard;
+using PromptMasterv6.Features.Main.WebTargets;
 
 using System;
 using System.Collections.ObjectModel;
@@ -40,10 +44,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly WindowManager _windowManager;
     private readonly SettingsService _settingsService;
     private readonly HotkeyService _hotkeyService;
-    private readonly VariableService _variableService;
-    private readonly ContentConverterService _contentConverterService;
-    private readonly WebTargetService _webTargetService;
     private readonly LoggerService _logger;
+    private readonly IMediator _mediator;
 
     private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
@@ -77,8 +79,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSelectedFileChanged(PromptItem? value)
     {
         IsEditMode = false;
-        PreviewContent = _contentConverterService.ConvertHtmlToMarkdown(value?.Content);
+        _ = UpdatePreviewContentAsync(value?.Content);
         SafeParseVariables(value?.Content ?? "");
+    }
+
+    private async Task UpdatePreviewContentAsync(string? content)
+    {
+        PreviewContent = await _mediator.Send(new Variables.ConvertHtmlToMarkdownQuery(content));
     }
 
     [RelayCommand]
@@ -90,12 +97,23 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void SafeParseVariables(string content)
+    private async void SafeParseVariables(string content)
     {
         try
         {
-            _variableService.ParseVariables(content, Variables);
-            HasVariables = _variableService.HasVariables(Variables);
+            var varNames = await _mediator.Send(new Variables.ParseVariablesQuery(content));
+            
+            for (int i = Variables.Count - 1; i >= 0; i--)
+            {
+                if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
+            }
+
+            foreach (var name in varNames)
+            {
+                if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
+            }
+
+            HasVariables = Variables.Count > 0;
         }
         catch (Exception ex)
         {
@@ -127,10 +145,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ClipboardService clipboardService,
         WindowManager windowManager,
         HotkeyService hotkeyService,
-        VariableService variableService,
-        ContentConverterService contentConverterService,
-        WebTargetService webTargetService,
-        LoggerService logger)
+        LoggerService logger,
+        IMediator mediator)
     {
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
@@ -146,10 +162,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _settingsService = settingsService;
         _windowManager = windowManager;
         _hotkeyService = hotkeyService;
-        _variableService = variableService;
-        _contentConverterService = contentConverterService;
-        _webTargetService = webTargetService;
         _logger = logger;
+        _mediator = mediator;
 
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
@@ -345,7 +359,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void ImportMarkdownFiles()
+    private async Task ImportMarkdownFilesAsync()
     {
         string filter = "Markdown 文件 (*.md;*.markdown)|*.md;*.markdown|所有文件 (*.*)|*.*";
         var files = _dialogService.ShowOpenFilesDialog(filter);
@@ -355,33 +369,28 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var targetFolder = SelectedFolder;
         if (targetFolder == null)
         {
-            targetFolder = new FolderItem { Name = "导入" };
+            targetFolder = new FolderItem 
+            { 
+                Id = Guid.NewGuid().ToString("N"),
+                Name = "导入" 
+            };
             Folders.Add(targetFolder);
             SelectedFolder = targetFolder;
         }
 
-        foreach (var filePath in files)
-        {
-            try
-            {
-                var content = File.ReadAllText(filePath);
-                var title = Path.GetFileNameWithoutExtension(filePath);
-                Files.Add(new PromptItem
-                {
-                    Title = title,
-                    Content = content,
-                    FolderId = targetFolder.Id,
-                    LastModified = DateTime.Now
-                });
-            }
-            catch
-            {
-            }
-        }
+        var importedItems = await _mediator.Send(new Import.ImportMarkdownFilesCommand(files, targetFolder.Id));
 
-        UpdateFilesViewFilter();
-        FilesView?.Refresh();
-        RequestSave();
+        if (importedItems != null && importedItems.Any())
+        {
+            foreach (var item in importedItems)
+            {
+                Files.Add(item);
+            }
+
+            UpdateFilesViewFilter();
+            FilesView?.Refresh();
+            RequestSave();
+        }
     }
 
     [RelayCommand]
@@ -406,7 +415,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void ToggleEditMode()
+    private async Task ToggleEditMode()
     {
         if (SelectedFile == null)
         {
@@ -425,7 +434,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
 
             IsEditMode = false;
-            PreviewContent = _contentConverterService.ConvertHtmlToMarkdown(SelectedFile.Content);
+            PreviewContent = await _mediator.Send(new Variables.ConvertHtmlToMarkdownQuery(SelectedFile.Content));
             _originalContentBeforeEdit = null;
             return;
         }
@@ -435,11 +444,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void CopyCompiledText()
+    private async Task CopyCompiledText()
     {
-        var text = _variableService.CompileContent(SelectedFile?.Content, Variables, AdditionalInput);
-        if (string.IsNullOrWhiteSpace(text)) return;
-        _clipboardService.SetClipboard(text);
+        var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+        await _mediator.Send(new Clipboard.CopyCompiledTextCommand(SelectedFile?.Content, variablesDict, AdditionalInput));
     }
 
     [RelayCommand]
@@ -459,8 +467,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        var content = _variableService.CompileContent(SelectedFile?.Content, Variables, AdditionalInput);
-        await _webTargetService.SendToDefaultTargetAsync(content, Config);
+        var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+        var content = await _mediator.Send(new Variables.CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
+        await _mediator.Send(new WebTargets.SendToDefaultTargetCommand(content, Config.WebDirectTargets, Config.DefaultWebTargetName));
         AdditionalInput = "";
     }
 
@@ -481,8 +490,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        var content = _variableService.CompileContent(SelectedFile?.Content, Variables, AdditionalInput);
-        await _webTargetService.OpenWebTargetAsync(target, content);
+        var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+        var content = await _mediator.Send(new Variables.CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
+        await _mediator.Send(new WebTargets.ExecuteWebTargetCommand(target, content));
         AdditionalInput = "";
     }
 
@@ -603,15 +613,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
         RequestSave();
     }
 
-    private void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private async void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(PromptItem.LastModified))
             return;
 
         if (e.PropertyName == nameof(PromptItem.Content) && sender == SelectedFile)
         {
-            _variableService.ParseVariables(SelectedFile?.Content ?? "", Variables);
-            HasVariables = _variableService.HasVariables(Variables);
+            var varNames = await _mediator.Send(new Variables.ParseVariablesQuery(SelectedFile?.Content ?? ""));
+            
+            for (int i = Variables.Count - 1; i >= 0; i--)
+            {
+                if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
+            }
+
+            foreach (var name in varNames)
+            {
+                if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
+            }
+
+            HasVariables = Variables.Count > 0;
         }
 
         RequestSave();
