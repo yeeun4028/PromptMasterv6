@@ -74,13 +74,13 @@
                                     <Path Data="{Binding IconGeometry, Converter={StaticResource StringToGeo}}" Fill="#4A90D9" Stretch="Uniform" />
                                 </Grid>
 
-                                <Border x:Name="IconImage" CornerRadius="18" Visibility="Collapsed">
+                                <Border x:Name="IconImage" CornerRadius="18" Visibility="Collapsed" UseLayoutRounding="True" SnapsToDevicePixels="True">
                                     <Border.Background>
                                         <ImageBrush ImageSource="{Binding IconPath, Converter={StaticResource LocalImageConverter}, IsAsync=True}" Stretch="UniformToFill"/>
                                     </Border.Background>
                                 </Border>
 
-                                <Border x:Name="CustomImage" CornerRadius="18" Visibility="Collapsed">
+                                <Border x:Name="CustomImage" CornerRadius="18" Visibility="Collapsed" UseLayoutRounding="True" SnapsToDevicePixels="True">
                                     <Border.Background>
                                         <ImageBrush ImageSource="{Binding CustomImagePath, Converter={StaticResource LocalImageConverter}, IsAsync=True}" Stretch="UniformToFill"/>
                                     </Border.Background>
@@ -170,18 +170,18 @@
                                 </Trigger.ExitActions>
                             </Trigger>
                             
-                            <DataTrigger Binding="{Binding IconGeometry, Converter={StaticResource StringToVis}}" Value="Visible">
+                            <DataTrigger Binding="{Binding IconGeometry, Converter={StaticResource StringToVis}}" Value="{x:Static Visibility.Visible}">
                                 <Setter TargetName="GeoIcon" Property="Visibility" Value="Visible"/>
                                 <Setter TargetName="DefaultIcon" Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                             
-                            <DataTrigger Binding="{Binding IconPath, Converter={StaticResource StringToVis}}" Value="Visible">
+                            <DataTrigger Binding="{Binding IconPath, Converter={StaticResource StringToVis}}" Value="{x:Static Visibility.Visible}">
                                 <Setter TargetName="IconImage" Property="Visibility" Value="Visible"/>
                                 <Setter TargetName="GeoIcon" Property="Visibility" Value="Collapsed"/>
                                 <Setter TargetName="DefaultIcon" Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                             
-                            <DataTrigger Binding="{Binding CustomImagePath, Converter={StaticResource StringToVis}}" Value="Visible">
+                            <DataTrigger Binding="{Binding CustomImagePath, Converter={StaticResource StringToVis}}" Value="{x:Static Visibility.Visible}">
                                 <Setter TargetName="CustomImage" Property="Visibility" Value="Visible"/>
                                 <Setter TargetName="IconImage" Property="Visibility" Value="Collapsed"/>
                                 <Setter TargetName="GeoIcon" Property="Visibility" Value="Collapsed"/>

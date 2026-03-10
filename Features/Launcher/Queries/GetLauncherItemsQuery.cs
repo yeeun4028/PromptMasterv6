@@ -55,11 +55,17 @@ namespace PromptMasterv6.Features.Launcher.Queries
 
                         foreach (var file in files)
                         {
+                            var directory = Path.GetDirectoryName(file);
+                            var fileNameWithoutExt = Path.GetFileNameWithoutExtension(file);
+                            
+                            var customIconPath = FindCustomIcon(directory, fileNameWithoutExt);
+                            
                             var item = new LauncherItem
                             {
                                 FilePath = file,
-                                Title = Path.GetFileNameWithoutExtension(file),
-                                Category = GetCategoryFromExtension(file)
+                                Title = fileNameWithoutExt,
+                                Category = GetCategoryFromExtension(file),
+                                IconPath = customIconPath ?? file
                             };
 
                             items.Add(item);
@@ -112,6 +118,23 @@ namespace PromptMasterv6.Features.Launcher.Queries
                 return LauncherCategory.Tool;
                 
             return LauncherCategory.Application;
+        }
+
+        private static readonly string[] IconExtensions = { ".png", ".jpg", ".jpeg", ".ico", ".bmp" };
+
+        private string? FindCustomIcon(string? directory, string fileName)
+        {
+            if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
+                return null;
+
+            foreach (var iconExt in IconExtensions)
+            {
+                var iconPath = Path.Combine(directory, fileName + iconExt);
+                if (File.Exists(iconPath))
+                    return iconPath;
+            }
+
+            return null;
         }
     }
 }
