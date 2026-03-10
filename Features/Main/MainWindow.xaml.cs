@@ -328,18 +328,20 @@ namespace PromptMasterv6.Features.Main
 
         public void ToggleWindowVisibility()
         {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            var foregroundHwnd = Infrastructure.Services.NativeMethods.GetForegroundWindow();
+
             if (this.Visibility == Visibility.Visible)
             {
-                var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-                var foregroundHwnd = Infrastructure.Services.NativeMethods.GetForegroundWindow();
                 if (hwnd != foregroundHwnd)
                 {
                     StopHideTimer();
                     ViewModel.IsFullMode = true;
+                    this.Topmost = true;
                     this.Show();
                     this.Activate();
                     this.Focus();
-                    Infrastructure.Services.NativeMethods.SetForegroundWindow(hwnd);
+                    this.Topmost = false;
                     return;
                 }
 
@@ -349,10 +351,11 @@ namespace PromptMasterv6.Features.Main
             {
                 StopHideTimer();
                 ViewModel.IsFullMode = true;
+                this.Topmost = true;
                 this.Show();
                 this.Activate();
                 this.Focus();
-                Infrastructure.Services.NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+                this.Topmost = false;
             }
         }
 
