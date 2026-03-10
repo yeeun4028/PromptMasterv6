@@ -40,6 +40,25 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Setter Property="ContextMenu">
+            <Setter.Value>
+                <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                    <MenuItem Header="更改图标"
+                              Style="{StaticResource ModernMenuItemStyle}"
+                              Command="{Binding PlacementTarget.Tag.FileManagerVM.ChangeFolderIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding}"/>
+                    <MenuItem Header="重命名"
+                              Style="{StaticResource ModernMenuItemStyle}"
+                              Command="{Binding PlacementTarget.Tag.FileManagerVM.RenameFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding}"/>
+                    <Separator Style="{StaticResource ModernSeparatorStyle}"/>
+                    <MenuItem Header="删除"
+                              Style="{StaticResource ModernMenuItemStyle}"
+                              Command="{Binding PlacementTarget.Tag.FileManagerVM.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding}"/>
+                </ContextMenu>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="FileListBoxItemStyle" TargetType="ListBoxItem">
@@ -86,6 +105,25 @@
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ContextMenu">
+            <Setter.Value>
+                <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                    <MenuItem Header="重命名"
+                              Style="{StaticResource ModernMenuItemStyle}"
+                              Command="{Binding PlacementTarget.Tag.FileManagerVM.RenameFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding}"/>
+                    <MenuItem Header="更改图标"
+                              Style="{StaticResource ModernMenuItemStyle}"
+                              Command="{Binding PlacementTarget.Tag.FileManagerVM.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding}"/>
+                    <Separator Style="{StaticResource ModernSeparatorStyle}"/>
+                    <MenuItem Header="删除"
+                              Style="{StaticResource ModernMenuItemStyle}"
+                              Command="{Binding PlacementTarget.Tag.FileManagerVM.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding}"/>
+                </ContextMenu>
             </Setter.Value>
         </Setter>
     </Style>
