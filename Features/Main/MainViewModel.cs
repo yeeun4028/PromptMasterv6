@@ -183,8 +183,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [SupportedOSPlatform("windows")]
     public void UpdateWindowHotkeys()
     {
-        _hotkeyService.RegisterWindowHotkey("ToggleFullWindowHotkey", Config.FullWindowHotkey, () => ToggleWindowToMode(true));
-        
         _hotkeyService.RegisterWindowHotkey("ToggleLaunchBarHotkey", Config.LaunchBarHotkey, () => 
         {
             Config.EnableLaunchBar = !Config.EnableLaunchBar;
