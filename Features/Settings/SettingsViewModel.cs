@@ -35,6 +35,7 @@ namespace PromptMasterv6.Features.Settings
         public SyncViewModel SyncVM { get; }
         public LauncherSettingsViewModel LauncherSettingsVM { get; }
         public ApiCredentialsViewModel ApiCredentialsVM { get; }
+        public ExternalTools.ExternalToolsViewModel ExternalToolsVM { get; }
         
         public SettingsViewModel SettingsVM => this;
 
@@ -100,6 +101,7 @@ namespace PromptMasterv6.Features.Settings
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,
             ApiCredentialsViewModel apiCredentialsVM,
+            ExternalTools.ExternalToolsViewModel externalToolsVM,
             ISessionState sessionState)
         {
             _settingsService = settingsService;
@@ -116,6 +118,7 @@ namespace PromptMasterv6.Features.Settings
             SyncVM = syncVM;
             LauncherSettingsVM = launcherSettingsVM;
             ApiCredentialsVM = apiCredentialsVM;
+            ExternalToolsVM = externalToolsVM;
 
             _logger.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
         }

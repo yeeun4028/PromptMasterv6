@@ -45,40 +45,74 @@ namespace PromptMasterv6.Infrastructure.Services
         private void RegisterAllHotkeys()
         {
             var config = _settingsService.Config;
+            var failedHotkeys = new System.Collections.Generic.List<string>();
 
-            _globalKeyService.LauncherHotkeyString = config.LauncherHotkey;
+            try
+            {
+                _globalKeyService.LauncherHotkeyString = config.LauncherHotkey;
+            }
+            catch (Exception)
+            {
+                failedHotkeys.Add($"全局启动器: {config.LauncherHotkey}");
+            }
 
-            _hotkeyService.RegisterWindowHotkey("OcrHotkey", config.OcrHotkey, () =>
+            if (!_hotkeyService.RegisterWindowHotkey("OcrHotkey", config.OcrHotkey, () =>
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new TriggerOcrMessage());
                 });
-            });
+            }))
+            {
+                failedHotkeys.Add($"OCR截图: {config.OcrHotkey}");
+            }
 
-            _hotkeyService.RegisterWindowHotkey("TranslateHotkey", config.ScreenshotTranslateHotkey, () =>
+            if (!_hotkeyService.RegisterWindowHotkey("TranslateHotkey", config.ScreenshotTranslateHotkey, () =>
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new TriggerTranslateMessage());
                 });
-            });
+            }))
+            {
+                failedHotkeys.Add($"截图翻译: {config.ScreenshotTranslateHotkey}");
+            }
 
-            _hotkeyService.RegisterWindowHotkey("PinToScreenHotkey", config.PinToScreenHotkey, () =>
+            if (!_hotkeyService.RegisterWindowHotkey("PinToScreenHotkey", config.PinToScreenHotkey, () =>
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new TriggerPinToScreenMessage());
                 });
-            });
+            }))
+            {
+                failedHotkeys.Add($"贴图: {config.PinToScreenHotkey}");
+            }
 
-            _hotkeyService.RegisterWindowHotkey("FullWindowHotkey", config.FullWindowHotkey, () =>
+            if (!_hotkeyService.RegisterWindowHotkey("FullWindowHotkey", config.FullWindowHotkey, () =>
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage());
                 });
-            });
+            }))
+            {
+                failedHotkeys.Add($"主界面切换: {config.FullWindowHotkey}");
+            }
+
+            if (failedHotkeys.Count > 0)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    System.Windows.MessageBox.Show(
+                        $"以下全局快捷键已被其他程序占用，注册失败：\n\n" +
+                        $"{string.Join("\n", failedHotkeys)}\n\n" +
+                        $"请前往设置界面修改为您专属的无冲突按键组合。",
+                        "快捷键冲突警告",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Warning);
+                });
+            }
         }
     }
 }

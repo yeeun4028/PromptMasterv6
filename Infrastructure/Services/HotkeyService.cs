@@ -14,16 +14,16 @@ namespace PromptMasterv6.Infrastructure.Services
             _logger = logger;
         }
 
-        public void RegisterWindowHotkey(string name, string hotkeyStr, Action action)
+        public bool RegisterWindowHotkey(string name, string hotkeyStr, Action action)
         {
+            if (string.IsNullOrWhiteSpace(hotkeyStr))
+            {
+                TryRemoveHotkey(name);
+                return true;
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(hotkeyStr))
-                {
-                    TryRemoveHotkey(name);
-                    return;
-                }
-
                 ModifierKeys modifiers = ModifierKeys.None;
                 if (hotkeyStr.Contains("Ctrl", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Control;
                 if (hotkeyStr.Contains("Alt", StringComparison.OrdinalIgnoreCase)) modifiers |= ModifierKeys.Alt;
@@ -35,11 +35,20 @@ namespace PromptMasterv6.Infrastructure.Services
                 {
                     TryRemoveHotkey(name);
                     HotkeyManager.Current.AddOrReplace(name, key, modifiers, (_, __) => action());
+                    return true;
                 }
+                
+                return false;
+            }
+            catch (HotkeyAlreadyRegisteredException ex)
+            {
+                _logger.LogException(ex, $"快捷键被占用: {name} ({hotkeyStr})", "HotkeyService.RegisterWindowHotkey");
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogException(ex, $"Failed to register hotkey: {name}", "HotkeyService.RegisterWindowHotkey");
+                _logger.LogException(ex, $"注册快捷键遭遇未知错误: {name}", "HotkeyService.RegisterWindowHotkey");
+                return false;
             }
         }
 

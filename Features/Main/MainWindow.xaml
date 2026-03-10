@@ -327,13 +327,13 @@
                                 <Style TargetType="Separator" BasedOn="{StaticResource NoIconSeparatorStyle}"/>
                             </ContextMenu.Resources>
                             <MenuItem Header="设置图标" 
-                                      Command="{Binding PlacementTarget.Tag.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      Command="{Binding PlacementTarget.Tag.FileManagerVM.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
                             <MenuItem Header="删除" 
-                                      Command="{Binding PlacementTarget.Tag.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      Command="{Binding PlacementTarget.Tag.FileManagerVM.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
                             <MenuItem Header="重命名" 
-                                      Command="{Binding PlacementTarget.Tag.RenameFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      Command="{Binding PlacementTarget.Tag.FileManagerVM.RenameFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
                         </ContextMenu>
                     </Setter.Value>
@@ -573,7 +573,7 @@
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
-                                <Button Style="{StaticResource ActionBtnStyle}" Content="导入" Command="{Binding ImportMarkdownFilesCommand}">
+                                <Button Style="{StaticResource ActionBtnStyle}" Content="导入" Command="{Binding FileManagerVM.ImportMarkdownFilesCommand}">
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."
@@ -607,17 +607,17 @@
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
-                                <Button Command="{Binding ToggleEditModeCommand}" Style="{StaticResource ActionBtnStyle}">
+                                <Button Command="{Binding ContentEditorVM.ToggleEditModeCommand}" Style="{StaticResource ActionBtnStyle}">
                                     <Button.ToolTip>
                                         <ToolTip Style="{StaticResource Block1ToolTipStyle}">
                                             <TextBlock>
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                            <DataTrigger Binding="{Binding ContentEditorVM.IsEditMode}" Value="True">
                                                                 <Setter Property="Text" Value="点击锁定并保存"/>
                                                             </DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsEditMode}" Value="False">
+                                                            <DataTrigger Binding="{Binding ContentEditorVM.IsEditMode}" Value="False">
                                                                 <Setter Property="Text" Value="点击解锁编辑"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -633,7 +633,7 @@
                                                     <Path.Style>
                                                         <Style TargetType="Path" BasedOn="{StaticResource ActionIconPathStyle}">
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                                <DataTrigger Binding="{Binding DataContext.ContentEditorVM.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
                                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
@@ -644,7 +644,7 @@
                                                     <Path.Style>
                                                         <Style TargetType="Path" BasedOn="{StaticResource ActionIconPathStyle}">
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                                <DataTrigger Binding="{Binding DataContext.ContentEditorVM.IsEditMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
@@ -665,7 +665,7 @@
                                                   Data="{StaticResource IconCloudUpload}"
                                                   Style="{StaticResource ActionIconPathStyle}"/>
                                             <DataTemplate.Triggers>
-                                                <DataTrigger Binding="{Binding DataContext.IsDirty, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                <DataTrigger Binding="{Binding DataContext.FileManagerVM.IsDirty, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                                                     <Setter TargetName="IconPath" Property="Fill" Value="#E53935"/>
                                                 </DataTrigger>
                                             </DataTemplate.Triggers>
@@ -686,7 +686,7 @@
                                                Margin="2,-5,0,0"
                                                VerticalAlignment="Center"
                                                ToolTip="有未备份的更改 (请点击上方设置按钮旁的备份按钮)"
-                                               Visibility="{Binding IsDirty, Converter={StaticResource BoolToVis}}"/>
+                                               Visibility="{Binding FileManagerVM.IsDirty, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
@@ -703,8 +703,8 @@
                                 </b:Interaction.Behaviors>
                             </Grid>
 
-                            <ListBox ItemsSource="{Binding FilesView}"
-                                      SelectedItem="{Binding SelectedFile}"
+                            <ListBox ItemsSource="{Binding FileManagerVM.FilesView}"
+                                      SelectedItem="{Binding FileManagerVM.SelectedFile}"
                                       ItemContainerStyle="{StaticResource FileListBoxItemStyle}"
                                       Background="Transparent"
                                       BorderThickness="0"
@@ -716,7 +716,7 @@
                                 </ListBox.Resources>
 
                                 <ListBox.InputBindings>
-                                    <KeyBinding Key="Delete" Command="{Binding DeleteFileCommand}" CommandParameter="{Binding SelectedFile}"/>
+                                    <KeyBinding Key="Delete" Command="{Binding FileManagerVM.DeleteFileCommand}" CommandParameter="{Binding FileManagerVM.SelectedFile}"/>
                                 </ListBox.InputBindings>
 
                                 <ListBox.ItemTemplate>
@@ -799,7 +799,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                                            <DataTrigger Binding="{Binding FileManagerVM.SelectedFile}" Value="{x:Null}">
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -812,7 +812,7 @@
                                     <Style TargetType="Grid">
                                         <Setter Property="Visibility" Value="Visible"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                                            <DataTrigger Binding="{Binding FileManagerVM.SelectedFile}" Value="{x:Null}">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -828,7 +828,7 @@
                                     <TextBox x:Name="Block3ContentEditor"
                                              Margin="0,40,0,0"
                                              ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
-                                             Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
+                                             Text="{Binding FileManagerVM.SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
                                              AcceptsReturn="True"
                                              TextWrapping="Wrap"
                                              VerticalContentAlignment="Top"
@@ -850,7 +850,7 @@
                                         <Style TargetType="TextBox">
                                             <Setter Property="Visibility" Value="Collapsed"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                <DataTrigger Binding="{Binding ContentEditorVM.IsEditMode}" Value="True">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -862,8 +862,8 @@
                                 <md:MarkdownViewer Margin="0,40,0,0"
                                                   Loaded="MarkdownViewer_Loaded"
                                                   ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
-                                                  Markdown="{Binding PreviewContent}"
-                                                  Pipeline="{Binding Pipeline}"
+                                                  Markdown="{Binding ContentEditorVM.PreviewContent}"
+                                                  Pipeline="{Binding ContentEditorVM.Pipeline}"
                                                   xml:lang="zh-CN"
                                                   Background="{DynamicResource Block3Background}">
                                     <md:MarkdownViewer.Resources>
@@ -898,7 +898,7 @@
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Margin" Value="0"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                <DataTrigger Binding="{Binding ContentEditorVM.IsEditMode}" Value="True">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -916,13 +916,13 @@
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Collapsed"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                <DataTrigger Binding="{Binding ContentEditorVM.IsEditMode}" Value="True">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding SelectedFile.Content}" Value="">
+                                                <DataTrigger Binding="{Binding FileManagerVM.SelectedFile.Content}" Value="">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding SelectedFile.Content}" Value="{x:Null}">
+                                                <DataTrigger Binding="{Binding FileManagerVM.SelectedFile.Content}" Value="{x:Null}">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -1026,7 +1026,7 @@
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Button Command="{Binding DataContext.OpenWebTargetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    <Button Command="{Binding DataContext.ContentEditorVM.OpenWebTargetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}"
                                                             ToolTip="{Binding Name}"
                                                             Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVis}}"
@@ -1065,7 +1065,7 @@
                                         </ItemsControl>
 
                                         <!-- GitHub Search Button -->
-                                        <Button Command="{Binding SearchOnGitHubCommand}"
+                                        <Button Command="{Binding ContentEditorVM.SearchOnGitHubCommand}"
                                                 ToolTip="在 GitHub 上搜索 (仅搜索此输入框内容)"
                                                 Margin="0,0,0,0"
                                                 Padding="6,4"
@@ -1099,7 +1099,7 @@
                                         </StackPanel>
 
                                         <!-- Copy Result Button (Far Right) -->
-                                        <Button Command="{Binding CopyCompiledTextCommand}"
+                                        <Button Command="{Binding ContentEditorVM.CopyCompiledTextCommand}"
                                                 ToolTip="复制最终结果 (Ctrl+C)"
                                                 HorizontalAlignment="Right"
                                                 Margin="0,0,0,0"
@@ -1130,13 +1130,13 @@
                                             <Style TargetType="ScrollViewer">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasVariables}" Value="True">
+                                                    <DataTrigger Binding="{Binding ContentEditorVM.HasVariables}" Value="True">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </ScrollViewer.Style>
-                                        <ItemsControl ItemsSource="{Binding Variables}">
+                                        <ItemsControl ItemsSource="{Binding ContentEditorVM.Variables}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Grid Margin="0,5">
@@ -1166,7 +1166,7 @@
                                         </ItemsControl>
                                     </ScrollViewer>
 
-                                    <TextBox Grid.Row="1" Text="{Binding AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Grid.Row="1" Text="{Binding ContentEditorVM.AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
                                              Foreground="{DynamicResource PrimaryTextBrush}"
                                              CaretBrush="{DynamicResource PrimaryTextBrush}"
                                              PreviewKeyDown="AdditionalInputBox_PreviewKeyDown"
@@ -1183,7 +1183,7 @@
                                             <Style TargetType="TextBox">
                                                 <Setter Property="Visibility" Value="Visible"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasVariables}" Value="True">
+                                                    <DataTrigger Binding="{Binding ContentEditorVM.HasVariables}" Value="True">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

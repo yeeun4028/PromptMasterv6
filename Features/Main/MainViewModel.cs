@@ -166,6 +166,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _windowManager.ShowSettingsWindow();
     }
 
+    [RelayCommand]
+    private async Task ManualBackup()
+    {
+        await PerformLocalBackup();
+    }
+
     private void ToggleMainWindow()
     {
         var win = System.Windows.Application.Current.MainWindow as MainWindow;
