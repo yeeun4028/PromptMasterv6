@@ -18,6 +18,9 @@
     <Window.Resources>
         <converters:CountToVisibilityConverter x:Key="CountToVis"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVis"/>
+        <converters:StringToGeometryConverter x:Key="StringToGeo"/>
+        <converters:LocalImageConverter x:Key="LocalImageConverter"/>
         
         <DataTemplate x:Key="LauncherItemTemplate">
             <Button x:Name="ItemButton"
@@ -49,8 +52,7 @@
                                 </TextBlock.Effect>
                             </TextBlock>
 
-                            <Grid x:Name="CardGrid" Width="55" Height="55"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid x:Name="CardGrid" Width="55" Height="55" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Grid.RenderTransform>
                                     <TranslateTransform x:Name="CardTranslate" X="0" Y="0"/>
                                 </Grid.RenderTransform>
@@ -64,27 +66,28 @@
                                     </Rectangle.Effect>
                                 </Rectangle>
                                 
-                                <Border x:Name="CardImageBorder" CornerRadius="18" 
-                                        Visibility="{Binding CustomImagePath, Converter={StaticResource StringToVis}}">
+                                <Grid x:Name="DefaultIcon" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <Path Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" Fill="#888888" Stretch="Uniform" Opacity="0.7"/>
+                                </Grid>
+
+                                <Grid x:Name="GeoIcon" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed">
+                                    <Path Data="{Binding IconGeometry, Converter={StaticResource StringToGeo}}" Fill="#4A90D9" Stretch="Uniform" />
+                                </Grid>
+
+                                <Border x:Name="IconImage" CornerRadius="18" Visibility="Collapsed">
                                     <Border.Background>
-                                        <ImageBrush ImageSource="{Binding CustomImagePath, IsAsync=True}" Stretch="UniformToFill"/>
+                                        <ImageBrush ImageSource="{Binding IconPath, Converter={StaticResource LocalImageConverter}, IsAsync=True}" Stretch="UniformToFill"/>
                                     </Border.Background>
                                 </Border>
 
-                                <Grid Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                                    <Grid x:Name="VectorContent" Visibility="{Binding CustomImagePath, Converter={StaticResource StringToVisInverted}}">
-                                        <Path Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}}" 
-                                              Visibility="{Binding IconGeometry, Converter={StaticResource StringToVis}}"
-                                              Fill="#4A90D9" 
-                                              Stretch="Uniform" />
-                                        <Path Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
-                                              Visibility="{Binding IconGeometry, Converter={StaticResource StringToVisInverted}}"
-                                              Fill="#888888" 
-                                              Stretch="Uniform" Opacity="0.7"/>
-                                    </Grid>
-                                </Grid>
+                                <Border x:Name="CustomImage" CornerRadius="18" Visibility="Collapsed">
+                                    <Border.Background>
+                                        <ImageBrush ImageSource="{Binding CustomImagePath, Converter={StaticResource LocalImageConverter}, IsAsync=True}" Stretch="UniformToFill"/>
+                                    </Border.Background>
+                                </Border>
                             </Grid>
                         </Grid>
+                        
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Trigger.EnterActions>
@@ -102,15 +105,12 @@
                                             <DoubleAnimation Storyboard.TargetName="CardBg" Storyboard.TargetProperty="RadiusY" To="15" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
-
                                             <DoubleAnimation Storyboard.TargetName="CardTranslate" Storyboard.TargetProperty="Y" To="10" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
-                                            
                                             <ColorAnimation Storyboard.TargetName="CardBackground" Storyboard.TargetProperty="Color" To="#252525" Duration="0:0:0.4">
                                                 <ColorAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></ColorAnimation.EasingFunction>
                                             </ColorAnimation>
-                                            
                                             <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="BlurRadius" To="12" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
@@ -120,7 +120,6 @@
                                             <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
-                                            
                                             <DoubleAnimation Storyboard.TargetName="NameText" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
@@ -145,15 +144,12 @@
                                             <DoubleAnimation Storyboard.TargetName="CardBg" Storyboard.TargetProperty="RadiusY" To="18" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
-
                                             <DoubleAnimation Storyboard.TargetName="CardTranslate" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
-                                            
                                             <ColorAnimation Storyboard.TargetName="CardBackground" Storyboard.TargetProperty="Color" To="#1E1E1E" Duration="0:0:0.4">
                                                 <ColorAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></ColorAnimation.EasingFunction>
                                             </ColorAnimation>
-                                            
                                             <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="BlurRadius" To="5" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
@@ -163,7 +159,6 @@
                                             <DoubleAnimation Storyboard.TargetName="CardShadow" Storyboard.TargetProperty="Opacity" To="0.2" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
-                                            
                                             <DoubleAnimation Storyboard.TargetName="NameText" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4">
                                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
@@ -174,6 +169,24 @@
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
+                            
+                            <DataTrigger Binding="{Binding IconGeometry, Converter={StaticResource StringToVis}}" Value="Visible">
+                                <Setter TargetName="GeoIcon" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="DefaultIcon" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IconPath, Converter={StaticResource StringToVis}}" Value="Visible">
+                                <Setter TargetName="IconImage" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="GeoIcon" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="DefaultIcon" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding CustomImagePath, Converter={StaticResource StringToVis}}" Value="Visible">
+                                <Setter TargetName="CustomImage" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="IconImage" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="GeoIcon" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="DefaultIcon" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Button.Template>

@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
 namespace PromptMasterv6.Features.Launcher;
@@ -9,15 +10,15 @@ public enum LauncherCategory
     Tool
 }
 
-public class LauncherItem
+public partial class LauncherItem : ObservableObject
 {
-    public string Title { get; set; } = string.Empty;
-    public string? IconGeometry { get; set; }
-    public string? IconPath { get; set; }
-    public string? FilePath { get; set; }
-    public string? CustomImagePath { get; set; }
-    public Action? Action { get; set; }
-    public bool RunAsAdmin { get; set; }
-    public int DisplayOrder { get; set; }
-    public LauncherCategory Category { get; set; } = LauncherCategory.Application;
+    [ObservableProperty] private string title = string.Empty;
+    [ObservableProperty] private string? iconGeometry;
+    [ObservableProperty] private string? iconPath;
+    [ObservableProperty] private string? filePath;
+    [ObservableProperty] private string? customImagePath;
+    [ObservableProperty] private Action? action;
+    [ObservableProperty] private bool runAsAdmin;
+    [ObservableProperty] private int displayOrder;
+    [ObservableProperty] private LauncherCategory category = LauncherCategory.Application;
 }
