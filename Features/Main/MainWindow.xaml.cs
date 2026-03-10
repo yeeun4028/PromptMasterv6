@@ -598,6 +598,16 @@ namespace PromptMasterv6.Features.Main
         {
             StopHideTimer();
             int delay = ViewModel?.Config?.AutoHideDelay ?? 10;
+            
+            if (delay <= 0)
+            {
+                if (!this.IsActive && this.Visibility == Visibility.Visible)
+                {
+                    this.Hide();
+                }
+                return;
+            }
+            
             _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(delay) };
             _hideTimer.Tick += (s, e) =>
             {
