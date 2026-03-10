@@ -5,7 +5,6 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Launcher.Messages;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Sidebar;
 using PromptMasterv6.Features.Workspace;
 
 using System;
@@ -47,7 +46,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private FileManagerViewModel fileManagerVM;
     [ObservableProperty] private ContentEditorViewModel contentEditorVM;
-    [ObservableProperty] private SidebarViewModel? sidebarVM;
     [ObservableProperty] private WorkspaceViewModel? workspaceVM;
 
     public MainViewModel(

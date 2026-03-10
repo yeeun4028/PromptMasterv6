@@ -269,13 +269,13 @@
                                 <Style TargetType="Separator" BasedOn="{StaticResource NoIconSeparatorStyle}"/>
                             </ContextMenu.Resources>
                             <MenuItem Header="设置图标" 
-                                      Command="{Binding PlacementTarget.Tag.SidebarVM.ChangeFolderIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      Command="{Binding PlacementTarget.Tag.FileManagerVM.ChangeFolderIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
                             <MenuItem Header="重命名" 
-                                      Command="{Binding PlacementTarget.Tag.SidebarVM.RenameFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      Command="{Binding PlacementTarget.Tag.FileManagerVM.RenameFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
                             <MenuItem Header="删除" 
-                                      Command="{Binding PlacementTarget.Tag.SidebarVM.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      Command="{Binding PlacementTarget.Tag.FileManagerVM.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding}"/>
                         </ContextMenu>
                     </Setter.Value>
@@ -526,8 +526,8 @@
                             Background="{DynamicResource Block1Background}" 
                             CornerRadius="5,0,0,5">
                         <Grid>
-                            <ListBox ItemsSource="{Binding SidebarVM.Folders}" 
-                                     SelectedItem="{Binding SidebarVM.SelectedFolder}"
+                            <ListBox ItemsSource="{Binding FileManagerVM.Folders}" 
+                                     SelectedItem="{Binding FileManagerVM.SelectedFolder}"
                                      ItemContainerStyle="{StaticResource FolderListBoxItemStyle}" 
                                      Background="Transparent" 
                                      BorderThickness="0" 
@@ -536,10 +536,10 @@
                                      Margin="0,15,0,0"
                                      dd:DragDrop.IsDragSource="True" 
                                      dd:DragDrop.IsDropTarget="True"
-                                     dd:DragDrop.DropHandler="{Binding SidebarVM.FolderDropHandler}"/>
+                                     dd:DragDrop.DropHandler="{Binding FileManagerVM.FolderDropHandler}"/>
 
                             <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,20">
-                                <Button Style="{StaticResource ActionBtnStyle}" Content="新建文档" Command="{Binding SidebarVM.CreateFileCommand}">
+                                <Button Style="{StaticResource ActionBtnStyle}" Content="新建文档" Command="{Binding FileManagerVM.CreateFileCommand}">
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."
@@ -556,7 +556,7 @@
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
-                                <Button Style="{StaticResource ActionBtnStyle}" Content="新建文件夹" Command="{Binding SidebarVM.CreateFolderCommand}">
+                                <Button Style="{StaticResource ActionBtnStyle}" Content="新建文件夹" Command="{Binding FileManagerVM.CreateFolderCommand}">
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."

@@ -12,6 +12,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using GongSolutions.Wpf.DragDrop;
+using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
+using DragDropEffects = System.Windows.DragDropEffects;
 
 namespace PromptMasterv6.Features.Main;
 
@@ -30,6 +33,8 @@ public partial class FileManagerViewModel : ObservableObject
     [ObservableProperty] private ICollectionView? filesView;
     [ObservableProperty] private bool isDirty;
 
+    public IDropTarget FolderDropHandler { get; }
+
     public event Action? SaveRequested;
     public event Action<PromptItem?>? SelectedFileChanged;
 
@@ -45,22 +50,8 @@ public partial class FileManagerViewModel : ObservableObject
         _dialogService = dialogService;
         _logger = logger;
         _mediator = mediator;
-
-        WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, _) =>
-        {
-            UpdateFilesViewFilter();
-            FilesView?.Refresh();
-            
-            if (FilesView != null && !FilesView.IsEmpty)
-            {
-                var firstItem = FilesView.Cast<PromptItem>().FirstOrDefault();
-                SelectedFile = firstItem;
-            }
-            else
-            {
-                SelectedFile = null;
-            }
-        });
+        
+        FolderDropHandler = new FileManagerFolderDropHandler(this);
 
         WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(this, (_, m) =>
         {
@@ -74,6 +65,24 @@ public partial class FileManagerViewModel : ObservableObject
             var file = Files.FirstOrDefault(f => f.Id == m.PromptId);
             m.Reply(new PromptFileResponseMessage { File = file });
         });
+    }
+
+    partial void OnSelectedFolderChanged(FolderItem? value)
+    {
+        UpdateFilesViewFilter();
+        FilesView?.Refresh();
+            
+        if (FilesView != null && !FilesView.IsEmpty)
+        {
+            var firstItem = FilesView.Cast<PromptItem>().FirstOrDefault();
+            SelectedFile = firstItem;
+        }
+        else
+        {
+            SelectedFile = null;
+        }
+        
+        WeakReferenceMessenger.Default.Send(new FolderSelectionChangedMessage(value));
     }
 
     partial void OnSelectedFileChanged(PromptItem? value)
@@ -162,6 +171,71 @@ public partial class FileManagerViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(selectedFolderId)) return true;
             return string.Equals(f.FolderId, selectedFolderId, StringComparison.Ordinal);
         };
+    }
+
+    [RelayCommand]
+    private void CreateFolder()
+    {
+        var f = new FolderItem { Name = $"新建文件夹 {Folders.Count + 1}" };
+        Folders.Add(f);
+        SelectedFolder = f;
+        RequestSave();
+    }
+
+    [RelayCommand]
+    private void CreateFile()
+    {
+        if (SelectedFolder == null) return;
+
+        var f = new PromptItem { Title = "未命名提示词", Content = "", FolderId = SelectedFolder.Id, LastModified = DateTime.Now, IsRenaming = true };
+        Files.Add(f);
+        WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(f, EnterEditMode: true));
+        RequestSave();
+    }
+
+    [RelayCommand]
+    private void DeleteFolder(FolderItem? folder)
+    {
+        if (folder == null) return;
+
+        var filesInFolder = Files.Where(f => f.FolderId == folder.Id).ToList();
+        foreach (var file in filesInFolder) Files.Remove(file);
+
+        if (SelectedFolder == folder) SelectedFolder = null;
+        Folders.Remove(folder);
+        
+        WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(null, EnterEditMode: false));
+        RequestSave();
+    }
+
+    [RelayCommand]
+    private void ChangeFolderIcon(FolderItem? f)
+    {
+        if (f == null) return;
+        var dialog = new IconInputDialog(f.IconGeometry);
+        if (dialog.ShowDialog() == true)
+        {
+            f.IconGeometry = dialog.ResultGeometry;
+            RequestSave();
+        }
+    }
+
+    [RelayCommand]
+    private void RenameFolder(FolderItem? f)
+    {
+        if (f == null) return;
+        var dialog = new NameInputDialog(f.Name);
+        if (dialog.ShowDialog() == true)
+        {
+            f.Name = dialog.ResultName;
+            RequestSave();
+        }
+    }
+
+    public void ReorderFolders(int oldIndex, int newIndex)
+    {
+        Folders.Move(oldIndex, newIndex);
+        RequestSave();
     }
 
     [RelayCommand]
@@ -298,5 +372,44 @@ public partial class FileManagerViewModel : ObservableObject
         }
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
+    }
+
+    private sealed class FileManagerFolderDropHandler : IDropTarget
+    {
+        private readonly FileManagerViewModel _vm;
+        
+        public FileManagerFolderDropHandler(FileManagerViewModel vm) => _vm = vm;
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is PromptItem && dropInfo.TargetItem is FolderItem)
+            {
+                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                dropInfo.Effects = DragDropEffects.Move;
+            }
+            else if (dropInfo.Data is FolderItem && dropInfo.TargetItem is FolderItem)
+            {
+                dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+                dropInfo.Effects = DragDropEffects.Move;
+            }
+        }
+
+        public void Drop(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is PromptItem file && dropInfo.TargetItem is FolderItem fileTarget)
+            {
+                WeakReferenceMessenger.Default.Send(new RequestMoveFileToFolderMessage(file, fileTarget));
+                return;
+            }
+
+            if (dropInfo.Data is FolderItem sourceFolder && dropInfo.TargetItem is FolderItem)
+            {
+                int oldIndex = _vm.Folders.IndexOf(sourceFolder);
+                int newIndex = dropInfo.InsertIndex;
+                if (oldIndex < newIndex) newIndex--;
+                if (oldIndex == newIndex) return;
+                _vm.ReorderFolders(oldIndex, newIndex);
+            }
+        }
     }
 }

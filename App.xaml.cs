@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Sidebar;
 using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
@@ -198,7 +197,6 @@ namespace PromptMasterv6
             services.AddSingleton<WindowRegistry>();
 
             services.AddTransient<SettingsViewModel>();
-            services.AddTransient<SidebarViewModel>();
             services.AddTransient<ExternalToolsViewModel>();
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
