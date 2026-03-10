@@ -49,12 +49,23 @@ public class CompileContentHandler : IRequestHandler<CompileContentQuery, string
             }
         }
 
-        if (!string.IsNullOrEmpty(request.AdditionalInput))
+        if (!string.IsNullOrWhiteSpace(request.AdditionalInput))
         {
-            finalContent = finalContent.Replace("{{input}}", request.AdditionalInput);
+            if (finalContent.Contains("{{input}}"))
+            {
+                finalContent = finalContent.Replace("{{input}}", request.AdditionalInput);
+            }
+            else
+            {
+                finalContent = finalContent + Environment.NewLine + Environment.NewLine + request.AdditionalInput;
+            }
+        }
+        else
+        {
+            finalContent = finalContent.Replace("{{input}}", "");
         }
 
-        return Task.FromResult(finalContent);
+        return Task.FromResult(finalContent.TrimEnd());
     }
 }
 
