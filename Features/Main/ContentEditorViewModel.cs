@@ -27,6 +27,7 @@ public partial class ContentEditorViewModel : ObservableObject
     [ObservableProperty] private string additionalInput = "";
 
     private string? _originalContentBeforeEdit;
+    private bool _enterEditModeOnNextFileChange;
 
     public MarkdownPipeline Pipeline { get; }
     public AppConfig Config { get; }
@@ -52,13 +53,22 @@ public partial class ContentEditorViewModel : ObservableObject
 
     partial void OnCurrentFileChanged(PromptItem? value)
     {
-        IsEditMode = false;
+        if (_enterEditModeOnNextFileChange)
+        {
+            IsEditMode = true;
+            _enterEditModeOnNextFileChange = false;
+        }
+        else
+        {
+            IsEditMode = false;
+        }
         _ = UpdatePreviewContentAsync(value?.Content);
         SafeParseVariables(value?.Content ?? "");
     }
 
-    public async Task SetCurrentFileAsync(PromptItem? file)
+    public async Task SetCurrentFileAsync(PromptItem? file, bool enterEditMode = false)
     {
+        _enterEditModeOnNextFileChange = enterEditMode;
         CurrentFile = file;
         if (file != null)
         {

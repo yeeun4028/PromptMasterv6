@@ -70,9 +70,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         LocalConfig = settingsService.LocalConfig;
 
         FileManagerVM.SaveRequested += async () => await PerformLocalBackup();
-        FileManagerVM.SelectedFileChanged += async file => 
+        FileManagerVM.SelectedFileChanged += async (file, enterEditMode) => 
         {
-            await ContentEditorVM.SetCurrentFileAsync(file);
+            await ContentEditorVM.SetCurrentFileAsync(file, enterEditMode);
         };
 
         ContentEditorVM.ContentChanged += () =>

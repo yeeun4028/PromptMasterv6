@@ -36,7 +36,9 @@ public partial class FileManagerViewModel : ObservableObject
     public IDropTarget FolderDropHandler { get; }
 
     public event Action? SaveRequested;
-    public event Action<PromptItem?>? SelectedFileChanged;
+    public event Action<PromptItem?, bool>? SelectedFileChanged;
+
+    private bool _enterEditModeOnNextSelection;
 
     public FileManagerViewModel(
         [Microsoft.Extensions.DependencyInjection.FromKeyedServices("cloud")] IDataService dataService,
@@ -55,6 +57,7 @@ public partial class FileManagerViewModel : ObservableObject
 
         WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(this, (_, m) =>
         {
+            _enterEditModeOnNextSelection = m.EnterEditMode;
             SelectedFile = m.File;
         });
 
@@ -87,7 +90,9 @@ public partial class FileManagerViewModel : ObservableObject
 
     partial void OnSelectedFileChanged(PromptItem? value)
     {
-        SelectedFileChanged?.Invoke(value);
+        var enterEditMode = _enterEditModeOnNextSelection;
+        _enterEditModeOnNextSelection = false;
+        SelectedFileChanged?.Invoke(value, enterEditMode);
     }
 
     public async Task InitializeAsync()
