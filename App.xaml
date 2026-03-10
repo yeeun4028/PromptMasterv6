@@ -11,8 +11,16 @@
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDark.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
 
-                <!-- 2. ★★★ 新增：GitHub Markdown 主题 ★★★ -->
+                <!-- 2. GitHub Markdown 主题 -->
                 <ResourceDictionary Source="Themes/GitHubMarkdownTheme.xaml"/>
+
+                <!-- 3. 项目共享资源字典 -->
+                <ResourceDictionary Source="Infrastructure/Themes/Icons.xaml"/>
+                <ResourceDictionary Source="Infrastructure/Themes/ToolTips.xaml"/>
+                <ResourceDictionary Source="Infrastructure/Themes/Menus.xaml"/>
+                <ResourceDictionary Source="Infrastructure/Themes/Buttons.xaml"/>
+                <ResourceDictionary Source="Infrastructure/Themes/ScrollBars.xaml"/>
+                <ResourceDictionary Source="Infrastructure/Themes/ListBoxItems.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- ===============================================
