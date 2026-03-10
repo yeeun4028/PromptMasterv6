@@ -111,6 +111,8 @@ namespace PromptMasterv6
                 var shortcutCoordinator = _serviceProvider.GetRequiredService<GlobalShortcutCoordinator>();
                 shortcutCoordinator.Start();
 
+                _ = _serviceProvider.GetRequiredService<ExternalToolsViewModel>();
+
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
             }
             catch (Exception ex)
@@ -197,7 +199,7 @@ namespace PromptMasterv6
             services.AddSingleton<WindowRegistry>();
 
             services.AddTransient<SettingsViewModel>();
-            services.AddTransient<ExternalToolsViewModel>();
+            services.AddSingleton<ExternalToolsViewModel>();
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
             services.AddTransient<FileManagerViewModel>();
