@@ -96,8 +96,9 @@
                             <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,20">
                                 <Button Style="{StaticResource ActionBtnStyle}" Content="新建文档" Command="{Binding FileManagerVM.CreateFileCommand}">
                                     <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="设置图标..."
+                                        <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                                            <MenuItem Header="设置图标"
+                                                      Style="{StaticResource ModernMenuItemStyle}"
                                                       Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="CreateFile"/>
                                         </ContextMenu>
@@ -113,8 +114,9 @@
                                 </Button>
                                 <Button Style="{StaticResource ActionBtnStyle}" Content="新建文件夹" Command="{Binding FileManagerVM.CreateFolderCommand}">
                                     <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="设置图标..."
+                                        <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                                            <MenuItem Header="设置图标"
+                                                      Style="{StaticResource ModernMenuItemStyle}"
                                                       Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="CreateFolder"/>
                                         </ContextMenu>
@@ -130,8 +132,9 @@
                                 </Button>
                                 <Button Style="{StaticResource ActionBtnStyle}" Content="导入" Command="{Binding FileManagerVM.ImportMarkdownFilesCommand}">
                                     <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="设置图标..."
+                                        <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                                            <MenuItem Header="设置图标"
+                                                      Style="{StaticResource ModernMenuItemStyle}"
                                                       Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="Import"/>
                                         </ContextMenu>
@@ -147,8 +150,9 @@
                                 </Button>
                                 <Button Style="{StaticResource ActionBtnStyle}" Content="设置" Command="{Binding OpenSettingsCommand}">
                                     <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="设置图标..."
+                                        <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                                            <MenuItem Header="设置图标"
+                                                      Style="{StaticResource ModernMenuItemStyle}"
                                                       Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="Settings"/>
                                         </ContextMenu>
