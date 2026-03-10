@@ -24,22 +24,25 @@ namespace PromptMasterv6.Infrastructure.Services
 
             WeakReferenceMessenger.Default.Register<ReloadDataMessage>(this, (_, __) =>
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(RegisterAllHotkeys);
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(RegisterAllHotkeys);
             });
 
             _globalKeyService.OnLauncherTriggered += (s, e) =>
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     _windowManager.ShowLauncherWindow();
-                });
+                }));
             };
         }
 
         public void Start()
         {
-            _globalKeyService.Start();
-            RegisterAllHotkeys();
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                _globalKeyService.Start();
+                RegisterAllHotkeys();
+            });
         }
 
         private void RegisterAllHotkeys()
@@ -69,10 +72,10 @@ namespace PromptMasterv6.Infrastructure.Services
 
             if (!_hotkeyService.RegisterWindowHotkey("OcrHotkey", config.OcrHotkey, () =>
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new TriggerOcrMessage());
-                });
+                }));
             }))
             {
                 failedHotkeys.Add($"OCR截图: {config.OcrHotkey}");
@@ -80,10 +83,10 @@ namespace PromptMasterv6.Infrastructure.Services
 
             if (!_hotkeyService.RegisterWindowHotkey("TranslateHotkey", config.ScreenshotTranslateHotkey, () =>
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new TriggerTranslateMessage());
-                });
+                }));
             }))
             {
                 failedHotkeys.Add($"截图翻译: {config.ScreenshotTranslateHotkey}");
@@ -91,10 +94,10 @@ namespace PromptMasterv6.Infrastructure.Services
 
             if (!_hotkeyService.RegisterWindowHotkey("PinToScreenHotkey", config.PinToScreenHotkey, () =>
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new TriggerPinToScreenMessage());
-                });
+                }));
             }))
             {
                 failedHotkeys.Add($"贴图: {config.PinToScreenHotkey}");
@@ -102,10 +105,10 @@ namespace PromptMasterv6.Infrastructure.Services
 
             if (!_hotkeyService.RegisterWindowHotkey("FullWindowHotkey", config.FullWindowHotkey, () =>
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage());
-                });
+                }));
             }))
             {
                 failedHotkeys.Add($"主界面切换: {config.FullWindowHotkey}");
