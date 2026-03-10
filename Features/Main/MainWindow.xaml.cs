@@ -328,34 +328,19 @@ namespace PromptMasterv6.Features.Main
 
         public void ToggleWindowVisibility()
         {
-            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-            var foregroundHwnd = Infrastructure.Services.NativeMethods.GetForegroundWindow();
-
             if (this.Visibility == Visibility.Visible)
             {
-                if (hwnd != foregroundHwnd)
-                {
-                    StopHideTimer();
-                    ViewModel.IsFullMode = true;
-                    this.Topmost = true;
-                    this.Show();
-                    this.Activate();
-                    this.Focus();
-                    this.Topmost = false;
-                    return;
-                }
-
+                StopHideTimer();
                 this.Hide();
             }
             else
             {
                 StopHideTimer();
                 ViewModel.IsFullMode = true;
-                this.Topmost = true;
                 this.Show();
                 this.Activate();
                 this.Focus();
-                this.Topmost = false;
+                Infrastructure.Services.NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
             }
         }
 
