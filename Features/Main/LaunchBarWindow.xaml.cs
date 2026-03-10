@@ -128,7 +128,7 @@ namespace PromptMasterv6.Features.Main
                     switch (item.ActionTarget)
                     {
                         case "ToggleWindow":
-                            WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage());
+                            _mainViewModel.SimulateFullWindowHotkey();
                             break;
                         case "ScreenshotTranslate":
                         case "Translate":
