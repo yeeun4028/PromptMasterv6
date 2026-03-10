@@ -167,7 +167,23 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ManualBackup()
     {
-        await PerformLocalBackup();
+        try
+        {
+            await PerformLocalBackup();
+
+            await FileManagerVM.PerformCloudBackupAsync();
+
+            LocalConfig.LastCloudSyncTime = DateTime.Now;
+            _settingsService.SaveLocalConfig();
+
+            UpdateTimeDisplay();
+
+            HandyControl.Controls.Growl.Success("云端备份已完成");
+        }
+        catch (Exception ex)
+        {
+            HandyControl.Controls.Growl.Error($"云端备份失败: {ex.Message}");
+        }
     }
 
     [RelayCommand]

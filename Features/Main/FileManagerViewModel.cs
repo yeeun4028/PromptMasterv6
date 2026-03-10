@@ -331,6 +331,20 @@ public partial class FileManagerViewModel : ObservableObject
         }
     }
 
+    public async Task PerformCloudBackupAsync()
+    {
+        try
+        {
+            await _dataService.SaveAsync(Folders, Files);
+            IsDirty = false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogException(ex, "Failed to perform cloud backup", "FileManagerViewModel.PerformCloudBackupAsync");
+            throw;
+        }
+    }
+
     private void OnFilesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems != null)
