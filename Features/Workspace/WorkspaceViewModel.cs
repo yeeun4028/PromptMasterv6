@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
@@ -96,8 +96,12 @@ namespace PromptMasterv6.Features.Workspace
 
             WeakReferenceMessenger.Default.Register<RequestPromptFileMessage>(this, (r, m) =>
             {
+                if (m.HasReceivedResponse) return;
                 var file = Files.FirstOrDefault(f => f.Id == m.PromptId);
-                m.Reply(new PromptFileResponseMessage { File = file });
+                if (file != null)
+                {
+                    m.Reply(new PromptFileResponseMessage { File = file });
+                }
             });
 
             WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, _) =>

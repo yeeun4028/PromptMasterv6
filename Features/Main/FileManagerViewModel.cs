@@ -65,8 +65,12 @@ public partial class FileManagerViewModel : ObservableObject
 
         WeakReferenceMessenger.Default.Register<RequestPromptFileMessage>(this, (_, m) =>
         {
+            if (m.HasReceivedResponse) return;
             var file = Files.FirstOrDefault(f => f.Id == m.PromptId);
-            m.Reply(new PromptFileResponseMessage { File = file });
+            if (file != null)
+            {
+                m.Reply(new PromptFileResponseMessage { File = file });
+            }
         });
     }
 
