@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using PromptMasterv6.Features.Launcher.Execution;
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Launcher
@@ -20,6 +21,7 @@ namespace PromptMasterv6.Features.Launcher
         private readonly WindowManager _windowManager;
         private readonly IMediator _mediator;
         private Dictionary<string, int> _itemOrders = new();
+        private CancellationTokenSource? _renderCancellationTokenSource;
 
         [ObservableProperty]
         private ObservableCollection<LauncherItem> items = new();
@@ -119,8 +121,31 @@ namespace PromptMasterv6.Features.Launcher
             UpdateFilter();
         }
 
-        private void UpdateFilter()
+        private async Task LoadInBatchesAsync(
+            ObservableCollection<LauncherItem> targetCollection,
+            List<LauncherItem> sourceItems,
+            int batchSize,
+            CancellationToken token)
         {
+            for (int i = 0; i < sourceItems.Count; i++)
+            {
+                token.ThrowIfCancellationRequested();
+
+                targetCollection.Add(sourceItems[i]);
+
+                if ((i + 1) % batchSize == 0)
+                {
+                    await Task.Delay(15, token);
+                }
+            }
+        }
+
+        private async void UpdateFilter()
+        {
+            _renderCancellationTokenSource?.Cancel();
+            _renderCancellationTokenSource = new CancellationTokenSource();
+            var token = _renderCancellationTokenSource.Token;
+
             foreach (var item in Items)
             {
                 var key = $"{item.Category}_{item.Title}";
@@ -134,24 +159,41 @@ namespace PromptMasterv6.Features.Launcher
                 }
             }
 
-            if (Config.IsLauncherSinglePageDisplayEnabled)
+            try
             {
-                Bookmarks = new ObservableCollection<LauncherItem>(Items.Where(i => i.Category == LauncherCategory.Bookmark).OrderBy(i => i.DisplayOrder));
-                Applications = new ObservableCollection<LauncherItem>(Items.Where(i => i.Category == LauncherCategory.Application).OrderBy(i => i.DisplayOrder));
-                Tools = new ObservableCollection<LauncherItem>(Items.Where(i => i.Category == LauncherCategory.Tool).OrderBy(i => i.DisplayOrder));
-            }
-            else
-            {
-                var enumCategory = CurrentCategory switch
+                if (Config.IsLauncherSinglePageDisplayEnabled)
                 {
-                    "Bookmark" => LauncherCategory.Bookmark,
-                    "Application" => LauncherCategory.Application,
-                    "Tool" => LauncherCategory.Tool,
-                    _ => LauncherCategory.Bookmark
-                };
+                    var b = Items.Where(i => i.Category == LauncherCategory.Bookmark).OrderBy(i => i.DisplayOrder).ToList();
+                    var a = Items.Where(i => i.Category == LauncherCategory.Application).OrderBy(i => i.DisplayOrder).ToList();
+                    var t = Items.Where(i => i.Category == LauncherCategory.Tool).OrderBy(i => i.DisplayOrder).ToList();
 
-                var filtered = Items.Where(i => i.Category == enumCategory).OrderBy(i => i.DisplayOrder).ToList();
-                FilteredItems = new ObservableCollection<LauncherItem>(filtered);
+                    Bookmarks.Clear();
+                    Applications.Clear();
+                    Tools.Clear();
+
+                    await LoadInBatchesAsync(Bookmarks, b, 20, token);
+                    await LoadInBatchesAsync(Applications, a, 20, token);
+                    await LoadInBatchesAsync(Tools, t, 20, token);
+                }
+                else
+                {
+                    var enumCategory = CurrentCategory switch
+                    {
+                        "Bookmark" => LauncherCategory.Bookmark,
+                        "Application" => LauncherCategory.Application,
+                        "Tool" => LauncherCategory.Tool,
+                        _ => LauncherCategory.Bookmark
+                    };
+
+                    var filtered = Items.Where(i => i.Category == enumCategory).OrderBy(i => i.DisplayOrder).ToList();
+
+                    FilteredItems.Clear();
+
+                    await LoadInBatchesAsync(FilteredItems, filtered, 20, token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 

@@ -76,13 +76,13 @@
 
                                 <Border x:Name="IconImage" CornerRadius="18" Visibility="Collapsed" UseLayoutRounding="True" SnapsToDevicePixels="True">
                                     <Border.Background>
-                                        <ImageBrush ImageSource="{Binding IconPath, Converter={StaticResource LocalImageConverter}, IsAsync=True}" Stretch="UniformToFill"/>
+                                        <ImageBrush ImageSource="{Binding IconPath, Converter={StaticResource LocalImageConverter}}" Stretch="UniformToFill"/>
                                     </Border.Background>
                                 </Border>
 
                                 <Border x:Name="CustomImage" CornerRadius="18" Visibility="Collapsed" UseLayoutRounding="True" SnapsToDevicePixels="True">
                                     <Border.Background>
-                                        <ImageBrush ImageSource="{Binding CustomImagePath, Converter={StaticResource LocalImageConverter}, IsAsync=True}" Stretch="UniformToFill"/>
+                                        <ImageBrush ImageSource="{Binding CustomImagePath, Converter={StaticResource LocalImageConverter}}" Stretch="UniformToFill"/>
                                     </Border.Background>
                                 </Border>
                             </Grid>

@@ -10,17 +10,29 @@ public class LocalImageConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not string path || string.IsNullOrWhiteSpace(path))
+        if (value is not string path || string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return null;
 
         try
         {
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
+
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri(path, UriKind.RelativeOrAbsolute);
+
+            bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+
+            bitmap.UriSource = new Uri(path, UriKind.Absolute);
+
+            bitmap.DecodePixelWidth = 80;
+
             bitmap.EndInit();
-            bitmap.Freeze();
+
+            if (bitmap.CanFreeze)
+            {
+                bitmap.Freeze();
+            }
+
             return bitmap;
         }
         catch
