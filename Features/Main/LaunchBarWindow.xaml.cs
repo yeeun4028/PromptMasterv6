@@ -1,4 +1,4 @@
-﻿using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Launcher.Messages;
 using PromptMasterv6.Core.Messages;
 using CommunityToolkit.Mvvm.Messaging;
@@ -128,7 +128,7 @@ namespace PromptMasterv6.Features.Main
                     switch (item.ActionTarget)
                     {
                         case "ToggleWindow":
-                            WeakReferenceMessenger.Default.Send(new ToggleWindowMessage());
+                            WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage());
                             break;
                         case "ScreenshotTranslate":
                         case "Translate":
