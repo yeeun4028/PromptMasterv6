@@ -47,13 +47,24 @@ namespace PromptMasterv6.Infrastructure.Services
             var config = _settingsService.Config;
             var failedHotkeys = new System.Collections.Generic.List<string>();
 
-            try
+            if (string.IsNullOrWhiteSpace(config.LauncherHotkey))
             {
-                _globalKeyService.LauncherHotkeyString = config.LauncherHotkey;
+                failedHotkeys.Add("全局启动器 (未配置快捷键或配置为空)");
             }
-            catch (Exception)
+            else
             {
-                failedHotkeys.Add($"全局启动器: {config.LauncherHotkey}");
+                try
+                {
+                    _globalKeyService.LauncherHotkeyString = config.LauncherHotkey;
+                }
+                catch (FormatException)
+                {
+                    failedHotkeys.Add($"全局启动器 (格式非法): {config.LauncherHotkey}");
+                }
+                catch (Exception)
+                {
+                    failedHotkeys.Add($"全局启动器 (注册失败): {config.LauncherHotkey}");
+                }
             }
 
             if (!_hotkeyService.RegisterWindowHotkey("OcrHotkey", config.OcrHotkey, () =>
@@ -102,16 +113,18 @@ namespace PromptMasterv6.Infrastructure.Services
 
             if (failedHotkeys.Count > 0)
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    System.Windows.MessageBox.Show(
-                        $"以下全局快捷键已被其他程序占用，注册失败：\n\n" +
-                        $"{string.Join("\n", failedHotkeys)}\n\n" +
-                        $"请前往设置界面修改为您专属的无冲突按键组合。",
-                        "快捷键冲突警告",
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Warning);
-                });
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                    new Action(() =>
+                    {
+                        System.Windows.MessageBox.Show(
+                            $"以下全局快捷键已被其他程序占用，注册失败：\n\n" +
+                            $"{string.Join("\n", failedHotkeys)}\n\n" +
+                            $"请前往设置界面修改为您专属的无冲突按键组合。",
+                            "快捷键冲突警告",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Warning);
+                    }),
+                    System.Windows.Threading.DispatcherPriority.Loaded);
             }
         }
     }
