@@ -170,6 +170,29 @@ public partial class MainViewModel : ObservableObject, IDisposable
         await PerformLocalBackup();
     }
 
+    [RelayCommand]
+    private void ChangeActionIcon(string actionKey)
+    {
+        if (string.IsNullOrWhiteSpace(actionKey)) return;
+
+        var currentIcon = LocalConfig.ActionIcons != null && LocalConfig.ActionIcons.TryGetValue(actionKey, out var icon) ? icon : "";
+
+        var dialog = new IconInputDialog(currentIcon);
+        if (dialog.ShowDialog() == true)
+        {
+            if (LocalConfig.ActionIcons == null)
+            {
+                LocalConfig.ActionIcons = new System.Collections.Generic.Dictionary<string, string>();
+            }
+
+            LocalConfig.ActionIcons[actionKey] = dialog.ResultGeometry;
+            
+            _settingsService.SaveLocalConfig();
+
+            OnPropertyChanged(nameof(LocalConfig));
+        }
+    }
+
     private void ToggleMainWindow()
     {
         var win = System.Windows.Application.Current.MainWindow as MainWindow;

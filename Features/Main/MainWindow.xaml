@@ -543,7 +543,7 @@
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."
-                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="CreateFile"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
@@ -560,7 +560,7 @@
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."
-                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="CreateFolder"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
@@ -577,7 +577,7 @@
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."
-                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="Import"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
@@ -594,7 +594,7 @@
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="设置图标..."
-                                                      Command="{Binding ChangeActionIconCommand}"
+                                                      Command="{Binding PlacementTarget.DataContext.ChangeActionIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="Settings"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
