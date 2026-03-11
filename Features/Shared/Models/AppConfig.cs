@@ -64,8 +64,6 @@ public partial class AppConfig : ObservableObject
 
     [ObservableProperty] private bool autoHide = true;
 
-    [ObservableProperty] private int autoHideDelay = 10;
-
     [ObservableProperty]
     private string aiBaseUrl = "https://api.deepseek.com";
 

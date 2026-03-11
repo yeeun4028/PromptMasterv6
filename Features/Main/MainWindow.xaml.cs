@@ -53,7 +53,7 @@ namespace PromptMasterv6.Features.Main
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private bool _isExiting = false;
         private bool _isBackupExiting = false;
-        private DispatcherTimer? _hideTimer;
+
         private bool _isExternalCloseRequest = true;
 
         private DispatcherTimer? _routingAnimTimer;
@@ -330,12 +330,10 @@ namespace PromptMasterv6.Features.Main
         {
             if (this.Visibility == Visibility.Visible)
             {
-                StopHideTimer();
                 this.Hide();
             }
             else
             {
-                StopHideTimer();
                 ViewModel.IsFullMode = true;
                 this.Show();
                 this.Activate();
@@ -483,19 +481,9 @@ namespace PromptMasterv6.Features.Main
             _isExternalCloseRequest = true;
         }
 
-        private void CleanupTimers()
-        {
-            if (_hideTimer != null)
-            {
-                _hideTimer.Stop();
-                _hideTimer = null;
-            }
-        }
-
         private void Cleanup()
         {
             SaveWindowPosition();
-            CleanupTimers();
 
             if (ViewModel != null)
             {
@@ -572,7 +560,6 @@ namespace PromptMasterv6.Features.Main
         {
             if (SuppressAutoActivation) return;
 
-            StopHideTimer();
             this.Topmost = false; 
             NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
         }
@@ -581,43 +568,8 @@ namespace PromptMasterv6.Features.Main
         {
             if (ViewModel.Config.AutoHide)
             {
-                StartHideTimer();
+                this.Hide();
             }
-        }
-
-        private void StopHideTimer()
-        {
-            if (_hideTimer != null)
-            {
-                _hideTimer.Stop();
-                _hideTimer = null;
-            }
-        }
-
-        private void StartHideTimer()
-        {
-            StopHideTimer();
-            int delay = ViewModel?.Config?.AutoHideDelay ?? 10;
-            
-            if (delay <= 0)
-            {
-                if (!this.IsActive && this.Visibility == Visibility.Visible)
-                {
-                    this.Hide();
-                }
-                return;
-            }
-            
-            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(delay) };
-            _hideTimer.Tick += (s, e) =>
-            {
-                StopHideTimer();
-                if (!this.IsActive && this.Visibility == Visibility.Visible)
-                {
-                    this.Hide();
-                }
-            };
-            _hideTimer.Start();
         }
 
 

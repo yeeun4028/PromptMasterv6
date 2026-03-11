@@ -20,28 +20,6 @@
                               Style="{StaticResource ToggleSwitchStyle}" 
                               Cursor="Hand" VerticalAlignment="Center"/>
                 </Grid>
-                
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="自动隐藏延迟" 
-                               Style="{StaticResource FieldLabelTextStyle}" 
-                               VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" 
-                              SelectedValue="{Binding AutoHideDelay}" 
-                              SelectedValuePath="Tag"
-                              Style="{StaticResource ModernComboBoxStyle}"
-                              Width="100">
-                        <ComboBoxItem Content="0 秒" Tag="0"/>
-                        <ComboBoxItem Content="5 秒" Tag="5"/>
-                        <ComboBoxItem Content="10 秒" Tag="10"/>
-                        <ComboBoxItem Content="15 秒" Tag="15"/>
-                        <ComboBoxItem Content="20 秒" Tag="20"/>
-                        <ComboBoxItem Content="30 秒" Tag="30"/>
-                    </ComboBox>
-                </Grid>
             </StackPanel>
         </Border>
     </StackPanel>
