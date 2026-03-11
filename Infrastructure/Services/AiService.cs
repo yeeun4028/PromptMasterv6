@@ -27,7 +27,7 @@ namespace PromptMasterv6.Infrastructure.Services
         private static readonly ConcurrentLruCache<string, OpenAIService> _serviceCache 
             = new ConcurrentLruCache<string, OpenAIService>(MaxCacheSize);
 
-        private static readonly ConcurrentDictionary<string, HttpClient> _httpClientPool = new ConcurrentDictionary<string, HttpClient>();
+        private static readonly ConcurrentDictionary<string, SocketsHttpHandler> _handlerPool = new ConcurrentDictionary<string, SocketsHttpHandler>();
 
         public AiService(IHttpClientFactory httpClientFactory, SettingsService settingsService, LoggerService logger)
         {
@@ -46,23 +46,23 @@ namespace PromptMasterv6.Infrastructure.Services
 
             string cacheKey = string.IsNullOrEmpty(proxyAddress) ? "DIRECT" : $"PROXY_{proxyAddress}";
 
-            return _httpClientPool.GetOrAdd(cacheKey, key =>
+            var handler = _handlerPool.GetOrAdd(cacheKey, key =>
             {
-                _logger.LogInfo($"[HttpClient Pool] Creating new instance for route: {key}", "AiService");
+                _logger.LogInfo($"[SocketHandler Pool] Creating new SocketsHttpHandler for route: {key}", "AiService");
 
-                var handler = new SocketsHttpHandler
+                return new SocketsHttpHandler
                 {
                     PooledConnectionLifetime = TimeSpan.FromMinutes(15),
                     UseProxy = !string.IsNullOrEmpty(proxyAddress),
                     Proxy = !string.IsNullOrEmpty(proxyAddress) ? new WebProxy(proxyAddress) { BypassProxyOnLocal = false } : null,
                     MaxConnectionsPerServer = 100
                 };
-
-                return new HttpClient(handler, disposeHandler: false)
-                {
-                    Timeout = TimeSpan.FromMinutes(2)
-                };
             });
+
+            return new HttpClient(handler, disposeHandler: false)
+            {
+                Timeout = TimeSpan.FromMinutes(2)
+            };
         }
 
         private OpenAIService GetOrCreateOpenAiService(string apiKey, string baseUrl, bool useProxy = false)
