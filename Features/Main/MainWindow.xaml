@@ -703,21 +703,17 @@
                                                             <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Top" Margin="0,6,10,0" HorizontalAlignment="Right" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI"/>
-                                                        <Border x:Name="InputBorder" Grid.Column="1" BorderThickness="0" Background="Transparent" CornerRadius="2,2,0,0">
-                                                            <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="5" FontSize="14" ContextMenu="{DynamicResource UnifiedEditorContextMenu}" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" PreviewKeyDown="TextBox_PreviewKeyDown" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}"/>
+                                                        <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" FontSize="14" VerticalAlignment="Top" Margin="0,6,10,0" HorizontalAlignment="Right" Foreground="{DynamicResource AccentColor}" FontFamily="Segoe UI, Microsoft YaHei UI"/>
+                                                        <Border x:Name="InputBorder" Grid.Column="1" BorderThickness="1" BorderBrush="{DynamicResource DividerBrush}" Background="{DynamicResource InputFocusBackgroundBrush}" CornerRadius="4">
+                                                            <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="8,6" FontSize="14" ContextMenu="{DynamicResource UnifiedEditorContextMenu}" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" PreviewKeyDown="TextBox_PreviewKeyDown" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}"/>
                                                         </Border>
                                                     </Grid>
                                                     <DataTemplate.Triggers>
                                                         <Trigger SourceName="InputBox" Property="IsMouseOver" Value="True">
-                                                            <Setter TargetName="InputBorder" Property="Background" Value="{DynamicResource InputFocusBackgroundBrush}"/>
-                                                            <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource GitHubBlue}"/>
-                                                            <Setter TargetName="InputBorder" Property="BorderThickness" Value="0,0,0,1"/>
+                                                            <Setter TargetName="InputBorder" Property="BorderBrush" Value="{DynamicResource SecondaryTextBrush}"/>
                                                         </Trigger>
                                                         <Trigger SourceName="InputBox" Property="IsKeyboardFocused" Value="True">
-                                                            <Setter TargetName="InputBorder" Property="Background" Value="{DynamicResource InputFocusBackgroundBrush}"/>
-                                                            <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource GitHubBlue}"/>
-                                                            <Setter TargetName="InputBorder" Property="BorderThickness" Value="0,0,0,1"/>
+                                                            <Setter TargetName="InputBorder" Property="BorderBrush" Value="{DynamicResource AccentColor}"/>
                                                         </Trigger>
                                                     </DataTemplate.Triggers>
                                                 </DataTemplate>
