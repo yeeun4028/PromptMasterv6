@@ -240,6 +240,7 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.Automation.AutomationViewModel>();
             services.AddSingleton<Features.Settings.Window.WindowViewModel>();
             services.AddSingleton<Features.Settings.Proxy.ProxyViewModel>();
+            services.AddSingleton<Features.Settings.LaunchBar.LaunchBarViewModel>();
 
         }
 

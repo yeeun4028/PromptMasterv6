@@ -1,0 +1,173 @@
+<UserControl x:Class="PromptMasterv6.Features.Settings.LaunchBar.LaunchBarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
+             xmlns:models="clr-namespace:PromptMasterv6.Features.Shared.Models"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
+    <UserControl.Resources>
+        <converters:HexToSolidColorBrushConverter x:Key="HexToSolidColorBrushConverter"/>
+    </UserControl.Resources>
+    <Border Style="{StaticResource CardStyle}">
+        <StackPanel>
+            <Grid Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="启用屏幕左侧启动条" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
+                <CheckBox Grid.Column="1" 
+                          IsChecked="{Binding Config.EnableLaunchBar}" 
+                          Style="{StaticResource ToggleSwitchStyle}"
+                          VerticalAlignment="Center"/>
+            </Grid>
+
+            <Grid Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="启动条宽度" Style="{StaticResource FieldLabelTextStyle}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox Text="{Binding Config.LaunchBarWidth, UpdateSourceTrigger=LostFocus, Mode=TwoWay}"
+                             Style="{StaticResource ModernTextBoxStyle}"
+                             Width="80"
+                             HorizontalContentAlignment="Center"
+                             VerticalAlignment="Center"
+                             Height="30"
+                             Padding="5,4"/>
+                    <TextBlock Text="px" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource TextSecondary}"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="显示/隐藏启动条快捷键" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" 
+                         x:Name="LaunchBarHotkeyTextBox"
+                         Text="{Binding Config.LaunchBarHotkey, Mode=TwoWay}" 
+                         Style="{StaticResource KeyRecorderStyle}"
+                         Width="140"
+                         IsReadOnly="True"
+                         Cursor="Hand"
+                         VerticalAlignment="Center"
+                         PreviewKeyDown="LaunchBarHotkeyTextBox_PreviewKeyDown"
+                         ToolTip="点击按下按键设置，按 Delete 清除"/>
+            </Grid>
+
+            <TextBlock Text="启动分段配置" Style="{StaticResource FieldLabelTextStyle}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+            <TextBlock Text="颜色请使用 HEX 格式 (如 #FF4183C4)。" Style="{StaticResource HintTextStyle}" Margin="0,0,0,15"/>
+
+            <Grid Margin="15,0,25,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="105"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="90"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Text="颜色" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" Margin="5,0"/>
+                <TextBlock Grid.Column="2" Text="操作类型" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" Margin="5,0"/>
+                <TextBlock Grid.Column="3" Text="执行目标" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" Margin="5,0"/>
+                <TextBlock Grid.Column="4" Text="提示文字" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" Margin="5,0"/>
+                <TextBlock Grid.Column="5" Text="操作" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center"/>
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Config.LaunchBarItems}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource ShellBackground}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="105"/>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Rectangle Grid.Column="0" Width="10" Height="28" RadiusX="2" RadiusY="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,0">
+                                    <Rectangle.Fill>
+                                        <Binding Path="ColorHex">
+                                            <Binding.Converter>
+                                                <converters:HexToSolidColorBrushConverter/>
+                                            </Binding.Converter>
+                                        </Binding>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+
+                                <TextBox Grid.Column="1" Text="{Binding ColorHex, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="5,0" VerticalAlignment="Center" Height="30" Padding="5,4"/>
+
+                                <ComboBox Grid.Column="2" SelectedValue="{Binding ActionType}" SelectedValuePath="Tag" Style="{StaticResource ModernComboBoxStyle}" Margin="5,0" VerticalAlignment="Center" Height="30" Padding="5,4,20,4">
+                                    <ComboBoxItem Tag="{x:Static models:LaunchBarActionType.BuiltIn}" Content="内置功能"/>
+                                    <ComboBoxItem Tag="{x:Static models:LaunchBarActionType.CustomApp}" Content="外部程序"/>
+                                </ComboBox>
+
+                                <Grid Grid.Column="3" Margin="5,0" VerticalAlignment="Center">
+                                    <TextBox Text="{Binding ActionTarget, UpdateSourceTrigger=PropertyChanged}" Height="30" Padding="5,4" ToolTip="外部程序绝对路径或命令">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBoxStyle}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ActionType}" Value="{x:Static models:LaunchBarActionType.CustomApp}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                    <ComboBox SelectedValue="{Binding ActionTarget, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Tag" Height="30" Padding="5,4,20,4" ToolTip="请选择内置功能指令">
+                                        <ComboBox.Style>
+                                            <Style TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ActionType}" Value="{x:Static models:LaunchBarActionType.BuiltIn}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ComboBox.Style>
+                                        <ComboBoxItem Tag="ToggleWindow" Content="主界面显示/隐藏"/>
+                                        <ComboBoxItem Tag="Launcher" Content="快捷启动器"/>
+                                        <ComboBoxItem Tag="Translate" Content="截图翻译"/>
+                                        <ComboBoxItem Tag="Ocr" Content="截图文字识别"/>
+                                        <ComboBoxItem Tag="PinImage" Content="贴图"/>
+                                    </ComboBox>
+                                </Grid>
+
+                                <TextBox Grid.Column="4" Text="{Binding Label, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="5,0" VerticalAlignment="Center" Height="30" Padding="5,4" ToolTip="鼠标悬停时显示的提示文字"/>
+
+                                <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Button Command="{Binding DataContext.MoveLaunchBarItemUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Margin="0,0,4,0" Style="{StaticResource IconButtonStyle}" ToolTip="上移">
+                                        <Path Data="{StaticResource IconMoveUp}" Fill="{DynamicResource TextSecondary}" Stretch="Uniform" Width="14" Height="14"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.MoveLaunchBarItemDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Margin="0,0,4,0" Style="{StaticResource IconButtonStyle}" ToolTip="下移">
+                                        <Path Data="{StaticResource IconMoveDown}" Fill="{DynamicResource TextSecondary}" Stretch="Uniform" Width="14" Height="14"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RemoveLaunchBarItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="28" Height="28" Style="{StaticResource IconButtonStyle}" ToolTip="删除">
+                                        <Path Data="{StaticResource IconDelete}" Fill="{StaticResource DangerBrush}" Stretch="Uniform" Width="14" Height="14"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button Content="+ 添加新分段" 
+                    Command="{Binding AddLaunchBarItemCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    HorizontalAlignment="Center"
+                    Margin="0,15,0,0"
+                    Width="150" Height="36"/>
+        </StackPanel>
+    </Border>
+</UserControl>
