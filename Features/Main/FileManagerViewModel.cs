@@ -5,6 +5,7 @@ using MediatR;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Core.Messages;
 using System;
 using System.Collections.ObjectModel;
@@ -70,6 +71,14 @@ public partial class FileManagerViewModel : ObservableObject
             if (file != null)
             {
                 m.Reply(new PromptFileResponseMessage { File = file });
+            }
+        });
+
+        WeakReferenceMessenger.Default.Register<BackupCompletedMessage>(this, (_, m) =>
+        {
+            if (m.Success)
+            {
+                IsDirty = false;
             }
         });
     }
