@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Sync
@@ -14,17 +13,15 @@ namespace PromptMasterv6.Features.Settings.Sync
 
         private void SyncSubTab_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is System.Windows.Controls.Button btn && btn.Tag != null)
+            if (sender is System.Windows.Controls.Button btn)
             {
-                var tag = btn.Tag.ToString();
+                SyncWebDAVTab.Visibility = btn == BtnSyncWebDavTab ? Visibility.Visible : Visibility.Collapsed;
+                SyncDataTab.Visibility = btn == BtnSyncDataTab ? Visibility.Visible : Visibility.Collapsed;
+                SyncLogTab.Visibility = btn == BtnSyncLogTab ? Visibility.Visible : Visibility.Collapsed;
 
-                SyncWebDavTab.Visibility = tag == "Selected" ? Visibility.Visible : Visibility.Collapsed;
-                SyncDataTab.Visibility = tag == "1" ? Visibility.Visible : Visibility.Collapsed;
-                SyncLogTab.Visibility = tag == "2" ? Visibility.Visible : Visibility.Collapsed;
-
-                BtnSyncWebDavTab.Tag = tag == "Selected" ? "Selected" : "0";
-                BtnSyncDataTab.Tag = tag == "1" ? "Selected" : "1";
-                BtnSyncLogTab.Tag = tag == "2" ? "Selected" : "2";
+                BtnSyncWebDavTab.Tag = btn == BtnSyncWebDavTab ? "Selected" : "0";
+                BtnSyncDataTab.Tag = btn == BtnSyncDataTab ? "Selected" : "1";
+                BtnSyncLogTab.Tag = btn == BtnSyncLogTab ? "Selected" : "2";
             }
         }
 

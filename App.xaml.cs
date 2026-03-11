@@ -249,6 +249,13 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.LaunchBar.RemoveLaunchBarItemFeature.Handler>();
             services.AddSingleton<Features.Settings.LaunchBar.MoveLaunchBarItemFeature.Handler>();
 
+            services.AddSingleton<Features.Settings.ApiCredentials.TestBaiduOcrFeature.Handler>();
+            services.AddSingleton<Features.Settings.ApiCredentials.TestBaiduTranslateFeature.Handler>();
+            services.AddSingleton<Features.Settings.ApiCredentials.TestTencentOcrFeature.Handler>();
+            services.AddSingleton<Features.Settings.ApiCredentials.TestTencentTranslateFeature.Handler>();
+            services.AddSingleton<Features.Settings.ApiCredentials.TestGoogleFeature.Handler>();
+            services.AddSingleton<Features.Settings.ApiCredentials.SaveApiCredentialsFeature.Handler>();
+
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();

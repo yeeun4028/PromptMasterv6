@@ -15,7 +15,7 @@
         <!-- Sub-Tab Content Container -->
         <StackPanel>
             <!-- 1. WebDAV配置 Tab -->
-            <StackPanel x:Name="SyncWebDavTab" Visibility="Visible">
+            <StackPanel x:Name="SyncWebDAVTab" Visibility="Visible">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <StackPanel Margin="0,0,0,12">

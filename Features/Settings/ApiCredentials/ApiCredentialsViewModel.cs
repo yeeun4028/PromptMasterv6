@@ -1,25 +1,21 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.ExternalTools.Messages;
-using System;
-using System.IO;
+using PromptMasterv6.Features.Shared.Models;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media.Imaging;
 
 namespace PromptMasterv6.Features.Settings.ApiCredentials
 {
     public partial class ApiCredentialsViewModel : ObservableObject
     {
         private readonly SettingsService _settingsService;
-        private readonly DialogService _dialogService;
-        private readonly BaiduService _baiduService;
-        private readonly TencentService _tencentService;
-        private readonly GoogleService _googleService;
-        private readonly LoggerService _logger;
+        private readonly TestBaiduOcrFeature.Handler _testBaiduOcrHandler;
+        private readonly TestBaiduTranslateFeature.Handler _testBaiduTranslateHandler;
+        private readonly TestTencentOcrFeature.Handler _testTencentOcrHandler;
+        private readonly TestTencentTranslateFeature.Handler _testTencentTranslateHandler;
+        private readonly TestGoogleFeature.Handler _testGoogleHandler;
+        private readonly SaveApiCredentialsFeature.Handler _saveCredentialsHandler;
 
         public AppConfig Config => _settingsService.Config;
 
@@ -91,18 +87,20 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public ApiCredentialsViewModel(
             SettingsService settingsService,
-            DialogService dialogService,
-            BaiduService baiduService,
-            TencentService tencentService,
-            GoogleService googleService,
-            LoggerService logger)
+            TestBaiduOcrFeature.Handler testBaiduOcrHandler,
+            TestBaiduTranslateFeature.Handler testBaiduTranslateHandler,
+            TestTencentOcrFeature.Handler testTencentOcrHandler,
+            TestTencentTranslateFeature.Handler testTencentTranslateHandler,
+            TestGoogleFeature.Handler testGoogleHandler,
+            SaveApiCredentialsFeature.Handler saveCredentialsHandler)
         {
             _settingsService = settingsService;
-            _dialogService = dialogService;
-            _baiduService = baiduService;
-            _tencentService = tencentService;
-            _googleService = googleService;
-            _logger = logger;
+            _testBaiduOcrHandler = testBaiduOcrHandler;
+            _testBaiduTranslateHandler = testBaiduTranslateHandler;
+            _testTencentOcrHandler = testTencentOcrHandler;
+            _testTencentTranslateHandler = testTencentTranslateHandler;
+            _testGoogleHandler = testGoogleHandler;
+            _saveCredentialsHandler = saveCredentialsHandler;
 
             LoadAllCredentials();
         }
@@ -122,41 +120,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         {
             SaveBaiduCredentials();
 
-            var profile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.OCR);
-
-            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
-            {
-                BaiduOcrTestStatus = "请先填写 API Key 和 Secret Key";
-                BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
             BaiduOcrTestStatus = "测试中...";
             BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            try
-            {
-                byte[] testImage = CreateTestImage();
-                var result = await _baiduService.OcrAsync(testImage, profile);
+            var result = await _testBaiduOcrHandler.Handle(new TestBaiduOcrFeature.Command(BaiduOcrApiKey ?? "", BaiduOcrSecretKey ?? ""));
 
-                if (result.StartsWith("错误") || result.Contains("错误"))
-                {
-                    BaiduOcrTestStatus = $"连接失败：{result}";
-                    BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                }
-                else
-                {
-                    BaiduOcrTestStatus = "连接成功！";
-                    BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Green;
-                }
-            }
-            catch (Exception ex)
-            {
-                BaiduOcrTestStatus = $"测试出错: {ex.Message}";
-                BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                _logger.LogException(ex, "Failed to test Baidu OCR", "ApiCredentialsViewModel.TestBaiduOcr");
-            }
+            BaiduOcrTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+            BaiduOcrTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         [RelayCommand]
@@ -164,40 +134,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         {
             SaveBaiduCredentials();
 
-            var profile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
-
-            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
-            {
-                BaiduTranslateTestStatus = "请先填写 App ID 和 Secret Key";
-                BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
             BaiduTranslateTestStatus = "测试中...";
             BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            try
-            {
-                var result = await _baiduService.TranslateAsync("Hello", profile, "en", "zh");
+            var result = await _testBaiduTranslateHandler.Handle(new TestBaiduTranslateFeature.Command(BaiduTranslateAppId ?? "", BaiduTranslateSecretKey ?? ""));
 
-                if (result.StartsWith("错误") || result.Contains("错误") || result.Contains("异常"))
-                {
-                    BaiduTranslateTestStatus = $"连接失败：{result}";
-                    BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                }
-                else
-                {
-                    BaiduTranslateTestStatus = $"连接成功！翻译结果：{result}";
-                    BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Green;
-                }
-            }
-            catch (Exception ex)
-            {
-                BaiduTranslateTestStatus = $"测试出错: {ex.Message}";
-                BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                _logger.LogException(ex, "Failed to test Baidu Translate", "ApiCredentialsViewModel.TestBaiduTranslate");
-            }
+            BaiduTranslateTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+            BaiduTranslateTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         #endregion
@@ -209,41 +152,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         {
             SaveTencentCredentials();
 
-            var profile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Tencent && p.ServiceType == ServiceType.OCR);
-
-            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
-            {
-                TencentOcrTestStatus = "请先填写 Secret ID 和 Secret Key";
-                TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
             TencentOcrTestStatus = "测试中...";
             TencentOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            try
-            {
-                var testImage = CreateTestImage();
-                var result = await _tencentService.OcrAsync(testImage, profile);
+            var result = await _testTencentOcrHandler.Handle(new TestTencentOcrFeature.Command(TencentOcrSecretId ?? "", TencentOcrSecretKey ?? ""));
 
-                if (result.StartsWith("Error") || result.StartsWith("Tencent Error"))
-                {
-                    TencentOcrTestStatus = $"连接失败：{result}";
-                    TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                }
-                else
-                {
-                    TencentOcrTestStatus = "连接成功！";
-                    TencentOcrTestStatusColor = System.Windows.Media.Brushes.Green;
-                }
-            }
-            catch (Exception ex)
-            {
-                TencentOcrTestStatus = $"测试出错: {ex.Message}";
-                TencentOcrTestStatusColor = System.Windows.Media.Brushes.Red;
-                _logger.LogException(ex, "Failed to test Tencent OCR", "ApiCredentialsViewModel.TestTencentOcr");
-            }
+            TencentOcrTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+            TencentOcrTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         [RelayCommand]
@@ -251,40 +166,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         {
             SaveTencentCredentials();
 
-            var profile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Tencent && p.ServiceType == ServiceType.Translation);
-
-            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1) || string.IsNullOrWhiteSpace(profile.Key2))
-            {
-                TencentTranslateTestStatus = "请先填写 Secret ID 和 Secret Key";
-                TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
             TencentTranslateTestStatus = "测试中...";
             TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            try
-            {
-                var result = await _tencentService.TranslateAsync("Hello", profile, "auto", "zh");
+            var result = await _testTencentTranslateHandler.Handle(new TestTencentTranslateFeature.Command(TencentTranslateSecretId ?? "", TencentTranslateSecretKey ?? ""));
 
-                if (result.StartsWith("Error") || result.StartsWith("Tencent Error"))
-                {
-                    TencentTranslateTestStatus = $"连接失败：{result}";
-                    TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                }
-                else
-                {
-                    TencentTranslateTestStatus = $"连接成功！翻译结果：{result}";
-                    TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Green;
-                }
-            }
-            catch (Exception ex)
-            {
-                TencentTranslateTestStatus = $"测试出错: {ex.Message}";
-                TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Red;
-                _logger.LogException(ex, "Failed to test Tencent Translate", "ApiCredentialsViewModel.TestTencentTranslate");
-            }
+            TencentTranslateTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+            TencentTranslateTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         #endregion
@@ -319,40 +207,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         {
             SaveGoogleCredentials();
 
-            var profile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
-
-            if (profile == null || string.IsNullOrWhiteSpace(profile.Key1))
-            {
-                GoogleTestStatus = "请先填写 API Key";
-                GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
             GoogleTestStatus = "测试中...";
             GoogleTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            try
-            {
-                var result = await _googleService.TranslateAsync("Hello World", profile);
+            var result = await _testGoogleHandler.Handle(new TestGoogleFeature.Command(GoogleBaseUrl ?? "", GoogleApiKey ?? ""));
 
-                if (!string.IsNullOrWhiteSpace(result) && !result.StartsWith("Google") && !result.StartsWith("错误") && !result.StartsWith("Google API 错误"))
-                {
-                    GoogleTestStatus = $"连接成功！翻译结果：{result}";
-                    GoogleTestStatusColor = System.Windows.Media.Brushes.Green;
-                }
-                else
-                {
-                    GoogleTestStatus = $"连接失败：{result}";
-                    GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
-                }
-            }
-            catch (Exception ex)
-            {
-                GoogleTestStatus = $"测试出错: {ex.Message}";
-                GoogleTestStatusColor = System.Windows.Media.Brushes.Red;
-                _logger.LogException(ex, "Failed to test Google", "ApiCredentialsViewModel.TestGoogle");
-            }
+            GoogleTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+            GoogleTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
 
         #endregion
@@ -381,51 +242,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveBaiduCredentials()
         {
-            var baiduOcrProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.OCR);
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Baidu, ServiceType.OCR, "百度 OCR",
+                BaiduOcrApiKey ?? "", BaiduOcrSecretKey ?? ""));
 
-            if (baiduOcrProfile == null)
-            {
-                baiduOcrProfile = new ApiProfile
-                {
-                    Name = "百度 OCR",
-                    Provider = ApiProvider.Baidu,
-                    ServiceType = ServiceType.OCR
-                };
-                Config.ApiProfiles.Add(baiduOcrProfile);
-            }
-
-            baiduOcrProfile.Key1 = BaiduOcrApiKey ?? "";
-            baiduOcrProfile.Key2 = BaiduOcrSecretKey ?? "";
-
-            var baiduTransProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Baidu && p.ServiceType == ServiceType.Translation);
-
-            if (baiduTransProfile == null)
-            {
-                baiduTransProfile = new ApiProfile
-                {
-                    Name = "百度翻译",
-                    Provider = ApiProvider.Baidu,
-                    ServiceType = ServiceType.Translation
-                };
-                Config.ApiProfiles.Add(baiduTransProfile);
-            }
-
-            baiduTransProfile.Key1 = BaiduTranslateAppId ?? "";
-            baiduTransProfile.Key2 = BaiduTranslateSecretKey ?? "";
-
-            if (string.IsNullOrEmpty(Config.OcrProfileId))
-            {
-                Config.OcrProfileId = baiduOcrProfile.Id;
-            }
-            if (string.IsNullOrEmpty(Config.TranslateProfileId))
-            {
-                Config.TranslateProfileId = baiduTransProfile.Id;
-            }
-
-            _settingsService.SaveConfig();
-            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Baidu, ServiceType.Translation, "百度翻译",
+                BaiduTranslateAppId ?? "", BaiduTranslateSecretKey ?? ""));
         }
 
         private void LoadTencentCredentials()
@@ -450,51 +273,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveTencentCredentials()
         {
-            var tencentOcrProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Tencent && p.ServiceType == ServiceType.OCR);
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Tencent, ServiceType.OCR, "腾讯云 OCR",
+                TencentOcrSecretId ?? "", TencentOcrSecretKey ?? ""));
 
-            if (tencentOcrProfile == null)
-            {
-                tencentOcrProfile = new ApiProfile
-                {
-                    Name = "腾讯云 OCR",
-                    Provider = ApiProvider.Tencent,
-                    ServiceType = ServiceType.OCR
-                };
-                Config.ApiProfiles.Add(tencentOcrProfile);
-            }
-
-            tencentOcrProfile.Key1 = TencentOcrSecretId ?? "";
-            tencentOcrProfile.Key2 = TencentOcrSecretKey ?? "";
-
-            var tencentTransProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Tencent && p.ServiceType == ServiceType.Translation);
-
-            if (tencentTransProfile == null)
-            {
-                tencentTransProfile = new ApiProfile
-                {
-                    Name = "腾讯云翻译",
-                    Provider = ApiProvider.Tencent,
-                    ServiceType = ServiceType.Translation
-                };
-                Config.ApiProfiles.Add(tencentTransProfile);
-            }
-
-            tencentTransProfile.Key1 = TencentTranslateSecretId ?? "";
-            tencentTransProfile.Key2 = TencentTranslateSecretKey ?? "";
-
-            if (string.IsNullOrEmpty(Config.OcrProfileId))
-            {
-                Config.OcrProfileId = tencentOcrProfile.Id;
-            }
-            if (string.IsNullOrEmpty(Config.TranslateProfileId))
-            {
-                Config.TranslateProfileId = tencentTransProfile.Id;
-            }
-
-            _settingsService.SaveConfig();
-            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Tencent, ServiceType.Translation, "腾讯云翻译",
+                TencentTranslateSecretId ?? "", TencentTranslateSecretKey ?? ""));
         }
 
         private void LoadGoogleCredentials()
@@ -511,25 +296,9 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveGoogleCredentials()
         {
-            var googleProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Google && p.ServiceType == ServiceType.Translation);
-
-            if (googleProfile == null)
-            {
-                googleProfile = new ApiProfile
-                {
-                    Name = "Google 翻译",
-                    Provider = ApiProvider.Google,
-                    ServiceType = ServiceType.Translation
-                };
-                Config.ApiProfiles.Add(googleProfile);
-            }
-
-            googleProfile.BaseUrl = GoogleBaseUrl ?? "";
-            googleProfile.Key1 = GoogleApiKey ?? "";
-
-            _settingsService.SaveConfig();
-            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Google, ServiceType.Translation, "Google 翻译",
+                GoogleApiKey ?? "", "", GoogleBaseUrl ?? ""));
         }
 
         private void LoadYoudaoCredentials()
@@ -554,81 +323,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveYoudaoCredentials()
         {
-            var youdaoOcrProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Youdao && p.ServiceType == ServiceType.OCR);
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Youdao, ServiceType.OCR, "有道 OCR",
+                YoudaoOcrAppKey ?? "", YoudaoOcrAppSecret ?? ""));
 
-            if (youdaoOcrProfile == null)
-            {
-                youdaoOcrProfile = new ApiProfile
-                {
-                    Name = "有道 OCR",
-                    Provider = ApiProvider.Youdao,
-                    ServiceType = ServiceType.OCR
-                };
-                Config.ApiProfiles.Add(youdaoOcrProfile);
-            }
-
-            youdaoOcrProfile.Key1 = YoudaoOcrAppKey ?? "";
-            youdaoOcrProfile.Key2 = YoudaoOcrAppSecret ?? "";
-
-            var youdaoTransProfile = Config.ApiProfiles.FirstOrDefault(p =>
-                p.Provider == ApiProvider.Youdao && p.ServiceType == ServiceType.Translation);
-
-            if (youdaoTransProfile == null)
-            {
-                youdaoTransProfile = new ApiProfile
-                {
-                    Name = "有道翻译",
-                    Provider = ApiProvider.Youdao,
-                    ServiceType = ServiceType.Translation
-                };
-                Config.ApiProfiles.Add(youdaoTransProfile);
-            }
-
-            youdaoTransProfile.Key1 = YoudaoTranslateAppKey ?? "";
-            youdaoTransProfile.Key2 = YoudaoTranslateAppSecret ?? "";
-
-            _settingsService.SaveConfig();
-            WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
-        }
-
-        #endregion
-
-        #region Helper Methods
-
-        private static byte[] CreateTestImage()
-        {
-            var width = 200;
-            var height = 60;
-            var renderBitmap = new RenderTargetBitmap(width, height, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
-            var visual = new System.Windows.Media.DrawingVisual();
-
-            using (var context = visual.RenderOpen())
-            {
-                context.DrawRectangle(System.Windows.Media.Brushes.White, null, new Rect(0, 0, width, height));
-
-                var formattedText = new System.Windows.Media.FormattedText(
-                    "OCR TEST",
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    System.Windows.FlowDirection.LeftToRight,
-                    new System.Windows.Media.Typeface("Arial"),
-                    24,
-                    System.Windows.Media.Brushes.Black,
-                    1.0);
-
-                context.DrawText(formattedText, new System.Windows.Point(40, 15));
-            }
-
-            renderBitmap.Render(visual);
-
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-            using (var stream = new MemoryStream())
-            {
-                encoder.Save(stream);
-                return stream.ToArray();
-            }
+            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+                ApiProvider.Youdao, ServiceType.Translation, "有道翻译",
+                YoudaoTranslateAppKey ?? "", YoudaoTranslateAppSecret ?? ""));
         }
 
         #endregion

@@ -69,7 +69,7 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="{Binding}" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                         <Button Grid.Column="1" Command="{Binding DataContext.LauncherSettingsVM.RemoveLauncherSearchPathCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                         <Button Grid.Column="1" Command="{Binding DataContext.RemoveLauncherSearchPathCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                  CommandParameter="{Binding}" 
                                                  Content="删除" 
                                                  Style="{StaticResource DangerLinkButtonStyle}" 
@@ -89,7 +89,7 @@
                     </ItemsControl>
                 </Border>
 
-                <Button Command="{Binding LauncherSettingsVM.AddLauncherSearchPathCommand}" Content="+ 添加文件夹" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Right"/>
+                <Button Command="{Binding AddLauncherSearchPathCommand}" Content="+ 添加文件夹" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Right"/>
             </StackPanel>
         </Border>
     </StackPanel>
