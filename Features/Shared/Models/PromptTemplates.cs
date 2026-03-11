@@ -54,7 +54,4 @@ You are a professional image translation expert. Your task is to translate all v
 - Output ONLY the translated text
 - Do NOT include explanations or notes
 - If the image contains no text, output: [图像中未检测到文字]";
-
-    public string OcrErrorPrompt { get; set; } = "OCR识别失败，请检查API配置或网络连接。";
-    public string TranslationErrorPrompt { get; set; } = "翻译失败，请检查API配置或网络连接。";
 }

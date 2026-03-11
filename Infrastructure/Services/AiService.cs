@@ -239,7 +239,8 @@ namespace PromptMasterv6.Infrastructure.Services
             string base64Image = Convert.ToBase64String(imageBytes);
             string imageUrl = $"data:image/jpeg;base64,{base64Image}";
 
-            string ocrPrompt = @"You are a highly precise OCR engine. Your ONLY objective is to extract text from the provided image.
+            string userPrompt = systemPrompt == null 
+                ? @"You are a highly precise OCR engine. Your ONLY objective is to extract text from the provided image.
 
 STRICT RULES:
 1. Output ONLY the extracted text. Absolutely NO introductory phrases, NO conversational filler (e.g., do not say 'Here is the text' or 'The image contains').
@@ -248,7 +249,8 @@ STRICT RULES:
 4. If no text is found, output exactly nothing (an empty string).
 5. Do not explain your output. Do not add markdown code block wrappers (like ```) unless the original text itself is code.
 
-Begin extraction now:";
+Begin extraction now:"
+                : "Please process this image according to the system instructions.";
 
             var messages = new List<ChatMessage>
             {
@@ -257,7 +259,7 @@ Begin extraction now:";
                     new List<MessageContent>
                     {
                         MessageContent.ImageUrlContent(imageUrl),
-                        MessageContent.TextContent(ocrPrompt)
+                        MessageContent.TextContent(userPrompt)
                     })
             };
 
