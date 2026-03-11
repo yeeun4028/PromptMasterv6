@@ -33,8 +33,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private EventHandler? _onLauncherTriggeredHandler;
     private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
 
-    private bool _isSimulatingKeys;
-    public void SetSimulatingKeys(bool value) => _isSimulatingKeys = value;
+
 
     [ObservableProperty] private AppConfig config;
     [ObservableProperty] private LocalSettings localConfig;
@@ -226,21 +225,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         });
     }
 
-    private void ToggleWindowToMode(bool targetFull)
-    {
-        var win = System.Windows.Application.Current.MainWindow;
-        if (win == null) return;
 
-        if (win.Visibility != Visibility.Visible)
-        {
-            IsFullMode = true;
-            win.Show();
-            win.Activate();
-            return;
-        }
-
-        win.Hide();
-    }
 
     public async Task PerformLocalBackup()
     {

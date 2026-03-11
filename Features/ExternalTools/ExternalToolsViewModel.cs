@@ -29,28 +29,31 @@ namespace PromptMasterv6.Features.ExternalTools
         private List<ApiProfile>? _cachedTranslateProfiles;
         private int _lastConfigVersion = -1;
 
-        private List<ApiProfile> GetEnabledOcrProfiles()
+        private void InvalidateCacheIfNeeded()
         {
             var currentCount = Config.ApiProfiles.Count;
-            if (_cachedOcrProfiles == null || _lastConfigVersion != currentCount)
+            if (_lastConfigVersion != currentCount)
             {
-                _cachedOcrProfiles = Config.ApiProfiles.Where(p => p.ServiceType == ServiceType.OCR && p.IsEnabled).ToList();
+                _cachedOcrProfiles = null;
                 _cachedTranslateProfiles = null;
                 _lastConfigVersion = currentCount;
             }
-            return _cachedOcrProfiles!;
+        }
+
+        private List<ApiProfile> GetEnabledOcrProfiles()
+        {
+            InvalidateCacheIfNeeded();
+            return _cachedOcrProfiles ??= Config.ApiProfiles
+                .Where(p => p.ServiceType == ServiceType.OCR && p.IsEnabled)
+                .ToList();
         }
 
         private List<ApiProfile> GetEnabledTranslateProfiles()
         {
-            var currentCount = Config.ApiProfiles.Count;
-            if (_cachedTranslateProfiles == null || _lastConfigVersion != currentCount)
-            {
-                _cachedTranslateProfiles = Config.ApiProfiles.Where(p => p.ServiceType == ServiceType.Translation && p.IsEnabled).ToList();
-                _cachedOcrProfiles = null;
-                _lastConfigVersion = currentCount;
-            }
-            return _cachedTranslateProfiles!;
+            InvalidateCacheIfNeeded();
+            return _cachedTranslateProfiles ??= Config.ApiProfiles
+                .Where(p => p.ServiceType == ServiceType.Translation && p.IsEnabled)
+                .ToList();
         }
 
         public ObservableCollection<ApiProfile> OcrProfiles => 

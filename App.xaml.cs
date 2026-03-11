@@ -232,7 +232,6 @@ namespace PromptMasterv6
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
-            services.AddSingleton<SettingsContainerViewModel>();
             services.AddSingleton<ApiCredentialsViewModel>();
 
         }
