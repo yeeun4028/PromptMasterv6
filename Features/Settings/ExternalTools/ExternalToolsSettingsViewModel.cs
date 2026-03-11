@@ -4,7 +4,8 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Settings.AiModels;
 using PromptMasterv6.Features.Settings.ApiCredentials;
-using System.Collections.ObjectModel;using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Settings.AiModels.Messages;
@@ -19,12 +20,14 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         private readonly ISessionState _sessionState;
         private readonly AiModelsViewModel _aiModelsVM;
         private readonly ApiCredentialsViewModel _apiCredentialsVM;
+        private readonly DialogService _dialogService;
+        private readonly SaveAiTranslationConfigFeature.Handler _saveAiTranslationConfigHandler;
+        private readonly DeleteAiTranslationConfigFeature.Handler _deleteAiTranslationConfigHandler;
 
         public AppConfig Config => _settingsService.Config;
         public ObservableCollection<PromptItem> FilesView => _sessionState.Files;
         public AiModelsViewModel AiModelsVM => _aiModelsVM;
         public ApiCredentialsViewModel ApiCredentialsVM => _apiCredentialsVM;
-        private readonly DialogService _dialogService;
 
         public global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel ExternalToolsVM { get; }
 
@@ -45,7 +48,9 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel externalToolsVM,
             AiModelsViewModel aiModelsVM,
             ApiCredentialsViewModel apiCredentialsVM,
-            DialogService dialogService)
+            DialogService dialogService,
+            SaveAiTranslationConfigFeature.Handler saveAiTranslationConfigHandler,
+            DeleteAiTranslationConfigFeature.Handler deleteAiTranslationConfigHandler)
         {
             _settingsService = settingsService;
             _sessionState = sessionState;
@@ -53,6 +58,8 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             _aiModelsVM = aiModelsVM;
             _apiCredentialsVM = apiCredentialsVM;
             _dialogService = dialogService;
+            _saveAiTranslationConfigHandler = saveAiTranslationConfigHandler;
+            _deleteAiTranslationConfigHandler = deleteAiTranslationConfigHandler;
 
             WeakReferenceMessenger.Default.Register(this);
         }
@@ -83,18 +90,18 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
                 promptTitle = msg.HasReceivedResponse ? msg.Response?.File?.Title ?? "" : "";
             }
 
-            var config = new AiTranslationConfig
-            {
-                PromptId = promptId,
-                PromptTitle = promptTitle,
-                BaseUrl = Config.AiBaseUrl,
-                ApiKey = Config.AiApiKey,
-                Model = Config.AiModel
-            };
+            var result = _saveAiTranslationConfigHandler.Handle(new SaveAiTranslationConfigFeature.Command(
+                promptId,
+                promptTitle,
+                Config.AiBaseUrl,
+                Config.AiApiKey,
+                Config.AiModel
+            ));
 
-            Config.SavedAiTranslationConfigs.Add(config);
-            _settingsService.SaveConfig();
-            _dialogService.ShowToast("AI 翻译配置已保存！", "Success");
+            if (result.Success)
+            {
+                _dialogService.ShowToast(result.Message, "Success");
+            }
         }
 
         [RelayCommand]
@@ -102,12 +109,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         {
             if (string.IsNullOrWhiteSpace(configId)) return;
 
-            var config = Config.SavedAiTranslationConfigs.FirstOrDefault(c => c.Id == configId);
-            if (config != null)
-            {
-                Config.SavedAiTranslationConfigs.Remove(config);
-                _settingsService.SaveConfig();
-            }
+            _deleteAiTranslationConfigHandler.Handle(new DeleteAiTranslationConfigFeature.Command(configId));
         }
 
         public void Receive(AiModelDeletedMessage message)

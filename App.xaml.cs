@@ -236,6 +236,19 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
 
+            services.AddSingleton<Features.Settings.Sync.ManualRestoreFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.ManualLocalRestoreFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.ManualBackupFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.ExportConfigFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.ImportConfigFeature.Handler>();
+
+            services.AddSingleton<Features.Settings.ExternalTools.SaveAiTranslationConfigFeature.Handler>();
+            services.AddSingleton<Features.Settings.ExternalTools.DeleteAiTranslationConfigFeature.Handler>();
+
+            services.AddSingleton<Features.Settings.LaunchBar.AddLaunchBarItemFeature.Handler>();
+            services.AddSingleton<Features.Settings.LaunchBar.RemoveLaunchBarItemFeature.Handler>();
+            services.AddSingleton<Features.Settings.LaunchBar.MoveLaunchBarItemFeature.Handler>();
+
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();

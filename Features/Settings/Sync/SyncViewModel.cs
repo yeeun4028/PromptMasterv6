@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
@@ -13,12 +13,14 @@ namespace PromptMasterv6.Features.Settings.Sync;
 public partial class SyncViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
-    private readonly IDataService _dataService;
     private readonly FileDataService _localDataService;
     private readonly DialogService _dialogService;
-    private readonly WindowManager _windowManager;
     private readonly LoggerService _logger;
-    private readonly ISessionState _sessionState;
+    private readonly ManualRestoreFeature.Handler _manualRestoreHandler;
+    private readonly ManualLocalRestoreFeature.Handler _manualLocalRestoreHandler;
+    private readonly ManualBackupFeature.Handler _manualBackupHandler;
+    private readonly ExportConfigFeature.Handler _exportConfigHandler;
+    private readonly ImportConfigFeature.Handler _importConfigHandler;
 
     public AppConfig Config => _settingsService.Config;
     public LocalSettings LocalConfig => _settingsService.LocalConfig;
@@ -29,20 +31,24 @@ public partial class SyncViewModel : ObservableObject
 
     public SyncViewModel(
         SettingsService settingsService,
-        IDataService dataService,
         FileDataService localDataService,
         DialogService dialogService,
-        WindowManager windowManager,
         LoggerService logger,
-        ISessionState sessionState)
+        ManualRestoreFeature.Handler manualRestoreHandler,
+        ManualLocalRestoreFeature.Handler manualLocalRestoreHandler,
+        ManualBackupFeature.Handler manualBackupHandler,
+        ExportConfigFeature.Handler exportConfigHandler,
+        ImportConfigFeature.Handler importConfigHandler)
     {
         _settingsService = settingsService;
-        _dataService = dataService;
         _localDataService = localDataService;
         _dialogService = dialogService;
-        _windowManager = windowManager;
         _logger = logger;
-        _sessionState = sessionState;
+        _manualRestoreHandler = manualRestoreHandler;
+        _manualLocalRestoreHandler = manualLocalRestoreHandler;
+        _manualBackupHandler = manualBackupHandler;
+        _exportConfigHandler = exportConfigHandler;
+        _importConfigHandler = importConfigHandler;
     }
 
     [RelayCommand]
@@ -67,80 +73,29 @@ public partial class SyncViewModel : ObservableObject
         RestoreStatus = "正在从云端恢复数据...";
         RestoreStatusColor = System.Windows.Media.Brushes.Orange;
 
-        try
+        var result = await _manualRestoreHandler.Handle(new ManualRestoreFeature.Command());
+
+        if (result.Success)
         {
-            var data = await _dataService.LoadAsync();
-
-            if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))
-            {
-                RestoreStatus = "❌ 云端没有数据可恢复 (或连接失败)";
-                RestoreStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
-            ApplyRestoredData(data);
-
-            RestoreStatus = $"✅ 成功恢复 {data.Folders?.Count ?? 0} 个文件夹和 {data.Files?.Count ?? 0} 个提示词";
+            RestoreStatus = $"✅ {result.Message}";
             RestoreStatusColor = System.Windows.Media.Brushes.Green;
-
-            _logger.LogInfo($"Restored {data.Folders?.Count ?? 0} folders and {data.Files?.Count ?? 0} files", "SyncViewModel.ManualRestore");
-        }
-        catch (Exception ex)
-        {
-            RestoreStatus = $"❌ 恢复失败: {ex.Message}";
-            RestoreStatusColor = System.Windows.Media.Brushes.Red;
-            _logger.LogException(ex, "Failed to restore from cloud", "SyncViewModel.ManualRestore");
-        }
-    }
-
-    private void ApplyRestoredData(AppData data)
-    {
-        _sessionState.Files.Clear();
-        _sessionState.Folders.Clear();
-
-        if (data.Folders != null && data.Folders.Count > 0)
-        {
-            foreach (var folder in data.Folders)
-            {
-                _sessionState.Folders.Add(folder);
-            }
-            _sessionState.SelectedFolder = _sessionState.Folders.FirstOrDefault();
         }
         else
         {
-            var defaultFolder = new FolderItem { Name = "默认" };
-            _sessionState.Folders.Add(defaultFolder);
-            _sessionState.SelectedFolder = defaultFolder;
+            RestoreStatus = $"❌ {result.Message}";
+            RestoreStatusColor = System.Windows.Media.Brushes.Red;
         }
-
-        if (data.Files != null && data.Files.Count > 0)
-        {
-            foreach (var file in data.Files)
-            {
-                if (string.IsNullOrWhiteSpace(file.FolderId) && _sessionState.SelectedFolder != null)
-                {
-                    file.FolderId = _sessionState.SelectedFolder.Id;
-                }
-                _sessionState.Files.Add(file);
-            }
-        }
-
-        _sessionState.RefreshFilesView();
-        WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
     }
 
     [RelayCommand]
     private async Task ManualLocalRestore()
     {
-        var service = _localDataService as FileDataService;
-        if (service == null) return;
-
-        var backups = service.GetBackups();
-        _logger.LogInfo($"Found {backups.Count} backups in {service.BackupDirectory}", "SyncViewModel.ManualLocalRestore");
+        var backups = _localDataService.GetBackups();
+        _logger.LogInfo($"Found {backups.Count} backups in {_localDataService.BackupDirectory}", "SyncViewModel.ManualLocalRestore");
 
         if (backups.Count == 0)
         {
-            _dialogService.ShowToast($"在以下路径未找到本地备份文件：\n{service.BackupDirectory}\n\n请确保已进行过保存操作。", "Warning");
+            _dialogService.ShowToast($"在以下路径未找到本地备份文件：\n{_localDataService.BackupDirectory}\n\n请确保已进行过保存操作。", "Warning");
             return;
         }
 
@@ -160,22 +115,16 @@ public partial class SyncViewModel : ObservableObject
         RestoreStatus = "正在恢复本地数据...";
         RestoreStatusColor = System.Windows.Media.Brushes.Orange;
 
-        try
+        var result = await _manualLocalRestoreHandler.Handle(new ManualLocalRestoreFeature.Command(selected.FilePath));
+
+        if (result.Success)
         {
-            var data = await service.RestoreLocalBackupAsync(selected.FilePath);
-            if (data == null)
-            {
-                throw new Exception("读取备份文件失败");
-            }
-
-            ApplyRestoredData(data);
-
             RestoreStatus = $"✅ 本地恢复成功: {selected.FileName}";
             RestoreStatusColor = System.Windows.Media.Brushes.Green;
         }
-        catch (Exception ex)
+        else
         {
-            RestoreStatus = $"❌ 恢复失败: {ex.Message}";
+            RestoreStatus = $"❌ {result.Message}";
             RestoreStatusColor = System.Windows.Media.Brushes.Red;
         }
     }
@@ -183,20 +132,15 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ManualBackup()
     {
-        try
+        var result = await _manualBackupHandler.Handle(new ManualBackupFeature.Command());
+        
+        if (result.Success)
         {
-            await _dataService.SaveAsync(_sessionState.Folders, _sessionState.Files);
-            _sessionState.LocalConfig.LastCloudSyncTime = DateTime.Now;
-            _sessionState.IsDirty = false;
-            _sessionState.IsEditMode = false;
-            _settingsService.SaveLocalConfig();
-            _logger.LogInfo("Manual cloud backup successful", "SyncViewModel.ManualBackup");
-            _dialogService.ShowToast("云端备份成功！", "Success");
+            _dialogService.ShowToast(result.Message, "Success");
         }
-        catch (Exception ex)
+        else
         {
-            _dialogService.ShowAlert($"备份失败: {ex.Message}", "错误");
-            _logger.LogException(ex, "Failed to manual backup", "SyncViewModel.ManualBackup");
+            _dialogService.ShowAlert(result.Message, "错误");
         }
     }
 
@@ -216,14 +160,15 @@ public partial class SyncViewModel : ObservableObject
 
         if (dialog.ShowDialog(owner) == true)
         {
-            try
+            var result = _exportConfigHandler.Handle(new ExportConfigFeature.Command(dialog.FileName));
+            
+            if (result.Success)
             {
-                _settingsService.ExportSettings(dialog.FileName);
-                _dialogService.ShowToast("配置导出成功！", "Success");
+                _dialogService.ShowToast(result.Message, "Success");
             }
-            catch (Exception ex)
+            else
             {
-                _dialogService.ShowAlert($"配置导出失败: {ex.Message}", "错误");
+                _dialogService.ShowAlert(result.Message, "错误");
             }
         }
     }
@@ -245,20 +190,17 @@ public partial class SyncViewModel : ObservableObject
         {
             if (_dialogService.ShowConfirmation("导入配置将覆盖当前的设置，确定要继续吗？\n(操作后将自动重启生效)", "确认导入"))
             {
-                try
+                var result = _importConfigHandler.Handle(new ImportConfigFeature.Command(dialog.FileName));
+                
+                if (result.Success)
                 {
-                    _settingsService.ImportSettings(dialog.FileName);
-                    
-                    WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
-                    
                     OnPropertyChanged(nameof(Config));
                     OnPropertyChanged(nameof(LocalConfig));
-
-                    _dialogService.ShowToast("配置导入成功！", "Success");
+                    _dialogService.ShowToast(result.Message, "Success");
                 }
-                catch (Exception ex)
+                else
                 {
-                    _dialogService.ShowAlert($"配置导入失败: {ex.Message}", "错误");
+                    _dialogService.ShowAlert(result.Message, "错误");
                 }
             }
         }

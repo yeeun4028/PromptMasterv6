@@ -7,26 +7,34 @@ namespace PromptMasterv6.Features.Settings.LaunchBar
 {
     public partial class LaunchBarViewModel : ObservableObject
     {
+        private readonly AddLaunchBarItemFeature.Handler _addHandler;
+        private readonly RemoveLaunchBarItemFeature.Handler _removeHandler;
+        private readonly MoveLaunchBarItemFeature.Handler _moveHandler;
         private readonly SettingsService _settingsService;
 
         public AppConfig Config => _settingsService.Config;
 
-        public LaunchBarViewModel(SettingsService settingsService)
+        public LaunchBarViewModel(
+            SettingsService settingsService,
+            AddLaunchBarItemFeature.Handler addHandler,
+            RemoveLaunchBarItemFeature.Handler removeHandler,
+            MoveLaunchBarItemFeature.Handler moveHandler)
         {
             _settingsService = settingsService;
+            _addHandler = addHandler;
+            _removeHandler = removeHandler;
+            _moveHandler = moveHandler;
         }
 
         [RelayCommand]
         private void AddLaunchBarItem()
         {
-            Config.LaunchBarItems.Add(new LaunchBarItem
-            {
-                ColorHex = "#FF007ACC",
-                ActionType = LaunchBarActionType.BuiltIn,
-                ActionTarget = "ToggleWindow",
-                Label = "主界面"
-            });
-            _settingsService.SaveConfig();
+            _addHandler.Handle(new AddLaunchBarItemFeature.Command(
+                "#FF007ACC",
+                LaunchBarActionType.BuiltIn,
+                "ToggleWindow",
+                "主界面"
+            ));
         }
 
         [RelayCommand]
@@ -34,8 +42,7 @@ namespace PromptMasterv6.Features.Settings.LaunchBar
         {
             if (item != null)
             {
-                Config.LaunchBarItems.Remove(item);
-                _settingsService.SaveConfig();
+                _removeHandler.Handle(new RemoveLaunchBarItemFeature.Command(item));
             }
         }
 
@@ -44,12 +51,7 @@ namespace PromptMasterv6.Features.Settings.LaunchBar
         {
             if (item != null)
             {
-                int index = Config.LaunchBarItems.IndexOf(item);
-                if (index > 0)
-                {
-                    Config.LaunchBarItems.Move(index, index - 1);
-                    _settingsService.SaveConfig();
-                }
+                _moveHandler.Handle(new MoveLaunchBarItemFeature.Command(item, MoveLaunchBarItemFeature.MoveDirection.Up));
             }
         }
 
@@ -58,12 +60,7 @@ namespace PromptMasterv6.Features.Settings.LaunchBar
         {
             if (item != null)
             {
-                int index = Config.LaunchBarItems.IndexOf(item);
-                if (index >= 0 && index < Config.LaunchBarItems.Count - 1)
-                {
-                    Config.LaunchBarItems.Move(index, index + 1);
-                    _settingsService.SaveConfig();
-                }
+                _moveHandler.Handle(new MoveLaunchBarItemFeature.Command(item, MoveLaunchBarItemFeature.MoveDirection.Down));
             }
         }
     }
