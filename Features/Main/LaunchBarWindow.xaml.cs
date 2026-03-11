@@ -26,6 +26,18 @@ namespace PromptMasterv6.Features.Main
             this.DataContext = _mainViewModel;
             
             _mainViewModel.Config.PropertyChanged += Config_PropertyChanged;
+            if (_mainViewModel.Config.LaunchBarItems != null)
+            {
+                _mainViewModel.Config.LaunchBarItems.CollectionChanged += LaunchBarItems_CollectionChanged;
+            }
+        }
+
+        private void LaunchBarItems_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                UpdateVisibility();
+            });
         }
 
         private void Config_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -181,6 +193,10 @@ namespace PromptMasterv6.Features.Main
             if (_mainViewModel != null && _mainViewModel.Config != null)
             {
                  _mainViewModel.Config.PropertyChanged -= Config_PropertyChanged;
+                 if (_mainViewModel.Config.LaunchBarItems != null)
+                 {
+                     _mainViewModel.Config.LaunchBarItems.CollectionChanged -= LaunchBarItems_CollectionChanged;
+                 }
             }
             base.OnClosed(e);
         }

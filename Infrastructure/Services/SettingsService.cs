@@ -154,8 +154,25 @@ namespace PromptMasterv6.Infrastructure.Services
             LocalConfig = LocalConfigService.Load();
 
             InitializeDefaultWebTargets();
+            InitializeDefaultLaunchBarItems();
 
             _logger.LogInfo("Settings loaded successfully", "SettingsService.ctor");
+        }
+
+        private void InitializeDefaultLaunchBarItems()
+        {
+            if (Config.LaunchBarItems == null) Config.LaunchBarItems = new();
+
+            if (Config.LaunchBarItems.Count == 0)
+            {
+                Config.LaunchBarItems.Add(new Features.Shared.Models.LaunchBarItem { Label = "识别翻译", ActionType = Features.Shared.Models.LaunchBarActionType.BuiltIn, ActionTarget = "ScreenshotTranslate", ColorHex = "#FF4A90E2" });
+                Config.LaunchBarItems.Add(new Features.Shared.Models.LaunchBarItem { Label = "文字识别", ActionType = Features.Shared.Models.LaunchBarActionType.BuiltIn, ActionTarget = "Ocr", ColorHex = "#FF50E3C2" });
+                Config.LaunchBarItems.Add(new Features.Shared.Models.LaunchBarItem { Label = "快捷功能", ActionType = Features.Shared.Models.LaunchBarActionType.BuiltIn, ActionTarget = "Launcher", ColorHex = "#FFB8E986" });
+                Config.LaunchBarItems.Add(new Features.Shared.Models.LaunchBarItem { Label = "屏幕贴图", ActionType = Features.Shared.Models.LaunchBarActionType.BuiltIn, ActionTarget = "PinImage", ColorHex = "#FFF5A623" });
+                Config.LaunchBarItems.Add(new Features.Shared.Models.LaunchBarItem { Label = "显示隐藏", ActionType = Features.Shared.Models.LaunchBarActionType.BuiltIn, ActionTarget = "ToggleWindow", ColorHex = "#FF9B9B9B" });
+                
+                SaveConfig();
+            }
         }
 
         private void InitializeDefaultWebTargets()
