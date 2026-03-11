@@ -29,7 +29,6 @@ namespace PromptMasterv6.Features.Settings
         private void SettingsView_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateExternalToolsSubTab(0);
-            UpdateSyncSubTab(0);
         }
 
         private SettingsViewModel? ViewModel => DataContext as SettingsViewModel;
@@ -297,8 +296,10 @@ namespace PromptMasterv6.Features.Settings
 
         private void ExternalToolsSubTab_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tabIndex))
+            if (sender is Button btn && btn.Tag != null)
             {
+                var tagStr = btn.Tag.ToString();
+                int tabIndex = tagStr == "Selected" ? _selectedExternalToolsSubTab : (int.TryParse(tagStr, out int idx) ? idx : 0);
                 UpdateExternalToolsSubTab(tabIndex);
             }
         }
@@ -320,30 +321,6 @@ namespace PromptMasterv6.Features.Settings
             if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsGoogleTab != null) ExternalToolsGoogleTab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsAiTranslateTab != null) ExternalToolsAiTranslateTab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private int _selectedSyncSubTab = 0;
-
-        private void SyncSubTab_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is string tagStr)
-            {
-                int tabIndex = tagStr == "Selected" ? _selectedSyncSubTab : (int.TryParse(tagStr, out int idx) ? idx : 0);
-                UpdateSyncSubTab(tabIndex);
-            }
-        }
-
-        private void UpdateSyncSubTab(int tabIndex)
-        {
-            _selectedSyncSubTab = tabIndex;
-
-            if (BtnSyncWebDavTab != null) BtnSyncWebDavTab.Tag = tabIndex == 0 ? "Selected" : "0";
-            if (BtnSyncDataTab != null) BtnSyncDataTab.Tag = tabIndex == 1 ? "Selected" : "1";
-            if (BtnSyncLogTab != null) BtnSyncLogTab.Tag = tabIndex == 2 ? "Selected" : "2";
-
-            if (SyncWebDavTab != null) SyncWebDavTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
-            if (SyncDataTab != null) SyncDataTab.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
-            if (SyncLogTab != null) SyncLogTab.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

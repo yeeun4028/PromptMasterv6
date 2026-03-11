@@ -520,6 +520,37 @@
                 </Setter>
             </Style>
 
+            <!-- SubTab Button Style -->
+            <Style x:Key="SubTabButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" 
+                                    Background="{TemplateBinding Background}" 
+                                    BorderThickness="0,0,0,2" 
+                                    BorderBrush="Transparent" 
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentColor}"/>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Selected">
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentColor}"/>
+                                </DataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <!-- Card Style -->
             <Style x:Key="CardStyle" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource CardBackground}"/>

@@ -1,0 +1,96 @@
+<UserControl x:Class="PromptMasterv6.Features.Settings.Launcher.LauncherView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
+    <StackPanel Margin="0,0,0,14">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="同一页显示" Style="{StaticResource FieldLabelTextStyle}"/>
+                        <TextBlock Text="将书签、应用和工具并排显示在同一页" Style="{StaticResource HintTextStyle}"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding Config.IsLauncherSinglePageDisplayEnabled}" Style="{StaticResource ToggleSwitchStyle}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="快捷键" Style="{StaticResource FieldLabelTextStyle}"/>
+                    </StackPanel>
+                    <TextBox Grid.Column="1" 
+                             x:Name="LauncherHotkeyTextBox"
+                             Text="{Binding Config.LauncherHotkey, Mode=TwoWay}" 
+                             Style="{StaticResource KeyRecorderStyle}"
+                             Width="140"
+                             HorizontalAlignment="Right"
+                             IsReadOnly="True"
+                             Cursor="Hand"
+                             PreviewKeyDown="LauncherHotkeyTextBox_PreviewKeyDown"
+                             ToolTip="点击按下按键设置，按 Delete 清除"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="管理员权限" Style="{StaticResource FieldLabelTextStyle}"/>
+                        <TextBlock Text="以管理员身份运行所有启动项" Style="{StaticResource HintTextStyle}"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding Config.LauncherRunAsAdmin}" Style="{StaticResource ToggleSwitchStyle}" HorizontalAlignment="Right"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="搜索文件夹" Style="{StaticResource SectionHeaderTextStyle}"/>
+                <TextBlock Text="自动扫描以下文件夹内的快捷方式 (.lnk) 和脚本" Style="{StaticResource HintTextStyle}" Margin="0,0,0,15"/>
+
+                <Border Background="{DynamicResource ShellBackground}" CornerRadius="6" Padding="8" Margin="0,0,0,15">
+                    <ItemsControl ItemsSource="{Binding Config.LauncherSearchPaths}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="ItemBorder" CornerRadius="4" Padding="10,8" Background="Transparent" Margin="0,0,0,2">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                         <Button Grid.Column="1" Command="{Binding DataContext.LauncherSettingsVM.RemoveLauncherSearchPathCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                 CommandParameter="{Binding}" 
+                                                 Content="删除" 
+                                                 Style="{StaticResource DangerLinkButtonStyle}" 
+                                                 Margin="10,0,0,0"
+                                                 Visibility="Hidden" 
+                                                 x:Name="DeleteButton"/>
+                                    </Grid>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
+                                        <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <Button Command="{Binding LauncherSettingsVM.AddLauncherSearchPathCommand}" Content="+ 添加文件夹" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>
