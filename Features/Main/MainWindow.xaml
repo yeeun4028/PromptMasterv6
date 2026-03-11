@@ -24,9 +24,11 @@
         Background="Transparent"
         TextOptions.TextFormattingMode="Display"
         UseLayoutRounding="True"
-        PreviewKeyDown="Window_PreviewKeyDown"
         Activated="Window_Activated"
         Deactivated="Window_Deactivated">
+    <b:Interaction.Behaviors>
+        <behaviors:EscapeToHideWindowBehavior/>
+    </b:Interaction.Behaviors>
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="8" GlassFrameThickness="0" CornerRadius="0"/>
@@ -165,9 +167,13 @@
                                              TextOptions.TextRenderingMode="ClearType"
                                              Padding="5"
                                              FontFamily="Segoe UI, Microsoft YaHei UI"
-                                             PreviewKeyDown="TextBox_PreviewKeyDown"
                                              LostFocus="Block3ContentEditor_LostFocus"
                                              hc:InfoElement.Placeholder="在此处键入提示词内容...">
+                                        <b:Interaction.Behaviors>
+                                            <behaviors:DoubleEnterSendBehavior 
+                                                Command="{Binding ContentEditorVM.SendDefaultWebTargetCommand}"
+                                                EnableDoubleEnterSend="{Binding Config.EnableDoubleEnterSend}"/>
+                                        </b:Interaction.Behaviors>
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Setter Property="Visibility" Value="Collapsed"/>

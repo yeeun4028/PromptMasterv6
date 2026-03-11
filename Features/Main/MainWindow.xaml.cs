@@ -11,7 +11,6 @@ using PromptMasterv6.Infrastructure.Services;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Gma.System.MouseKeyHook;
 using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,9 +28,6 @@ namespace PromptMasterv6.Features.Main
     {
         public MainViewModel ViewModel { get; }
         private readonly LoggerService _logger;
-
-        private DateTime _lastVarEnterTime = DateTime.MinValue;
-        private DateTime _lastAddEnterTime = DateTime.MinValue;
 
         private DateTime _suppressAutoHideUntilUtc = DateTime.MinValue;
 
@@ -567,87 +563,9 @@ namespace PromptMasterv6.Features.Main
 
 
 
-        private async void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                var textBox = sender as TextBox;
-                if (textBox == null) return;
-                bool isCtrlEnter = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
-                var now = DateTime.Now;
-                var span = (now - _lastVarEnterTime).TotalMilliseconds;
-
-                if (isCtrlEnter)
-                {
-                    e.Handled = true;
-                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
-                    return;
-                }
-                
-                if (span < 500 && ViewModel.Config.EnableDoubleEnterSend)
-                {
-                    e.Handled = true;
-                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
-                    _lastVarEnterTime = DateTime.MinValue;
-                    return;
-                }
-                _lastVarEnterTime = now;
-            }
-        }
-
-        private async void AdditionalInputBox_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                var textBox = sender as TextBox;
-                if (textBox == null) return;
-                bool isCtrlEnter = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
-                var now = DateTime.Now;
-                var span = (now - _lastAddEnterTime).TotalMilliseconds;
-                if (isCtrlEnter)
-                {
-                    e.Handled = true;
-                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
-                }
-                else if (span < 500 && ViewModel.Config.EnableDoubleEnterSend)
-                {
-                    e.Handled = true;
-                    ViewModel.ContentEditorVM.SendDefaultWebTargetCommand.Execute(null);
-                    _lastAddEnterTime = DateTime.MinValue;
-                }
-                else
-                {
-                    _lastAddEnterTime = now;
-                    int caretIndex = textBox.CaretIndex;
-                    int lineIndex = textBox.GetLineIndexFromCharacterIndex(caretIndex);
-                    if (lineIndex < 0) return;
-                    string lineText = textBox.GetLineText(lineIndex);
-                    var match = Regex.Match(lineText, @"^(\s*)(\d+)\.(\s+)");
-                    if (match.Success)
-                    {
-                        string indentation = match.Groups[1].Value;
-                        int currentNumber = int.Parse(match.Groups[2].Value);
-                        string spacing = match.Groups[3].Value;
-                        string insertText = $"\n{indentation}{currentNumber + 1}.{spacing}";
-                        textBox.SelectedText = insertText;
-                        textBox.CaretIndex += insertText.Length;
-                        e.Handled = true;
-                    }
-                }
-            }
-        }
-
         private void WebDavPasswordBox_Loaded(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null && pb.Password != ViewModel.Config.Password) pb.Password = ViewModel.Config.Password; }
         private void WebDavPasswordBox_PasswordChanged(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null) ViewModel.Config.Password = pb.Password; }
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Escape)
-            {
-                this.Hide();
-                e.Handled = true;
-            }
-        }
         private void Block3ContentEditor_LostFocus(object sender, RoutedEventArgs e)
         {
             CheckAndExitEditMode();

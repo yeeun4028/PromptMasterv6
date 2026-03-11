@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behaviors="clr-namespace:PromptMasterv6.Infrastructure.Behaviors"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="200">
 
@@ -146,7 +148,13 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding Name, StringFormat='{}{0}:'}" FontSize="14" VerticalAlignment="Top" Margin="0,6,10,0" HorizontalAlignment="Right" Foreground="{DynamicResource AccentColor}" FontFamily="Segoe UI, Microsoft YaHei UI"/>
                                 <Border x:Name="InputBorder" Grid.Column="1" BorderThickness="1" BorderBrush="{DynamicResource DividerBrush}" Background="{DynamicResource InputFocusBackgroundBrush}" CornerRadius="4">
-                                    <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="8,6" FontSize="14" ContextMenu="{DynamicResource UnifiedEditorContextMenu}" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" PreviewKeyDown="InputBox_PreviewKeyDown" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}"/>
+                                    <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="8,6" FontSize="14" ContextMenu="{DynamicResource UnifiedEditorContextMenu}" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}">
+                                        <b:Interaction.Behaviors>
+                                            <behaviors:DoubleEnterSendBehavior 
+                                                Command="{Binding DataContext.ContentEditorVM.SendDefaultWebTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                EnableDoubleEnterSend="{Binding DataContext.Config.EnableDoubleEnterSend, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                        </b:Interaction.Behaviors>
+                                    </TextBox>
                                 </Border>
                             </Grid>
                             <DataTemplate.Triggers>
@@ -165,7 +173,6 @@
             <TextBox Grid.Row="1" Text="{Binding ContentEditorVM.AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
                      Foreground="{DynamicResource PrimaryTextBrush}"
                      CaretBrush="{DynamicResource PrimaryTextBrush}"
-                     PreviewKeyDown="AdditionalInputBox_PreviewKeyDown"
                      AcceptsReturn="True" 
                      TextWrapping="Wrap" 
                      Padding="10" 
@@ -175,6 +182,11 @@
                      ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
                      FontSize="14" 
                      FontFamily="Segoe UI, Microsoft YaHei UI">
+                <b:Interaction.Behaviors>
+                    <behaviors:AutoNumberListBehavior 
+                        Command="{Binding ContentEditorVM.SendDefaultWebTargetCommand}"
+                        EnableDoubleEnterSend="{Binding Config.EnableDoubleEnterSend}"/>
+                </b:Interaction.Behaviors>
                 <TextBox.Style>
                     <Style TargetType="TextBox">
                         <Setter Property="Visibility" Value="Visible"/>
