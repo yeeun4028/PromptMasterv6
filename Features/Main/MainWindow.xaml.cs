@@ -568,7 +568,11 @@ namespace PromptMasterv6.Features.Main
         {
             if (ViewModel.Config.AutoHide)
             {
-                this.Hide();
+                var isSettingsOpen = Application.Current.Windows.OfType<Window>().Any(w => w.GetType().Name == "SettingsWindow" && w.IsVisible);
+                if (!isSettingsOpen)
+                {
+                    this.Hide();
+                }
             }
         }
 
