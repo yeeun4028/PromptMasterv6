@@ -241,68 +241,7 @@
                     <GridSplitter Grid.Column="0" 
                                   Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Transparent" ShowsPreview="True"/>
 
-                    <Border Grid.Column="1" Background="{DynamicResource Block2Background}">
-                        <Grid>
-                            <Grid Height="40" VerticalAlignment="Top" Background="Transparent">
-                                <b:Interaction.Behaviors>
-                                    <behaviors:WindowDragBehavior/>
-                                </b:Interaction.Behaviors>
-                            </Grid>
-
-                            <ListBox ItemsSource="{Binding FileManagerVM.FilesView}"
-                                      SelectedItem="{Binding FileManagerVM.SelectedFile}"
-                                      ItemContainerStyle="{StaticResource FileListBoxItemStyle}"
-                                      Background="Transparent"
-                                      BorderThickness="0"
-                                      Margin="10,23,5,10"
-                                      dd:DragDrop.IsDragSource="True"
-                                      dd:DragDrop.IsDropTarget="True">
-                                <ListBox.Resources>
-                                    <Style TargetType="ScrollBar" BasedOn="{StaticResource Block2ScrollBarStyle}"/>
-                                </ListBox.Resources>
-
-                                <ListBox.InputBindings>
-                                    <KeyBinding Key="Delete" Command="{Binding FileManagerVM.DeleteFileCommand}" CommandParameter="{Binding FileManagerVM.SelectedFile}"/>
-                                </ListBox.InputBindings>
-
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="13" FontFamily="Segoe UI, Microsoft YaHei UI" VerticalAlignment="Center">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsRenaming}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBox x:Name="InlineRenameTextBox" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Background="{DynamicResource InputFocusBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}" 
-                                                     BorderBrush="{StaticResource GitHubBlue}" BorderThickness="0,0,0,1" 
-                                                     FontSize="13" FontFamily="Segoe UI, Microsoft YaHei UI" Padding="0"
-                                                     VerticalAlignment="Center"
-                                                     Loaded="FileInlineEditor_Loaded" PreviewKeyDown="FileInlineEditor_KeyDown" LostFocus="FileInlineEditor_LostFocus">
-                                                <TextBox.Style>
-                                                    <Style TargetType="TextBox">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsRenaming}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBox.Style>
-                                            </TextBox>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </Grid>
-                    </Border>
+                    <components:FileListView Grid.Column="1"/>
                     <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Transparent" ShowsPreview="True"/>
                     <Border Grid.Column="1" Width="1" HorizontalAlignment="Right" Background="{DynamicResource DividerBrush}" IsHitTestVisible="False"/>
 
