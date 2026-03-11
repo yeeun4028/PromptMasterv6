@@ -1,5 +1,7 @@
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
+using CommunityToolkit.Mvvm.Messaging;
+using PromptMasterv6.Features.Settings.AiModels.Messages;
 
 namespace PromptMasterv6.Features.Settings.AiModels
 {
@@ -33,6 +35,8 @@ namespace PromptMasterv6.Features.Settings.AiModels
                 }
 
                 _settingsService.SaveConfig();
+
+                WeakReferenceMessenger.Default.Send(new AiModelDeletedMessage(model));
             }
         }
     }

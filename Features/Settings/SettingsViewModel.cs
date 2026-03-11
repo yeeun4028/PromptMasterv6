@@ -11,13 +11,15 @@ using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Core.Interfaces;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using PromptMasterv6.Features.Settings.AiModels.Messages;
 
 namespace PromptMasterv6.Features.Settings
 {
-    public partial class SettingsViewModel : ObservableObject
+    public partial class SettingsViewModel : ObservableObject, IRecipient<AiModelDeletedMessage>
     {
         private readonly SettingsService _settingsService;
         private readonly AiService _aiService;
@@ -103,6 +105,8 @@ namespace PromptMasterv6.Features.Settings
             LauncherSettingsVM = launcherSettingsVM;
             ApiCredentialsVM = apiCredentialsVM;
             ExternalToolsVM = externalToolsVM;
+
+            WeakReferenceMessenger.Default.Register(this);
 
             _logger.LogInfo("SettingsViewModel initialized", "SettingsViewModel.ctor");
         }
@@ -564,6 +568,26 @@ namespace PromptMasterv6.Features.Settings
                     Config.LaunchBarItems.Move(index, index + 1);
                     _settingsService.SaveConfig();
                 }
+            }
+        }
+
+        #endregion
+
+        #region IRecipient Implementation
+
+        public void Receive(AiModelDeletedMessage message)
+        {
+            var affectedConfigs = Config.SavedAiTranslationConfigs
+                .Where(c => c.Model == message.DeletedModelName).ToList();
+
+            if (affectedConfigs.Any())
+            {
+                foreach (var c in affectedConfigs)
+                {
+                    c.Model = "已失效 (请重新配置)";
+                }
+                _settingsService.SaveConfig();
+                _dialogService.ShowToast($"警告：翻译引擎依赖的模型 '{message.DeletedModelName}' 已被删除，请重新配置。", "Warning");
             }
         }
 
