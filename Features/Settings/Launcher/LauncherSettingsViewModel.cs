@@ -1,20 +1,27 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PromptMasterv6.Infrastructure.Services;
 using System;
-using System.Windows;
 
 namespace PromptMasterv6.Features.Settings.Launcher;
 
 public partial class LauncherSettingsViewModel : ObservableObject
 {
+    private readonly AddSearchPathFeature.Handler _addSearchPathHandler;
+    private readonly RemoveSearchPathFeature.Handler _removeSearchPathHandler;
     private readonly SettingsService _settingsService;
     private readonly LoggerService _logger;
 
     public AppConfig Config => _settingsService.Config;
 
-    public LauncherSettingsViewModel(SettingsService settingsService, LoggerService logger)
+    public LauncherSettingsViewModel(
+        AddSearchPathFeature.Handler addSearchPathHandler,
+        RemoveSearchPathFeature.Handler removeSearchPathHandler,
+        SettingsService settingsService,
+        LoggerService logger)
     {
+        _addSearchPathHandler = addSearchPathHandler;
+        _removeSearchPathHandler = removeSearchPathHandler;
         _settingsService = settingsService;
         _logger = logger;
     }
@@ -33,11 +40,10 @@ public partial class LauncherSettingsViewModel : ObservableObject
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                string path = dialog.SelectedPath;
-                if (!Config.LauncherSearchPaths.Contains(path))
+                var result = _addSearchPathHandler.Handle(new AddSearchPathFeature.Command(dialog.SelectedPath));
+                if (!result.Success && result.ErrorMessage != null)
                 {
-                    Config.LauncherSearchPaths.Add(path);
-                    _settingsService.SaveConfig();
+                    _logger.LogInfo($"Add search path skipped: {result.ErrorMessage}", "LauncherSettingsViewModel.AddLauncherSearchPath");
                 }
             }
         }
@@ -51,58 +57,6 @@ public partial class LauncherSettingsViewModel : ObservableObject
     private void RemoveLauncherSearchPath(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
-        Config.LauncherSearchPaths.Remove(path);
-        _settingsService.SaveConfig();
-    }
-
-    [RelayCommand]
-    private void AddLaunchBarItem()
-    {
-        Config.LaunchBarItems.Add(new LaunchBarItem
-        {
-            ColorHex = "#FF007ACC",
-            ActionType = LaunchBarActionType.BuiltIn,
-            ActionTarget = "ToggleWindow",
-            Label = "主界面"
-        });
-        _settingsService.SaveConfig();
-    }
-
-    [RelayCommand]
-    private void RemoveLaunchBarItem(LaunchBarItem? item)
-    {
-        if (item != null)
-        {
-            Config.LaunchBarItems.Remove(item);
-            _settingsService.SaveConfig();
-        }
-    }
-
-    [RelayCommand]
-    private void MoveLaunchBarItemUp(LaunchBarItem? item)
-    {
-        if (item != null)
-        {
-            int index = Config.LaunchBarItems.IndexOf(item);
-            if (index > 0)
-            {
-                Config.LaunchBarItems.Move(index, index - 1);
-                _settingsService.SaveConfig();
-            }
-        }
-    }
-
-    [RelayCommand]
-    private void MoveLaunchBarItemDown(LaunchBarItem? item)
-    {
-        if (item != null)
-        {
-            int index = Config.LaunchBarItems.IndexOf(item);
-            if (index >= 0 && index < Config.LaunchBarItems.Count - 1)
-            {
-                Config.LaunchBarItems.Move(index, index + 1);
-                _settingsService.SaveConfig();
-            }
-        }
+        _removeSearchPathHandler.Handle(new RemoveSearchPathFeature.Command(path));
     }
 }

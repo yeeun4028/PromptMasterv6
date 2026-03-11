@@ -233,6 +233,9 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
             services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
 
+            services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
+            services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
+
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
