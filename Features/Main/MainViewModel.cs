@@ -6,6 +6,8 @@ using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Launcher.Messages;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Workspace;
+using PromptMasterv6.Features.Main.ContentEditor;
+using PromptMasterv6.Features.Main.ContentEditor.Messages;
 
 using System;
 using System.ComponentModel;
@@ -74,10 +76,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             await ContentEditorVM.SetCurrentFileAsync(file, enterEditMode);
         };
 
-        ContentEditorVM.ContentChanged += () =>
-        {
-            FileManagerVM.RequestSaveCommand.Execute(null);
-        };
+        WeakReferenceMessenger.Default.Register<ContentChangedMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
 
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
         WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, _) => await PerformLocalBackup());
@@ -88,7 +87,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (m.File != null)
             {
                 FileManagerVM.SelectedFile = m.File;
-                ContentEditorVM.IsEditMode = true;
+                WeakReferenceMessenger.Default.Send(new Messages.RequestSelectFileMessage(m.File, true));
             }
         });
 

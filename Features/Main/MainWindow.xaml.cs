@@ -566,32 +566,6 @@ namespace PromptMasterv6.Features.Main
         private void WebDavPasswordBox_Loaded(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null && pb.Password != ViewModel.Config.Password) pb.Password = ViewModel.Config.Password; }
         private void WebDavPasswordBox_PasswordChanged(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null) ViewModel.Config.Password = pb.Password; }
 
-        private void Block3ContentEditor_LostFocus(object sender, RoutedEventArgs e)
-        {
-            CheckAndExitEditMode();
-        }
-
-        private void CheckAndExitEditMode()
-        {
-            if (ViewModel == null || !ViewModel.ContentEditorVM.IsEditMode) return;
-
-            var focused = Keyboard.FocusedElement as DependencyObject;
-            if (IsBlock3Editor(focused)) return;
-
-            ViewModel.ContentEditorVM.IsEditMode = false;
-            ViewModel.FileManagerVM.RequestSaveCommand.Execute(null);
-        }
-
-        private bool IsBlock3Editor(DependencyObject? obj)
-        {
-            if (obj == null) return false;
-            if (obj == Block3ContentEditor) return true;
-            
-            if (Block3ContentEditor != null && Block3ContentEditor.IsAncestorOf(obj)) return true;
-            
-            return false;
-        }
-
         private void FileInlineEditor_Loaded(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem && promptItem.IsRenaming)

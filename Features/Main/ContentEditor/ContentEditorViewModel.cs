@@ -1,7 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
 using MediatR;
+using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Features.Shared.Models;
@@ -11,7 +14,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace PromptMasterv6.Features.Main;
+namespace PromptMasterv6.Features.Main.ContentEditor;
 
 public partial class ContentEditorViewModel : ObservableObject
 {
@@ -19,7 +22,7 @@ public partial class ContentEditorViewModel : ObservableObject
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
 
-    [ObservableProperty] private PromptItem? currentFile;
+    [ObservableProperty] private PromptItem? selectedFile;
     [ObservableProperty] private bool isEditMode;
     [ObservableProperty] private string? previewContent;
     [ObservableProperty] private ObservableCollection<VariableItem> variables = new();
@@ -49,9 +52,14 @@ public partial class ContentEditorViewModel : ObservableObject
             .UseSoftlineBreakAsHardlineBreak()
             .DisableHtml()
             .Build();
+
+        WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(this, async (_, m) =>
+        {
+            await SetCurrentFileAsync(m.File, m.EnterEditMode);
+        });
     }
 
-    partial void OnCurrentFileChanged(PromptItem? value)
+    partial void OnSelectedFileChanged(PromptItem? value)
     {
         if (_enterEditModeOnNextFileChange)
         {
@@ -69,7 +77,7 @@ public partial class ContentEditorViewModel : ObservableObject
     public async Task SetCurrentFileAsync(PromptItem? file, bool enterEditMode = false)
     {
         _enterEditModeOnNextFileChange = enterEditMode;
-        CurrentFile = file;
+        SelectedFile = file;
         if (file != null)
         {
             await UpdatePreviewContentAsync(file.Content);
@@ -132,7 +140,7 @@ public partial class ContentEditorViewModel : ObservableObject
     [RelayCommand]
     private async Task ToggleEditMode()
     {
-        if (CurrentFile == null)
+        if (SelectedFile == null)
         {
             IsEditMode = false;
             return;
@@ -140,21 +148,22 @@ public partial class ContentEditorViewModel : ObservableObject
 
         if (IsEditMode)
         {
-            bool contentChanged = !string.Equals(_originalContentBeforeEdit, CurrentFile.Content, StringComparison.Ordinal);
+            bool contentChanged = !string.Equals(_originalContentBeforeEdit, SelectedFile.Content, StringComparison.Ordinal);
 
             if (contentChanged)
             {
-                CurrentFile.LastModified = DateTime.Now;
+                SelectedFile.LastModified = DateTime.Now;
                 ContentChanged?.Invoke();
+                WeakReferenceMessenger.Default.Send(new ContentChangedMessage(SelectedFile));
             }
 
             IsEditMode = false;
-            PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(CurrentFile.Content));
+            PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(SelectedFile.Content));
             _originalContentBeforeEdit = null;
             return;
         }
 
-        _originalContentBeforeEdit = CurrentFile.Content;
+        _originalContentBeforeEdit = SelectedFile.Content;
         IsEditMode = true;
     }
 
@@ -162,13 +171,13 @@ public partial class ContentEditorViewModel : ObservableObject
     private async Task CopyCompiledText()
     {
         var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-        await _mediator.Send(new CopyCompiledTextCommand(CurrentFile?.Content, variablesDict, AdditionalInput));
+        await _mediator.Send(new CopyCompiledTextCommand(SelectedFile?.Content, variablesDict, AdditionalInput));
     }
 
     [RelayCommand]
     private async Task SendDefaultWebTarget()
     {
-        if (CurrentFile == null) return;
+        if (SelectedFile == null) return;
 
         if (HasVariables)
         {
@@ -183,7 +192,7 @@ public partial class ContentEditorViewModel : ObservableObject
         }
 
         var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-        var content = await _mediator.Send(new CompileContentQuery(CurrentFile?.Content, variablesDict, AdditionalInput));
+        var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
         await _mediator.Send(new SendToDefaultTargetCommand(content, Config.WebDirectTargets, Config.DefaultWebTargetName));
         AdditionalInput = "";
     }
@@ -191,7 +200,7 @@ public partial class ContentEditorViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenWebTarget(WebTarget? target)
     {
-        if (target == null || CurrentFile == null) return;
+        if (target == null || SelectedFile == null) return;
 
         if (HasVariables)
         {
@@ -206,7 +215,7 @@ public partial class ContentEditorViewModel : ObservableObject
         }
 
         var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-        var content = await _mediator.Send(new CompileContentQuery(CurrentFile?.Content, variablesDict, AdditionalInput));
+        var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
         await _mediator.Send(new ExecuteWebTargetCommand(target, content));
         AdditionalInput = "";
     }

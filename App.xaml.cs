@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
+using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;

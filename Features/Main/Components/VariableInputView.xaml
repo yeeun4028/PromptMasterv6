@@ -29,7 +29,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Command="{Binding DataContext.ContentEditorVM.OpenWebTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                <Button Command="{Binding DataContext.OpenWebTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}"
                                         ToolTip="{Binding Name}"
                                         Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVis}}"
@@ -67,7 +67,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Button Command="{Binding ContentEditorVM.SearchOnGitHubCommand}"
+                    <Button Command="{Binding SearchOnGitHubCommand}"
                             ToolTip="在 GitHub 上搜索 (仅搜索此输入框内容)"
                             Margin="0,0,0,0"
                             Padding="6,4"
@@ -100,7 +100,7 @@
                     </Button>
                 </StackPanel>
 
-                <Button Command="{Binding ContentEditorVM.CopyCompiledTextCommand}"
+                <Button Command="{Binding CopyCompiledTextCommand}"
                         ToolTip="复制最终结果 (Ctrl+C)"
                         HorizontalAlignment="Right"
                         Margin="0,0,0,0"
@@ -132,13 +132,13 @@
                     <Style TargetType="ScrollViewer">
                         <Setter Property="Visibility" Value="Collapsed"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding ContentEditorVM.HasVariables}" Value="True">
+                            <DataTrigger Binding="{Binding HasVariables}" Value="True">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </ScrollViewer.Style>
-                <ItemsControl ItemsSource="{Binding ContentEditorVM.Variables}">
+                <ItemsControl ItemsSource="{Binding Variables}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,5">
@@ -151,7 +151,7 @@
                                     <TextBox x:Name="InputBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Padding="8,6" FontSize="14" ContextMenu="{DynamicResource UnifiedEditorContextMenu}" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="Wrap" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Segoe UI, Microsoft YaHei UI" Style="{x:Null}">
                                         <b:Interaction.Behaviors>
                                             <behaviors:DoubleEnterSendBehavior 
-                                                Command="{Binding DataContext.ContentEditorVM.SendDefaultWebTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                Command="{Binding DataContext.SendDefaultWebTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 EnableDoubleEnterSend="{Binding DataContext.Config.EnableDoubleEnterSend, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                                         </b:Interaction.Behaviors>
                                     </TextBox>
@@ -170,7 +170,7 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <TextBox Grid.Row="1" Text="{Binding ContentEditorVM.AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
+            <TextBox Grid.Row="1" Text="{Binding AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
                      Foreground="{DynamicResource PrimaryTextBrush}"
                      CaretBrush="{DynamicResource PrimaryTextBrush}"
                      AcceptsReturn="True" 
@@ -184,14 +184,14 @@
                      FontFamily="Segoe UI, Microsoft YaHei UI">
                 <b:Interaction.Behaviors>
                     <behaviors:AutoNumberListBehavior 
-                        Command="{Binding ContentEditorVM.SendDefaultWebTargetCommand}"
+                        Command="{Binding SendDefaultWebTargetCommand}"
                         EnableDoubleEnterSend="{Binding Config.EnableDoubleEnterSend}"/>
                 </b:Interaction.Behaviors>
                 <TextBox.Style>
                     <Style TargetType="TextBox">
                         <Setter Property="Visibility" Value="Visible"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding ContentEditorVM.HasVariables}" Value="True">
+                            <DataTrigger Binding="{Binding HasVariables}" Value="True">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                         </Style.Triggers>
