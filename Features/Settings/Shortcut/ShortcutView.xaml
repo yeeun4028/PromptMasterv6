@@ -21,7 +21,7 @@
                              Cursor="Hand"
                              VerticalAlignment="Center"
                              behaviors:HotkeyCapture.Enabled="True"
-                             behaviors:HotkeyCapture.Hotkey="{Binding Config.FullWindowHotkey, Mode=TwoWay}"
+                             behaviors:HotkeyCapture.Hotkey="{Binding FullWindowHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
@@ -48,7 +48,7 @@
                              Cursor="Hand"
                              VerticalAlignment="Center"
                              behaviors:HotkeyCapture.Enabled="True"
-                             behaviors:HotkeyCapture.Hotkey="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
+                             behaviors:HotkeyCapture.Hotkey="{Binding ScreenshotTranslateHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
@@ -75,7 +75,7 @@
                              Cursor="Hand"
                              VerticalAlignment="Center"
                              behaviors:HotkeyCapture.Enabled="True"
-                             behaviors:HotkeyCapture.Hotkey="{Binding Config.OcrHotkey, Mode=TwoWay}"
+                             behaviors:HotkeyCapture.Hotkey="{Binding OcrHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
@@ -102,7 +102,7 @@
                              Cursor="Hand"
                              VerticalAlignment="Center"
                              behaviors:HotkeyCapture.Enabled="True"
-                             behaviors:HotkeyCapture.Hotkey="{Binding Config.PinToScreenHotkey, Mode=TwoWay}"
+                             behaviors:HotkeyCapture.Hotkey="{Binding PinToScreenHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
+using System.Collections.ObjectModel;
 
 namespace PromptMasterv6.Features.Settings.Automation
 {
@@ -8,11 +9,28 @@ namespace PromptMasterv6.Features.Settings.Automation
     {
         private readonly SettingsService _settingsService;
 
-        public AppConfig Config => _settingsService.Config;
+        [ObservableProperty] private ObservableCollection<WebTarget> _webDirectTargets;
+        [ObservableProperty] private string _defaultWebTargetName;
+        [ObservableProperty] private bool _enableDoubleEnterSend;
 
         public AutomationViewModel(SettingsService settingsService)
         {
             _settingsService = settingsService;
+            
+            var config = _settingsService.Config;
+            _webDirectTargets = config.WebDirectTargets;
+            _defaultWebTargetName = config.DefaultWebTargetName;
+            _enableDoubleEnterSend = config.EnableDoubleEnterSend;
+        }
+
+        partial void OnDefaultWebTargetNameChanged(string value)
+        {
+            _settingsService.Config.DefaultWebTargetName = value;
+        }
+
+        partial void OnEnableDoubleEnterSendChanged(bool value)
+        {
+            _settingsService.Config.EnableDoubleEnterSend = value;
         }
     }
 }

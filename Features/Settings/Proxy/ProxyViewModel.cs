@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Shared.Models;
 
 namespace PromptMasterv6.Features.Settings.Proxy
 {
@@ -8,11 +7,19 @@ namespace PromptMasterv6.Features.Settings.Proxy
     {
         private readonly SettingsService _settingsService;
 
-        public AppConfig Config => _settingsService.Config;
+        [ObservableProperty] private string _proxyAddress;
 
         public ProxyViewModel(SettingsService settingsService)
         {
             _settingsService = settingsService;
+            
+            var config = _settingsService.Config;
+            _proxyAddress = config.ProxyAddress;
+        }
+
+        partial void OnProxyAddressChanged(string value)
+        {
+            _settingsService.Config.ProxyAddress = value;
         }
     }
 }

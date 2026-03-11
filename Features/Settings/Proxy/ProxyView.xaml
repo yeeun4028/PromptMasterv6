@@ -22,7 +22,7 @@
                                MaxWidth="400"/>
                 </StackPanel>
                 <TextBox Grid.Column="1" 
-                         Text="{Binding Config.ProxyAddress, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                         Text="{Binding ProxyAddress, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
                          Style="{StaticResource ModernTextBoxStyle}"
                          Width="250"
                          VerticalAlignment="Center"

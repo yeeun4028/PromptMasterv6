@@ -16,7 +16,7 @@
                                Style="{StaticResource FieldLabelTextStyle}" 
                                VerticalAlignment="Center"/>
                     <CheckBox Grid.Column="1" 
-                              IsChecked="{Binding Config.AutoHide}" 
+                              IsChecked="{Binding AutoHide}" 
                               Style="{StaticResource ToggleSwitchStyle}" 
                               Cursor="Hand" VerticalAlignment="Center"/>
                 </Grid>
@@ -30,7 +30,7 @@
                                Style="{StaticResource FieldLabelTextStyle}" 
                                VerticalAlignment="Center"/>
                     <ComboBox Grid.Column="1" 
-                              SelectedValue="{Binding Config.AutoHideDelay}" 
+                              SelectedValue="{Binding AutoHideDelay}" 
                               SelectedValuePath="Tag"
                               Style="{StaticResource ModernComboBoxStyle}"
                               Width="100">
