@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,7 +19,6 @@ namespace PromptMasterv6.Features.Settings
     public partial class SettingsView : System.Windows.Controls.UserControl
     {
         private int _selectedExternalToolsSubTab = 0;
-        private int _selectedAiSubTab = 0;
 
         public SettingsView()
         {
@@ -30,7 +29,6 @@ namespace PromptMasterv6.Features.Settings
         private void SettingsView_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateExternalToolsSubTab(0);
-            UpdateAiSubTab(0);
             UpdateSyncSubTab(0);
         }
 
@@ -322,22 +320,6 @@ namespace PromptMasterv6.Features.Settings
             if (ExternalToolsYoudaoTab != null) ExternalToolsYoudaoTab.Visibility = tabIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsGoogleTab != null) ExternalToolsGoogleTab.Visibility = tabIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
             if (ExternalToolsAiTranslateTab != null) ExternalToolsAiTranslateTab.Visibility = tabIndex == 5 ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void AiSubTab_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is string tagStr)
-            {
-                int tabIndex = tagStr == "Selected" ? _selectedAiSubTab : (int.TryParse(tagStr, out int idx) ? idx : 0);
-                UpdateAiSubTab(tabIndex);
-            }
-        }
-
-        private void UpdateAiSubTab(int tabIndex)
-        {
-            _selectedAiSubTab = tabIndex;
-
-            if (AiMainTab != null) AiMainTab.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private int _selectedSyncSubTab = 0;
