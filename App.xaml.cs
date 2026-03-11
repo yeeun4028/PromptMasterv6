@@ -9,6 +9,7 @@ using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
 using PromptMasterv6.Features.Main.ContentEditor;
+using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
@@ -206,6 +207,7 @@ namespace PromptMasterv6
             services.AddTransient<WorkspaceViewModel>();
             services.AddTransient<FileManagerViewModel>();
             services.AddTransient<ContentEditorViewModel>();
+            services.AddTransient<BackupViewModel>();
             services.AddTransient<MainViewModel>();
 
             services.AddSingleton<MainWindow>();
@@ -233,6 +235,7 @@ namespace PromptMasterv6
 
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
             services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
+            services.AddSingleton<Features.Main.Backup.PerformCloudBackupFeature.Handler>();
 
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();

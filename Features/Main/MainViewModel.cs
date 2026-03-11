@@ -8,6 +8,7 @@ using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
+using PromptMasterv6.Features.Main.Backup;
 
 using System;
 using System.ComponentModel;
@@ -28,14 +29,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly HotkeyService _hotkeyService;
     private readonly LoggerService _logger;
 
-    private DispatcherTimer _timer;
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
     private readonly Subject<System.Reactive.Unit> _saveLocalSettingsSubject = new();
 
     private EventHandler? _onLauncherTriggeredHandler;
     private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
-
-
 
     [ObservableProperty] private AppConfig config;
     [ObservableProperty] private LocalSettings localConfig;
@@ -43,11 +41,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public SettingsService SettingsService => _settingsService;
 
-    [ObservableProperty] private string syncTimeDisplay = "Now";
-
     [ObservableProperty] private FileManagerViewModel fileManagerVM;
     [ObservableProperty] private ContentEditorViewModel contentEditorVM;
     [ObservableProperty] private WorkspaceViewModel? workspaceVM;
+    [ObservableProperty] private BackupViewModel backupVM;
 
     public MainViewModel(
         SettingsService settingsService,
@@ -56,7 +53,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         HotkeyService hotkeyService,
         LoggerService logger,
         FileManagerViewModel fileManagerVM,
-        ContentEditorViewModel contentEditorVM)
+        ContentEditorViewModel contentEditorVM,
+        BackupViewModel backupVM)
     {
         _settingsService = settingsService;
         _keyService = keyService;
@@ -66,11 +64,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         FileManagerVM = fileManagerVM;
         ContentEditorVM = contentEditorVM;
+        BackupVM = backupVM;
 
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
 
-        FileManagerVM.SaveRequested += async () => await PerformLocalBackup();
+        FileManagerVM.SaveRequested += async () => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null);
         FileManagerVM.SelectedFileChanged += async (file, enterEditMode) => 
         {
             await ContentEditorVM.SetCurrentFileAsync(file, enterEditMode);
@@ -79,7 +78,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Register<ContentChangedMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
 
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
-        WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, _) => await PerformLocalBackup());
+        WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, _) => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null));
         WeakReferenceMessenger.Default.Register<ToggleWindowMessage>(this, (_, _) => ToggleMainWindow());
         WeakReferenceMessenger.Default.Register<TriggerLauncherMessage>(this, (_, _) => HandleLauncherTriggered());
         WeakReferenceMessenger.Default.Register<JumpToEditPromptMessage>(this, (_, m) =>
@@ -91,14 +90,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         });
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _timer.Tick += (_, _) => UpdateTimeDisplay();
-        _timer.Start();
-
         _saveSubject
             .Throttle(TimeSpan.FromSeconds(5))
             .ObserveOn(System.Threading.SynchronizationContext.Current!)
-            .Subscribe(async _ => await PerformLocalBackup());
+            .Subscribe(async _ => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null));
 
         _saveLocalSettingsSubject
             .Throttle(TimeSpan.FromSeconds(2))
@@ -133,6 +128,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private async Task InitializeAsync()
     {
         await FileManagerVM.InitializeAsync();
+        
+        BackupVM.SetData(FileManagerVM.Folders, FileManagerVM.Files);
     }
 
     [RelayCommand]
@@ -165,23 +162,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ManualBackup()
     {
-        try
-        {
-            await PerformLocalBackup();
-
-            await FileManagerVM.PerformCloudBackupAsync();
-
-            LocalConfig.LastCloudSyncTime = DateTime.Now;
-            _settingsService.SaveLocalConfig();
-
-            UpdateTimeDisplay();
-
-            HandyControl.Controls.Growl.Success("云端备份已完成");
-        }
-        catch (Exception ex)
-        {
-            HandyControl.Controls.Growl.Error($"云端备份失败: {ex.Message}");
-        }
+        await BackupVM.PerformCloudBackupCommand.ExecuteAsync(null);
     }
 
     [RelayCommand]
@@ -224,39 +205,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         });
     }
 
-
-
     public async Task PerformLocalBackup()
     {
-        await FileManagerVM.PerformLocalBackupAsync();
-    }
-
-    private void UpdateTimeDisplay()
-    {
-        if (LocalConfig?.LastCloudSyncTime == null)
-        {
-            SyncTimeDisplay = "-";
-            return;
-        }
-
-        var diff = DateTime.Now - LocalConfig.LastCloudSyncTime.Value;
-
-        if (diff.TotalSeconds < 60)
-        {
-            SyncTimeDisplay = $"{(int)diff.TotalSeconds}s";
-        }
-        else if (diff.TotalMinutes < 60)
-        {
-            SyncTimeDisplay = $"{(int)diff.TotalMinutes}min";
-        }
-        else if (diff.TotalHours < 24)
-        {
-            SyncTimeDisplay = $"{(int)diff.TotalHours}H";
-        }
-        else
-        {
-            SyncTimeDisplay = $"{(int)diff.TotalDays}d";
-        }
+        await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null);
     }
 
     public void HandleLauncherTriggered()
@@ -270,12 +221,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-
-        if (_timer != null)
-        {
-            _timer.Stop();
-            _timer = null!;
-        }
 
         _saveSubject?.Dispose();
         _saveLocalSettingsSubject?.Dispose();
@@ -293,6 +238,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
 
         FileManagerVM?.Cleanup();
+        BackupVM?.Cleanup();
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
 
