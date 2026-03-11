@@ -10,6 +10,7 @@ using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Settings.LaunchBar;
+using PromptMasterv6.Features.Settings.ExternalTools;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Shared.Models;
 using System;
@@ -40,8 +41,9 @@ namespace PromptMasterv6.Features.Settings
         public SyncViewModel SyncVM { get; }
         public LauncherSettingsViewModel LauncherSettingsVM { get; }
         public ApiCredentialsViewModel ApiCredentialsVM { get; }
-        public ExternalTools.ExternalToolsViewModel ExternalToolsVM { get; }
+        public global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel ExternalToolsVM { get; }
         public LaunchBar.LaunchBarViewModel LaunchBarVM { get; }
+        public ExternalToolsSettingsViewModel ExternalToolsSettingsVM { get; }
         
         public SettingsViewModel SettingsVM => this;
 
@@ -51,7 +53,6 @@ namespace PromptMasterv6.Features.Settings
 
         [ObservableProperty] private bool isSettingsOpen;
         [ObservableProperty] private int selectedSettingsTab;
-        [ObservableProperty] private int selectedExternalToolsSubTab = 0;
 
         [RelayCommand]
         private void SelectSettingsTab(string tabIndexStr)
@@ -59,15 +60,6 @@ namespace PromptMasterv6.Features.Settings
             if (int.TryParse(tabIndexStr, out int tabIndex))
             {
                 SelectedSettingsTab = tabIndex;
-            }
-        }
-
-        [RelayCommand]
-        private void SelectExternalToolsSubTab(string tabIndexStr)
-        {
-            if (int.TryParse(tabIndexStr, out int tabIndex))
-            {
-                SelectedExternalToolsSubTab = tabIndex;
             }
         }
 
@@ -102,8 +94,9 @@ namespace PromptMasterv6.Features.Settings
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,
             ApiCredentialsViewModel apiCredentialsVM,
-            ExternalTools.ExternalToolsViewModel externalToolsVM,
+            global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel externalToolsVM,
             LaunchBar.LaunchBarViewModel launchBarVM,
+            ExternalToolsSettingsViewModel externalToolsSettingsVM,
             ISessionState sessionState)
         {
             _settingsService = settingsService;
@@ -122,6 +115,7 @@ namespace PromptMasterv6.Features.Settings
             ApiCredentialsVM = apiCredentialsVM;
             ExternalToolsVM = externalToolsVM;
             LaunchBarVM = launchBarVM;
+            ExternalToolsSettingsVM = externalToolsSettingsVM;
 
             WeakReferenceMessenger.Default.Register(this);
 

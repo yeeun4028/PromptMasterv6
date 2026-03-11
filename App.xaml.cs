@@ -13,6 +13,7 @@ using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Settings;
 using PromptMasterv6.Features.Settings.AiModels;
+using PromptMasterv6.Features.Settings.ExternalTools;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
@@ -241,6 +242,7 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.Window.WindowViewModel>();
             services.AddSingleton<Features.Settings.Proxy.ProxyViewModel>();
             services.AddSingleton<Features.Settings.LaunchBar.LaunchBarViewModel>();
+            services.AddSingleton<Features.Settings.ExternalTools.ExternalToolsSettingsViewModel>();
 
         }
 
