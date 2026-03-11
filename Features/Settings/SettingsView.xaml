@@ -7,6 +7,10 @@
              xmlns:models="clr-namespace:PromptMasterv6.Features.Shared.Models"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              xmlns:aiModels="clr-namespace:PromptMasterv6.Features.Settings.AiModels"
+             xmlns:shortcut="clr-namespace:PromptMasterv6.Features.Settings.Shortcut"
+             xmlns:automation="clr-namespace:PromptMasterv6.Features.Settings.Automation"
+             xmlns:window="clr-namespace:PromptMasterv6.Features.Settings.Window"
+             xmlns:proxy="clr-namespace:PromptMasterv6.Features.Settings.Proxy"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>
@@ -588,128 +592,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-
-                                    <StackPanel Margin="0,0,0,14">
-                                        <!-- Group 1: General -->
-                                        <Border Style="{StaticResource CardStyle}">
-                                            <StackPanel>
-                                                
-                                                <StackPanel>
-                                                    <!-- Row 1: Full Window -->
-                                                    <Grid Margin="0,0,0,20">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="完整窗口" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Column="1" 
-                                                                 Text="{Binding Config.FullWindowHotkey}" 
-                                                                 Style="{StaticResource KeyRecorderStyle}"
-                                                                 Width="140"
-                                                                 IsReadOnly="True"
-                                                                 Cursor="Hand"
-                                                                 VerticalAlignment="Center"
-                                                                 PreviewKeyDown="FullWindowHotkeyTextBox_PreviewKeyDown"
-                                                                 ToolTip="点击按下按键设置，按 Delete 清除"/>
-                                                    </Grid>
-
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Group 2: Translation -->
-                                        <Border Style="{StaticResource CardStyle}">
-                                            <StackPanel>
-                                                
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-
-                                                    <!-- Row 0: Screenshot Translate -->
-                                                    <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
-                                                        <TextBlock Text="截图翻译" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    </StackPanel>
-                                                    <TextBox Grid.Row="0" Grid.Column="1" 
-                                                             x:Name="ScreenshotTranslateHotkeyTextBox" 
-                                                             Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
-                                                             Style="{StaticResource KeyRecorderStyle}"
-                                                             Width="140"
-                                                             IsReadOnly="True"
-                                                             Cursor="Hand"
-                                                             VerticalAlignment="Center"
-                                                             PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
-                                                             ToolTip="点击按下按键设置，按 Delete 清除"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Group 3: Tools -->
-                                        <Border Style="{StaticResource CardStyle}">
-                                            <StackPanel>
-                                                
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-
-                                                    <!-- Row 0: OCR -->
-                                                    <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
-                                                        <TextBlock Text="OCR 识别" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    </StackPanel>
-                                                    <TextBox Grid.Row="0" Grid.Column="1" 
-                                                             x:Name="OcrHotkeyTextBox" 
-                                                             Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
-                                                             Style="{StaticResource KeyRecorderStyle}"
-                                                             Width="140"
-                                                             IsReadOnly="True"
-                                                             Cursor="Hand"
-                                                             VerticalAlignment="Center"
-                                                             PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
-                                                             ToolTip="点击按下按键设置，按 Delete 清除"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Group 4: PinToScreen -->
-                                        <Border Style="{StaticResource CardStyle}">
-                                            <StackPanel>
-                                                
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-
-                                                    <!-- Row 0: PinToScreen -->
-                                                    <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
-                                                        <TextBlock Text="贴图（截图）" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    </StackPanel>
-                                                    <TextBox Grid.Row="0" Grid.Column="1" 
-                                                             x:Name="PinToScreenHotkeyTextBox" 
-                                                             Text="{Binding Config.PinToScreenHotkey, Mode=TwoWay}"
-                                                             Style="{StaticResource KeyRecorderStyle}"
-                                                             Width="140"
-                                                             IsReadOnly="True"
-                                                             Cursor="Hand"
-                                                             VerticalAlignment="Center"
-                                                             PreviewKeyDown="PinToScreenHotkeyTextBox_PreviewKeyDown"
-                                                             ToolTip="点击按下按键设置，按 Delete 清除"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
+                                    <shortcut:ShortcutView DataContext="{Binding SettingsVM}"/>
                                 </StackPanel>
 
                                 <!-- Tab 6: Launcher -->
@@ -832,52 +715,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    
-                                    <StackPanel Margin="0,0,0,14">
-                                        <Border Style="{StaticResource CardStyle}">
-                                            <StackPanel>
-
-                                                
-                                                <!-- AutoHide 开关 -->
-                                                <Grid Margin="0,0,0,20">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="窗口失焦自动隐藏" 
-                                                               Style="{StaticResource FieldLabelTextStyle}" 
-                                                               VerticalAlignment="Center"/>
-                                                    <CheckBox Grid.Column="1" 
-                                                              IsChecked="{Binding Config.AutoHide}" 
-                                                              Style="{StaticResource ToggleSwitchStyle}" 
-                                                              Cursor="Hand" VerticalAlignment="Center"/>
-                                                </Grid>
-                                                
-                                                <!-- 定时器延迟 -->
-                                                <Grid Margin="0,0,0,20">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="自动隐藏延迟" 
-                                                               Style="{StaticResource FieldLabelTextStyle}" 
-                                                               VerticalAlignment="Center"/>
-                                                    <ComboBox Grid.Column="1" 
-                                                              SelectedValue="{Binding Config.AutoHideDelay}" 
-                                                              SelectedValuePath="Tag"
-                                                              Style="{StaticResource ModernComboBoxStyle}"
-                                                              Width="100">
-                                                        <ComboBoxItem Content="立即隐藏" Tag="0"/>
-                                                        <ComboBoxItem Content="5 秒" Tag="5"/>
-                                                        <ComboBoxItem Content="10 秒" Tag="10"/>
-                                                        <ComboBoxItem Content="15 秒" Tag="15"/>
-                                                        <ComboBoxItem Content="20 秒" Tag="20"/>
-                                                        <ComboBoxItem Content="30 秒" Tag="30"/>
-                                                    </ComboBox>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
+                                    <window:WindowView DataContext="{Binding SettingsVM}"/>
                                 </StackPanel>
 
                                 <!-- Tab 1: Automation -->
@@ -892,60 +730,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <StackPanel Margin="0,0,0,14">
-                                        <!-- Default Web Target & Shortcuts Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                            <StackPanel>
-                                                <TextBlock Text="默认网页与发送" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15"/>
-                                                
-                                                <StackPanel Margin="0,0,0,20">
-                                                
-                                                    <ComboBox ItemsSource="{Binding Config.WebDirectTargets}"
-                                                              SelectedValue="{Binding Config.DefaultWebTargetName}"
-                                                              SelectedValuePath="Name"
-                                                              DisplayMemberPath="Name"
-                                                              Style="{StaticResource ModernComboBoxStyle}"
-                                                              HorizontalAlignment="Stretch"/>
-                                                </StackPanel>
-
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                     <CheckBox IsChecked="{Binding Config.EnableDoubleEnterSend}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="启用双击回车发送消息" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Block4 Icons Visibility Card -->
-                                        <Border Style="{StaticResource CardStyle}">
-                                            <StackPanel>
-                                                <TextBlock Text="BLOCK4 快捷图标显示" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15"/>
-                                                
-
-                                                <ItemsControl ItemsSource="{Binding Config.WebDirectTargets}">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <WrapPanel Orientation="Horizontal"/>
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Border Background="{DynamicResource ShellBackground}"
-                                                                    BorderBrush="{DynamicResource DividerBrush}"
-                                                                    BorderThickness="1"
-                                                                    CornerRadius="6"
-                                                                    Padding="10,6"
-                                                                    Margin="0,0,10,10">
-                                                                <StackPanel Orientation="Horizontal">
-                                                                    <CheckBox IsChecked="{Binding IsEnabled}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
+                                    <automation:AutomationView DataContext="{Binding SettingsVM}"/>
                                 </StackPanel>
 
                                 <!-- Tab 2: AI Models -->
@@ -1899,35 +1684,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-
-                                    <!-- Proxy Settings Card -->
-                                    <Border Style="{StaticResource CardStyle}">
-                                        <StackPanel>
-                                            <TextBlock Text="🌐 网络与代理设置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                            
-                                            <Grid Margin="0,0,0,15">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                    <TextBlock Text="全局 VPN 代理地址" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBlock Text="例如 v2rayN 默认值为 http://127.0.0.1:10808。此地址仅对配置为【走VPN代理】的模型生效。" 
-                                                               Style="{StaticResource HintTextStyle}" 
-                                                               Margin="0,2,0,0"
-                                                               TextWrapping="Wrap"
-                                                               MaxWidth="400"/>
-                                                </StackPanel>
-                                                <TextBox Grid.Column="1" 
-                                                         Text="{Binding Config.ProxyAddress, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                                         Style="{StaticResource ModernTextBoxStyle}"
-                                                         Width="250"
-                                                         VerticalAlignment="Center"
-                                                         Height="30"
-                                                         Padding="8,4"/>
-                                            </Grid>
-                                        </StackPanel>
-                                    </Border>
+                                    <proxy:ProxyView DataContext="{Binding SettingsVM}"/>
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>

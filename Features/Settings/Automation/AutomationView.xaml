@@ -1,0 +1,57 @@
+<UserControl x:Class="PromptMasterv6.Features.Settings.Automation.AutomationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
+    <StackPanel Margin="0,0,0,14">
+        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="默认网页与发送" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15"/>
+                
+                <StackPanel Margin="0,0,0,20">
+                    <ComboBox ItemsSource="{Binding Config.WebDirectTargets}"
+                              SelectedValue="{Binding Config.DefaultWebTargetName}"
+                              SelectedValuePath="Name"
+                              DisplayMemberPath="Name"
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox IsChecked="{Binding Config.EnableDoubleEnterSend}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" VerticalAlignment="Center"/>
+                    <TextBlock Text="启用双击回车发送消息" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="BLOCK4 快捷图标显示" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15"/>
+
+                <ItemsControl ItemsSource="{Binding Config.WebDirectTargets}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource ShellBackground}"
+                                    BorderBrush="{DynamicResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,6"
+                                    Margin="0,0,10,10">
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding IsEnabled}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace PromptMasterv6.Features.Settings
 {
-    public partial class BackupSelectionDialog : Window
+    public partial class BackupSelectionDialog : System.Windows.Window
     {
         public BackupFileItem? SelectedBackup { get; private set; }
 

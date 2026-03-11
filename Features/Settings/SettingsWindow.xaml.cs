@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace PromptMasterv6.Features.Settings
 {
-    public partial class SettingsWindow : Window
+    public partial class SettingsWindow : System.Windows.Window
     {
         public SettingsWindow()
         {
