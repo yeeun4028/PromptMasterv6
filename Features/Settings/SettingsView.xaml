@@ -14,6 +14,7 @@
              xmlns:launchBar="clr-namespace:PromptMasterv6.Features.Settings.LaunchBar"
              xmlns:launcher="clr-namespace:PromptMasterv6.Features.Settings.Launcher"
              xmlns:sync="clr-namespace:PromptMasterv6.Features.Settings.Sync"
+             xmlns:apiCredentials="clr-namespace:PromptMasterv6.Features.Settings.ApiCredentials"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>
@@ -676,7 +677,7 @@
                                                 </Style>
                                             </Button.Style>
                                         </Button>
-                                        <Button Content="百度" Padding="12,6" Margin="0,0,8,0"
+                                        <Button Content="API 配置" Padding="12,6" Margin="0,0,8,0"
                                                 Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="1">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
@@ -688,48 +689,12 @@
                                                 </Style>
                                             </Button.Style>
                                         </Button>
-                                        <Button Content="腾讯" Padding="12,6" Margin="0,0,8,0"
+                                        <Button Content="AI 翻译配置" Padding="12,6" Margin="0,0,8,0"
                                                 Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="2">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="2">
-                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button Content="有道" Padding="12,6" Margin="0,0,8,0"
-                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="3">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="3">
-                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button Content="Google" Padding="12,6" Margin="0,0,8,0"
-                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="4">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="4">
-                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button Content="AI 翻译配置" Padding="12,6" Margin="0,0,8,0"
-                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="5">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="5">
                                                             <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -882,7 +847,7 @@
                                         </ContentControl>
                                     </StackPanel>
 
-                                    <!-- Sub-Tab Content: Baidu -->
+                                    <!-- Sub-Tab Content: API Credentials -->
                                     <StackPanel>
                                         <StackPanel.Style>
                                             <Style TargetType="StackPanel">
@@ -894,79 +859,11 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </StackPanel.Style>
-                                        <!-- Baidu OCR Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                            <StackPanel>
-                                                <TextBlock Text="百度 OCR 配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduOcrApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding ApiCredentialsVM.BaiduOcrTestStatus}"
-                                                               Foreground="{Binding ApiCredentialsVM.BaiduOcrTestStatusColor}"
-                                                               VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,0,10,0"/>
-                                                    <Button Grid.Column="1"
-                                                            Content="测试连接"
-                                                            Command="{Binding ApiCredentialsVM.TestBaiduOcrCommand}"
-                                                            Style="{StaticResource TextLinkButtonStyle}"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Baidu Translate Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="百度翻译配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="App ID" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduTranslateAppId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.BaiduTranslateSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding ApiCredentialsVM.BaiduTranslateTestStatus}"
-                                                               Foreground="{Binding ApiCredentialsVM.BaiduTranslateTestStatusColor}"
-                                                               VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,0,10,0"/>
-                                                    <Button Grid.Column="1"
-                                                            Content="测试连接"
-                                                            Command="{Binding ApiCredentialsVM.TestBaiduTranslateCommand}"
-                                                            Style="{StaticResource TextLinkButtonStyle}"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
+                                        <apiCredentials:ApiCredentialsView DataContext="{Binding ApiCredentialsVM}"/>
                                     </StackPanel>
 
-                                    <!-- Sub-Tab Content: Tencent Cloud -->
-                                    <StackPanel>
+                                    <!-- Sub-Tab Content: AI Translation Config -->
+                                    <StackPanel x:Name="ExternalToolsAiTranslateTab">
                                         <StackPanel.Style>
                                             <Style TargetType="StackPanel">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -977,176 +874,6 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </StackPanel.Style>
-                                        <!-- Tencent OCR Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                            <StackPanel>
-                                                <TextBlock Text="腾讯云 OCR 配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="Secret Id" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentOcrSecretId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentOcrSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding ApiCredentialsVM.TencentOcrTestStatus}"
-                                                               Foreground="{Binding ApiCredentialsVM.TencentOcrTestStatusColor}"
-                                                               VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,0,10,0"/>
-                                                    <Button Grid.Column="1"
-                                                            Content="测试连接"
-                                                            Command="{Binding ApiCredentialsVM.TestTencentOcrCommand}"
-                                                            Style="{StaticResource TextLinkButtonStyle}"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Tencent Translate Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="腾讯云翻译配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="Secret Id" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentTranslateSecretId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="Secret Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.TencentTranslateSecretKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding ApiCredentialsVM.TencentTranslateTestStatus}"
-                                                               Foreground="{Binding ApiCredentialsVM.TencentTranslateTestStatusColor}"
-                                                               VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,0,10,0"/>
-                                                    <Button Grid.Column="1"
-                                                            Content="测试连接"
-                                                            Command="{Binding ApiCredentialsVM.TestTencentTranslateCommand}"
-                                                            Style="{StaticResource TextLinkButtonStyle}"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-
-                                    <!-- Sub-Tab Content: Youdao -->
-                                    <StackPanel x:Name="ExternalToolsYoudaoTab" Visibility="Collapsed">
-                                        <!-- Youdao OCR Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                                            <StackPanel>
-                                                <TextBlock Text="有道 OCR 配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="App Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoOcrAppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="App Secret" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoOcrAppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Youdao Translate Card -->
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="有道翻译配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="App Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoTranslateAppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="App Secret" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.YoudaoTranslateAppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding ApiCredentialsVM.YoudaoTestStatus}"
-                                                               Foreground="{Binding ApiCredentialsVM.YoudaoTestStatusColor}"
-                                                               VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,0,10,0"/>
-                                                    <Button Grid.Column="1"
-                                                            Content="测试连接"
-                                                            Command="{Binding ApiCredentialsVM.TestYoudaoCommand}"
-                                                            Style="{StaticResource TextLinkButtonStyle}"
-                                                            IsEnabled="False"/>
-                                                </Grid>
-
-                                                <TextBlock Text="注意：有道后端集成将在未来版本中实现。"
-                                                           Style="{StaticResource HintTextStyle}" Margin="0,10,0,0" Foreground="#FFA500"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-
-                                    <!-- Sub-Tab Content: Google -->
-                                    <StackPanel x:Name="ExternalToolsGoogleTab" Visibility="Collapsed">
-                                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="Google 翻译配置" Style="{StaticResource SectionHeaderTextStyle}"/>
-                                                
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="API Base URL (可选, 支持 Cloudflare 代理)" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.GoogleBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"
-                                                             ToolTip="默认为 https://translation.googleapis.com。自定义地址示例：https://my-proxy.workers.dev"/>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,0,0,12">
-                                                    <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                                                    <TextBox Text="{Binding ApiCredentialsVM.GoogleApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                                                </StackPanel>
-
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding ApiCredentialsVM.GoogleTestStatus}"
-                                                               Foreground="{Binding ApiCredentialsVM.GoogleTestStatusColor}"
-                                                               VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,0,10,0"/>
-                                                    <Button Grid.Column="1"
-                                                            Content="测试连接"
-                                                            Command="{Binding ApiCredentialsVM.TestGoogleCommand}"
-                                                            Style="{StaticResource TextLinkButtonStyle}"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-
-                                    <!-- 6. AI 翻译配置 Tab -->
-                                    <StackPanel x:Name="ExternalToolsAiTranslateTab" Visibility="Collapsed">
                                         <!-- AI Translation Models Card -->
                                         <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
                                             <StackPanel>

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
@@ -22,6 +22,21 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
         private readonly LoggerService _logger;
 
         public AppConfig Config => _settingsService.Config;
+
+        #region Tab Navigation
+
+        [ObservableProperty] private int selectedProviderTab = 0;
+
+        [RelayCommand]
+        private void SelectProviderTab(string tabIndexStr)
+        {
+            if (int.TryParse(tabIndexStr, out int tabIndex))
+            {
+                SelectedProviderTab = tabIndex;
+            }
+        }
+
+        #endregion
 
         #region Baidu Credentials
 
