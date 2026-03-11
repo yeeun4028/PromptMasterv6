@@ -83,13 +83,7 @@ public partial class AppConfig : ObservableObject
     private string activeModelId = "";
 
     [ObservableProperty]
-    private string translationModelId = "";
-
-    [ObservableProperty]
     private System.Collections.ObjectModel.ObservableCollection<ApiProfile> apiProfiles = new();
-
-    [ObservableProperty]
-    private string activeApiProfileId = "";
 
     [ObservableProperty]
     private string ocrProfileId = "";
@@ -98,41 +92,13 @@ public partial class AppConfig : ObservableObject
     private string translateProfileId = "";
 
     [ObservableProperty]
-    private bool enableBaidu = true;
-
-    [ObservableProperty]
-    private bool enableTencentCloud = false;
-
-    [ObservableProperty]
-    private bool enableYoudao = false;
-
-    [ObservableProperty]
-    private bool enableGoogle = false;
-
-    [ObservableProperty]
-    private bool enableAiTranslation = false;
-
-    [ObservableProperty]
     private bool autoCopyTranslationResult = true;
-
-    [ObservableProperty]
-    private string aiTranslateBaseUrl = "https://api.deepseek.com";
-
-    [ObservableProperty]
-    [property: JsonConverter(typeof(JsonEncryptedStringConverter))]
-    private string aiTranslateApiKey = "";
-
-    [ObservableProperty]
-    private string aiTranslateModel = "deepseek-chat";
 
     [ObservableProperty]
     private string aiTranslationPromptId = "";
 
     [ObservableProperty]
     private ObservableCollection<AiTranslationConfig> savedAiTranslationConfigs = new();
-
-    [ObservableProperty]
-    private string activeAiTranslationConfigId = "";
 
     [ObservableProperty]
     private string screenshotTranslateHotkey = "";
