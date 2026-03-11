@@ -16,8 +16,8 @@
                 </b:Interaction.Behaviors>
             </Grid>
 
-            <ListBox ItemsSource="{Binding FileManagerVM.FilesView}"
-                     SelectedItem="{Binding FileManagerVM.SelectedFile}"
+            <ListBox ItemsSource="{Binding FilesView}"
+                     SelectedItem="{Binding SelectedFile}"
                      ItemContainerStyle="{StaticResource FileListBoxItemStyle}"
                      Background="Transparent"
                      BorderThickness="0"
@@ -29,7 +29,7 @@
                 </ListBox.Resources>
 
                 <ListBox.InputBindings>
-                    <KeyBinding Key="Delete" Command="{Binding FileManagerVM.DeleteFileCommand}" CommandParameter="{Binding FileManagerVM.SelectedFile}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteFileCommand}" CommandParameter="{Binding SelectedFile}"/>
                 </ListBox.InputBindings>
 
                 <ListBox.ItemTemplate>

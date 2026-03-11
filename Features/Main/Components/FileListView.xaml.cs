@@ -28,9 +28,9 @@ namespace PromptMasterv6.Features.Main.Components
                 if (e.Key == System.Windows.Input.Key.Enter)
                 {
                     promptItem.IsRenaming = false;
-                    if (DataContext is MainViewModel vm)
+                    if (DataContext is FileManagerViewModel vm)
                     {
-                        vm.FileManagerVM.RequestSaveCommand.Execute(null);
+                        vm.RequestSaveCommand.Execute(null);
                     }
                     e.Handled = true;
                 }
@@ -55,9 +55,9 @@ namespace PromptMasterv6.Features.Main.Components
                     promptItem.Title = "未命名提示词";
                 }
                 promptItem.IsRenaming = false;
-                if (DataContext is MainViewModel vm)
+                if (DataContext is FileManagerViewModel vm)
                 {
-                    vm.FileManagerVM.RequestSaveCommand.Execute(null);
+                    vm.RequestSaveCommand.Execute(null);
                 }
             }
         }

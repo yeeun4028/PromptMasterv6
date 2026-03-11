@@ -112,16 +112,16 @@
                 <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
                     <MenuItem Header="重命名"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.FileManagerVM.RenameFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              Command="{Binding PlacementTarget.Tag.RenameFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               CommandParameter="{Binding}"/>
                     <MenuItem Header="更改图标"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.FileManagerVM.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              Command="{Binding PlacementTarget.Tag.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               CommandParameter="{Binding}"/>
                     <Separator Style="{StaticResource ModernSeparatorStyle}"/>
                     <MenuItem Header="删除"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.FileManagerVM.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              Command="{Binding PlacementTarget.Tag.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               CommandParameter="{Binding}"/>
                 </ContextMenu>
             </Setter.Value>

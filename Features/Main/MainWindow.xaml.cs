@@ -563,53 +563,6 @@ namespace PromptMasterv6.Features.Main
 
 
 
-        private void WebDavPasswordBox_Loaded(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null && pb.Password != ViewModel.Config.Password) pb.Password = ViewModel.Config.Password; }
-        private void WebDavPasswordBox_PasswordChanged(object sender, RoutedEventArgs e) { var pb = sender as PasswordBox; if (pb != null && ViewModel.Config != null) ViewModel.Config.Password = pb.Password; }
-
-        private void FileInlineEditor_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem && promptItem.IsRenaming)
-            {
-                textBox.Focus();
-                textBox.SelectAll();
-            }
-        }
-
-        private void FileInlineEditor_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem)
-            {
-                if (e.Key == Key.Enter)
-                {
-                    promptItem.IsRenaming = false;
-                    ViewModel?.FileManagerVM.RequestSaveCommand.Execute(null);
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.Escape)
-                {
-                    if (string.IsNullOrWhiteSpace(promptItem.Title))
-                    {
-                        promptItem.Title = "未命名提示词";
-                    }
-                    promptItem.IsRenaming = false;
-                    e.Handled = true;
-                }
-            }
-        }
-
-        private void FileInlineEditor_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (sender is TextBox textBox && textBox.DataContext is PromptItem promptItem)
-            {
-                if (string.IsNullOrWhiteSpace(promptItem.Title))
-                {
-                    promptItem.Title = "未命名提示词";
-                }
-                promptItem.IsRenaming = false;
-                ViewModel?.FileManagerVM.RequestSaveCommand.Execute(null);
-            }
-        }
-
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.WindowState == WindowState.Maximized)
