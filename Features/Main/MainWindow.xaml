@@ -13,6 +13,7 @@
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
         xmlns:components="clr-namespace:PromptMasterv6.Features.Main.Components"
+        xmlns:contextMenu="clr-namespace:PromptMasterv6.Features.Main.ContextMenus"
         mc:Ignorable="d"
         Title="PromptMaster v6" 
         Height="600" Width="1000"
@@ -181,7 +182,7 @@
                                 </Grid>
 
                                 <md:MarkdownViewer Margin="0,40,0,0"
-                                                  Loaded="MarkdownViewer_Loaded"
+                                                  contextMenu:MarkdownViewerContextMenuBehavior.Attach="True"
                                                   ContextMenu="{DynamicResource UnifiedEditorContextMenu}"
                                                   Markdown="{Binding ContentEditorVM.PreviewContent}"
                                                   Pipeline="{Binding ContentEditorVM.Pipeline}"

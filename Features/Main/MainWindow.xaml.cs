@@ -7,32 +7,21 @@ using System.Windows.Input;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Dialogs;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Text;
-using System.Windows.Media;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using PromptMasterv6.Infrastructure.Services;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using System.Linq;
-using System.Windows.Controls.Primitives;
-using System.Windows.Shapes;
-using System.Windows.Documents;
 using System.Text.RegularExpressions;
-using System.Windows.Media.Media3D;
 using Gma.System.MouseKeyHook;
 using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
 
-using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
-using ListBox = System.Windows.Controls.ListBox;
-using RichTextBox = System.Windows.Controls.RichTextBox;
-using WpfControl = System.Windows.Controls.Control;
-using WinFormsCursor = System.Windows.Forms.Cursor;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace PromptMasterv6.Features.Main
 {
@@ -745,117 +734,5 @@ namespace PromptMasterv6.Features.Main
         {
             this.Hide();
         }
-
-
-        private void MarkdownViewer_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is not DependencyObject root) return;
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
-            {
-                var fdsv = FindDescendant<FlowDocumentScrollViewer>(root);
-                if (fdsv != null)
-                {
-                    fdsv.ContextMenu = BuildEditorContextMenu();
-                }
-            });
-        }
-
-        private static T? FindDescendant<T>(DependencyObject parent) where T : DependencyObject
-        {
-            int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < count; i++)
-            {
-                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
-                if (child is T result) return result;
-                var nested = FindDescendant<T>(child);
-                if (nested != null) return nested;
-            }
-            return null;
-        }
-
-        internal static ContextMenu BuildEditorContextMenu()
-        {
-            var menu = new ContextMenu
-            {
-                Background = Application.Current.Resources["CardBackground"] as System.Windows.Media.Brush,
-                BorderBrush = Application.Current.Resources["DividerBrush"] as System.Windows.Media.Brush,
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(0, 4, 0, 4),
-            };
-
-            var menuTemplate = new ControlTemplate(typeof(ContextMenu));
-            var borderFactory = new FrameworkElementFactory(typeof(Border));
-            borderFactory.SetBinding(Border.BackgroundProperty,
-                new System.Windows.Data.Binding { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent), Path = new PropertyPath(WpfControl.BackgroundProperty) });
-            borderFactory.SetBinding(Border.BorderBrushProperty,
-                new System.Windows.Data.Binding { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent), Path = new PropertyPath(WpfControl.BorderBrushProperty) });
-            borderFactory.SetBinding(Border.BorderThicknessProperty,
-                new System.Windows.Data.Binding { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent), Path = new PropertyPath(WpfControl.BorderThicknessProperty) });
-            borderFactory.SetValue(Border.CornerRadiusProperty, new System.Windows.CornerRadius(8));
-            borderFactory.SetValue(Border.PaddingProperty, new Thickness(0, 4, 0, 4));
-            borderFactory.SetValue(Border.EffectProperty, new System.Windows.Media.Effects.DropShadowEffect
-            {
-                Color = System.Windows.Media.Colors.Black,
-                Direction = 270,
-                ShadowDepth = 4,
-                BlurRadius = 12,
-                Opacity = 0.3
-            });
-            var itemsPresenterFactory = new FrameworkElementFactory(typeof(ItemsPresenter));
-            borderFactory.AppendChild(itemsPresenterFactory);
-            menuTemplate.VisualTree = borderFactory;
-            menu.Template = menuTemplate;
-
-            var fg = Application.Current.Resources["PrimaryTextBrush"] as System.Windows.Media.Brush;
-            var divBrush = Application.Current.Resources["DividerBrush"] as System.Windows.Media.Brush;
-
-            MenuItem MakeItem(string header, ICommand command)
-            {
-                var item = new MenuItem
-                {
-                    Header = header,
-                    Command = command,
-                    Cursor = System.Windows.Input.Cursors.Hand,
-                    Foreground = fg,
-                };
-
-                var itemTemplate = new ControlTemplate(typeof(MenuItem));
-                var bd = new FrameworkElementFactory(typeof(Border));
-                bd.Name = "Bd";
-                bd.SetValue(Border.BackgroundProperty, System.Windows.Media.Brushes.Transparent);
-                bd.SetValue(Border.PaddingProperty, new Thickness(12, 3, 12, 3));
-                bd.SetValue(Border.CornerRadiusProperty, new System.Windows.CornerRadius(5));
-
-                var cp = new FrameworkElementFactory(typeof(ContentPresenter));
-                cp.SetBinding(ContentPresenter.ContentProperty,
-                    new System.Windows.Data.Binding(nameof(MenuItem.Header))
-                    { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent) });
-                cp.SetValue(ContentPresenter.VerticalAlignmentProperty, System.Windows.VerticalAlignment.Center);
-                cp.SetValue(ContentPresenter.HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Left);
-                bd.AppendChild(cp);
-                itemTemplate.VisualTree = bd;
-
-                var hlTrigger = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
-                hlTrigger.Setters.Add(new Setter(Border.BackgroundProperty,
-                    Application.Current.Resources.Contains("ListItemSelectedBackgroundBrush")
-                        ? Application.Current.Resources["ListItemSelectedBackgroundBrush"]
-                        : System.Windows.Media.Brushes.LightGray, "Bd"));
-                itemTemplate.Triggers.Add(hlTrigger);
-
-                var disabledTrigger = new Trigger { Property = MenuItem.IsEnabledProperty, Value = false };
-                disabledTrigger.Setters.Add(new Setter(UIElement.OpacityProperty, 0.5));
-                itemTemplate.Triggers.Add(disabledTrigger);
-
-                item.Template = itemTemplate;
-                return item;
-            }
-
-            menu.Items.Add(MakeItem("复制", ApplicationCommands.Copy));
-            menu.Items.Add(new Separator { Margin = new Thickness(0, 2, 0, 2), Background = divBrush });
-            menu.Items.Add(MakeItem("全选", ApplicationCommands.SelectAll));
-
-            return menu;
-        }
-
     }
 }
