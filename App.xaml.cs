@@ -10,6 +10,7 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.Backup;
+using PromptMasterv6.Features.Main.Tray;
 using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
@@ -232,6 +233,7 @@ namespace PromptMasterv6
             services.AddHttpClient<TencentService>();
 
             services.AddSingleton<ClipboardService>();
+            services.AddSingleton<TrayService>();
 
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
             services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();

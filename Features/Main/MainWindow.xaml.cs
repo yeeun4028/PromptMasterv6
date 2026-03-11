@@ -16,6 +16,7 @@ using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
+using PromptMasterv6.Features.Main.Tray;
 
 using TextBox = System.Windows.Controls.TextBox;
 using MessageBox = System.Windows.MessageBox;
@@ -28,29 +29,22 @@ namespace PromptMasterv6.Features.Main
     {
         public MainViewModel ViewModel { get; }
         private readonly LoggerService _logger;
+        private readonly TrayService _trayService;
 
         private DateTime _suppressAutoHideUntilUtc = DateTime.MinValue;
 
         public bool SuppressAutoActivation { get; set; }
 
-
-
-        private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private bool _isExiting = false;
         private bool _isBackupExiting = false;
-
         private bool _isExternalCloseRequest = true;
 
-        private DispatcherTimer? _routingAnimTimer;
-        private bool _routingAnimState = false;
-        private System.Drawing.Icon? _defaultIcon;
-        private System.Drawing.Icon? _processingIcon;
-
-        public MainWindow(MainViewModel viewModel, LoggerService logger)
+        public MainWindow(MainViewModel viewModel, LoggerService logger, TrayService trayService)
         {
             InitializeComponent();
 
             _logger = logger;
+            _trayService = trayService;
             _logger.LogInfo("[MainWindow] Constructor called", "MainWindow");
 
             this.ShowInTaskbar = false;
@@ -79,7 +73,7 @@ namespace PromptMasterv6.Features.Main
                 ctrlType == CtrlTypes.CTRL_LOGOFF_EVENT ||
                 ctrlType == CtrlTypes.CTRL_SHUTDOWN_EVENT)
             {
-                DisposeNotifyIcon();
+                _trayService.Dispose();
             }
             return false;
         }
@@ -100,43 +94,29 @@ namespace PromptMasterv6.Features.Main
 
         private void CurrentDomain_ProcessExit(object? sender, EventArgs e)
         {
-            DisposeNotifyIcon();
+            _trayService.Dispose();
         }
 
         private void Current_Exit(object sender, ExitEventArgs e)
         {
-            DisposeNotifyIcon();
+            _trayService.Dispose();
         }
-
-        private void DisposeNotifyIcon()
-        {
-            _logger.LogInfo($"[DisposeNotifyIcon] _notifyIcon={_notifyIcon != null}", "MainWindow");
-            if (_notifyIcon != null)
-            {
-                try
-                {
-                    _notifyIcon.Visible = false;
-                    _notifyIcon.Dispose();
-                    _logger.LogInfo("[DisposeNotifyIcon] Disposed successfully", "MainWindow");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"[DisposeNotifyIcon] Error: {ex.Message}", "MainWindow");
-                }
-                _notifyIcon = null;
-            }
-        }
-
 
         public void ForceCleanupNotifyIcon()
         {
-            DisposeNotifyIcon();
+            _trayService.Dispose();
         }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            InitializeTrayIcon();
+            
+            _trayService.Initialize(
+                this.DataContext,
+                ToggleWindowVisibility,
+                () => DoHandleExitRequest(),
+                () => ViewModel.FileManagerVM.IsDirty);
+
             RestoreWindowPosition();
 
             this.SizeChanged += (_, __) => SaveWindowPosition();
@@ -230,7 +210,7 @@ namespace PromptMasterv6.Features.Main
                     _isExiting = true;
                     _isExternalCloseRequest = true;
                     
-                    DisposeNotifyIcon();
+                    _trayService.Dispose();
                     
                     Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
@@ -245,70 +225,6 @@ namespace PromptMasterv6.Features.Main
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-        }
-
-
-
-        private void InitializeTrayIcon()
-        {
-            try
-            {
-                _notifyIcon = new System.Windows.Forms.NotifyIcon();
-                
-                try
-                {
-                    _notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
-                }
-                catch
-                {
-                    try
-                    {
-                        if (System.IO.File.Exists("pro_icon.ico"))
-                            _notifyIcon.Icon = new System.Drawing.Icon("pro_icon.ico");
-                        else
-                            _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
-                    }
-                    catch
-                    {
-                        _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
-                    }
-                }
-
-                _notifyIcon.Text = "PromptMaster v6";
-                _notifyIcon.Visible = true;
-
-                _notifyIcon.MouseClick += (s, e) =>
-                {
-                    if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                    {
-                        var menu = this.Resources["TrayMenu"] as System.Windows.Controls.ContextMenu;
-                        if (menu != null)
-                        {
-                            menu.DataContext = this.DataContext;
-                            TrayMenuHelper.ShowContextMenu(menu);
-                        }
-                    }
-                    else if (e.Button == System.Windows.Forms.MouseButtons.Left)
-                    {
-                        ToggleWindowVisibility();
-                    }
-                };
-                
-                _defaultIcon = _notifyIcon.Icon;
-                _processingIcon = System.Drawing.SystemIcons.Information;
-                
-                _routingAnimTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-                _routingAnimTimer.Tick += (s, e) =>
-                {
-                    if (_notifyIcon == null) return;
-                    _routingAnimState = !_routingAnimState;
-                    _notifyIcon.Icon = _routingAnimState ? _processingIcon : _defaultIcon;
-                };
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"托盘图标初始化失败: {ex.Message}");
-            }
         }
 
         public void ToggleWindowVisibility()
@@ -383,7 +299,12 @@ namespace PromptMasterv6.Features.Main
             }
         }
 
-        private async void Tray_Exit_Click(object sender, RoutedEventArgs e)
+        private void Tray_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            _ = DoHandleExitRequest();
+        }
+
+        private async Task DoHandleExitRequest()
         {
             _isExiting = true;
 
@@ -391,12 +312,12 @@ namespace PromptMasterv6.Features.Main
             {
                 try
                 {
-                    _logger.LogInfo("执行退出前保存...", "MainWindow.Tray_Exit_Click");
+                    _logger.LogInfo("执行退出前保存...", "MainWindow.HandleExitRequest");
                     await ViewModel.PerformLocalBackup();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogException(ex, "退出前保存失败", "MainWindow.Tray_Exit_Click");
+                    _logger.LogException(ex, "退出前保存失败", "MainWindow.HandleExitRequest");
                     System.Diagnostics.Debug.WriteLine($"退出前保存失败: {ex.Message}");
                 }
             }
@@ -475,7 +396,7 @@ namespace PromptMasterv6.Features.Main
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
             }
 
-            DisposeNotifyIcon();
+            _trayService.Dispose();
         }
 
         private void SaveWindowPosition()
@@ -560,8 +481,6 @@ namespace PromptMasterv6.Features.Main
                 }
             }
         }
-
-
 
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
         {
