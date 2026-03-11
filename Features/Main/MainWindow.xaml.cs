@@ -114,7 +114,7 @@ namespace PromptMasterv6.Features.Main
             _trayService.Initialize(
                 this.DataContext,
                 ToggleWindowVisibility,
-                () => DoHandleExitRequest(),
+                DoHandleExitRequest,
                 () => ViewModel.FileManagerVM.IsDirty);
 
             RestoreWindowPosition();

@@ -18,7 +18,7 @@ public class TrayService : IDisposable
     private System.Drawing.Icon? _defaultIcon;
     private System.Drawing.Icon? _processingIcon;
 
-    private Action? _onExitRequested;
+    private Func<Task>? _onExitRequested;
     private Func<bool>? _onIsDirtyCheck;
     private Action? _onToggleWindow;
 
@@ -36,7 +36,7 @@ public class TrayService : IDisposable
     public void Initialize(
         object dataContext,
         Action onToggleWindow,
-        Action onExitRequested,
+        Func<Task> onExitRequested,
         Func<bool> onIsDirtyCheck)
     {
         _onToggleWindow = onToggleWindow;
