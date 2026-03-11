@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Features.Shared.Models;
 
 namespace PromptMasterv6.Features.Settings.Proxy
 {

@@ -571,7 +571,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <shortcut:ShortcutView DataContext="{Binding SettingsVM}"/>
+                                    <shortcut:ShortcutView DataContext="{Binding ShortcutVM}"/>
                                 </StackPanel>
 
                                 <!-- Tab 6: Launcher -->
@@ -601,7 +601,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <window:WindowView DataContext="{Binding SettingsVM}"/>
+                                    <window:WindowView DataContext="{Binding WindowVM}"/>
                                 </StackPanel>
 
                                 <!-- Tab 1: Automation -->
@@ -616,7 +616,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <automation:AutomationView DataContext="{Binding SettingsVM}"/>
+                                    <automation:AutomationView DataContext="{Binding AutomationVM}"/>
                                 </StackPanel>
 
                                 <!-- Tab 2: AI Models -->
@@ -692,7 +692,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <proxy:ProxyView DataContext="{Binding SettingsVM}"/>
+                                    <proxy:ProxyView DataContext="{Binding ProxyVM}"/>
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>
