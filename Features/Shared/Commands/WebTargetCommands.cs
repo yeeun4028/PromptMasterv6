@@ -41,7 +41,7 @@ public class ExecuteWebTargetHandler : IRequestHandler<ExecuteWebTargetCommand>
         try
         {
             bool supportsUrlParam = request.Target.UrlTemplate.Contains("{0}");
-            bool useClipboard = !supportsUrlParam || request.Content.Length > 2000;
+            bool useClipboard = !supportsUrlParam || request.Content.Length > 8000;
             string url;
 
             if (useClipboard)
