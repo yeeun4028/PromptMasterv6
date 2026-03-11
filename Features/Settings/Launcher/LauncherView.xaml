@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:behaviors="clr-namespace:PromptMasterv6.Infrastructure.Behaviors"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
     <StackPanel Margin="0,0,0,14">
         <Border Style="{StaticResource CardStyle}">
@@ -28,14 +29,13 @@
                         <TextBlock Text="快捷键" Style="{StaticResource FieldLabelTextStyle}"/>
                     </StackPanel>
                     <TextBox Grid.Column="1" 
-                             x:Name="LauncherHotkeyTextBox"
-                             Text="{Binding Config.LauncherHotkey, Mode=TwoWay}" 
                              Style="{StaticResource KeyRecorderStyle}"
                              Width="140"
                              HorizontalAlignment="Right"
                              IsReadOnly="True"
                              Cursor="Hand"
-                             PreviewKeyDown="LauncherHotkeyTextBox_PreviewKeyDown"
+                             behaviors:HotkeyCapture.Enabled="True"
+                             behaviors:HotkeyCapture.Hotkey="{Binding Config.LauncherHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
 

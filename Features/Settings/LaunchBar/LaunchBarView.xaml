@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              xmlns:models="clr-namespace:PromptMasterv6.Features.Shared.Models"
+             xmlns:behaviors="clr-namespace:PromptMasterv6.Infrastructure.Behaviors"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
     <UserControl.Resources>
         <converters:HexToSolidColorBrushConverter x:Key="HexToSolidColorBrushConverter"/>
@@ -50,14 +51,13 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="显示/隐藏启动条快捷键" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
                 <TextBox Grid.Column="1" 
-                         x:Name="LaunchBarHotkeyTextBox"
-                         Text="{Binding Config.LaunchBarHotkey, Mode=TwoWay}" 
                          Style="{StaticResource KeyRecorderStyle}"
                          Width="140"
                          IsReadOnly="True"
                          Cursor="Hand"
                          VerticalAlignment="Center"
-                         PreviewKeyDown="LaunchBarHotkeyTextBox_PreviewKeyDown"
+                         behaviors:HotkeyCapture.Enabled="True"
+                         behaviors:HotkeyCapture.Hotkey="{Binding Config.LaunchBarHotkey, Mode=TwoWay}"
                          ToolTip="点击按下按键设置，按 Delete 清除"/>
             </Grid>
 

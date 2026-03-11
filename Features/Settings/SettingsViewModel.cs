@@ -11,7 +11,9 @@ using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Settings.LaunchBar;
 using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Features.Shared.Models;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -49,6 +51,7 @@ namespace PromptMasterv6.Features.Settings
 
         [ObservableProperty] private bool isSettingsOpen;
         [ObservableProperty] private int selectedSettingsTab;
+        [ObservableProperty] private int selectedExternalToolsSubTab = 0;
 
         [RelayCommand]
         private void SelectSettingsTab(string tabIndexStr)
@@ -56,6 +59,15 @@ namespace PromptMasterv6.Features.Settings
             if (int.TryParse(tabIndexStr, out int tabIndex))
             {
                 SelectedSettingsTab = tabIndex;
+            }
+        }
+
+        [RelayCommand]
+        private void SelectExternalToolsSubTab(string tabIndexStr)
+        {
+            if (int.TryParse(tabIndexStr, out int tabIndex))
+            {
+                SelectedExternalToolsSubTab = tabIndex;
             }
         }
 
@@ -73,6 +85,7 @@ namespace PromptMasterv6.Features.Settings
 
         public AppConfig Config => _settingsService.Config;
         public LocalSettings LocalConfig => _settingsService.LocalConfig;
+        public ObservableCollection<PromptItem> FilesView => _sessionState.Files;
 
         #endregion
 

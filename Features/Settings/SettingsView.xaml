@@ -663,18 +663,93 @@
                                     </StackPanel.Style>
 
                                     <!-- Sub-Tab Navigation -->
-                                    <!-- Sub-Tab Navigation -->
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                        <Button x:Name="BtnMainTab" Content="主界面" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="0" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnBaiduTab" Content="百度" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="1" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnTencentTab" Content="腾讯" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="2" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnYoudaoTab" Content="有道" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="3" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnGoogleTab" Content="Google" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="4" Style="{StaticResource SubTabButtonStyle}"/>
-                                        <Button x:Name="BtnExternalAiTranslateTab" Content="AI 翻译配置" Padding="12,6" Margin="0,0,8,0" Click="ExternalToolsSubTab_Click" Tag="5" Style="{StaticResource SubTabButtonStyle}"/>
+                                        <Button Content="主界面" Padding="12,6" Margin="0,0,8,0" 
+                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="0">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="0">
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="百度" Padding="12,6" Margin="0,0,8,0"
+                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="1">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="1">
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="腾讯" Padding="12,6" Margin="0,0,8,0"
+                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="2">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="2">
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="有道" Padding="12,6" Margin="0,0,8,0"
+                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="3">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="3">
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="Google" Padding="12,6" Margin="0,0,8,0"
+                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="4">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="4">
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="AI 翻译配置" Padding="12,6" Margin="0,0,8,0"
+                                                Command="{Binding SelectExternalToolsSubTabCommand}" CommandParameter="5">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SubTabButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="5">
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Main Interface -->
-                                    <StackPanel x:Name="ExternalToolsMainTab">
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="0">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
                                         <!-- OCR Providers Card -->
                                         <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
                                             <StackPanel>
@@ -808,7 +883,17 @@
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Baidu -->
-                                    <StackPanel x:Name="ExternalToolsBaiduTab" Visibility="Collapsed">
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="1">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
                                         <!-- Baidu OCR Card -->
                                         <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
                                             <StackPanel>
@@ -881,7 +966,17 @@
                                     </StackPanel>
 
                                     <!-- Sub-Tab Content: Tencent Cloud -->
-                                    <StackPanel x:Name="ExternalToolsTencentTab" Visibility="Collapsed">
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedExternalToolsSubTab}" Value="2">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
                                         <!-- Tencent OCR Card -->
                                         <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
                                             <StackPanel>

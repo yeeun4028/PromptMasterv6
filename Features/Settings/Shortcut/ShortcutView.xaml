@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:behaviors="clr-namespace:PromptMasterv6.Infrastructure.Behaviors"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
     <StackPanel Margin="0,0,0,14">
         <Border Style="{StaticResource CardStyle}">
@@ -14,13 +15,13 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="完整窗口" Style="{StaticResource FieldLabelTextStyle}" VerticalAlignment="Center"/>
                     <TextBox Grid.Column="1" 
-                             Text="{Binding Config.FullWindowHotkey}" 
                              Style="{StaticResource KeyRecorderStyle}"
                              Width="140"
                              IsReadOnly="True"
                              Cursor="Hand"
                              VerticalAlignment="Center"
-                             PreviewKeyDown="FullWindowHotkeyTextBox_PreviewKeyDown"
+                             behaviors:HotkeyCapture.Enabled="True"
+                             behaviors:HotkeyCapture.Hotkey="{Binding Config.FullWindowHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
@@ -41,14 +42,13 @@
                         <TextBlock Text="截图翻译" Style="{StaticResource FieldLabelTextStyle}"/>
                     </StackPanel>
                     <TextBox Grid.Row="0" Grid.Column="1" 
-                             x:Name="ScreenshotTranslateHotkeyTextBox" 
-                             Text="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
                              Style="{StaticResource KeyRecorderStyle}"
                              Width="140"
                              IsReadOnly="True"
                              Cursor="Hand"
                              VerticalAlignment="Center"
-                             PreviewKeyDown="ScreenshotTranslateHotkeyTextBox_PreviewKeyDown"
+                             behaviors:HotkeyCapture.Enabled="True"
+                             behaviors:HotkeyCapture.Hotkey="{Binding Config.ScreenshotTranslateHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
@@ -69,14 +69,13 @@
                         <TextBlock Text="OCR 识别" Style="{StaticResource FieldLabelTextStyle}"/>
                     </StackPanel>
                     <TextBox Grid.Row="0" Grid.Column="1" 
-                             x:Name="OcrHotkeyTextBox" 
-                             Text="{Binding Config.OcrHotkey, Mode=TwoWay}"
                              Style="{StaticResource KeyRecorderStyle}"
                              Width="140"
                              IsReadOnly="True"
                              Cursor="Hand"
                              VerticalAlignment="Center"
-                             PreviewKeyDown="OcrHotkeyTextBox_PreviewKeyDown"
+                             behaviors:HotkeyCapture.Enabled="True"
+                             behaviors:HotkeyCapture.Hotkey="{Binding Config.OcrHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
@@ -97,14 +96,13 @@
                         <TextBlock Text="贴图（截图）" Style="{StaticResource FieldLabelTextStyle}"/>
                     </StackPanel>
                     <TextBox Grid.Row="0" Grid.Column="1" 
-                             x:Name="PinToScreenHotkeyTextBox" 
-                             Text="{Binding Config.PinToScreenHotkey, Mode=TwoWay}"
                              Style="{StaticResource KeyRecorderStyle}"
                              Width="140"
                              IsReadOnly="True"
                              Cursor="Hand"
                              VerticalAlignment="Center"
-                             PreviewKeyDown="PinToScreenHotkeyTextBox_PreviewKeyDown"
+                             behaviors:HotkeyCapture.Enabled="True"
+                             behaviors:HotkeyCapture.Hotkey="{Binding Config.PinToScreenHotkey, Mode=TwoWay}"
                              ToolTip="点击按下按键设置，按 Delete 清除"/>
                 </Grid>
             </StackPanel>
