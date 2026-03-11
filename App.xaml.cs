@@ -229,6 +229,9 @@ namespace PromptMasterv6
 
             services.AddSingleton<ClipboardService>();
 
+            services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
+            services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
+
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();

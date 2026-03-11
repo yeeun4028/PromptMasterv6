@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Features.Shared.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,8 @@ namespace PromptMasterv6.Features.Settings.AiModels;
 public partial class AiModelsViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
-    private readonly AiService _aiService;
+    private readonly TestAiConnectionFeature.Handler _testHandler;
+    private readonly DeleteAiModelFeature.Handler _deleteHandler;
     private readonly DialogService _dialogService;
 
     [ObservableProperty] private string? testStatus;
@@ -21,29 +23,35 @@ public partial class AiModelsViewModel : ObservableObject
 
     public AppConfig Config => _settingsService.Config;
 
-    public AiModelsViewModel(SettingsService settingsService, AiService aiService, DialogService dialogService)
+    public AiModelsViewModel(
+        SettingsService settingsService,
+        TestAiConnectionFeature.Handler testHandler,
+        DeleteAiModelFeature.Handler deleteHandler,
+        DialogService dialogService)
     {
         _settingsService = settingsService;
-        _aiService = aiService;
+        _testHandler = testHandler;
+        _deleteHandler = deleteHandler;
         _dialogService = dialogService;
     }
 
     [RelayCommand]
     private async Task TestAiConnection(AiModelConfig? model)
     {
-        if (model == null)
-        {
-            var (success, msg, timeMs) = await _aiService.TestConnectionAsync(Config);
-            TestStatus = success && timeMs.HasValue ? $"{msg} ({timeMs}ms)" : msg;
-            TestStatusColor = success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
-            return;
-        }
+        if (model == null) return;
 
         TestStatus = "测试中...";
         TestStatusColor = System.Windows.Media.Brushes.Gray;
-        var (success2, message, responseTimeMs) = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
-        TestStatus = success2 && responseTimeMs.HasValue ? $"{message} ({responseTimeMs}ms)" : message;
-        TestStatusColor = success2 ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+
+        var cmd = new TestAiConnectionFeature.Command(
+            model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
+
+        var result = await _testHandler.Handle(cmd);
+
+        TestStatus = result.Success && result.ResponseTimeMs.HasValue 
+            ? $"{result.Message} ({result.ResponseTimeMs}ms)" 
+            : result.Message;
+        TestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
     }
 
     [RelayCommand]
@@ -66,7 +74,10 @@ public partial class AiModelsViewModel : ObservableObject
 
         foreach (var model in enabledModels)
         {
-            var result = await _aiService.TestConnectionAsync(model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
+            var cmd = new TestAiConnectionFeature.Command(
+                model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
+            var result = await _testHandler.Handle(cmd);
+            
             if (result.Success)
             {
                 successCount++;
@@ -128,13 +139,14 @@ public partial class AiModelsViewModel : ObservableObject
     private void DeleteAiModel(AiModelConfig? model)
     {
         if (model == null) return;
-        var idx = Config.SavedModels.IndexOf(model);
-        if (idx >= 0) Config.SavedModels.RemoveAt(idx);
-        
-        if (Config.ActiveModelId == model.Id) Config.ActiveModelId = "";
-        if (SelectedSavedModel == model) SelectedSavedModel = null;
-        
-        _settingsService.SaveConfig();
+
+        var cmd = new DeleteAiModelFeature.Command(model);
+        _deleteHandler.Handle(cmd);
+
+        if (SelectedSavedModel == model)
+        {
+            SelectedSavedModel = null;
+        }
     }
 
     [RelayCommand]
