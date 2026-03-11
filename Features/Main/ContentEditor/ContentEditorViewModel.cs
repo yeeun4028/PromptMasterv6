@@ -8,6 +8,7 @@ using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.ObjectModel;
@@ -35,8 +36,6 @@ public partial class ContentEditorViewModel : ObservableObject
     public MarkdownPipeline Pipeline { get; }
     public AppConfig Config { get; }
 
-    public event Action? ContentChanged;
-
     public ContentEditorViewModel(
         IMediator mediator,
         DialogService dialogService,
@@ -54,6 +53,11 @@ public partial class ContentEditorViewModel : ObservableObject
             .Build();
 
         WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(this, async (_, m) =>
+        {
+            await SetCurrentFileAsync(m.File, m.EnterEditMode);
+        });
+
+        WeakReferenceMessenger.Default.Register<FileSelectedMessage>(this, async (_, m) =>
         {
             await SetCurrentFileAsync(m.File, m.EnterEditMode);
         });
@@ -153,8 +157,7 @@ public partial class ContentEditorViewModel : ObservableObject
             if (contentChanged)
             {
                 SelectedFile.LastModified = DateTime.Now;
-                ContentChanged?.Invoke();
-                WeakReferenceMessenger.Default.Send(new ContentChangedMessage(SelectedFile));
+                WeakReferenceMessenger.Default.Send(new RequestBackupActionMessage());
             }
 
             IsEditMode = false;

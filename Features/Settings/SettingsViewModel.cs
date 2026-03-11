@@ -29,8 +29,6 @@ namespace PromptMasterv6.Features.Settings
         public Features.Settings.Automation.AutomationViewModel AutomationVM { get; }
         public Features.Settings.Window.WindowViewModel WindowVM { get; }
         public Features.Settings.Proxy.ProxyViewModel ProxyVM { get; }
-        
-        public SettingsViewModel SettingsVM => this;
 
         #endregion
 

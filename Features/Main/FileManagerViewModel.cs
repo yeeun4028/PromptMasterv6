@@ -7,6 +7,7 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Core.Messages;
+using PromptMasterv6.Features.Shared.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -35,9 +36,6 @@ public partial class FileManagerViewModel : ObservableObject
     [ObservableProperty] private bool isDirty;
 
     public IDropTarget FolderDropHandler { get; }
-
-    public event Action? SaveRequested;
-    public event Action<PromptItem?, bool>? SelectedFileChanged;
 
     private bool _enterEditModeOnNextSelection;
 
@@ -105,7 +103,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         var enterEditMode = _enterEditModeOnNextSelection;
         _enterEditModeOnNextSelection = false;
-        SelectedFileChanged?.Invoke(value, enterEditMode);
+        WeakReferenceMessenger.Default.Send(new FileSelectedMessage(value, enterEditMode));
     }
 
     public async Task InitializeAsync()
@@ -176,6 +174,7 @@ public partial class FileManagerViewModel : ObservableObject
         }
 
         IsDirty = false;
+        WeakReferenceMessenger.Default.Send(new DataInitializedMessage(Folders, Files));
     }
 
     public void UpdateFilesViewFilter()
@@ -334,7 +333,7 @@ public partial class FileManagerViewModel : ObservableObject
     public void RequestSave()
     {
         if (!IsDirty) IsDirty = true;
-        SaveRequested?.Invoke();
+        WeakReferenceMessenger.Default.Send(new RequestBackupActionMessage());
     }
 
     public async Task PerformLocalBackupAsync()

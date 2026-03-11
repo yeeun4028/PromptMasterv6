@@ -43,7 +43,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private FileManagerViewModel fileManagerVM;
     [ObservableProperty] private ContentEditorViewModel contentEditorVM;
-    [ObservableProperty] private WorkspaceViewModel? workspaceVM;
     [ObservableProperty] private BackupViewModel backupVM;
 
     public MainViewModel(
@@ -68,14 +67,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
-
-        FileManagerVM.SaveRequested += async () => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null);
-        FileManagerVM.SelectedFileChanged += async (file, enterEditMode) => 
-        {
-            await ContentEditorVM.SetCurrentFileAsync(file, enterEditMode);
-        };
-
-        WeakReferenceMessenger.Default.Register<ContentChangedMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
 
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
         WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, _) => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null));
@@ -128,8 +119,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private async Task InitializeAsync()
     {
         await FileManagerVM.InitializeAsync();
-        
-        BackupVM.SetData(FileManagerVM.Folders, FileManagerVM.Files);
     }
 
     [RelayCommand]
