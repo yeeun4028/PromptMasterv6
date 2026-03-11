@@ -41,26 +41,40 @@ public class ExecuteWebTargetHandler : IRequestHandler<ExecuteWebTargetCommand>
         try
         {
             bool supportsUrlParam = request.Target.UrlTemplate.Contains("{0}");
-            bool useClipboard = !supportsUrlParam || request.Content.Length > 8000;
             string url;
+            
+            if (supportsUrlParam)
+            {
+                url = string.Format(request.Target.UrlTemplate, Uri.EscapeDataString(request.Content));
+            }
+            else
+            {
+                url = request.Target.UrlTemplate;
+            }
+
+            const int MaxUrlLength = 50000;
+            bool useClipboard = !supportsUrlParam || url.Length > MaxUrlLength;
 
             if (useClipboard)
             {
                 _clipboardService.SetClipboard(request.Content);
-                try { url = string.Format(request.Target.UrlTemplate, ""); }
-                catch { url = request.Target.UrlTemplate.Split('?')[0]; }
-                _dialogService.ShowAlert("提示词过长，已复制到剪贴板，请手动粘贴。", "提示");
+                _dialogService.ShowAlert("内容已复制到剪贴板，请手动粘贴。", "提示");
+                
+                var baseUrl = request.Target.UrlTemplate.Split('?')[0];
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = baseUrl,
+                    UseShellExecute = true
+                });
             }
             else
             {
-                url = string.Format(request.Target.UrlTemplate, Uri.EscapeDataString(request.Content));
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
             }
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
 
             if (request.HideMainWindow && System.Windows.Application.Current.MainWindow != null)
             {
