@@ -11,37 +11,34 @@ namespace PromptMasterv6.Features.Main.Tray;
 public class TrayService : IDisposable
 {
     private readonly LoggerService _logger;
-    private readonly WindowManager _windowManager;
+    private readonly TrayViewModel _viewModel;
     private System.Windows.Forms.NotifyIcon? _notifyIcon;
     private DispatcherTimer? _routingAnimTimer;
     private bool _routingAnimState;
     private System.Drawing.Icon? _defaultIcon;
     private System.Drawing.Icon? _processingIcon;
 
-    private Func<Task>? _onExitRequested;
-    private Func<bool>? _onIsDirtyCheck;
-    private Action? _onToggleWindow;
+    private TrayMenuView? _trayMenu;
 
-    public TrayService(LoggerService logger, WindowManager windowManager)
+    public TrayService(LoggerService logger, TrayViewModel viewModel)
     {
         _logger = logger;
-        _windowManager = windowManager;
+        _viewModel = viewModel;
     }
 
     public void Initialize(
-        object dataContext,
         Action onToggleWindow,
         Func<Task> onExitRequested,
-        Func<bool> onIsDirtyCheck)
+        Func<bool>? onIsDirtyCheck = null)
     {
-        _onToggleWindow = onToggleWindow;
-        _onExitRequested = onExitRequested;
-        _onIsDirtyCheck = onIsDirtyCheck;
+        _viewModel.ToggleWindowRequested += onToggleWindow;
+        _viewModel.ExitRequested += onExitRequested;
+        _viewModel.IsDirtyCheck = onIsDirtyCheck;
 
-        InitializeNotifyIcon(dataContext);
+        InitializeNotifyIcon();
     }
 
-    private void InitializeNotifyIcon(object dataContext)
+    private void InitializeNotifyIcon()
     {
         try
         {
@@ -73,11 +70,11 @@ public class TrayService : IDisposable
             {
                 if (e.Button == System.Windows.Forms.MouseButtons.Right)
                 {
-                    ShowContextMenu(dataContext);
+                    ShowContextMenu();
                 }
                 else if (e.Button == System.Windows.Forms.MouseButtons.Left)
                 {
-                    _onToggleWindow?.Invoke();
+                    _viewModel.ToggleVisibilityCommand.Execute(null);
                 }
             };
 
@@ -98,19 +95,20 @@ public class TrayService : IDisposable
         }
     }
 
-    private void ShowContextMenu(object dataContext)
+    private void ShowContextMenu()
     {
-        var menu = System.Windows.Application.Current.MainWindow?.Resources["TrayMenu"] as System.Windows.Controls.ContextMenu;
-        if (menu != null)
+        if (_trayMenu == null)
         {
-            menu.DataContext = dataContext;
-            TrayMenuHelper.ShowContextMenu(menu);
+            _trayMenu = new TrayMenuView();
         }
+        
+        _trayMenu.DataContext = _viewModel;
+        TrayMenuHelper.ShowContextMenu(_trayMenu);
     }
 
     public void Exit()
     {
-        _onExitRequested?.Invoke();
+        _viewModel.ExitCommand.Execute(null);
     }
 
     public void Dispose()
@@ -132,6 +130,8 @@ public class TrayService : IDisposable
 
         _routingAnimTimer?.Stop();
         _routingAnimTimer = null;
+
+        _trayMenu = null;
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
     }

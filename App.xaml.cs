@@ -233,6 +233,7 @@ namespace PromptMasterv6
             services.AddHttpClient<TencentService>();
 
             services.AddSingleton<ClipboardService>();
+            services.AddSingleton<Features.Main.Tray.TrayViewModel>();
             services.AddSingleton<TrayService>();
 
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();

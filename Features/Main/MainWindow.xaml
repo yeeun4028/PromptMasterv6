@@ -41,21 +41,6 @@
         <utils:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
         <utils:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
         <converters:StringToVisibilityConverter x:Key="StringVisibilityConverter"/>
-
-        <ContextMenu x:Key="TrayMenu" Style="{StaticResource ModernContextMenuStyle}">
-              <MenuItem Header="显示/隐藏窗口"
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Click="Tray_ToggleVisibility_Click"/>
-              <MenuItem Header="云端同步" 
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Command="{Binding ManualBackupCommand}"/>
-              <MenuItem Header="配置中心" 
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Command="{Binding OpenSettingsCommand}"/>
-              <MenuItem Header="退出" 
-                        Style="{StaticResource TrayMenuItemStyle}"
-                        Click="Tray_Exit_Click"/>
-        </ContextMenu>
     </Window.Resources>
 
     <Grid UseLayoutRounding="True" SnapsToDevicePixels="True">

@@ -112,7 +112,6 @@ namespace PromptMasterv6.Features.Main
             base.OnSourceInitialized(e);
             
             _trayService.Initialize(
-                this.DataContext,
                 ToggleWindowVisibility,
                 DoHandleExitRequest,
                 () => ViewModel.FileManagerVM.IsDirty);
@@ -242,67 +241,6 @@ namespace PromptMasterv6.Features.Main
                 this.Focus();
                 Infrastructure.Services.NativeMethods.SetForegroundWindow(new System.Windows.Interop.WindowInteropHelper(this).Handle);
             }
-        }
-
-        private void Tray_ToggleVisibility_Click(object sender, RoutedEventArgs e)
-        {
-            ToggleWindowVisibility();
-        }
-
-        private async void Tray_PinToScreen_Capture_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var app = Application.Current as App;
-                if (app == null) return;
-
-                var windowManager = app.ServiceProvider.GetRequiredService<WindowManager>();
-                await windowManager.ShowPinToScreenFromCaptureAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"贴图截图失败: {ex.Message}", "MainWindow");
-            }
-        }
-
-        private void Tray_PinToScreen_Clipboard_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var app = Application.Current as App;
-                if (app == null) return;
-
-                var windowManager = app.ServiceProvider.GetRequiredService<WindowManager>();
-                if (!windowManager.ShowPinToScreenFromClipboard())
-                {
-                    HandyControl.Controls.Growl.Warning("剪贴板中没有图片");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"贴图剪贴板失败: {ex.Message}", "MainWindow");
-            }
-        }
-
-        private void Tray_PinToScreen_CloseAll_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var app = Application.Current as App;
-                if (app == null) return;
-
-                var windowManager = app.ServiceProvider.GetRequiredService<WindowManager>();
-                windowManager.CloseAllPinToScreenWindows();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"关闭贴图失败: {ex.Message}", "MainWindow");
-            }
-        }
-
-        private void Tray_Exit_Click(object sender, RoutedEventArgs e)
-        {
-            _ = DoHandleExitRequest();
         }
 
         private async Task DoHandleExitRequest()

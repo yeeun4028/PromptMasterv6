@@ -1,0 +1,30 @@
+<ContextMenu x:Class="PromptMasterv6.Features.Main.Tray.TrayMenuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Style="{StaticResource ModernContextMenuStyle}">
+    
+    <MenuItem Header="显示/隐藏窗口"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding ToggleVisibilityCommand}"/>
+    <Separator/>
+    <MenuItem Header="截图贴图"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding PinToScreenFromCaptureCommand}"/>
+    <MenuItem Header="剪贴板贴图"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding PinToScreenFromClipboardCommand}"/>
+    <MenuItem Header="关闭所有贴图"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding CloseAllPinToScreenCommand}"/>
+    <Separator/>
+    <MenuItem Header="云端同步"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding ManualBackupCommand}"/>
+    <MenuItem Header="配置中心"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding OpenSettingsCommand}"/>
+    <Separator/>
+    <MenuItem Header="退出"
+              Style="{StaticResource TrayMenuItemStyle}"
+              Command="{Binding ExitCommand}"/>
+</ContextMenu>
