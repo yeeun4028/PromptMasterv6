@@ -235,6 +235,7 @@ namespace PromptMasterv6.Features.Main
             }
             else
             {
+                _suppressAutoHideUntilUtc = DateTime.UtcNow.AddMilliseconds(500);
                 ViewModel.IsFullMode = true;
                 this.Show();
                 this.Activate();
@@ -472,6 +473,8 @@ namespace PromptMasterv6.Features.Main
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
+            if (DateTime.UtcNow < _suppressAutoHideUntilUtc) return;
+
             if (ViewModel.Config.AutoHide)
             {
                 var isSettingsOpen = Application.Current.Windows.OfType<Window>().Any(w => w.GetType().Name == "SettingsWindow" && w.IsVisible);

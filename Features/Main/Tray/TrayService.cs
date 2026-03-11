@@ -26,11 +26,6 @@ public class TrayService : IDisposable
     {
         _logger = logger;
         _windowManager = windowManager;
-
-        WeakReferenceMessenger.Default.Register<ToggleMainWindowMessage>(this, (_, _) =>
-        {
-            _onToggleWindow?.Invoke();
-        });
     }
 
     public void Initialize(
