@@ -52,7 +52,7 @@ public class ExecuteWebTargetHandler : IRequestHandler<ExecuteWebTargetCommand>
                 url = request.Target.UrlTemplate;
             }
 
-            const int MaxUrlLength = 50000;
+            const int MaxUrlLength = 2000;
             bool useClipboard = !supportsUrlParam || url.Length > MaxUrlLength;
 
             if (useClipboard)

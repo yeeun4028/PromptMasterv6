@@ -8,11 +8,20 @@ namespace PromptMasterv6.Infrastructure.Services
     {
         public void ShowAlert(string message, string title)
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() => ShowAlert(message, title));
+                return;
+            }
             System.Windows.MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         public bool ShowConfirmation(string message, string title)
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowConfirmation(message, title));
+            }
             var result = System.Windows.MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
             return result == MessageBoxResult.Yes;
         }
@@ -42,6 +51,11 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public string? ShowOpenFileDialog(string filter)
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowOpenFileDialog(filter));
+            }
+
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = filter
@@ -55,6 +69,11 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public string[]? ShowOpenFilesDialog(string filter)
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowOpenFilesDialog(filter));
+            }
+
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = filter,
@@ -69,6 +88,11 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public string? ShowSaveFileDialog(string filter, string defaultName)
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowSaveFileDialog(filter, defaultName));
+            }
+
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = filter,
@@ -83,6 +107,11 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public string? ShowFolderBrowserDialog(string description = "")
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowFolderBrowserDialog(description));
+            }
+
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
             {
                 dialog.Description = description;
@@ -97,6 +126,11 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public bool ShowOcrNotConfiguredDialog()
         {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowOcrNotConfiguredDialog());
+            }
+
             var dialogType = Type.GetType("PromptMasterv6.Features.ExternalTools.Dialogs.OcrNotConfiguredDialog, PromptMasterv6");
             if (dialogType == null)
             {
