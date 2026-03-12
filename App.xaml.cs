@@ -300,6 +300,14 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();
             services.AddSingleton<Features.Launcher.FilterLauncherItems.FilterLauncherItemsFeature.Handler>();
 
+            // ExternalTools Features
+            services.AddSingleton<Features.ExternalTools.PerformOcr.PerformOcrFeature.Handler>();
+            services.AddSingleton<Features.ExternalTools.PerformScreenshotOcr.PerformScreenshotOcrFeature.Handler>();
+            services.AddSingleton<Features.ExternalTools.PerformTranslate.PerformTranslateFeature.Handler>();
+            services.AddSingleton<Features.ExternalTools.PerformVisionTranslate.PerformVisionTranslateFeature.Handler>();
+            services.AddSingleton<Features.ExternalTools.PerformScreenshotTranslate.PerformScreenshotTranslateFeature.Handler>();
+            services.AddSingleton<Features.ExternalTools.EnsureAiProfile.EnsureAiProfileFeature.Handler>();
+
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
