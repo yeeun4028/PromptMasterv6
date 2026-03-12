@@ -30,20 +30,19 @@ public partial class LauncherSettingsViewModel : ObservableObject
     {
         try
         {
-            var dialog = new System.Windows.Forms.FolderBrowserDialog
-            {
-                Description = "选择要添加的搜索文件夹",
-                UseDescriptionForTitle = true,
-                ShowNewFolderButton = false
-            };
+            // 1. 选择搜索路径
+            var selectResult = await _mediator.Send(new SelectSearchPathFeature.Command());
 
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (!selectResult.Success || selectResult.UserCancelled)
             {
-                var result = await _mediator.Send(new AddSearchPathFeature.Command(dialog.SelectedPath));
-                if (!result.Success && result.ErrorMessage != null)
-                {
-                    _logger.LogInfo($"Add search path skipped: {result.ErrorMessage}", "LauncherSettingsViewModel.AddLauncherSearchPath");
-                }
+                return;  // 用户取消或失败
+            }
+
+            // 2. 添加搜索路径
+            var result = await _mediator.Send(new AddSearchPathFeature.Command(selectResult.SelectedPath!));
+            if (!result.Success && result.ErrorMessage != null)
+            {
+                _logger.LogInfo($"Add search path skipped: {result.ErrorMessage}", "LauncherSettingsViewModel.AddLauncherSearchPath");
             }
         }
         catch (Exception ex)

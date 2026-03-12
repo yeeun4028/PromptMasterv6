@@ -21,6 +21,8 @@ public partial class SyncViewModel : ObservableObject
     private readonly ManualBackupFeature.Handler _manualBackupHandler;
     private readonly ExportConfigFeature.Handler _exportConfigHandler;
     private readonly ImportConfigFeature.Handler _importConfigHandler;
+    private readonly SelectExportPathFeature.Handler _selectExportPathHandler;
+    private readonly SelectImportPathFeature.Handler _selectImportPathHandler;
 
     public AppConfig Config => _settingsService.Config;
     public LocalSettings LocalConfig => _settingsService.LocalConfig;
@@ -38,7 +40,9 @@ public partial class SyncViewModel : ObservableObject
         ManualLocalRestoreFeature.Handler manualLocalRestoreHandler,
         ManualBackupFeature.Handler manualBackupHandler,
         ExportConfigFeature.Handler exportConfigHandler,
-        ImportConfigFeature.Handler importConfigHandler)
+        ImportConfigFeature.Handler importConfigHandler,
+        SelectExportPathFeature.Handler selectExportPathHandler,
+        SelectImportPathFeature.Handler selectImportPathHandler)
     {
         _settingsService = settingsService;
         _localDataService = localDataService;
@@ -49,6 +53,8 @@ public partial class SyncViewModel : ObservableObject
         _manualBackupHandler = manualBackupHandler;
         _exportConfigHandler = exportConfigHandler;
         _importConfigHandler = importConfigHandler;
+        _selectExportPathHandler = selectExportPathHandler;
+        _selectImportPathHandler = selectImportPathHandler;
     }
 
     [RelayCommand]
@@ -145,63 +151,58 @@ public partial class SyncViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ExportConfig()
+    private async Task ExportConfig()
     {
-        var dialog = new Microsoft.Win32.SaveFileDialog
-        {
-            Title = "导出配置",
-            Filter = "配置文件压缩包 (*.zip)|*.zip",
-            FileName = $"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip"
-        };
+        // 1. 选择导出路径
+        var selectResult = await _selectExportPathHandler.Handle(
+            new SelectExportPathFeature.Command($"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip", "zip")
+        );
 
-        var owner = System.Windows.Application.Current.Windows
-            .OfType<System.Windows.Window>()
-            .FirstOrDefault(w => w.IsActive);
-
-        if (dialog.ShowDialog(owner) == true)
+        if (!selectResult.Success || selectResult.UserCancelled)
         {
-            var result = _exportConfigHandler.Handle(new ExportConfigFeature.Command(dialog.FileName));
-            
+            return;  // 用户取消或失败
+        }
+
+        // 2. 执行导出
+        var result = _exportConfigHandler.Handle(new ExportConfigFeature.Command(selectResult.SelectedPath!));
+
+        if (result.Success)
+        {
+            _dialogService.ShowToast(result.Message, "Success");
+        }
+        else
+        {
+            _dialogService.ShowAlert(result.Message, "错误");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportConfig()
+    {
+        // 1. 选择导入路径
+        var selectResult = await _selectImportPathHandler.Handle(
+            new SelectImportPathFeature.Command("zip")
+        );
+
+        if (!selectResult.Success || selectResult.UserCancelled)
+        {
+            return;  // 用户取消或失败
+        }
+
+        // 2. 确认导入
+        if (_dialogService.ShowConfirmation("导入配置将覆盖当前的设置，确定要继续吗？\n(操作后将自动重启生效)", "确认导入"))
+        {
+            var result = _importConfigHandler.Handle(new ImportConfigFeature.Command(selectResult.SelectedPath!));
+
             if (result.Success)
             {
+                OnPropertyChanged(nameof(Config));
+                OnPropertyChanged(nameof(LocalConfig));
                 _dialogService.ShowToast(result.Message, "Success");
             }
             else
             {
                 _dialogService.ShowAlert(result.Message, "错误");
-            }
-        }
-    }
-
-    [RelayCommand]
-    private void ImportConfig()
-    {
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "导入配置",
-            Filter = "配置文件压缩包 (*.zip)|*.zip"
-        };
-
-        var owner = System.Windows.Application.Current.Windows
-            .OfType<System.Windows.Window>()
-            .FirstOrDefault(w => w.IsActive);
-
-        if (dialog.ShowDialog(owner) == true)
-        {
-            if (_dialogService.ShowConfirmation("导入配置将覆盖当前的设置，确定要继续吗？\n(操作后将自动重启生效)", "确认导入"))
-            {
-                var result = _importConfigHandler.Handle(new ImportConfigFeature.Command(dialog.FileName));
-                
-                if (result.Success)
-                {
-                    OnPropertyChanged(nameof(Config));
-                    OnPropertyChanged(nameof(LocalConfig));
-                    _dialogService.ShowToast(result.Message, "Success");
-                }
-                else
-                {
-                    _dialogService.ShowAlert(result.Message, "错误");
-                }
             }
         }
     }

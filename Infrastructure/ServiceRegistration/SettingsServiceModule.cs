@@ -42,6 +42,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             // Settings Features - Launcher
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
+            services.AddSingleton<Features.Settings.Launcher.SelectSearchPathFeature.Handler>();
 
             // Settings Features - Sync
             services.AddSingleton<Features.Settings.Sync.ManualRestoreFeature.Handler>();
@@ -49,6 +50,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.Sync.ManualBackupFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ExportConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ImportConfigFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.SelectExportPathFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.SelectImportPathFeature.Handler>();
 
             // Settings Features - ExternalTools
             services.AddSingleton<Features.Settings.ExternalTools.SaveAiTranslationConfigFeature.Handler>();
