@@ -1,33 +1,32 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using System;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Launcher;
 
 public partial class LauncherSettingsViewModel : ObservableObject
 {
-    private readonly AddSearchPathFeature.Handler _addSearchPathHandler;
-    private readonly RemoveSearchPathFeature.Handler _removeSearchPathHandler;
+    private readonly IMediator _mediator;
     private readonly SettingsService _settingsService;
     private readonly LoggerService _logger;
 
     public AppConfig Config => _settingsService.Config;
 
     public LauncherSettingsViewModel(
-        AddSearchPathFeature.Handler addSearchPathHandler,
-        RemoveSearchPathFeature.Handler removeSearchPathHandler,
+        IMediator mediator,
         SettingsService settingsService,
         LoggerService logger)
     {
-        _addSearchPathHandler = addSearchPathHandler;
-        _removeSearchPathHandler = removeSearchPathHandler;
+        _mediator = mediator;
         _settingsService = settingsService;
         _logger = logger;
     }
 
     [RelayCommand]
-    private void AddLauncherSearchPath()
+    private async Task AddLauncherSearchPath()
     {
         try
         {
@@ -40,7 +39,7 @@ public partial class LauncherSettingsViewModel : ObservableObject
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                var result = _addSearchPathHandler.Handle(new AddSearchPathFeature.Command(dialog.SelectedPath));
+                var result = await _mediator.Send(new AddSearchPathFeature.Command(dialog.SelectedPath));
                 if (!result.Success && result.ErrorMessage != null)
                 {
                     _logger.LogInfo($"Add search path skipped: {result.ErrorMessage}", "LauncherSettingsViewModel.AddLauncherSearchPath");
@@ -54,9 +53,9 @@ public partial class LauncherSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RemoveLauncherSearchPath(string? path)
+    private async Task RemoveLauncherSearchPath(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
-        _removeSearchPathHandler.Handle(new RemoveSearchPathFeature.Command(path));
+        await _mediator.Send(new RemoveSearchPathFeature.Command(path));
     }
 }
