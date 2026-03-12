@@ -97,25 +97,18 @@ namespace PromptMasterv6
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
 
-                // 配置 TextBox 上下文菜单
-                var textBoxMenuHandler = _serviceProvider.GetService<Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Handler>();
-                textBoxMenuHandler?.Handle(new Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Command(), System.Threading.CancellationToken.None);
+                // 使用 InitializeApplicationFeature 进行初始化
+                var initHandler = _serviceProvider.GetRequiredService<Features.AppCore.Initialization.InitializeApplicationFeature.Handler>();
+                var initResult = initHandler.Handle(
+                    new Features.AppCore.Initialization.InitializeApplicationFeature.Command(_serviceProvider),
+                    System.Threading.CancellationToken.None).Result;
 
-                var windowRegistry = _serviceProvider.GetRequiredService<WindowRegistry>();
-                RegisterWindows(windowRegistry);
+                if (!initResult.Success)
+                {
+                    throw new Exception(initResult.Message);
+                }
 
-                LoggerService.Instance.LogInfo("Creating main window...", "App.OnStartup");
-                MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                MainWindow.Show();
-                
-                var launchBarWindow = _serviceProvider.GetRequiredService<LaunchBarWindow>();
-                launchBarWindow.Show();
-
-                var shortcutCoordinator = _serviceProvider.GetRequiredService<GlobalShortcutCoordinator>();
-                shortcutCoordinator.Start();
-
-                _ = _serviceProvider.GetRequiredService<ExternalToolsViewModel>();
-
+                MainWindow = initResult.MainWindow;
                 LoggerService.Instance.LogInfo("Application started successfully.", "App.OnStartup");
             }
             catch (Exception ex)
@@ -169,6 +162,7 @@ namespace PromptMasterv6
             services.AddSingleton<Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler>();
             services.AddSingleton<Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler>();
             services.AddSingleton<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
+            services.AddSingleton<Features.AppCore.Initialization.InitializeApplicationFeature.Handler>();
 
             services.AddSingleton<ISessionState, SessionState>();
 
@@ -300,21 +294,6 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.ExternalTools.ExternalToolsSettingsViewModel>();
 
         }
-
-        private static void RegisterWindows(WindowRegistry registry)
-        {
-            registry.RegisterWindow<LauncherViewModel, LauncherWindow>();
-            registry.RegisterWindow<SettingsViewModel, SettingsWindow>();
-
-            registry.RegisterScreenCaptureOverlay((screenBitmap, onCaptureProcessing) =>
-                new Features.ExternalTools.ScreenCaptureOverlay(screenBitmap, onCaptureProcessing));
-
-            registry.RegisterTranslationPopup(text =>
-                new Features.ExternalTools.TranslationPopup(text));
-
-            registry.RegisterPinToScreen(Features.PinToScreen.PinToScreenWindow.PinToScreenAsync);
-        }
-
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
