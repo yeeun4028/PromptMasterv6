@@ -29,7 +29,7 @@ namespace PromptMasterv6.Features.Settings.Window
         {
             var command = new UpdateWindowSettingsFeature.Command(AutoHide);
 
-            var result = await _updateWindowSettingsHandler.Handle(command);
+            var result = await _updateWindowSettingsHandler.Handle(command, CancellationToken.None);
 
             if (result.Success)
             {

@@ -42,7 +42,7 @@ namespace PromptMasterv6.Features.Settings.Shortcut
                 PinToScreenHotkey
             );
 
-            var result = await _updateShortcutHandler.Handle(command);
+            var result = await _updateShortcutHandler.Handle(command, CancellationToken.None);
 
             if (result.Success)
             {

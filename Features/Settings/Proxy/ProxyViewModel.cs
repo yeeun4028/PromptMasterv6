@@ -29,7 +29,7 @@ namespace PromptMasterv6.Features.Settings.Proxy
         {
             var command = new UpdateProxyFeature.Command(ProxyAddress);
 
-            var result = await _updateProxyHandler.Handle(command);
+            var result = await _updateProxyHandler.Handle(command, CancellationToken.None);
 
             if (result.Success)
             {

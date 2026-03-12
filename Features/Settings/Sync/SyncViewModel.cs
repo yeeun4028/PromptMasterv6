@@ -155,7 +155,8 @@ public partial class SyncViewModel : ObservableObject
     {
         // 1. 选择导出路径
         var selectResult = await _selectExportPathHandler.Handle(
-            new SelectExportPathFeature.Command($"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip", "zip")
+            new SelectExportPathFeature.Command($"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip", "zip"),
+            CancellationToken.None
         );
 
         if (!selectResult.Success || selectResult.UserCancelled)
@@ -181,7 +182,8 @@ public partial class SyncViewModel : ObservableObject
     {
         // 1. 选择导入路径
         var selectResult = await _selectImportPathHandler.Handle(
-            new SelectImportPathFeature.Command("zip")
+            new SelectImportPathFeature.Command("zip"),
+            CancellationToken.None
         );
 
         if (!selectResult.Success || selectResult.UserCancelled)

@@ -1,3 +1,4 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Proxy;
@@ -8,13 +9,13 @@ namespace PromptMasterv6.Features.Settings.Proxy;
 public static class UpdateProxyFeature
 {
     // 1. 定义输入
-    public record Command(string ProxyAddress);
+    public record Command(string ProxyAddress) : IRequest<Result>;
 
     // 2. 定义输出
     public record Result(bool Success, string Message, string? ValidationError = null);
 
     // 3. 执行逻辑
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
@@ -25,7 +26,7 @@ public static class UpdateProxyFeature
             _logger = logger;
         }
 
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             // 验证代理地址格式
             if (!string.IsNullOrWhiteSpace(request.ProxyAddress))

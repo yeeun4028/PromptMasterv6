@@ -1,3 +1,4 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Shortcut;
@@ -13,13 +14,13 @@ public static class UpdateShortcutFeature
         string ScreenshotTranslateHotkey,
         string OcrHotkey,
         string PinToScreenHotkey
-    );
+    ) : IRequest<Result>;
 
     // 2. 定义输出
     public record Result(bool Success, string Message);
 
     // 3. 执行逻辑
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
@@ -30,7 +31,7 @@ public static class UpdateShortcutFeature
             _logger = logger;
         }
 
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             try
             {

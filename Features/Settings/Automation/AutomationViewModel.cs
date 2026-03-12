@@ -35,7 +35,7 @@ namespace PromptMasterv6.Features.Settings.Automation
         {
             var command = new UpdateAutomationFeature.Command(DefaultWebTargetName, EnableDoubleEnterSend);
 
-            var result = await _updateAutomationHandler.Handle(command);
+            var result = await _updateAutomationHandler.Handle(command, CancellationToken.None);
 
             if (result.Success)
             {

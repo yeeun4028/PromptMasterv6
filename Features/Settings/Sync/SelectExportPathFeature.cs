@@ -1,3 +1,4 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Sync;
@@ -11,7 +12,7 @@ public static class SelectExportPathFeature
     public record Command(
         string DefaultFileName,
         string FileExtension = "zip"
-    );
+    ) : IRequest<Result>;
 
     // 2. 定义输出
     public record Result(
@@ -21,7 +22,7 @@ public static class SelectExportPathFeature
     );
 
     // 3. 执行逻辑
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly LoggerService _logger;
 
@@ -30,7 +31,7 @@ public static class SelectExportPathFeature
             _logger = logger;
         }
 
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             return await Task.Run(() =>
             {

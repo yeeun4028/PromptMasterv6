@@ -1,3 +1,4 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Automation;
@@ -8,13 +9,13 @@ namespace PromptMasterv6.Features.Settings.Automation;
 public static class UpdateAutomationFeature
 {
     // 1. 定义输入
-    public record Command(string DefaultWebTargetName, bool EnableDoubleEnterSend);
+    public record Command(string DefaultWebTargetName, bool EnableDoubleEnterSend) : IRequest<Result>;
 
     // 2. 定义输出
     public record Result(bool Success, string Message);
 
     // 3. 执行逻辑
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
@@ -25,7 +26,7 @@ public static class UpdateAutomationFeature
             _logger = logger;
         }
 
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             try
             {
