@@ -147,151 +147,20 @@ namespace PromptMasterv6
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<LoggerService>(sp => LoggerService.Instance);
-
-            services.AddMediatR(cfg =>
+            // 注册服务模块
+            var modules = new List<Infrastructure.ServiceRegistration.IServiceModule>
             {
-                cfg.RegisterServicesFromAssembly(typeof(App).Assembly);
-                cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
-            });
+                new Infrastructure.ServiceRegistration.ApplicationServiceModule(),
+                new Infrastructure.ServiceRegistration.MainServiceModule(),
+                new Infrastructure.ServiceRegistration.SettingsServiceModule(),
+                new Infrastructure.ServiceRegistration.ExternalToolsServiceModule()
+            };
 
-            // Application Features
-            services.AddSingleton<Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Handler>();
-            services.AddSingleton<Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler>();
-            services.AddSingleton<Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler>();
-            services.AddSingleton<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
-            services.AddSingleton<Features.AppCore.Initialization.InitializeApplicationFeature.Handler>();
-            services.AddSingleton<Features.AppCore.Shutdown.CleanupApplicationFeature.Handler>();
-
-            services.AddSingleton<ISessionState, SessionState>();
-
-            services.AddTransient<ZhipuCompatHandler>();
-
-            services.AddHttpClient("AiServiceClient")
-                .AddHttpMessageHandler<ZhipuCompatHandler>()
-                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
-            
-            services.AddHttpClient("NativeAiClient")
-                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
-
-            services.AddSingleton<SettingsService>();
-            services.AddSingleton<AppConfig>(sp => sp.GetRequiredService<SettingsService>().Config);
-            services.AddSingleton<WindowRegistry>();
-
-            services.AddTransient<SettingsViewModel>();
-            services.AddSingleton<ExternalToolsViewModel>();
-            services.AddTransient<LauncherViewModel>();
-            services.AddTransient<WorkspaceViewModel>();
-            services.AddTransient<FileManagerViewModel>();
-            services.AddTransient<ContentEditorViewModel>();
-            services.AddTransient<BackupViewModel>();
-            services.AddTransient<SidebarViewModel>();
-            services.AddSingleton<MainViewModel>();
-
-            services.AddSingleton<MainWindow>();
-            services.AddSingleton<LaunchBarWindow>();
-            services.AddTransient<LauncherWindow>();
-            services.AddTransient<SettingsWindow>();
-
-            services.AddSingleton<AiService>();
-            services.AddSingleton<FileDataService>();
-            services.AddSingleton<WebDavDataService>();
-            services.AddKeyedSingleton<IDataService>("cloud", (sp, key) => sp.GetRequiredService<WebDavDataService>());
-            services.AddKeyedSingleton<IDataService>("local", (sp, key) => sp.GetRequiredService<FileDataService>());
-            services.AddSingleton<IDataService>(sp => sp.GetRequiredService<WebDavDataService>());
-            services.AddSingleton<GlobalKeyService>();
-            services.AddSingleton<HotkeyService>();
-            services.AddSingleton<GlobalShortcutCoordinator>();
-            services.AddSingleton<DialogService>();
-            services.AddSingleton<WindowManager>();
-
-            services.AddHttpClient<BaiduService>();
-            services.AddHttpClient<GoogleService>();
-            services.AddHttpClient<TencentService>();
-
-            services.AddSingleton<ClipboardService>();
-            services.AddSingleton<TrayViewModel>();
-            services.AddSingleton<TrayService>();
-
-            services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
-            services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
-            services.AddSingleton<Features.Main.Backup.PerformCloudBackupFeature.Handler>();
-
-            services.AddSingleton<Features.Main.FileManager.ImportMarkdownFilesFeature.Handler>();
-            services.AddSingleton<Features.Main.Backup.PerformLocalBackupFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
-
-            services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
-            services.AddSingleton<Features.Main.ContentEditor.SearchOnGitHubFeature.Handler>();
-            services.AddSingleton<Features.Main.ContentEditor.CopyCompiledTextFeature.Handler>();
-            services.AddSingleton<Features.Main.ContentEditor.SendToWebTargetFeature.Handler>();
-            services.AddSingleton<Features.Main.ContentEditor.OpenWebTargetFeature.Handler>();
-
-            services.AddSingleton<Features.Main.Tray.OpenSettingsFeature.Handler>();
-            services.AddSingleton<Features.Main.Tray.PinToScreenFromCaptureFeature.Handler>();
-            services.AddSingleton<Features.Main.Tray.CleanupTrayIconFeature.Handler>();
-
-            services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.RenameFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.ChangeFolderIconFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.CreateFileFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.DeleteFileFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.RenameFileFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
-
-            services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
-            services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
-
-            services.AddSingleton<Features.Settings.Sync.ManualRestoreFeature.Handler>();
-            services.AddSingleton<Features.Settings.Sync.ManualLocalRestoreFeature.Handler>();
-            services.AddSingleton<Features.Settings.Sync.ManualBackupFeature.Handler>();
-            services.AddSingleton<Features.Settings.Sync.ExportConfigFeature.Handler>();
-            services.AddSingleton<Features.Settings.Sync.ImportConfigFeature.Handler>();
-
-            services.AddSingleton<Features.Settings.ExternalTools.SaveAiTranslationConfigFeature.Handler>();
-            services.AddSingleton<Features.Settings.ExternalTools.DeleteAiTranslationConfigFeature.Handler>();
-
-            services.AddSingleton<Features.Settings.LaunchBar.AddLaunchBarItemFeature.Handler>();
-            services.AddSingleton<Features.Settings.LaunchBar.RemoveLaunchBarItemFeature.Handler>();
-            services.AddSingleton<Features.Settings.LaunchBar.MoveLaunchBarItemFeature.Handler>();
-
-            services.AddSingleton<Features.Settings.ApiCredentials.TestBaiduOcrFeature.Handler>();
-            services.AddSingleton<Features.Settings.ApiCredentials.TestBaiduTranslateFeature.Handler>();
-            services.AddSingleton<Features.Settings.ApiCredentials.TestTencentOcrFeature.Handler>();
-            services.AddSingleton<Features.Settings.ApiCredentials.TestTencentTranslateFeature.Handler>();
-            services.AddSingleton<Features.Settings.ApiCredentials.TestGoogleFeature.Handler>();
-            services.AddSingleton<Features.Settings.ApiCredentials.SaveApiCredentialsFeature.Handler>();
-
-            // Workspace Features
-            services.AddSingleton<Features.Workspace.LoadWorkspaceData.LoadWorkspaceDataFeature.Handler>();
-            services.AddSingleton<Features.Workspace.SearchOnGitHub.SearchOnGitHubFeature.Handler>();
-            services.AddSingleton<Features.Workspace.ChangeFileIcon.ChangeFileIconFeature.Handler>();
-            services.AddSingleton<Features.Workspace.DeleteFile.DeleteFileFeature.Handler>();
-
-            // Launcher Features
-            services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();
-            services.AddSingleton<Features.Launcher.FilterLauncherItems.FilterLauncherItemsFeature.Handler>();
-
-            // ExternalTools Features
-            services.AddSingleton<Features.ExternalTools.PerformOcr.PerformOcrFeature.Handler>();
-            services.AddSingleton<Features.ExternalTools.PerformScreenshotOcr.PerformScreenshotOcrFeature.Handler>();
-            services.AddSingleton<Features.ExternalTools.PerformTranslate.PerformTranslateFeature.Handler>();
-            services.AddSingleton<Features.ExternalTools.PerformVisionTranslate.PerformVisionTranslateFeature.Handler>();
-            services.AddSingleton<Features.ExternalTools.PerformScreenshotTranslate.PerformScreenshotTranslateFeature.Handler>();
-            services.AddSingleton<Features.ExternalTools.EnsureAiProfile.EnsureAiProfileFeature.Handler>();
-
-            services.AddSingleton<AiModelsViewModel>();
-            services.AddSingleton<SyncViewModel>();
-            services.AddSingleton<LauncherSettingsViewModel>();
-            services.AddSingleton<ApiCredentialsViewModel>();
-            services.AddSingleton<Features.Settings.Shortcut.ShortcutViewModel>();
-            services.AddSingleton<Features.Settings.Automation.AutomationViewModel>();
-            services.AddSingleton<Features.Settings.Window.WindowViewModel>();
-            services.AddSingleton<Features.Settings.Proxy.ProxyViewModel>();
-            services.AddSingleton<Features.Settings.LaunchBar.LaunchBarViewModel>();
-            services.AddSingleton<Features.Settings.ExternalTools.ExternalToolsSettingsViewModel>();
-
+            // 遍历所有模块注册服务
+            foreach (var module in modules)
+            {
+                module.RegisterServices(services);
+            }
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
