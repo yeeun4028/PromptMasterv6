@@ -9,6 +9,7 @@ using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Main.Backup;
+using PromptMasterv6.Features.Main.Sidebar.Messages;
 
 using System;
 using System.ComponentModel;
@@ -44,6 +45,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private FileManagerViewModel fileManagerVM;
     [ObservableProperty] private ContentEditorViewModel contentEditorVM;
     [ObservableProperty] private BackupViewModel backupVM;
+    [ObservableProperty] private Sidebar.SidebarViewModel sidebarVM;
 
     public MainViewModel(
         SettingsService settingsService,
@@ -53,7 +55,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         LoggerService logger,
         FileManagerViewModel fileManagerVM,
         ContentEditorViewModel contentEditorVM,
-        BackupViewModel backupVM)
+        BackupViewModel backupVM,
+        Sidebar.SidebarViewModel sidebarVM)
     {
         _settingsService = settingsService;
         _keyService = keyService;
@@ -64,12 +67,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         FileManagerVM = fileManagerVM;
         ContentEditorVM = contentEditorVM;
         BackupVM = backupVM;
+        SidebarVM = sidebarVM;
 
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
 
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
         WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, _) => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null));
+        WeakReferenceMessenger.Default.Register<RequestCloudBackupMessage>(this, async (_, _) => await ManualBackup());
         WeakReferenceMessenger.Default.Register<ToggleWindowMessage>(this, (_, _) => ToggleMainWindow());
         WeakReferenceMessenger.Default.Register<TriggerLauncherMessage>(this, (_, _) => HandleLauncherTriggered());
         WeakReferenceMessenger.Default.Register<JumpToEditPromptMessage>(this, (_, m) =>
@@ -79,6 +84,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 FileManagerVM.SelectedFile = m.File;
                 WeakReferenceMessenger.Default.Send(new Messages.RequestSelectFileMessage(m.File, true));
             }
+        });
+
+        WeakReferenceMessenger.Default.Register<OpenSettingsRequestMessage>(this, (_, _) => OpenSettings());
+        
+        WeakReferenceMessenger.Default.Register<ToggleEditModeRequestMessage>(this, async (_, _) => 
+        {
+            await ContentEditorVM.ToggleEditModeCommand.ExecuteAsync(null);
         });
 
         _saveSubject
@@ -154,29 +166,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         await BackupVM.PerformCloudBackupCommand.ExecuteAsync(null);
     }
 
-    [RelayCommand]
-    private void ChangeActionIcon(string actionKey)
-    {
-        if (string.IsNullOrWhiteSpace(actionKey)) return;
-
-        var currentIcon = LocalConfig.ActionIcons != null && LocalConfig.ActionIcons.TryGetValue(actionKey, out var icon) ? icon : "";
-
-        var dialog = new IconInputDialog(currentIcon);
-        if (dialog.ShowDialog() == true)
-        {
-            if (LocalConfig.ActionIcons == null)
-            {
-                LocalConfig.ActionIcons = new System.Collections.Generic.Dictionary<string, string>();
-            }
-
-            LocalConfig.ActionIcons[actionKey] = dialog.ResultGeometry;
-            
-            _settingsService.SaveLocalConfig();
-
-            OnPropertyChanged(nameof(LocalConfig));
-        }
-    }
-
     private void ToggleMainWindow()
     {
         var win = System.Windows.Application.Current.MainWindow as MainWindow;
@@ -228,6 +217,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         FileManagerVM?.Cleanup();
         BackupVM?.Cleanup();
+        SidebarVM?.Dispose();
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
 

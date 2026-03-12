@@ -8,6 +8,7 @@ using PromptMasterv6.Features.Main.Messages;
 using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Features.Main.Sidebar.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -78,6 +79,24 @@ public partial class FileManagerViewModel : ObservableObject
             {
                 IsDirty = false;
             }
+        });
+
+        WeakReferenceMessenger.Default.Register<CreateFileRequestMessage>(this, (_, m) =>
+        {
+            if (m.TargetFolder != null)
+            {
+                SelectedFolder = m.TargetFolder;
+            }
+            CreateFile();
+        });
+
+        WeakReferenceMessenger.Default.Register<ImportMarkdownFilesRequestMessage>(this, async (_, m) =>
+        {
+            if (m.TargetFolder != null)
+            {
+                SelectedFolder = m.TargetFolder;
+            }
+            await ImportMarkdownFilesAsync();
         });
     }
 

@@ -163,11 +163,14 @@ public partial class ContentEditorViewModel : ObservableObject
             IsEditMode = false;
             PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(SelectedFile.Content));
             _originalContentBeforeEdit = null;
+            
+            WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
             return;
         }
 
         _originalContentBeforeEdit = SelectedFile.Content;
         IsEditMode = true;
+        WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(true));
     }
 
     [RelayCommand]

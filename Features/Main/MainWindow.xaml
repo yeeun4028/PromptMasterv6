@@ -15,6 +15,7 @@
         xmlns:components="clr-namespace:PromptMasterv6.Features.Main.Components"
         xmlns:contextMenu="clr-namespace:PromptMasterv6.Features.Main.ContextMenus"
         xmlns:contentEditor="clr-namespace:PromptMasterv6.Features.Main.ContentEditor"
+        xmlns:sidebar="clr-namespace:PromptMasterv6.Features.Main.Sidebar"
         mc:Ignorable="d"
         Title="PromptMaster v6" 
         Height="600" Width="1000"
@@ -61,7 +62,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <components:SidebarView Grid.Column="0"/>
+                    <sidebar:SidebarView Grid.Column="0" DataContext="{Binding SidebarVM}"/>
 
                     <GridSplitter Grid.Column="0" 
                                   Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Transparent" ShowsPreview="True"/>
