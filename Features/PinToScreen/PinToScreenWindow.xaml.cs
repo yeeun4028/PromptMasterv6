@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
@@ -20,7 +20,6 @@ namespace PromptMasterv6.Features.PinToScreen
         public new Thickness BorderThickness { get; private set; }
 
         private int _imageOpacity = 100;
-        private bool _isMinimized = false;
 
         public int ImageOpacity
         {
@@ -33,16 +32,6 @@ namespace PromptMasterv6.Features.PinToScreen
                     _imageOpacity = newOpacity;
                     Opacity = _imageOpacity / 100.0;
                 }
-            }
-        }
-
-        public bool IsMinimized
-        {
-            get => _isMinimized;
-            private set
-            {
-                _isMinimized = value;
-                UpdateImageSize();
             }
         }
 
@@ -161,18 +150,10 @@ namespace PromptMasterv6.Features.PinToScreen
             double scale = 1.0;
             double imgWidth, imgHeight;
 
-            if (IsMinimized)
-            {
-                imgWidth = Options.MinimizeSize.Width;
-                imgHeight = Options.MinimizeSize.Height;
-            }
-            else
-            {
-                double dpiScaleX = (Image.DpiX > 0 ? Image.DpiX : 96.0) / 96.0;
-                double dpiScaleY = (Image.DpiY > 0 ? Image.DpiY : 96.0) / 96.0;
-                imgWidth = (Image.PixelWidth / dpiScaleX) * scale;
-                imgHeight = (Image.PixelHeight / dpiScaleY) * scale;
-            }
+            double dpiScaleX = (Image.DpiX > 0 ? Image.DpiX : 96.0) / 96.0;
+            double dpiScaleY = (Image.DpiY > 0 ? Image.DpiY : 96.0) / 96.0;
+            imgWidth = (Image.PixelWidth / dpiScaleX) * scale;
+            imgHeight = (Image.PixelHeight / dpiScaleY) * scale;
 
             PinnedImage.Width = imgWidth;
             PinnedImage.Height = imgHeight;
@@ -202,34 +183,11 @@ namespace PromptMasterv6.Features.PinToScreen
             RenderOptions.SetBitmapScalingMode(PinnedImage, BitmapScalingMode.NearestNeighbor);
         }
 
-        private void ResetImage()
-        {
-            ImageOpacity = 100;
-        }
-
-        private void ToggleMinimize()
-        {
-            IsMinimized = !IsMinimized;
-
-            if (IsMinimized && ImageOpacity < 100)
-            {
-                Opacity = 1.0;
-            }
-            else if (!IsMinimized)
-            {
-                Opacity = ImageOpacity / 100.0;
-            }
-        }
-
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                if (e.ClickCount > 1)
-                {
-                    ToggleMinimize();
-                }
-                else if (e.ButtonState == MouseButtonState.Pressed)
+                if (e.ButtonState == MouseButtonState.Pressed)
                 {
                     try { this.DragMove(); } catch { }
                 }
@@ -237,60 +195,6 @@ namespace PromptMasterv6.Features.PinToScreen
             else if (e.ChangedButton == MouseButton.Right)
             {
                 Close();
-            }
-            else if (e.ChangedButton == MouseButton.Middle)
-            {
-                if (!IsMinimized) ResetImage();
-            }
-        }
-
-        private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (IsMinimized) return;
-
-            if (Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                if (e.Delta > 0)
-                    ImageOpacity += Options.OpacityStep;
-                else
-                    ImageOpacity -= Options.OpacityStep;
-                e.Handled = true;
-            }
-        }
-
-        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            int speed = Keyboard.Modifiers == ModifierKeys.Shift ? 10 : 1;
-
-            switch (e.Key)
-            {
-                case Key.Left: Left -= speed; e.Handled = true; break;
-                case Key.Right: Left += speed; e.Handled = true; break;
-                case Key.Up: Top -= speed; e.Handled = true; break;
-                case Key.Down: Top += speed; e.Handled = true; break;
-            }
-        }
-
-        private void Window_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (!IsMinimized)
-            {
-                if (e.Key == Key.OemPlus || e.Key == Key.Add)
-                {
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
-                    {
-                        ImageOpacity += Options.OpacityStep;
-                        e.Handled = true;
-                    }
-                }
-                else if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
-                {
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
-                    {
-                        ImageOpacity -= Options.OpacityStep;
-                        e.Handled = true;
-                    }
-                }
             }
         }
 

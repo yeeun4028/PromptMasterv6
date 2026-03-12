@@ -7,16 +7,6 @@
               Style="{StaticResource TrayMenuItemStyle}"
               Command="{Binding ToggleVisibilityCommand}"/>
     <Separator/>
-    <MenuItem Header="截图贴图"
-              Style="{StaticResource TrayMenuItemStyle}"
-              Command="{Binding PinToScreenFromCaptureCommand}"/>
-    <MenuItem Header="剪贴板贴图"
-              Style="{StaticResource TrayMenuItemStyle}"
-              Command="{Binding PinToScreenFromClipboardCommand}"/>
-    <MenuItem Header="关闭所有贴图"
-              Style="{StaticResource TrayMenuItemStyle}"
-              Command="{Binding CloseAllPinToScreenCommand}"/>
-    <Separator/>
     <MenuItem Header="云端同步"
               Style="{StaticResource TrayMenuItemStyle}"
               Command="{Binding ManualBackupCommand}"/>

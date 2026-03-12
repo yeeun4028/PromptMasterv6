@@ -4,10 +4,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.ExternalTools.PerformOcr;
 using PromptMasterv6.Features.ExternalTools.PerformScreenshotOcr;
 using PromptMasterv6.Features.ExternalTools.PerformScreenshotTranslate;
 using PromptMasterv6.Features.ExternalTools.EnsureAiProfile;
+using PromptMasterv6.Features.Main.Tray;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -163,7 +163,7 @@ namespace PromptMasterv6.Features.ExternalTools
             try
             {
                 _isCapturing = true;
-                await _windowManager.ShowPinToScreenFromCaptureAsync();
+                await _mediator.Send(new PinToScreenFromCaptureFeature.Command());
             }
             finally
             {

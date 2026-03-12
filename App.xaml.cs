@@ -255,8 +255,6 @@ namespace PromptMasterv6
 
             services.AddSingleton<Features.Main.Tray.OpenSettingsFeature.Handler>();
             services.AddSingleton<Features.Main.Tray.PinToScreenFromCaptureFeature.Handler>();
-            services.AddSingleton<Features.Main.Tray.PinToScreenFromClipboardFeature.Handler>();
-            services.AddSingleton<Features.Main.Tray.CloseAllPinToScreenFeature.Handler>();
 
             services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();

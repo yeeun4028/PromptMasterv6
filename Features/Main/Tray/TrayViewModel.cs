@@ -55,41 +55,4 @@ public partial class TrayViewModel : ObservableObject
             await ExitRequested.Invoke();
         }
     }
-
-    [RelayCommand]
-    private async Task PinToScreenFromCapture()
-    {
-        var result = await _mediator.Send(new PinToScreenFromCaptureFeature.Command());
-        if (!result.Success)
-        {
-            _logger.LogError($"贴图截图失败: {result.ErrorMessage}", "TrayViewModel");
-        }
-    }
-
-    [RelayCommand]
-    private async Task PinToScreenFromClipboard()
-    {
-        var result = await _mediator.Send(new PinToScreenFromClipboardFeature.Command());
-        if (!result.Success)
-        {
-            if (!result.HasImage)
-            {
-                HandyControl.Controls.Growl.Warning("剪贴板中没有图片");
-            }
-            else
-            {
-                _logger.LogError($"贴图剪贴板失败: {result.ErrorMessage}", "TrayViewModel");
-            }
-        }
-    }
-
-    [RelayCommand]
-    private async Task CloseAllPinToScreen()
-    {
-        var result = await _mediator.Send(new CloseAllPinToScreenFeature.Command());
-        if (!result.Success)
-        {
-            _logger.LogError($"关闭贴图失败: {result.ErrorMessage}", "TrayViewModel");
-        }
-    }
 }

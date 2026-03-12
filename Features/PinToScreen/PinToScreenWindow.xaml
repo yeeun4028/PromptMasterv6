@@ -8,10 +8,7 @@
         AllowsTransparency="True"
         Topmost="True"
         ShowInTaskbar="False"
-        MouseDown="Window_MouseDown"
-        MouseWheel="Window_MouseWheel"
-        KeyDown="Window_KeyDown"
-        KeyUp="Window_KeyUp">
+        MouseDown="Window_MouseDown">
 
     <Grid x:Name="RootGrid">
         <Border x:Name="ImageBorder"
