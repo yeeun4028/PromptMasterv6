@@ -9,25 +9,25 @@ using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Core.Messages;
+using PromptMasterv6.Features.Workspace.LoadWorkspaceData;
+using PromptMasterv6.Features.Workspace.SearchOnGitHub;
+using PromptMasterv6.Features.Workspace.ChangeFileIcon;
+using PromptMasterv6.Features.Workspace.DeleteFile;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Data;
 
 namespace PromptMasterv6.Features.Workspace
 {
     public partial class WorkspaceViewModel : ObservableObject
     {
-        private readonly IDataService _dataService;
-        private readonly AiService _aiService;
+        private readonly IMediator _mediator;
         private readonly DialogService _dialogService;
-        private readonly ClipboardService _clipboardService;
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
-        private readonly IMediator _mediator;
 
         [ObservableProperty] private ObservableCollection<PromptItem> files = new();
         [ObservableProperty] private PromptItem? selectedFile;
@@ -59,20 +59,14 @@ namespace PromptMasterv6.Features.Workspace
 
         public WorkspaceViewModel(
             SettingsService settingsService,
-            IDataService dataService,
-            AiService aiService,
+            IMediator mediator,
             DialogService dialogService,
-            ClipboardService clipboardService,
-            LoggerService logger,
-            IMediator mediator)
+            LoggerService logger)
         {
             _settingsService = settingsService;
-            _dataService = dataService;
-            _aiService = aiService;
-            _dialogService = dialogService;
-            _clipboardService = clipboardService;
-            _logger = logger;
             _mediator = mediator;
+            _dialogService = dialogService;
+            _logger = logger;
 
             Pipeline = new MarkdownPipelineBuilder()
                 .UseSoftlineBreakAsHardlineBreak()
@@ -171,12 +165,16 @@ namespace PromptMasterv6.Features.Workspace
 
         public async Task LoadDataAsync()
         {
-            var data = await _dataService.LoadAsync();
-            if (data == null) return;
+            var result = await _mediator.Send(new LoadWorkspaceDataFeature.Command());
+
+            if (!result.Success || result.Files == null)
+            {
+                _dialogService.ShowAlert(result.ErrorMessage ?? "加载数据失败", "错误");
+                return;
+            }
 
             Files.Clear();
-            var files = data.Files ?? new List<PromptItem>();
-            foreach (var f in files)
+            foreach (var f in result.Files)
             {
                 Files.Add(f);
             }
@@ -219,22 +217,29 @@ namespace PromptMasterv6.Features.Workspace
         }
 
         [RelayCommand]
-        private void DeleteFile(PromptItem? file)
+        private async Task DeleteFile(PromptItem? file)
         {
             if (file == null) return;
-            Files.Remove(file);
-            if (SelectedFile == file) SelectedFile = null;
-            RequestSave();
+
+            var result = await _mediator.Send(new DeleteFileFeature.Command(file, Files));
+
+            if (result.Success)
+            {
+                if (result.WasSelected) SelectedFile = null;
+                RequestSave();
+            }
         }
 
         [RelayCommand]
-        private void ChangeFileIcon(PromptItem? file)
+        private async Task ChangeFileIcon(PromptItem? file)
         {
             if (file == null) return;
-            var dialog = new IconInputDialog(file.IconGeometry);
-            if (dialog.ShowDialog() == true)
+
+            var result = await _mediator.Send(new ChangeFileIconFeature.Command(file));
+
+            if (result.Success && result.NewIconGeometry != null)
             {
-                file.IconGeometry = dialog.ResultGeometry;
+                file.IconGeometry = result.NewIconGeometry;
                 RequestSave();
             }
         }
@@ -322,7 +327,7 @@ namespace PromptMasterv6.Features.Workspace
         }
 
         [RelayCommand]
-        private void SearchOnGitHub()
+        private async Task SearchOnGitHub()
         {
             var query = AdditionalInput?.Trim();
 
@@ -332,22 +337,15 @@ namespace PromptMasterv6.Features.Workspace
                 return;
             }
 
-            try
+            var result = await _mediator.Send(new SearchOnGitHubFeature.Command(query));
+
+            if (result.Success)
             {
-                var url = $"https://github.com/search?q={System.Uri.EscapeDataString(query)}";
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = url,
-                    UseShellExecute = true
-                });
-
                 AdditionalInput = "";
             }
-            catch (System.Exception ex)
+            else
             {
-                _logger.LogException(ex, "SearchOnGitHub Failed", "WorkspaceViewModel");
-                _dialogService.ShowAlert($"打开 GitHub 失败: {ex.Message}", "错误");
+                _dialogService.ShowAlert(result.ErrorMessage ?? "搜索失败", "错误");
             }
         }
 

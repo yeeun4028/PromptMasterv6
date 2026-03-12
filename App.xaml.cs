@@ -290,6 +290,12 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Settings.ApiCredentials.TestGoogleFeature.Handler>();
             services.AddSingleton<Features.Settings.ApiCredentials.SaveApiCredentialsFeature.Handler>();
 
+            // Workspace Features
+            services.AddSingleton<Features.Workspace.LoadWorkspaceData.LoadWorkspaceDataFeature.Handler>();
+            services.AddSingleton<Features.Workspace.SearchOnGitHub.SearchOnGitHubFeature.Handler>();
+            services.AddSingleton<Features.Workspace.ChangeFileIcon.ChangeFileIconFeature.Handler>();
+            services.AddSingleton<Features.Workspace.DeleteFile.DeleteFileFeature.Handler>();
+
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
