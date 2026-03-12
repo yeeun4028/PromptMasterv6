@@ -13,7 +13,6 @@ using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
@@ -27,6 +26,7 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
     private readonly IMediator _mediator;
     private readonly SettingsService _settingsService;
     private readonly LoggerService _logger;
+    private readonly ChangeActionIconFeature.Handler _changeActionIconHandler;
 
     [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
     [ObservableProperty] private FolderItem? selectedFolder;
@@ -39,11 +39,13 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
     public SidebarViewModel(
         IMediator mediator,
         SettingsService settingsService,
-        LoggerService logger)
+        LoggerService logger,
+        ChangeActionIconFeature.Handler changeActionIconHandler)
     {
         _mediator = mediator;
         _settingsService = settingsService;
         _logger = logger;
+        _changeActionIconHandler = changeActionIconHandler;
 
         LocalConfig = settingsService.LocalConfig;
         FolderDropHandler = new SidebarFolderDropHandler(this);
@@ -124,16 +126,14 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
         var dialog = new IconInputDialog(currentIcon);
         if (dialog.ShowDialog() == true)
         {
-            if (LocalConfig.ActionIcons == null)
-            {
-                LocalConfig.ActionIcons = new System.Collections.Generic.Dictionary<string, string>();
-            }
-
-            LocalConfig.ActionIcons[actionKey] = dialog.ResultGeometry;
+            var result = await _changeActionIconHandler.Handle(
+                new ChangeActionIconFeature.Command(actionKey, dialog.ResultGeometry), 
+                default);
             
-            _settingsService.SaveLocalConfig();
-
-            OnPropertyChanged(nameof(LocalConfig));
+            if (result.Success)
+            {
+                OnPropertyChanged(nameof(LocalConfig));
+            }
         }
     }
 

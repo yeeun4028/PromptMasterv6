@@ -22,6 +22,7 @@ public partial class ContentEditorViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
+    private readonly SearchOnGitHubFeature.Handler _searchOnGitHubHandler;
 
     [ObservableProperty] private PromptItem? selectedFile;
     [ObservableProperty] private bool isEditMode;
@@ -40,12 +41,14 @@ public partial class ContentEditorViewModel : ObservableObject
         IMediator mediator,
         DialogService dialogService,
         LoggerService logger,
-        AppConfig config)
+        AppConfig config,
+        SearchOnGitHubFeature.Handler searchOnGitHubHandler)
     {
         _mediator = mediator;
         _dialogService = dialogService;
         _logger = logger;
         Config = config;
+        _searchOnGitHubHandler = searchOnGitHubHandler;
 
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
@@ -227,7 +230,7 @@ public partial class ContentEditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SearchOnGitHub()
+    private async Task SearchOnGitHub()
     {
         var query = AdditionalInput?.Trim();
 
@@ -237,22 +240,15 @@ public partial class ContentEditorViewModel : ObservableObject
             return;
         }
 
-        try
+        var result = await _searchOnGitHubHandler.Handle(new SearchOnGitHubFeature.Command(query), default);
+        
+        if (result.Success)
         {
-            var url = $"https://github.com/search?q={Uri.EscapeDataString(query)}";
-
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
-
             AdditionalInput = "";
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogException(ex, "SearchOnGitHub Failed", "ContentEditorViewModel");
-            _dialogService.ShowAlert($"打开 GitHub 失败: {ex.Message}", "错误");
+            _dialogService.ShowAlert($"打开 GitHub 失败: {result.ErrorMessage}", "错误");
         }
     }
 }

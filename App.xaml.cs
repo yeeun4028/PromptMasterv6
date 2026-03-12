@@ -247,6 +247,9 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Main.FileManager.PerformLocalBackupFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
 
+            services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
+            services.AddSingleton<Features.Main.ContentEditor.SearchOnGitHubFeature.Handler>();
+
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
 
