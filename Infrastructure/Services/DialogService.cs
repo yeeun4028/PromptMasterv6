@@ -141,5 +141,16 @@ namespace PromptMasterv6.Infrastructure.Services
             var dialog = System.Activator.CreateInstance(dialogType) as Window;
             return dialog?.ShowDialog() == true;
         }
+
+        public string? ShowIconInputDialog(string? currentGeometry = "")
+        {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowIconInputDialog(currentGeometry));
+            }
+
+            var dialog = new IconInputDialog(currentGeometry);
+            return dialog.ShowDialog() == true ? dialog.ResultGeometry : null;
+        }
     }
 }

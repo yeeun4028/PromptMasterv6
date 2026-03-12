@@ -244,7 +244,7 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Main.Backup.PerformCloudBackupFeature.Handler>();
 
             services.AddSingleton<Features.Main.FileManager.ImportMarkdownFilesFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.PerformLocalBackupFeature.Handler>();
+            services.AddSingleton<Features.Main.Backup.PerformLocalBackupFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
 
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
@@ -252,6 +252,11 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Main.ContentEditor.CopyCompiledTextFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.SendToWebTargetFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.OpenWebTargetFeature.Handler>();
+
+            services.AddSingleton<Features.Main.Tray.OpenSettingsFeature.Handler>();
+            services.AddSingleton<Features.Main.Tray.PinToScreenFromCaptureFeature.Handler>();
+            services.AddSingleton<Features.Main.Tray.PinToScreenFromClipboardFeature.Handler>();
+            services.AddSingleton<Features.Main.Tray.CloseAllPinToScreenFeature.Handler>();
 
             services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();

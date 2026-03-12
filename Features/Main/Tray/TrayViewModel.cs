@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Infrastructure.Services;
 
@@ -10,7 +11,7 @@ namespace PromptMasterv6.Features.Main.Tray;
 
 public partial class TrayViewModel : ObservableObject
 {
-    private readonly WindowManager _windowManager;
+    private readonly IMediator _mediator;
     private readonly LoggerService _logger;
     private readonly SettingsService _settingsService;
 
@@ -19,11 +20,11 @@ public partial class TrayViewModel : ObservableObject
     public Func<bool>? IsDirtyCheck { get; set; }
 
     public TrayViewModel(
-        WindowManager windowManager,
+        IMediator mediator,
         LoggerService logger,
         SettingsService settingsService)
     {
-        _windowManager = windowManager;
+        _mediator = mediator;
         _logger = logger;
         _settingsService = settingsService;
     }
@@ -41,9 +42,9 @@ public partial class TrayViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenSettings()
+    private async Task OpenSettings()
     {
-        _windowManager.ShowSettingsWindow();
+        await _mediator.Send(new OpenSettingsFeature.Command());
     }
 
     [RelayCommand]
@@ -58,42 +59,37 @@ public partial class TrayViewModel : ObservableObject
     [RelayCommand]
     private async Task PinToScreenFromCapture()
     {
-        try
+        var result = await _mediator.Send(new PinToScreenFromCaptureFeature.Command());
+        if (!result.Success)
         {
-            await _windowManager.ShowPinToScreenFromCaptureAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"贴图截图失败: {ex.Message}", "TrayViewModel");
+            _logger.LogError($"贴图截图失败: {result.ErrorMessage}", "TrayViewModel");
         }
     }
 
     [RelayCommand]
-    private void PinToScreenFromClipboard()
+    private async Task PinToScreenFromClipboard()
     {
-        try
+        var result = await _mediator.Send(new PinToScreenFromClipboardFeature.Command());
+        if (!result.Success)
         {
-            if (!_windowManager.ShowPinToScreenFromClipboard())
+            if (!result.HasImage)
             {
                 HandyControl.Controls.Growl.Warning("剪贴板中没有图片");
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"贴图剪贴板失败: {ex.Message}", "TrayViewModel");
+            else
+            {
+                _logger.LogError($"贴图剪贴板失败: {result.ErrorMessage}", "TrayViewModel");
+            }
         }
     }
 
     [RelayCommand]
-    private void CloseAllPinToScreen()
+    private async Task CloseAllPinToScreen()
     {
-        try
+        var result = await _mediator.Send(new CloseAllPinToScreenFeature.Command());
+        if (!result.Success)
         {
-            _windowManager.CloseAllPinToScreenWindows();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"关闭贴图失败: {ex.Message}", "TrayViewModel");
+            _logger.LogError($"关闭贴图失败: {result.ErrorMessage}", "TrayViewModel");
         }
     }
 }

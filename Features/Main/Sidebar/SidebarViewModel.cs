@@ -26,6 +26,7 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
     private readonly IMediator _mediator;
     private readonly SettingsService _settingsService;
     private readonly LoggerService _logger;
+    private readonly DialogService _dialogService;
     private readonly ChangeActionIconFeature.Handler _changeActionIconHandler;
 
     [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
@@ -40,11 +41,13 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
         IMediator mediator,
         SettingsService settingsService,
         LoggerService logger,
+        DialogService dialogService,
         ChangeActionIconFeature.Handler changeActionIconHandler)
     {
         _mediator = mediator;
         _settingsService = settingsService;
         _logger = logger;
+        _dialogService = dialogService;
         _changeActionIconHandler = changeActionIconHandler;
 
         LocalConfig = settingsService.LocalConfig;
@@ -123,11 +126,12 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
 
         var currentIcon = LocalConfig.ActionIcons != null && LocalConfig.ActionIcons.TryGetValue(actionKey, out var icon) ? icon : "";
 
-        var dialog = new IconInputDialog(currentIcon);
-        if (dialog.ShowDialog() == true)
+        var newIcon = _dialogService.ShowIconInputDialog(currentIcon);
+        
+        if (newIcon != null)
         {
             var result = await _changeActionIconHandler.Handle(
-                new ChangeActionIconFeature.Command(actionKey, dialog.ResultGeometry), 
+                new ChangeActionIconFeature.Command(actionKey, newIcon), 
                 default);
             
             if (result.Success)
