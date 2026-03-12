@@ -210,7 +210,7 @@ namespace PromptMasterv6
             services.AddTransient<ContentEditorViewModel>();
             services.AddTransient<BackupViewModel>();
             services.AddTransient<Features.Main.Sidebar.SidebarViewModel>();
-            services.AddTransient<MainViewModel>();
+            services.AddSingleton<MainViewModel>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<LaunchBarWindow>();

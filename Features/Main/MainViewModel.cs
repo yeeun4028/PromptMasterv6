@@ -93,6 +93,18 @@ public partial class MainViewModel : ObservableObject, IDisposable
             await ContentEditorVM.ToggleEditModeCommand.ExecuteAsync(null);
         });
 
+        WeakReferenceMessenger.Default.Register<Backup.Messages.BackupCompletedMessage>(this, (_, m) =>
+        {
+            if (m.Success)
+            {
+                HandyControl.Controls.Growl.Success("云端备份已完成");
+            }
+            else
+            {
+                HandyControl.Controls.Growl.Error($"云端备份失败: {m.ErrorMessage}");
+            }
+        });
+
         _saveSubject
             .Throttle(TimeSpan.FromSeconds(5))
             .ObserveOn(System.Threading.SynchronizationContext.Current!)
