@@ -168,6 +168,7 @@ namespace PromptMasterv6
             services.AddSingleton<Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Handler>();
             services.AddSingleton<Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler>();
             services.AddSingleton<Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler>();
+            services.AddSingleton<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
 
             services.AddSingleton<ISessionState, SessionState>();
 
@@ -317,17 +318,23 @@ namespace PromptMasterv6
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            LoggerService.Instance.LogException(e.Exception, "Unhandled dispatcher exception", "App.DispatcherUnhandledException");
-            MessageBox.Show($"发生未处理异常: {e.Exception.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            var handler = _serviceProvider?.GetService<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
+            handler?.Handle(
+                new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
+                    e.Exception, "Dispatcher", ShowMessageToUser: true),
+                System.Threading.CancellationToken.None).Wait();
             e.Handled = true;
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            var handler = _serviceProvider?.GetService<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
             if (e.ExceptionObject is Exception ex)
             {
-                LoggerService.Instance.LogException(ex, $"Fatal unhandled exception. IsTerminating: {e.IsTerminating}", "App.CurrentDomain_UnhandledException");
-                MessageBox.Show($"发生致命错误: {ex.Message}", "致命错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                handler?.Handle(
+                    new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
+                        ex, "AppDomain", e.IsTerminating, ShowMessageToUser: true),
+                    System.Threading.CancellationToken.None).Wait();
             }
             else
             {
@@ -337,8 +344,11 @@ namespace PromptMasterv6
 
         private void TaskScheduler_UnobservedTaskException(object? sender, System.Threading.Tasks.UnobservedTaskExceptionEventArgs e)
         {
-            LoggerService.Instance.LogException(e.Exception, "Unobserved task exception", "App.TaskScheduler_UnobservedTaskException");
-            System.Diagnostics.Debug.WriteLine($"后台任务异常: {e.Exception.Message}");
+            var handler = _serviceProvider?.GetService<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
+            handler?.Handle(
+                new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
+                    e.Exception, "TaskScheduler", ShowMessageToUser: false),
+                System.Threading.CancellationToken.None).Wait();
             e.SetObserved();
         }
     }
