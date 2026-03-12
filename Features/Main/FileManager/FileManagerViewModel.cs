@@ -4,11 +4,13 @@ using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Shared.Dialogs;
 using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
+using PromptMasterv6.Features.Main.FileManager.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -19,7 +21,7 @@ using GongSolutions.Wpf.DragDrop;
 using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
 using DragDropEffects = System.Windows.DragDropEffects;
 
-namespace PromptMasterv6.Features.Main;
+namespace PromptMasterv6.Features.Main.FileManager;
 
 public partial class FileManagerViewModel : ObservableObject
 {
@@ -326,7 +328,7 @@ public partial class FileManagerViewModel : ObservableObject
             SelectedFolder = targetFolder;
         }
 
-        var importedItems = await _mediator.Send(new Import.ImportMarkdownFilesCommand(files, targetFolder.Id));
+        var importedItems = await _mediator.Send(new ImportMarkdownFilesFeature.Command(files, targetFolder.Id));
 
         if (importedItems != null && importedItems.Any())
         {

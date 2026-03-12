@@ -8,8 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
+using PromptMasterv6.Features.Main.FileManager;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.Backup;
+using PromptMasterv6.Features.Main.Sidebar;
 using PromptMasterv6.Features.Main.Tray;
 using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
@@ -209,7 +211,7 @@ namespace PromptMasterv6
             services.AddTransient<FileManagerViewModel>();
             services.AddTransient<ContentEditorViewModel>();
             services.AddTransient<BackupViewModel>();
-            services.AddTransient<Features.Main.Sidebar.SidebarViewModel>();
+            services.AddTransient<SidebarViewModel>();
             services.AddSingleton<MainViewModel>();
 
             services.AddSingleton<MainWindow>();
@@ -234,12 +236,16 @@ namespace PromptMasterv6
             services.AddHttpClient<TencentService>();
 
             services.AddSingleton<ClipboardService>();
-            services.AddSingleton<Features.Main.Tray.TrayViewModel>();
+            services.AddSingleton<TrayViewModel>();
             services.AddSingleton<TrayService>();
 
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
             services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
             services.AddSingleton<Features.Main.Backup.PerformCloudBackupFeature.Handler>();
+
+            services.AddSingleton<Features.Main.FileManager.ImportMarkdownFilesFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.PerformLocalBackupFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
 
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();

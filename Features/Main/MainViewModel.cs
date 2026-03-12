@@ -2,13 +2,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Main.FileManager;
+using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Launcher.Messages;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Main.Backup;
+using PromptMasterv6.Features.Main.Sidebar;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 
 using System;
@@ -45,7 +47,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private FileManagerViewModel fileManagerVM;
     [ObservableProperty] private ContentEditorViewModel contentEditorVM;
     [ObservableProperty] private BackupViewModel backupVM;
-    [ObservableProperty] private Sidebar.SidebarViewModel sidebarVM;
+    [ObservableProperty] private SidebarViewModel sidebarVM;
 
     public MainViewModel(
         SettingsService settingsService,
@@ -56,7 +58,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         FileManagerViewModel fileManagerVM,
         ContentEditorViewModel contentEditorVM,
         BackupViewModel backupVM,
-        Sidebar.SidebarViewModel sidebarVM)
+        SidebarViewModel sidebarVM)
     {
         _settingsService = settingsService;
         _keyService = keyService;
@@ -82,7 +84,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (m.File != null)
             {
                 FileManagerVM.SelectedFile = m.File;
-                WeakReferenceMessenger.Default.Send(new Messages.RequestSelectFileMessage(m.File, true));
+                WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(m.File, true));
             }
         });
 

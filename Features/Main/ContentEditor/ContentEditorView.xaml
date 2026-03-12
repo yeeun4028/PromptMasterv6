@@ -8,7 +8,7 @@
              xmlns:md="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
              xmlns:contextMenu="clr-namespace:PromptMasterv6.Features.Main.ContextMenus"
              xmlns:hc="https://handyorg.github.io/handycontrol"
-             xmlns:components="clr-namespace:PromptMasterv6.Features.Main.Components"
+             xmlns:local="clr-namespace:PromptMasterv6.Features.Main.ContentEditor"
              mc:Ignorable="d" 
              d:DesignWidth="700" d:DesignHeight="500">
 
@@ -195,6 +195,6 @@
                       VerticalAlignment="Center" Background="Transparent" 
                       ResizeBehavior="PreviousAndNext" ShowsPreview="True"/>
 
-        <components:VariableInputView Grid.Row="2"/>
+        <local:VariableInputView Grid.Row="2"/>
     </Grid>
 </UserControl>

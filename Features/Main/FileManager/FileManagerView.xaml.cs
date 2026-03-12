@@ -1,13 +1,12 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using PromptMasterv6.Features.Shared.Models;
 
-namespace PromptMasterv6.Features.Main.Components
+namespace PromptMasterv6.Features.Main.FileManager
 {
-    public partial class FileListView : System.Windows.Controls.UserControl
+    public partial class FileManagerView : System.Windows.Controls.UserControl
     {
-        public FileListView()
+        public FileManagerView()
         {
             InitializeComponent();
         }
@@ -25,7 +24,7 @@ namespace PromptMasterv6.Features.Main.Components
         {
             if (sender is System.Windows.Controls.TextBox textBox && textBox.DataContext is PromptItem promptItem)
             {
-                if (e.Key == System.Windows.Input.Key.Enter)
+                if (e.Key == Key.Enter)
                 {
                     promptItem.IsRenaming = false;
                     if (DataContext is FileManagerViewModel vm)
@@ -34,7 +33,7 @@ namespace PromptMasterv6.Features.Main.Components
                     }
                     e.Handled = true;
                 }
-                else if (e.Key == System.Windows.Input.Key.Escape)
+                else if (e.Key == Key.Escape)
                 {
                     if (string.IsNullOrWhiteSpace(promptItem.Title))
                     {

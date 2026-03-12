@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Main.FileManager.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;

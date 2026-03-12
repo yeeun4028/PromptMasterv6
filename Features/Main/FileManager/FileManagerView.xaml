@@ -1,4 +1,4 @@
-<UserControl x:Class="PromptMasterv6.Features.Main.Components.FileListView"
+<UserControl x:Class="PromptMasterv6.Features.Main.FileManager.FileManagerView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 

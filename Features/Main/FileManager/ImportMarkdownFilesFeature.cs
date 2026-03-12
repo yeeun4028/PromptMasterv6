@@ -6,13 +6,15 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PromptMasterv6.Features.Main.Import
-{
-    public record ImportMarkdownFilesCommand(string[] Files, string TargetFolderId) : IRequest<List<PromptItem>>;
+namespace PromptMasterv6.Features.Main.FileManager;
 
-    public class ImportMarkdownFilesHandler : IRequestHandler<ImportMarkdownFilesCommand, List<PromptItem>>
+public static class ImportMarkdownFilesFeature
+{
+    public record Command(string[] Files, string TargetFolderId) : IRequest<List<PromptItem>>;
+
+    public class Handler : IRequestHandler<Command, List<PromptItem>>
     {
-        public async Task<List<PromptItem>> Handle(ImportMarkdownFilesCommand request, CancellationToken cancellationToken)
+        public async Task<List<PromptItem>> Handle(Command request, CancellationToken cancellationToken)
         {
             var importedItems = new List<PromptItem>();
 

@@ -7,7 +7,7 @@ using PromptMasterv6.Features.Settings.ApiCredentials;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Main.Messages;
+using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Settings.AiModels.Messages;
 using PromptMasterv6.Features.Shared.Models;
 using System.Linq;
