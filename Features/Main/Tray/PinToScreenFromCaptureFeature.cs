@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media.Imaging;
 using MediatR;
 using PromptMasterv6.Features.PinToScreen;
@@ -33,12 +32,10 @@ public static class PinToScreenFromCaptureFeature
             try
             {
                 byte[]? capturedBytes = null;
-                System.Windows.Rect captureRect = default;
 
-                capturedBytes = await _windowManager.ShowCaptureWindowAsync((bytes, rect) =>
+                capturedBytes = await _windowManager.ShowCaptureWindowAsync((bytes, _) =>
                 {
                     capturedBytes = bytes;
-                    captureRect = rect;
                     return Task.CompletedTask;
                 });
 

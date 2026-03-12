@@ -331,8 +331,6 @@ namespace PromptMasterv6
                 new Features.ExternalTools.TranslationPopup(text));
 
             registry.RegisterPinToScreen(Features.PinToScreen.PinToScreenWindow.PinToScreenAsync);
-            registry.RegisterPinToScreenCloseAll(Features.PinToScreen.PinToScreenWindow.CloseAll);
-            registry.RegisterPinToScreenCountProvider(() => Features.PinToScreen.PinToScreenWindow.OpenWindowCount);
         }
 
         private static void OnTextBoxContextMenuOpening(object sender, ContextMenuEventArgs e)
