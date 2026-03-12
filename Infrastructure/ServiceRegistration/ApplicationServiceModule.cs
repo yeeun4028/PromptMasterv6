@@ -9,6 +9,7 @@ using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Settings;
 using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.PinToScreen;
+using PromptMasterv6.Infrastructure.MediatR;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
 {
@@ -28,6 +29,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             {
                 cfg.RegisterServicesFromAssembly(typeof(App).Assembly);
                 cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
+                cfg.AddOpenBehavior(typeof(ExceptionHandlingBehavior<,>));
+                cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             });
 
             // Application Features

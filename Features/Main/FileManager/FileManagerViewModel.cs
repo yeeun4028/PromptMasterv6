@@ -25,19 +25,9 @@ namespace PromptMasterv6.Features.Main.FileManager;
 
 public partial class FileManagerViewModel : ObservableObject
 {
-    private readonly IDataService _dataService;
-    private readonly IDataService _localDataService;
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
     private readonly IMediator _mediator;
-    private readonly CreateFolderFeature.Handler _createFolderHandler;
-    private readonly DeleteFolderFeature.Handler _deleteFolderHandler;
-    private readonly RenameFolderFeature.Handler _renameFolderHandler;
-    private readonly ChangeFolderIconFeature.Handler _changeFolderIconHandler;
-    private readonly CreateFileFeature.Handler _createFileHandler;
-    private readonly DeleteFileFeature.Handler _deleteFileHandler;
-    private readonly RenameFileFeature.Handler _renameFileHandler;
-    private readonly ChangeFileIconFeature.Handler _changeFileIconHandler;
 
     [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
     [ObservableProperty] private FolderItem? selectedFolder;
@@ -51,33 +41,13 @@ public partial class FileManagerViewModel : ObservableObject
     private bool _enterEditModeOnNextSelection;
 
     public FileManagerViewModel(
-        [Microsoft.Extensions.DependencyInjection.FromKeyedServices("cloud")] IDataService dataService,
-        [Microsoft.Extensions.DependencyInjection.FromKeyedServices("local")] IDataService localDataService,
         DialogService dialogService,
         LoggerService logger,
-        IMediator mediator,
-        CreateFolderFeature.Handler createFolderHandler,
-        DeleteFolderFeature.Handler deleteFolderHandler,
-        RenameFolderFeature.Handler renameFolderHandler,
-        ChangeFolderIconFeature.Handler changeFolderIconHandler,
-        CreateFileFeature.Handler createFileHandler,
-        DeleteFileFeature.Handler deleteFileHandler,
-        RenameFileFeature.Handler renameFileHandler,
-        ChangeFileIconFeature.Handler changeFileIconHandler)
+        IMediator mediator)
     {
-        _dataService = dataService;
-        _localDataService = localDataService;
         _dialogService = dialogService;
         _logger = logger;
         _mediator = mediator;
-        _createFolderHandler = createFolderHandler;
-        _deleteFolderHandler = deleteFolderHandler;
-        _renameFolderHandler = renameFolderHandler;
-        _changeFolderIconHandler = changeFolderIconHandler;
-        _createFileHandler = createFileHandler;
-        _deleteFileHandler = deleteFileHandler;
-        _renameFileHandler = renameFileHandler;
-        _changeFileIconHandler = changeFileIconHandler;
         
         FolderDropHandler = new FileManagerFolderDropHandler(this);
 
@@ -263,7 +233,7 @@ public partial class FileManagerViewModel : ObservableObject
     [RelayCommand]
     private async Task CreateFolder()
     {
-        var result = await _createFolderHandler.Handle(
+        var result = await _mediator.Send(
             new CreateFolderFeature.Command(Folders), 
             default);
         
@@ -279,7 +249,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (SelectedFolder == null) return;
 
-        var result = await _createFileHandler.Handle(
+        var result = await _mediator.Send(
             new CreateFileFeature.Command(SelectedFolder.Id),
             default);
 
@@ -296,7 +266,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (folder == null) return;
 
-        var result = await _deleteFolderHandler.Handle(
+        var result = await _mediator.Send(
             new DeleteFolderFeature.Command(folder, Folders, Files),
             default);
 
@@ -313,7 +283,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (f == null) return;
         
-        var result = await _changeFolderIconHandler.Handle(
+        var result = await _mediator.Send(
             new ChangeFolderIconFeature.Command(f),
             default);
 
@@ -328,7 +298,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (f == null) return;
         
-        var result = await _renameFolderHandler.Handle(
+        var result = await _mediator.Send(
             new RenameFolderFeature.Command(f),
             default);
 
@@ -349,7 +319,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (item == null) return;
         
-        var result = await _renameFileHandler.Handle(
+        var result = await _mediator.Send(
             new RenameFileFeature.Command(item),
             default);
     }
@@ -394,7 +364,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (file == null) return;
         
-        var result = await _deleteFileHandler.Handle(
+        var result = await _mediator.Send(
             new DeleteFileFeature.Command(file, Files),
             default);
 
@@ -410,7 +380,7 @@ public partial class FileManagerViewModel : ObservableObject
     {
         if (file == null) return;
         
-        var result = await _changeFileIconHandler.Handle(
+        var result = await _mediator.Send(
             new ChangeFileIconFeature.Command(file),
             default);
 

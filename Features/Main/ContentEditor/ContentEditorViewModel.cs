@@ -22,10 +22,6 @@ public partial class ContentEditorViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
-    private readonly CopyCompiledTextFeature.Handler _copyCompiledTextHandler;
-    private readonly SendToWebTargetFeature.Handler _sendToWebTargetHandler;
-    private readonly OpenWebTargetFeature.Handler _openWebTargetHandler;
-    private readonly SearchOnGitHubFeature.Handler _searchOnGitHubHandler;
 
     [ObservableProperty] private PromptItem? selectedFile;
     [ObservableProperty] private bool isEditMode;
@@ -44,20 +40,12 @@ public partial class ContentEditorViewModel : ObservableObject
         IMediator mediator,
         DialogService dialogService,
         LoggerService logger,
-        AppConfig config,
-        CopyCompiledTextFeature.Handler copyCompiledTextHandler,
-        SendToWebTargetFeature.Handler sendToWebTargetHandler,
-        OpenWebTargetFeature.Handler openWebTargetHandler,
-        SearchOnGitHubFeature.Handler searchOnGitHubHandler)
+        AppConfig config)
     {
         _mediator = mediator;
         _dialogService = dialogService;
         _logger = logger;
         Config = config;
-        _copyCompiledTextHandler = copyCompiledTextHandler;
-        _sendToWebTargetHandler = sendToWebTargetHandler;
-        _openWebTargetHandler = openWebTargetHandler;
-        _searchOnGitHubHandler = searchOnGitHubHandler;
 
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
@@ -194,7 +182,7 @@ public partial class ContentEditorViewModel : ObservableObject
     [RelayCommand]
     private async Task CopyCompiledText()
     {
-        await _copyCompiledTextHandler.Handle(
+        await _mediator.Send(
             new CopyCompiledTextFeature.Command(SelectedFile, Variables, AdditionalInput),
             default);
     }
@@ -216,7 +204,7 @@ public partial class ContentEditorViewModel : ObservableObject
             }
         }
 
-        await _sendToWebTargetHandler.Handle(
+        await _mediator.Send(
             new SendToWebTargetFeature.Command(SelectedFile, Variables, AdditionalInput, Config.WebDirectTargets, Config.DefaultWebTargetName),
             default);
         AdditionalInput = "";
@@ -239,7 +227,7 @@ public partial class ContentEditorViewModel : ObservableObject
             }
         }
 
-        await _openWebTargetHandler.Handle(
+        await _mediator.Send(
             new OpenWebTargetFeature.Command(SelectedFile, Variables, AdditionalInput, target),
             default);
         AdditionalInput = "";
@@ -256,7 +244,7 @@ public partial class ContentEditorViewModel : ObservableObject
             return;
         }
 
-        var result = await _searchOnGitHubHandler.Handle(new SearchOnGitHubFeature.Command(query), default);
+        var result = await _mediator.Send(new SearchOnGitHubFeature.Command(query), default);
         
         if (result.Success)
         {
