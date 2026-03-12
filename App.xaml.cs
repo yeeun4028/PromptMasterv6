@@ -41,7 +41,7 @@ namespace PromptMasterv6
         public App()
         {
             LoggerService.Instance.LogInfo("Application starting...", "App");
-            
+
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
@@ -75,19 +75,20 @@ namespace PromptMasterv6
         {
             base.OnStartup(e);
 
-            bool createdNew;
-            _singleInstanceMutex = new System.Threading.Mutex(true, MutexName, out createdNew);
-            _ownsMutex = createdNew;
+            // 单实例检查 - 在服务配置之前执行
+            var singleInstanceHandler = new Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler(LoggerService.Instance);
+            var singleInstanceResult = singleInstanceHandler.Handle(
+                new Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Command(MutexName, WindowTitle),
+                System.Threading.CancellationToken.None).Result;
 
-            if (!createdNew)
+            if (!singleInstanceResult.IsFirstInstance)
             {
-                LoggerService.Instance.LogInfo("Another instance is already running. Activating existing instance.", "App.OnStartup");
-                ActivateExistingInstance();
                 Shutdown();
                 return;
             }
 
-            LoggerService.Instance.LogInfo("Single instance mutex acquired successfully.", "App.OnStartup");
+            _singleInstanceMutex = singleInstanceResult.Mutex;
+            _ownsMutex = singleInstanceResult.OwnsMutex;
 
             try
             {
@@ -143,36 +144,14 @@ namespace PromptMasterv6
                 LoggerService.Instance.LogException(ex, "退出清理失败", "App.OnExit");
             }
 
-            if (_ownsMutex && _singleInstanceMutex != null)
-            {
-                _singleInstanceMutex.ReleaseMutex();
-            }
-            _singleInstanceMutex?.Dispose();
+            // 释放单实例锁
+            var releaseHandler = new Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler(LoggerService.Instance);
+            releaseHandler.Handle(
+                new Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Command(_singleInstanceMutex, _ownsMutex),
+                System.Threading.CancellationToken.None).Wait();
 
             _serviceProvider?.Dispose();
             base.OnExit(e);
-        }
-
-        private void ActivateExistingInstance()
-        {
-            try
-            {
-                IntPtr hWnd = Infrastructure.Services.NativeMethods.FindWindow(null, WindowTitle);
-                
-                if (hWnd != IntPtr.Zero)
-                {
-                    if (Infrastructure.Services.NativeMethods.IsIconic(hWnd))
-                    {
-                        Infrastructure.Services.NativeMethods.ShowWindow(hWnd, Infrastructure.Services.NativeMethods.SW_RESTORE);
-                    }
-                    
-                    Infrastructure.Services.NativeMethods.SetForegroundWindow(hWnd);
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerService.Instance.LogException(ex, "Failed to activate existing instance", "App.ActivateExistingInstance");
-            }
         }
 
         private static void ConfigureServices(IServiceCollection services)
@@ -187,6 +166,8 @@ namespace PromptMasterv6
 
             // Application Features
             services.AddSingleton<Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Handler>();
+            services.AddSingleton<Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler>();
+            services.AddSingleton<Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler>();
 
             services.AddSingleton<ISessionState, SessionState>();
 
