@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Main.FileManager;
 
-public static class ChangeFileIconFeature
+public static class ChangeFolderIconFeature
 {
-    public record Command(PromptItem? File) : IRequest<Result>;
+    public record Command(FolderItem? Folder) : IRequest<Result>;
 
     public record Result(bool Success, string? NewIconGeometry);
 
@@ -16,15 +16,15 @@ public static class ChangeFileIconFeature
     {
         public Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
-            if (request.File == null)
+            if (request.Folder == null)
             {
                 return Task.FromResult(new Result(false, null));
             }
 
-            var dialog = new IconInputDialog(request.File.IconGeometry);
+            var dialog = new IconInputDialog(request.Folder.IconGeometry);
             if (dialog.ShowDialog() == true)
             {
-                request.File.IconGeometry = dialog.ResultGeometry;
+                request.Folder.IconGeometry = dialog.ResultGeometry;
                 return Task.FromResult(new Result(true, dialog.ResultGeometry));
             }
 

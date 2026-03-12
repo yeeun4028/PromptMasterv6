@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Main.FileManager;
 
-public static class ChangeFileIconFeature
+public static class RenameFileFeature
 {
     public record Command(PromptItem? File) : IRequest<Result>;
 
-    public record Result(bool Success, string? NewIconGeometry);
+    public record Result(bool Success);
 
     public class Handler : IRequestHandler<Command, Result>
     {
@@ -18,17 +18,11 @@ public static class ChangeFileIconFeature
         {
             if (request.File == null)
             {
-                return Task.FromResult(new Result(false, null));
+                return Task.FromResult(new Result(false));
             }
 
-            var dialog = new IconInputDialog(request.File.IconGeometry);
-            if (dialog.ShowDialog() == true)
-            {
-                request.File.IconGeometry = dialog.ResultGeometry;
-                return Task.FromResult(new Result(true, dialog.ResultGeometry));
-            }
-
-            return Task.FromResult(new Result(false, null));
+            request.File.IsRenaming = true;
+            return Task.FromResult(new Result(true));
         }
     }
 }

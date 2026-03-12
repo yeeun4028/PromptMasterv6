@@ -6,26 +6,26 @@ using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Main.FileManager;
 
-public static class ChangeFileIconFeature
+public static class RenameFolderFeature
 {
-    public record Command(PromptItem? File) : IRequest<Result>;
+    public record Command(FolderItem? Folder) : IRequest<Result>;
 
-    public record Result(bool Success, string? NewIconGeometry);
+    public record Result(bool Success, string? NewName);
 
     public class Handler : IRequestHandler<Command, Result>
     {
         public Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
-            if (request.File == null)
+            if (request.Folder == null)
             {
                 return Task.FromResult(new Result(false, null));
             }
 
-            var dialog = new IconInputDialog(request.File.IconGeometry);
+            var dialog = new NameInputDialog(request.Folder.Name);
             if (dialog.ShowDialog() == true)
             {
-                request.File.IconGeometry = dialog.ResultGeometry;
-                return Task.FromResult(new Result(true, dialog.ResultGeometry));
+                request.Folder.Name = dialog.ResultName;
+                return Task.FromResult(new Result(true, dialog.ResultName));
             }
 
             return Task.FromResult(new Result(false, null));

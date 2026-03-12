@@ -253,6 +253,15 @@ namespace PromptMasterv6
             services.AddSingleton<Features.Main.ContentEditor.SendToWebTargetFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.OpenWebTargetFeature.Handler>();
 
+            services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.RenameFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.ChangeFolderIconFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.CreateFileFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.DeleteFileFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.RenameFileFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
+
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
 

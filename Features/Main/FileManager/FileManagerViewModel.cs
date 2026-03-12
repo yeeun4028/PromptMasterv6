@@ -30,6 +30,14 @@ public partial class FileManagerViewModel : ObservableObject
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
     private readonly IMediator _mediator;
+    private readonly CreateFolderFeature.Handler _createFolderHandler;
+    private readonly DeleteFolderFeature.Handler _deleteFolderHandler;
+    private readonly RenameFolderFeature.Handler _renameFolderHandler;
+    private readonly ChangeFolderIconFeature.Handler _changeFolderIconHandler;
+    private readonly CreateFileFeature.Handler _createFileHandler;
+    private readonly DeleteFileFeature.Handler _deleteFileHandler;
+    private readonly RenameFileFeature.Handler _renameFileHandler;
+    private readonly ChangeFileIconFeature.Handler _changeFileIconHandler;
 
     [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
     [ObservableProperty] private FolderItem? selectedFolder;
@@ -47,13 +55,29 @@ public partial class FileManagerViewModel : ObservableObject
         [Microsoft.Extensions.DependencyInjection.FromKeyedServices("local")] IDataService localDataService,
         DialogService dialogService,
         LoggerService logger,
-        IMediator mediator)
+        IMediator mediator,
+        CreateFolderFeature.Handler createFolderHandler,
+        DeleteFolderFeature.Handler deleteFolderHandler,
+        RenameFolderFeature.Handler renameFolderHandler,
+        ChangeFolderIconFeature.Handler changeFolderIconHandler,
+        CreateFileFeature.Handler createFileHandler,
+        DeleteFileFeature.Handler deleteFileHandler,
+        RenameFileFeature.Handler renameFileHandler,
+        ChangeFileIconFeature.Handler changeFileIconHandler)
     {
         _dataService = dataService;
         _localDataService = localDataService;
         _dialogService = dialogService;
         _logger = logger;
         _mediator = mediator;
+        _createFolderHandler = createFolderHandler;
+        _deleteFolderHandler = deleteFolderHandler;
+        _renameFolderHandler = renameFolderHandler;
+        _changeFolderIconHandler = changeFolderIconHandler;
+        _createFileHandler = createFileHandler;
+        _deleteFileHandler = deleteFileHandler;
+        _renameFileHandler = renameFileHandler;
+        _changeFileIconHandler = changeFileIconHandler;
         
         FolderDropHandler = new FileManagerFolderDropHandler(this);
 
@@ -83,13 +107,13 @@ public partial class FileManagerViewModel : ObservableObject
             }
         });
 
-        WeakReferenceMessenger.Default.Register<CreateFileRequestMessage>(this, (_, m) =>
+        WeakReferenceMessenger.Default.Register<CreateFileRequestMessage>(this, async (_, m) =>
         {
             if (m.TargetFolder != null)
             {
                 SelectedFolder = m.TargetFolder;
             }
-            CreateFile();
+            await CreateFile();
         });
 
         WeakReferenceMessenger.Default.Register<ImportMarkdownFilesRequestMessage>(this, async (_, m) =>
@@ -109,19 +133,19 @@ public partial class FileManagerViewModel : ObservableObject
             }
         });
 
-        WeakReferenceMessenger.Default.Register<ChangeFolderIconRequestMessage>(this, (_, m) =>
+        WeakReferenceMessenger.Default.Register<ChangeFolderIconRequestMessage>(this, async (_, m) =>
         {
-            ChangeFolderIcon(m.Folder);
+            await ChangeFolderIcon(m.Folder);
         });
 
-        WeakReferenceMessenger.Default.Register<RenameFolderRequestMessage>(this, (_, m) =>
+        WeakReferenceMessenger.Default.Register<RenameFolderRequestMessage>(this, async (_, m) =>
         {
-            RenameFolder(m.Folder);
+            await RenameFolder(m.Folder);
         });
 
-        WeakReferenceMessenger.Default.Register<DeleteFolderRequestMessage>(this, (_, m) =>
+        WeakReferenceMessenger.Default.Register<DeleteFolderRequestMessage>(this, async (_, m) =>
         {
-            DeleteFolder(m.Folder);
+            await DeleteFolder(m.Folder);
         });
     }
 
@@ -235,60 +259,79 @@ public partial class FileManagerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void CreateFolder()
+    private async Task CreateFolder()
     {
-        var f = new FolderItem { Name = $"新建文件夹 {Folders.Count + 1}" };
-        Folders.Add(f);
-        SelectedFolder = f;
-        RequestSave();
-    }
-
-    [RelayCommand]
-    private void CreateFile()
-    {
-        if (SelectedFolder == null) return;
-
-        var f = new PromptItem { Title = "未命名提示词", Content = "", FolderId = SelectedFolder.Id, LastModified = DateTime.Now, IsRenaming = true };
-        Files.Add(f);
-        WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(f, EnterEditMode: true));
-        RequestSave();
-    }
-
-    [RelayCommand]
-    private void DeleteFolder(FolderItem? folder)
-    {
-        if (folder == null) return;
-
-        var filesInFolder = Files.Where(f => f.FolderId == folder.Id).ToList();
-        foreach (var file in filesInFolder) Files.Remove(file);
-
-        if (SelectedFolder == folder) SelectedFolder = null;
-        Folders.Remove(folder);
+        var result = await _createFolderHandler.Handle(
+            new CreateFolderFeature.Command(Folders), 
+            default);
         
-        WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(null, EnterEditMode: false));
-        RequestSave();
-    }
-
-    [RelayCommand]
-    private void ChangeFolderIcon(FolderItem? f)
-    {
-        if (f == null) return;
-        var dialog = new IconInputDialog(f.IconGeometry);
-        if (dialog.ShowDialog() == true)
+        if (result.CreatedFolder != null)
         {
-            f.IconGeometry = dialog.ResultGeometry;
+            SelectedFolder = result.CreatedFolder;
             RequestSave();
         }
     }
 
     [RelayCommand]
-    private void RenameFolder(FolderItem? f)
+    private async Task CreateFile()
+    {
+        if (SelectedFolder == null) return;
+
+        var result = await _createFileHandler.Handle(
+            new CreateFileFeature.Command(SelectedFolder.Id),
+            default);
+
+        if (result.CreatedFile != null)
+        {
+            Files.Add(result.CreatedFile);
+            WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(result.CreatedFile, EnterEditMode: true));
+            RequestSave();
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteFolder(FolderItem? folder)
+    {
+        if (folder == null) return;
+
+        var result = await _deleteFolderHandler.Handle(
+            new DeleteFolderFeature.Command(folder, Folders, Files),
+            default);
+
+        if (result.Success)
+        {
+            if (result.WasSelected) SelectedFolder = null;
+            WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(null, EnterEditMode: false));
+            RequestSave();
+        }
+    }
+
+    [RelayCommand]
+    private async Task ChangeFolderIcon(FolderItem? f)
     {
         if (f == null) return;
-        var dialog = new NameInputDialog(f.Name);
-        if (dialog.ShowDialog() == true)
+        
+        var result = await _changeFolderIconHandler.Handle(
+            new ChangeFolderIconFeature.Command(f),
+            default);
+
+        if (result.Success)
         {
-            f.Name = dialog.ResultName;
+            RequestSave();
+        }
+    }
+
+    [RelayCommand]
+    private async Task RenameFolder(FolderItem? f)
+    {
+        if (f == null) return;
+        
+        var result = await _renameFolderHandler.Handle(
+            new RenameFolderFeature.Command(f),
+            default);
+
+        if (result.Success)
+        {
             RequestSave();
         }
     }
@@ -300,12 +343,13 @@ public partial class FileManagerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RenameFile(PromptItem? item)
+    private async Task RenameFile(PromptItem? item)
     {
-        if (item != null)
-        {
-            item.IsRenaming = true;
-        }
+        if (item == null) return;
+        
+        var result = await _renameFileHandler.Handle(
+            new RenameFileFeature.Command(item),
+            default);
     }
 
     [RelayCommand]
@@ -344,22 +388,32 @@ public partial class FileManagerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteFile(PromptItem? file)
+    private async Task DeleteFile(PromptItem? file)
     {
         if (file == null) return;
-        Files.Remove(file);
-        if (SelectedFile == file) SelectedFile = null;
-        RequestSave();
+        
+        var result = await _deleteFileHandler.Handle(
+            new DeleteFileFeature.Command(file, Files),
+            default);
+
+        if (result.Success)
+        {
+            if (result.WasSelected) SelectedFile = null;
+            RequestSave();
+        }
     }
 
     [RelayCommand]
-    private void ChangeFileIcon(PromptItem? file)
+    private async Task ChangeFileIcon(PromptItem? file)
     {
         if (file == null) return;
-        var dialog = new IconInputDialog(file.IconGeometry);
-        if (dialog.ShowDialog() == true)
+        
+        var result = await _changeFileIconHandler.Handle(
+            new ChangeFileIconFeature.Command(file),
+            default);
+
+        if (result.Success)
         {
-            file.IconGeometry = dialog.ResultGeometry;
             RequestSave();
         }
     }

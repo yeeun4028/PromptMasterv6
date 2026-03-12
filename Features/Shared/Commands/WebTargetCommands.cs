@@ -43,8 +43,6 @@ public class ExecuteWebTargetHandler : IRequestHandler<ExecuteWebTargetCommand>
             bool supportsUrlParam = request.Target.UrlTemplate.Contains("{0}");
             string url;
             
-            _logger.LogInfo($"[ExecuteWebTarget] Target: {request.Target.Name}, UrlTemplate: {request.Target.UrlTemplate}, SupportsUrlParam: {supportsUrlParam}", "ExecuteWebTargetHandler");
-            
             if (supportsUrlParam)
             {
                 url = string.Format(request.Target.UrlTemplate, Uri.EscapeDataString(request.Content));
@@ -54,12 +52,8 @@ public class ExecuteWebTargetHandler : IRequestHandler<ExecuteWebTargetCommand>
                 url = request.Target.UrlTemplate;
             }
 
-            _logger.LogInfo($"[ExecuteWebTarget] Generated URL length: {url.Length}, Content length: {request.Content.Length}", "ExecuteWebTargetHandler");
-
             const int MaxUrlLength = 8000;
             bool useClipboard = !supportsUrlParam || url.Length > MaxUrlLength;
-
-            _logger.LogInfo($"[ExecuteWebTarget] useClipboard: {useClipboard} (supportsUrlParam: {supportsUrlParam}, url.Length: {url.Length}, MaxUrlLength: {MaxUrlLength})", "ExecuteWebTargetHandler");
 
             if (useClipboard)
             {
