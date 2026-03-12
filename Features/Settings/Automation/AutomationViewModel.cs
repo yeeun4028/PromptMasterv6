@@ -10,6 +10,7 @@ namespace PromptMasterv6.Features.Settings.Automation
     {
         private readonly UpdateAutomationFeature.Handler _updateAutomationHandler;
         private readonly LoggerService _logger;
+        private readonly DialogService _dialogService;
 
         [ObservableProperty] private ObservableCollection<WebTarget> _webDirectTargets;
         [ObservableProperty] private string _defaultWebTargetName;
@@ -18,10 +19,12 @@ namespace PromptMasterv6.Features.Settings.Automation
         public AutomationViewModel(
             UpdateAutomationFeature.Handler updateAutomationHandler,
             LoggerService logger,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            DialogService dialogService)
         {
             _updateAutomationHandler = updateAutomationHandler;
             _logger = logger;
+            _dialogService = dialogService;
 
             // 从配置加载初始值
             var config = settingsService.Config;
@@ -40,12 +43,12 @@ namespace PromptMasterv6.Features.Settings.Automation
             if (result.Success)
             {
                 _logger.LogInfo(result.Message, "AutomationViewModel.SaveAutomationSettings");
-                // TODO: 显示成功提示 (Toast)
+                _dialogService.ShowToast(result.Message, "Success");
             }
             else
             {
                 _logger.LogWarning(result.Message, "AutomationViewModel.SaveAutomationSettings");
-                // TODO: 显示错误提示
+                _dialogService.ShowToast(result.Message, "Error");
             }
         }
     }

@@ -10,6 +10,7 @@ namespace PromptMasterv6.Features.Settings.Shortcut
     {
         private readonly UpdateShortcutFeature.Handler _updateShortcutHandler;
         private readonly LoggerService _logger;
+        private readonly DialogService _dialogService;
 
         [ObservableProperty] private string _fullWindowHotkey;
         [ObservableProperty] private string _screenshotTranslateHotkey;
@@ -19,10 +20,12 @@ namespace PromptMasterv6.Features.Settings.Shortcut
         public ShortcutViewModel(
             UpdateShortcutFeature.Handler updateShortcutHandler,
             LoggerService logger,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            DialogService dialogService)
         {
             _updateShortcutHandler = updateShortcutHandler;
             _logger = logger;
+            _dialogService = dialogService;
 
             // 从配置加载初始值
             var config = settingsService.Config;
@@ -49,12 +52,12 @@ namespace PromptMasterv6.Features.Settings.Shortcut
                 _logger.LogInfo(result.Message, "ShortcutViewModel.SaveShortcutSettings");
                 // 通知其他组件重新加载快捷键
                 WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
-                // TODO: 显示成功提示 (Toast)
+                _dialogService.ShowToast(result.Message, "Success");
             }
             else
             {
                 _logger.LogWarning(result.Message, "ShortcutViewModel.SaveShortcutSettings");
-                // TODO: 显示错误提示
+                _dialogService.ShowToast(result.Message, "Error");
             }
         }
 

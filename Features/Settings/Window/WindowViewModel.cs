@@ -8,16 +8,19 @@ namespace PromptMasterv6.Features.Settings.Window
     {
         private readonly UpdateWindowSettingsFeature.Handler _updateWindowSettingsHandler;
         private readonly LoggerService _logger;
+        private readonly DialogService _dialogService;
 
         [ObservableProperty] private bool _autoHide;
 
         public WindowViewModel(
             UpdateWindowSettingsFeature.Handler updateWindowSettingsHandler,
             LoggerService logger,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            DialogService dialogService)
         {
             _updateWindowSettingsHandler = updateWindowSettingsHandler;
             _logger = logger;
+            _dialogService = dialogService;
 
             // 从配置加载初始值
             var config = settingsService.Config;
@@ -34,12 +37,12 @@ namespace PromptMasterv6.Features.Settings.Window
             if (result.Success)
             {
                 _logger.LogInfo(result.Message, "WindowViewModel.SaveWindowSettings");
-                // TODO: 显示成功提示 (Toast)
+                _dialogService.ShowToast(result.Message, "Success");
             }
             else
             {
                 _logger.LogWarning(result.Message, "WindowViewModel.SaveWindowSettings");
-                // TODO: 显示错误提示
+                _dialogService.ShowToast(result.Message, "Error");
             }
         }
     }
