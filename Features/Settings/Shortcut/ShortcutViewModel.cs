@@ -8,56 +8,54 @@ namespace PromptMasterv6.Features.Settings.Shortcut
 {
     public partial class ShortcutViewModel : ObservableObject
     {
-        private readonly SettingsService _settingsService;
+        private readonly UpdateShortcutFeature.Handler _updateShortcutHandler;
+        private readonly LoggerService _logger;
 
         [ObservableProperty] private string _fullWindowHotkey;
         [ObservableProperty] private string _screenshotTranslateHotkey;
         [ObservableProperty] private string _ocrHotkey;
         [ObservableProperty] private string _pinToScreenHotkey;
 
-        public ShortcutViewModel(SettingsService settingsService)
+        public ShortcutViewModel(
+            UpdateShortcutFeature.Handler updateShortcutHandler,
+            LoggerService logger,
+            SettingsService settingsService)
         {
-            _settingsService = settingsService;
-            
-            var config = _settingsService.Config;
+            _updateShortcutHandler = updateShortcutHandler;
+            _logger = logger;
+
+            // 从配置加载初始值
+            var config = settingsService.Config;
             _fullWindowHotkey = config.FullWindowHotkey;
             _screenshotTranslateHotkey = config.ScreenshotTranslateHotkey;
             _ocrHotkey = config.OcrHotkey;
             _pinToScreenHotkey = config.PinToScreenHotkey;
         }
 
-        partial void OnFullWindowHotkeyChanged(string value)
+        [RelayCommand]
+        private async Task SaveShortcutSettings()
         {
-            _settingsService.Config.FullWindowHotkey = value;
-            UpdateWindowHotkeys();
-        }
+            var command = new UpdateShortcutFeature.Command(
+                FullWindowHotkey,
+                ScreenshotTranslateHotkey,
+                OcrHotkey,
+                PinToScreenHotkey
+            );
 
-        partial void OnScreenshotTranslateHotkeyChanged(string value)
-        {
-            _settingsService.Config.ScreenshotTranslateHotkey = value;
-            UpdateExternalToolsHotkeys();
-        }
+            var result = await _updateShortcutHandler.Handle(command);
 
-        partial void OnOcrHotkeyChanged(string value)
-        {
-            _settingsService.Config.OcrHotkey = value;
-            UpdateExternalToolsHotkeys();
-        }
-
-        partial void OnPinToScreenHotkeyChanged(string value)
-        {
-            _settingsService.Config.PinToScreenHotkey = value;
-            UpdateExternalToolsHotkeys();
-        }
-
-        private void UpdateWindowHotkeys()
-        {
-            WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
-        }
-
-        private void UpdateExternalToolsHotkeys()
-        {
-            WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
+            if (result.Success)
+            {
+                _logger.LogInfo(result.Message, "ShortcutViewModel.SaveShortcutSettings");
+                // 通知其他组件重新加载快捷键
+                WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
+                // TODO: 显示成功提示 (Toast)
+            }
+            else
+            {
+                _logger.LogWarning(result.Message, "ShortcutViewModel.SaveShortcutSettings");
+                // TODO: 显示错误提示
+            }
         }
 
         [RelayCommand]

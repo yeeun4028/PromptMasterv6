@@ -1,25 +1,46 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Proxy
 {
     public partial class ProxyViewModel : ObservableObject
     {
-        private readonly SettingsService _settingsService;
+        private readonly UpdateProxyFeature.Handler _updateProxyHandler;
+        private readonly LoggerService _logger;
 
         [ObservableProperty] private string _proxyAddress;
 
-        public ProxyViewModel(SettingsService settingsService)
+        public ProxyViewModel(
+            UpdateProxyFeature.Handler updateProxyHandler,
+            LoggerService logger,
+            SettingsService settingsService)
         {
-            _settingsService = settingsService;
-            
-            var config = _settingsService.Config;
+            _updateProxyHandler = updateProxyHandler;
+            _logger = logger;
+
+            // 从配置加载初始值
+            var config = settingsService.Config;
             _proxyAddress = config.ProxyAddress;
         }
 
-        partial void OnProxyAddressChanged(string value)
+        [RelayCommand]
+        private async Task SaveProxySettings()
         {
-            _settingsService.Config.ProxyAddress = value;
+            var command = new UpdateProxyFeature.Command(ProxyAddress);
+
+            var result = await _updateProxyHandler.Handle(command);
+
+            if (result.Success)
+            {
+                _logger.LogInfo(result.Message, "ProxyViewModel.SaveProxySettings");
+                // TODO: 显示成功提示 (Toast)
+            }
+            else
+            {
+                _logger.LogWarning(result.Message, "ProxyViewModel.SaveProxySettings");
+                // TODO: 显示错误提示
+            }
         }
     }
 }

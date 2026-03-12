@@ -67,6 +67,18 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.ApiCredentials.TestGoogleFeature.Handler>();
             services.AddSingleton<Features.Settings.ApiCredentials.SaveApiCredentialsFeature.Handler>();
 
+            // Settings Features - Proxy
+            services.AddSingleton<Features.Settings.Proxy.UpdateProxyFeature.Handler>();
+
+            // Settings Features - Window
+            services.AddSingleton<Features.Settings.Window.UpdateWindowSettingsFeature.Handler>();
+
+            // Settings Features - Automation
+            services.AddSingleton<Features.Settings.Automation.UpdateAutomationFeature.Handler>();
+
+            // Settings Features - Shortcut
+            services.AddSingleton<Features.Settings.Shortcut.UpdateShortcutFeature.Handler>();
+
             // Workspace Features
             services.AddSingleton<Features.Workspace.LoadWorkspaceData.LoadWorkspaceDataFeature.Handler>();
             services.AddSingleton<Features.Workspace.SearchOnGitHub.SearchOnGitHubFeature.Handler>();
