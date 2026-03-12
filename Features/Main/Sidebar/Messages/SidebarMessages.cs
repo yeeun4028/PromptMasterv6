@@ -29,4 +29,34 @@ namespace PromptMasterv6.Features.Main.Sidebar.Messages
     public class ToggleEditModeRequestMessage
     {
     }
+
+    public class ChangeFolderIconRequestMessage
+    {
+        public FolderItem? Folder { get; }
+
+        public ChangeFolderIconRequestMessage(FolderItem? folder)
+        {
+            Folder = folder;
+        }
+    }
+
+    public class RenameFolderRequestMessage
+    {
+        public FolderItem? Folder { get; }
+
+        public RenameFolderRequestMessage(FolderItem? folder)
+        {
+            Folder = folder;
+        }
+    }
+
+    public class DeleteFolderRequestMessage
+    {
+        public FolderItem? Folder { get; }
+
+        public DeleteFolderRequestMessage(FolderItem? folder)
+        {
+            Folder = folder;
+        }
+    }
 }

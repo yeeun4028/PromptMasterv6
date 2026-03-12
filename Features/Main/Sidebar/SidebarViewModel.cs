@@ -149,6 +149,24 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Send(new RequestCloudBackupMessage());
     }
 
+    [RelayCommand]
+    private void ChangeFolderIcon(FolderItem? folder)
+    {
+        WeakReferenceMessenger.Default.Send(new ChangeFolderIconRequestMessage(folder));
+    }
+
+    [RelayCommand]
+    private void RenameFolder(FolderItem? folder)
+    {
+        WeakReferenceMessenger.Default.Send(new RenameFolderRequestMessage(folder));
+    }
+
+    [RelayCommand]
+    private void DeleteFolder(FolderItem? folder)
+    {
+        WeakReferenceMessenger.Default.Send(new DeleteFolderRequestMessage(folder));
+    }
+
     public void ReorderFolders(int oldIndex, int newIndex)
     {
         Folders.Move(oldIndex, newIndex);

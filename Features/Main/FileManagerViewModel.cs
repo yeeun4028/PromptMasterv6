@@ -98,6 +98,29 @@ public partial class FileManagerViewModel : ObservableObject
             }
             await ImportMarkdownFilesAsync();
         });
+
+        WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, m) =>
+        {
+            if (m.Folder != null && Folders.Contains(m.Folder))
+            {
+                SelectedFolder = m.Folder;
+            }
+        });
+
+        WeakReferenceMessenger.Default.Register<ChangeFolderIconRequestMessage>(this, (_, m) =>
+        {
+            ChangeFolderIcon(m.Folder);
+        });
+
+        WeakReferenceMessenger.Default.Register<RenameFolderRequestMessage>(this, (_, m) =>
+        {
+            RenameFolder(m.Folder);
+        });
+
+        WeakReferenceMessenger.Default.Register<DeleteFolderRequestMessage>(this, (_, m) =>
+        {
+            DeleteFolder(m.Folder);
+        });
     }
 
     partial void OnSelectedFolderChanged(FolderItem? value)
