@@ -2,6 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Settings.AiModels.AddAiModel;
+using PromptMasterv6.Features.Settings.AiModels.RenameAiModel;
+using PromptMasterv6.Features.Shared.Dialogs;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +16,8 @@ public partial class AiModelsViewModel : ObservableObject
     private readonly SettingsService _settingsService;
     private readonly TestAiConnectionFeature.Handler _testHandler;
     private readonly DeleteAiModelFeature.Handler _deleteHandler;
+    private readonly AddAiModelFeature.Handler _addAiModelHandler;
+    private readonly RenameAiModelFeature.Handler _renameAiModelHandler;
     private readonly DialogService _dialogService;
 
     [ObservableProperty] private string? testStatus;
@@ -27,11 +32,15 @@ public partial class AiModelsViewModel : ObservableObject
         SettingsService settingsService,
         TestAiConnectionFeature.Handler testHandler,
         DeleteAiModelFeature.Handler deleteHandler,
+        AddAiModelFeature.Handler addAiModelHandler,
+        RenameAiModelFeature.Handler renameAiModelHandler,
         DialogService dialogService)
     {
         _settingsService = settingsService;
         _testHandler = testHandler;
         _deleteHandler = deleteHandler;
+        _addAiModelHandler = addAiModelHandler;
+        _renameAiModelHandler = renameAiModelHandler;
         _dialogService = dialogService;
     }
 
@@ -106,26 +115,19 @@ public partial class AiModelsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AddAiModel()
+    private async Task AddAiModel()
     {
-        var newModel = new AiModelConfig
-        {
-            Id = Guid.NewGuid().ToString(),
-            ModelName = "gpt-3.5-turbo",
-            BaseUrl = "https://api.openai.com/v1",
-            ApiKey = "",
-            Remark = "New Model"
-        };
+        var result = await _addAiModelHandler.Handle(new AddAiModelFeature.Command());
 
-        Config.SavedModels.Insert(0, newModel);
-        SelectedSavedModel = newModel;
-        
-        if (string.IsNullOrEmpty(Config.ActiveModelId))
+        if (result.Success && result.AddedModel != null)
         {
-            Config.ActiveModelId = newModel.Id;
+            SelectedSavedModel = result.AddedModel;
+            OnPropertyChanged(nameof(Config));
         }
-        
-        _settingsService.SaveConfig();
+        else
+        {
+            _dialogService.ShowToast(result.Message, "Error");
+        }
     }
 
     [RelayCommand]
@@ -150,7 +152,7 @@ public partial class AiModelsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RenameAiModel(AiModelConfig? model)
+    private async Task RenameAiModel(AiModelConfig? model)
     {
         if (model == null) return;
 
@@ -158,8 +160,16 @@ public partial class AiModelsViewModel : ObservableObject
         var dialog = new NameInputDialog(initialName);
         if (dialog.ShowDialog() == true)
         {
-            model.Remark = dialog.ResultName;
-            _settingsService.SaveConfig();
+            var result = await _renameAiModelHandler.Handle(new RenameAiModelFeature.Command(model.Id, dialog.ResultName));
+
+            if (result.Success)
+            {
+                OnPropertyChanged(nameof(Config));
+            }
+            else
+            {
+                _dialogService.ShowToast(result.Message, "Error");
+            }
         }
     }
 }

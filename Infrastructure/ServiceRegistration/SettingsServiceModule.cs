@@ -38,6 +38,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             // Settings Features - AiModels
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
             services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
+            services.AddSingleton<Features.Settings.AiModels.AddAiModel.AddAiModelFeature.Handler>();
+            services.AddSingleton<Features.Settings.AiModels.RenameAiModel.RenameAiModelFeature.Handler>();
 
             // Settings Features - Launcher
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
@@ -52,10 +54,13 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.Sync.ImportConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.SelectExportPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.SelectImportPathFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.OpenLogFolder.OpenLogFolderFeature.Handler>();
+            services.AddSingleton<Features.Settings.Sync.ClearLogs.ClearLogsFeature.Handler>();
 
             // Settings Features - ExternalTools
             services.AddSingleton<Features.Settings.ExternalTools.SaveAiTranslationConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.ExternalTools.DeleteAiTranslationConfigFeature.Handler>();
+            services.AddSingleton<Features.Settings.ExternalTools.HandleAiModelDeleted.HandleAiModelDeletedFeature.Handler>();
 
             // Settings Features - LaunchBar
             services.AddSingleton<Features.Settings.LaunchBar.AddLaunchBarItemFeature.Handler>();

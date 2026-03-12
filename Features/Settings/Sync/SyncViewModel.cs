@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.ExternalTools.Messages;
+using PromptMasterv6.Features.Settings.Sync.OpenLogFolder;
+using PromptMasterv6.Features.Settings.Sync.ClearLogs;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +25,8 @@ public partial class SyncViewModel : ObservableObject
     private readonly ImportConfigFeature.Handler _importConfigHandler;
     private readonly SelectExportPathFeature.Handler _selectExportPathHandler;
     private readonly SelectImportPathFeature.Handler _selectImportPathHandler;
+    private readonly OpenLogFolderFeature.Handler _openLogFolderHandler;
+    private readonly ClearLogsFeature.Handler _clearLogsHandler;
 
     public AppConfig Config => _settingsService.Config;
     public LocalSettings LocalConfig => _settingsService.LocalConfig;
@@ -42,7 +46,9 @@ public partial class SyncViewModel : ObservableObject
         ExportConfigFeature.Handler exportConfigHandler,
         ImportConfigFeature.Handler importConfigHandler,
         SelectExportPathFeature.Handler selectExportPathHandler,
-        SelectImportPathFeature.Handler selectImportPathHandler)
+        SelectImportPathFeature.Handler selectImportPathHandler,
+        OpenLogFolderFeature.Handler openLogFolderHandler,
+        ClearLogsFeature.Handler clearLogsHandler)
     {
         _settingsService = settingsService;
         _localDataService = localDataService;
@@ -55,6 +61,8 @@ public partial class SyncViewModel : ObservableObject
         _importConfigHandler = importConfigHandler;
         _selectExportPathHandler = selectExportPathHandler;
         _selectImportPathHandler = selectImportPathHandler;
+        _openLogFolderHandler = openLogFolderHandler;
+        _clearLogsHandler = clearLogsHandler;
     }
 
     [RelayCommand]
@@ -210,39 +218,32 @@ public partial class SyncViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenLogFolder()
+    private async Task OpenLogFolder()
     {
-        try
+        var result = await _openLogFolderHandler.Handle(new OpenLogFolderFeature.Command());
+
+        if (result.Success)
         {
-            var logPath = _logger.GetLogDirectory();
-            if (System.IO.Directory.Exists(logPath))
-            {
-                System.Diagnostics.Process.Start("explorer.exe", logPath);
-            }
-            else
-            {
-                _dialogService.ShowToast("日志文件夹不存在", "Info");
-            }
+            _dialogService.ShowToast(result.Message, "Success");
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogException(ex, "Failed to open log folder", "SyncViewModel.OpenLogFolder");
-            _dialogService.ShowAlert($"无法打开日志文件夹: {ex.Message}", "错误");
+            _dialogService.ShowAlert(result.Message, "错误");
         }
     }
 
     [RelayCommand]
-    private void ClearLogs()
+    private async Task ClearLogs()
     {
-        try
+        var result = await _clearLogsHandler.Handle(new ClearLogsFeature.Command());
+
+        if (result.Success)
         {
-            _logger.ClearLogs();
-            _dialogService.ShowToast("日志已清除", "Success");
+            _dialogService.ShowToast(result.Message, "Success");
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogException(ex, "Failed to clear logs", "SyncViewModel.ClearLogs");
-            _dialogService.ShowAlert($"清除日志失败: {ex.Message}", "错误");
+            _dialogService.ShowAlert(result.Message, "错误");
         }
     }
 }

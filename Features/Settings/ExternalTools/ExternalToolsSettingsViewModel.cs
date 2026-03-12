@@ -10,6 +10,7 @@ using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Settings.AiModels.Messages;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Settings.ExternalTools.HandleAiModelDeleted;
 using System.Linq;
 
 namespace PromptMasterv6.Features.Settings.ExternalTools
@@ -23,6 +24,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         private readonly DialogService _dialogService;
         private readonly SaveAiTranslationConfigFeature.Handler _saveAiTranslationConfigHandler;
         private readonly DeleteAiTranslationConfigFeature.Handler _deleteAiTranslationConfigHandler;
+        private readonly HandleAiModelDeletedFeature.Handler _handleAiModelDeletedHandler;
 
         public AppConfig Config => _settingsService.Config;
         public ObservableCollection<PromptItem> FilesView => _sessionState.Files;
@@ -50,7 +52,8 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             ApiCredentialsViewModel apiCredentialsVM,
             DialogService dialogService,
             SaveAiTranslationConfigFeature.Handler saveAiTranslationConfigHandler,
-            DeleteAiTranslationConfigFeature.Handler deleteAiTranslationConfigHandler)
+            DeleteAiTranslationConfigFeature.Handler deleteAiTranslationConfigHandler,
+            HandleAiModelDeletedFeature.Handler handleAiModelDeletedHandler)
         {
             _settingsService = settingsService;
             _sessionState = sessionState;
@@ -60,6 +63,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             _dialogService = dialogService;
             _saveAiTranslationConfigHandler = saveAiTranslationConfigHandler;
             _deleteAiTranslationConfigHandler = deleteAiTranslationConfigHandler;
+            _handleAiModelDeletedHandler = handleAiModelDeletedHandler;
 
             WeakReferenceMessenger.Default.Register(this);
         }
@@ -112,19 +116,16 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             _deleteAiTranslationConfigHandler.Handle(new DeleteAiTranslationConfigFeature.Command(configId));
         }
 
-        public void Receive(AiModelDeletedMessage message)
+        public async void Receive(AiModelDeletedMessage message)
         {
-            var affectedConfigs = Config.SavedAiTranslationConfigs
-                .Where(c => c.Model == message.DeletedModelName).ToList();
+            var result = await _handleAiModelDeletedHandler.Handle(
+                new HandleAiModelDeletedFeature.Command(message.DeletedModelName)
+            );
 
-            if (affectedConfigs.Any())
+            if (result.Success && result.AffectedConfigCount > 0)
             {
-                foreach (var c in affectedConfigs)
-                {
-                    c.Model = "已失效 (请重新配置)";
-                }
-                _settingsService.SaveConfig();
-                _dialogService.ShowToast($"警告：翻译引擎依赖的模型 '{message.DeletedModelName}' 已被删除，请重新配置。", "Warning");
+                OnPropertyChanged(nameof(Config));
+                _dialogService.ShowToast(result.Message, "Warning");
             }
         }
     }
