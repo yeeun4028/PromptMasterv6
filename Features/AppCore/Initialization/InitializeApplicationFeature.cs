@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
@@ -21,7 +22,7 @@ namespace PromptMasterv6.Features.AppCore.Initialization
         // 1. 定义输入
         public record Command(
             IServiceProvider ServiceProvider
-        );
+        ) : IRequest<Result>;
 
         // 2. 定义输出
         public record Result(
@@ -32,7 +33,7 @@ namespace PromptMasterv6.Features.AppCore.Initialization
         );
 
         // 3. 执行逻辑
-        public class Handler
+        public class Handler : IRequestHandler<Command, Result>
         {
             private readonly LoggerService _logger;
 

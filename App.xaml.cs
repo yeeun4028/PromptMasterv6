@@ -71,37 +71,38 @@ namespace PromptMasterv6
             }
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            // 单实例检查 - 在服务配置之前执行
-            var singleInstanceHandler = new Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler(LoggerService.Instance);
-            var singleInstanceResult = singleInstanceHandler.Handle(
-                new Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Command(MutexName, WindowTitle),
-                System.Threading.CancellationToken.None).Result;
-
-            if (!singleInstanceResult.IsFirstInstance)
-            {
-                Shutdown();
-                return;
-            }
-
-            _singleInstanceMutex = singleInstanceResult.Mutex;
-            _ownsMutex = singleInstanceResult.OwnsMutex;
-
             try
             {
+                // 配置服务
                 LoggerService.Instance.LogInfo("Configuring services...", "App.OnStartup");
                 var services = new ServiceCollection();
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
 
-                // 使用 InitializeApplicationFeature 进行初始化
-                var initHandler = _serviceProvider.GetRequiredService<Features.AppCore.Initialization.InitializeApplicationFeature.Handler>();
-                var initResult = initHandler.Handle(
-                    new Features.AppCore.Initialization.InitializeApplicationFeature.Command(_serviceProvider),
-                    System.Threading.CancellationToken.None).Result;
+                // 通过 MediatR 发送单实例检查命令
+                var mediator = _serviceProvider.GetRequiredService<IMediator>();
+                var singleInstanceResult = await mediator.Send(
+                    new Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Command(MutexName, WindowTitle)
+                );
+
+                if (!singleInstanceResult.IsFirstInstance)
+                {
+                    LoggerService.Instance.LogInfo("Another instance is already running, exiting", "App.OnStartup");
+                    Shutdown();
+                    return;
+                }
+
+                _singleInstanceMutex = singleInstanceResult.Mutex;
+                _ownsMutex = singleInstanceResult.OwnsMutex;
+
+                // 通过 MediatR 发送初始化命令
+                var initResult = await mediator.Send(
+                    new Features.AppCore.Initialization.InitializeApplicationFeature.Command(_serviceProvider)
+                );
 
                 if (!initResult.Success)
                 {
@@ -119,22 +120,22 @@ namespace PromptMasterv6
             }
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        protected override async void OnExit(ExitEventArgs e)
         {
             LoggerService.Instance.LogInfo($"Application exiting with code: {e.ApplicationExitCode}", "App.OnExit");
 
             try
             {
-                // 使用 CleanupApplicationFeature 进行清理
-                var cleanupHandler = _serviceProvider?.GetService<Features.AppCore.Shutdown.CleanupApplicationFeature.Handler>();
-                if (cleanupHandler != null && _serviceProvider != null)
+                if (_serviceProvider != null)
                 {
-                    cleanupHandler.Handle(
+                    // 通过 MediatR 发送清理命令
+                    var mediator = _serviceProvider.GetRequiredService<IMediator>();
+                    await mediator.Send(
                         new Features.AppCore.Shutdown.CleanupApplicationFeature.Command(
                             _serviceProvider,
                             _singleInstanceMutex,
-                            _ownsMutex),
-                        System.Threading.CancellationToken.None).Wait();
+                            _ownsMutex)
+                    );
                 }
             }
             catch (Exception ex)
@@ -163,40 +164,73 @@ namespace PromptMasterv6
             }
         }
 
-        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        private async void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            var handler = _serviceProvider?.GetService<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
-            handler?.Handle(
-                new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
-                    e.Exception, "Dispatcher", ShowMessageToUser: true),
-                System.Threading.CancellationToken.None).Wait();
-            e.Handled = true;
-        }
-
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            var handler = _serviceProvider?.GetService<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
-            if (e.ExceptionObject is Exception ex)
+            try
             {
-                handler?.Handle(
-                    new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
-                        ex, "AppDomain", e.IsTerminating, ShowMessageToUser: true),
-                    System.Threading.CancellationToken.None).Wait();
+                if (_serviceProvider != null)
+                {
+                    var mediator = _serviceProvider.GetRequiredService<IMediator>();
+                    await mediator.Send(
+                        new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
+                            e.Exception, "Dispatcher", ShowMessageToUser: true)
+                    );
+                }
             }
-            else
+            catch (Exception ex)
             {
-                LoggerService.Instance.LogError($"Fatal unhandled non-exception object: {e.ExceptionObject}", "App.CurrentDomain_UnhandledException");
+                LoggerService.Instance.LogException(ex, "Failed to handle dispatcher exception", "App.App_DispatcherUnhandledException");
+            }
+            finally
+            {
+                e.Handled = true;
             }
         }
 
-        private void TaskScheduler_UnobservedTaskException(object? sender, System.Threading.Tasks.UnobservedTaskExceptionEventArgs e)
+        private async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            var handler = _serviceProvider?.GetService<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
-            handler?.Handle(
-                new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
-                    e.Exception, "TaskScheduler", ShowMessageToUser: false),
-                System.Threading.CancellationToken.None).Wait();
-            e.SetObserved();
+            try
+            {
+                if (_serviceProvider != null && e.ExceptionObject is Exception ex)
+                {
+                    var mediator = _serviceProvider.GetRequiredService<IMediator>();
+                    await mediator.Send(
+                        new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
+                            ex, "AppDomain", e.IsTerminating, ShowMessageToUser: true)
+                    );
+                }
+                else
+                {
+                    LoggerService.Instance.LogError($"Fatal unhandled non-exception object: {e.ExceptionObject}", "App.CurrentDomain_UnhandledException");
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to handle appdomain exception", "App.CurrentDomain_UnhandledException");
+            }
+        }
+
+        private async void TaskScheduler_UnobservedTaskException(object? sender, System.Threading.Tasks.UnobservedTaskExceptionEventArgs e)
+        {
+            try
+            {
+                if (_serviceProvider != null)
+                {
+                    var mediator = _serviceProvider.GetRequiredService<IMediator>();
+                    await mediator.Send(
+                        new Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Command(
+                            e.Exception, "TaskScheduler", ShowMessageToUser: false)
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.Instance.LogException(ex, "Failed to handle task scheduler exception", "App.TaskScheduler_UnobservedTaskException");
+            }
+            finally
+            {
+                e.SetObserved();
+            }
         }
     }
 }

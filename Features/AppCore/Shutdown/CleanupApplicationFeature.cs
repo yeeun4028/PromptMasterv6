@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
@@ -18,7 +19,7 @@ namespace PromptMasterv6.Features.AppCore.Shutdown
             IServiceProvider ServiceProvider,
             System.Threading.Mutex? Mutex,
             bool OwnsMutex
-        );
+        ) : IRequest<Result>;
 
         // 2. 定义输出
         public record Result(
@@ -27,7 +28,7 @@ namespace PromptMasterv6.Features.AppCore.Shutdown
         );
 
         // 3. 执行逻辑
-        public class Handler
+        public class Handler : IRequestHandler<Command, Result>
         {
             private readonly LoggerService _logger;
 
