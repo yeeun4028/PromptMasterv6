@@ -42,7 +42,7 @@
                     </Button.ToolTip>
                     <Button.ContentTemplate>
                         <DataTemplate>
-                            <Path Data="{Binding DataContext.ActionIcons[CreateFile], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconNewDoc}}" Style="{StaticResource ActionIconPathStyle}"/>
+                            <Path Data="{Binding DataContext.LocalConfig.ActionIcons[CreateFile], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconNewDoc}}" Style="{StaticResource ActionIconPathStyle}"/>
                         </DataTemplate>
                     </Button.ContentTemplate>
                 </Button>
@@ -60,7 +60,7 @@
                     </Button.ToolTip>
                     <Button.ContentTemplate>
                         <DataTemplate>
-                            <Path Data="{Binding DataContext.ActionIcons[CreateFolder], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconNewFolder}}" Style="{StaticResource ActionIconPathStyle}"/>
+                            <Path Data="{Binding DataContext.LocalConfig.ActionIcons[CreateFolder], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconNewFolder}}" Style="{StaticResource ActionIconPathStyle}"/>
                         </DataTemplate>
                     </Button.ContentTemplate>
                 </Button>
@@ -78,7 +78,7 @@
                     </Button.ToolTip>
                     <Button.ContentTemplate>
                         <DataTemplate>
-                            <Path Data="{Binding DataContext.ActionIcons[Import], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconImport}}" Style="{StaticResource ActionIconPathStyle}"/>
+                            <Path Data="{Binding DataContext.LocalConfig.ActionIcons[Import], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconImport}}" Style="{StaticResource ActionIconPathStyle}"/>
                         </DataTemplate>
                     </Button.ContentTemplate>
                 </Button>
@@ -96,7 +96,7 @@
                     </Button.ToolTip>
                     <Button.ContentTemplate>
                         <DataTemplate>
-                            <Path Data="{Binding DataContext.ActionIcons[Settings], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconSettings}}" Style="{StaticResource ActionIconPathStyle}"/>
+                            <Path Data="{Binding DataContext.LocalConfig.ActionIcons[Settings], RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconSettings}}" Style="{StaticResource ActionIconPathStyle}"/>
                         </DataTemplate>
                     </Button.ContentTemplate>
                 </Button>
