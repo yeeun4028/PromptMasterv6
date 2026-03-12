@@ -1,8 +1,6 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
-using System.Windows.Controls;
-using System.Windows.Input;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
@@ -26,9 +24,6 @@ using PromptMasterv6.Features.Shared.Dialogs;
 using PromptMasterv6.Features.Shared.Behaviors;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
-using TextBox = System.Windows.Controls.TextBox;
-using WpfControl = System.Windows.Controls.Control;
-using Cursors = System.Windows.Input.Cursors;
 
 namespace PromptMasterv6
 {
@@ -51,37 +46,34 @@ namespace PromptMasterv6
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-            AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+            AppDomain.CurrentDomain.ProcessExit += async (s, e) =>
             {
                 LoggerService.Instance.LogInfo("[App] ProcessExit event triggered", "App");
-                CleanupNotifyIcon();
+                await CleanupNotifyIconAsync();
             };
         }
 
-        private static void CleanupNotifyIcon()
+        private async Task CleanupNotifyIconAsync()
         {
             try
             {
-                var mainWindow = Current?.MainWindow as MainWindow;
-                if (mainWindow != null)
+                if (_serviceProvider == null) return;
+
+                var handler = _serviceProvider.GetService<Features.Main.Tray.CleanupTrayIconFeature.Handler>();
+                if (handler != null)
                 {
-                    mainWindow.ForceCleanupNotifyIcon();
+                    await handler.Handle(new Features.Main.Tray.CleanupTrayIconFeature.Command("ProcessExit"), System.Threading.CancellationToken.None);
                 }
             }
             catch (Exception ex)
             {
-                LoggerService.Instance.LogException(ex, "Failed to cleanup notify icon", "App.CleanupNotifyIcon");
+                LoggerService.Instance.LogException(ex, "Failed to cleanup notify icon", "App.CleanupNotifyIconAsync");
             }
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
-            EventManager.RegisterClassHandler(
-                typeof(TextBox),
-                ContextMenuService.ContextMenuOpeningEvent,
-                new ContextMenuEventHandler(OnTextBoxContextMenuOpening));
 
             bool createdNew;
             _singleInstanceMutex = new System.Threading.Mutex(true, MutexName, out createdNew);
@@ -103,6 +95,10 @@ namespace PromptMasterv6
                 var services = new ServiceCollection();
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
+
+                // 配置 TextBox 上下文菜单
+                var textBoxMenuHandler = _serviceProvider.GetService<Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Handler>();
+                textBoxMenuHandler?.Handle(new Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Command(), System.Threading.CancellationToken.None);
 
                 var windowRegistry = _serviceProvider.GetRequiredService<WindowRegistry>();
                 RegisterWindows(windowRegistry);
@@ -182,12 +178,15 @@ namespace PromptMasterv6
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<LoggerService>(sp => LoggerService.Instance);
-            
-            services.AddMediatR(cfg => 
+
+            services.AddMediatR(cfg =>
             {
                 cfg.RegisterServicesFromAssembly(typeof(App).Assembly);
                 cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
             });
+
+            // Application Features
+            services.AddSingleton<Features.AppCore.UI.ConfigureTextBoxContextMenuFeature.Handler>();
 
             services.AddSingleton<ISessionState, SessionState>();
 
@@ -255,6 +254,7 @@ namespace PromptMasterv6
 
             services.AddSingleton<Features.Main.Tray.OpenSettingsFeature.Handler>();
             services.AddSingleton<Features.Main.Tray.PinToScreenFromCaptureFeature.Handler>();
+            services.AddSingleton<Features.Main.Tray.CleanupTrayIconFeature.Handler>();
 
             services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();
@@ -331,100 +331,6 @@ namespace PromptMasterv6
                 new Features.ExternalTools.TranslationPopup(text));
 
             registry.RegisterPinToScreen(Features.PinToScreen.PinToScreenWindow.PinToScreenAsync);
-        }
-
-        private static void OnTextBoxContextMenuOpening(object sender, ContextMenuEventArgs e)
-        {
-            if (sender is not TextBox tb) return;
-
-            var menu = new ContextMenu
-            {
-                Background = (System.Windows.Media.Brush)Application.Current.Resources["CardBackground"],
-                BorderBrush = (System.Windows.Media.Brush)Application.Current.Resources["DividerBrush"],
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(0, 4, 0, 4),
-            };
-
-            var menuTemplate = new ControlTemplate(typeof(ContextMenu));
-            var borderFactory = new FrameworkElementFactory(typeof(Border));
-            borderFactory.SetBinding(Border.BackgroundProperty,
-                new System.Windows.Data.Binding { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent), Path = new PropertyPath(WpfControl.BackgroundProperty) });
-            borderFactory.SetBinding(Border.BorderBrushProperty,
-                new System.Windows.Data.Binding { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent), Path = new PropertyPath(WpfControl.BorderBrushProperty) });
-            borderFactory.SetBinding(Border.BorderThicknessProperty,
-                new System.Windows.Data.Binding { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent), Path = new PropertyPath(WpfControl.BorderThicknessProperty) });
-            borderFactory.SetValue(Border.CornerRadiusProperty, new System.Windows.CornerRadius(8));
-            borderFactory.SetValue(Border.PaddingProperty, new Thickness(0, 4, 0, 4));
-            var shadow = new System.Windows.Media.Effects.DropShadowEffect
-            {
-                Color = System.Windows.Media.Colors.Black,
-                Direction = 270,
-                ShadowDepth = 4,
-                BlurRadius = 12,
-                Opacity = 0.3
-            };
-            borderFactory.SetValue(Border.EffectProperty, shadow);
-            var itemsPresenterFactory = new FrameworkElementFactory(typeof(ItemsPresenter));
-            borderFactory.AppendChild(itemsPresenterFactory);
-            menuTemplate.VisualTree = borderFactory;
-            menu.Template = menuTemplate;
-
-            static MenuItem MakeItem(string header, ICommand command)
-            {
-                var item = new MenuItem
-                {
-                    Header = header,
-                    Command = command,
-                    Cursor = System.Windows.Input.Cursors.Hand,
-                };
-
-                var itemTemplate = new ControlTemplate(typeof(MenuItem));
-                var bd = new FrameworkElementFactory(typeof(Border));
-                bd.Name = "Bd";
-                bd.SetValue(Border.BackgroundProperty, System.Windows.Media.Brushes.Transparent);
-                bd.SetValue(Border.PaddingProperty, new Thickness(12, 3, 12, 3));
-                bd.SetValue(Border.CornerRadiusProperty, new System.Windows.CornerRadius(5));
-
-                var cp = new FrameworkElementFactory(typeof(ContentPresenter));
-                cp.SetBinding(ContentPresenter.ContentProperty,
-                    new System.Windows.Data.Binding(nameof(MenuItem.Header))
-                    { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent) });
-                cp.SetValue(ContentPresenter.VerticalAlignmentProperty, System.Windows.VerticalAlignment.Center);
-                cp.SetValue(ContentPresenter.HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Left);
-                bd.AppendChild(cp);
-                itemTemplate.VisualTree = bd;
-
-                var highlight = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
-                highlight.Setters.Add(new Setter(Border.BackgroundProperty,
-                    Application.Current.Resources.Contains("ListItemSelectedBackgroundBrush")
-                        ? Application.Current.Resources["ListItemSelectedBackgroundBrush"]
-                        : System.Windows.Media.Brushes.LightGray, "Bd"));
-                itemTemplate.Triggers.Add(highlight);
-
-                var disabled = new Trigger { Property = MenuItem.IsEnabledProperty, Value = false };
-                disabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.5));
-                itemTemplate.Triggers.Add(disabled);
-
-                item.Template = itemTemplate;
-
-                if (Application.Current.Resources["PrimaryTextBrush"] is System.Windows.Media.Brush fg)
-                    item.Foreground = fg;
-
-                return item;
-            }
-
-            menu.Items.Add(MakeItem("剪切", ApplicationCommands.Cut));
-            menu.Items.Add(MakeItem("复制", ApplicationCommands.Copy));
-            menu.Items.Add(MakeItem("粘贴", ApplicationCommands.Paste));
-
-            var sep = new Separator { Margin = new Thickness(0, 2, 0, 2) };
-            if (Application.Current.Resources["DividerBrush"] is System.Windows.Media.Brush divBrush)
-                sep.Background = divBrush;
-            menu.Items.Add(sep);
-
-            menu.Items.Add(MakeItem("全选", ApplicationCommands.SelectAll));
-
-            tb.ContextMenu = menu;
         }
 
 
