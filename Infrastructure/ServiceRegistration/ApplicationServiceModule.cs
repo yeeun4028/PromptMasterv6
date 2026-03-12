@@ -4,6 +4,11 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Shared.Behaviors;
 using PromptMasterv6.Features.Main.Tray;
+using PromptMasterv6.Infrastructure.WindowRegistration;
+using PromptMasterv6.Features.Launcher;
+using PromptMasterv6.Features.Settings;
+using PromptMasterv6.Features.ExternalTools;
+using PromptMasterv6.Features.PinToScreen;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
 {
@@ -76,6 +81,13 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
 
             // 托盘服务
             services.AddSingleton<TrayService>();
+
+            // 窗口注册器
+            services.AddSingleton<IWindowRegistrar, LauncherWindowRegistrar>();
+            services.AddSingleton<IWindowRegistrar, SettingsWindowRegistrar>();
+            services.AddSingleton<IWindowRegistrar, ScreenCaptureOverlayRegistrar>();
+            services.AddSingleton<IWindowRegistrar, TranslationPopupRegistrar>();
+            services.AddSingleton<IWindowRegistrar, PinToScreenRegistrar>();
         }
     }
 }

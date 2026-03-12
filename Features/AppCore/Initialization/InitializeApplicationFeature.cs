@@ -8,6 +8,7 @@ using PromptMasterv6.Features.Main;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Settings;
 using PromptMasterv6.Features.ExternalTools;
+using PromptMasterv6.Infrastructure.WindowRegistration;
 
 namespace PromptMasterv6.Features.AppCore.Initialization
 {
@@ -65,7 +66,13 @@ namespace PromptMasterv6.Features.AppCore.Initialization
                     // 2. 注册窗口
                     _logger.LogInfo("Registering windows...", "InitializeApplicationFeature");
                     var windowRegistry = serviceProvider.GetRequiredService<WindowRegistry>();
-                    RegisterWindows(windowRegistry);
+                    
+                    // 获取所有窗口注册器并注册窗口
+                    var registrars = serviceProvider.GetServices<IWindowRegistrar>();
+                    foreach (var registrar in registrars)
+                    {
+                        registrar.Register(windowRegistry);
+                    }
 
                     // 3. 创建主窗口
                     _logger.LogInfo("Creating main window...", "InitializeApplicationFeature");
@@ -105,23 +112,6 @@ namespace PromptMasterv6.Features.AppCore.Initialization
                         LaunchBarWindow: null
                     );
                 }
-            }
-
-            /// <summary>
-            /// 注册所有窗口到窗口注册表
-            /// </summary>
-            private void RegisterWindows(WindowRegistry registry)
-            {
-                registry.RegisterWindow<LauncherViewModel, LauncherWindow>();
-                registry.RegisterWindow<SettingsViewModel, SettingsWindow>();
-
-                registry.RegisterScreenCaptureOverlay((screenBitmap, onCaptureProcessing) =>
-                    new Features.ExternalTools.ScreenCaptureOverlay(screenBitmap, onCaptureProcessing));
-
-                registry.RegisterTranslationPopup(text =>
-                    new Features.ExternalTools.TranslationPopup(text));
-
-                registry.RegisterPinToScreen(Features.PinToScreen.PinToScreenWindow.PinToScreenAsync);
             }
         }
     }
