@@ -4,11 +4,12 @@ using MediatR;
 using PromptMasterv6.Features.Launcher.Execution;
 using PromptMasterv6.Features.Launcher.Orders;
 using PromptMasterv6.Features.Launcher.Queries;
+using PromptMasterv6.Features.Launcher.ReorderLauncherItems;
+using PromptMasterv6.Features.Launcher.FilterLauncherItems;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,6 @@ namespace PromptMasterv6.Features.Launcher
     public partial class LauncherViewModel : ObservableObject
     {
         private readonly SettingsService _settingsService;
-        private readonly WindowManager _windowManager;
         private readonly IMediator _mediator;
         private Dictionary<string, int> _itemOrders = new();
         private CancellationTokenSource? _renderCancellationTokenSource;
@@ -48,53 +48,39 @@ namespace PromptMasterv6.Features.Launcher
 
         public LauncherViewModel(
             SettingsService settingsService,
-            WindowManager windowManager,
             IMediator mediator)
         {
             _settingsService = settingsService;
-            _windowManager = windowManager;
             _mediator = mediator;
-            
+
             InitializeItemsAsync();
         }
 
         private async void InitializeItemsAsync()
         {
             _itemOrders = await _mediator.Send(new GetLauncherOrdersQuery());
-            
+
             await LoadDiscoveredItemsAsync();
-            UpdateFilter();
+            await UpdateFilterAsync();
         }
 
         public async void MoveItem(LauncherItem source, LauncherItem target)
         {
             if (source == null || target == null || source == target) return;
 
-            var oldIndex = Items.IndexOf(source);
-            var newIndex = Items.IndexOf(target);
+            var result = await _mediator.Send(new ReorderLauncherItemsFeature.Command(Items, source, target));
 
-            if (oldIndex < 0 || newIndex < 0) return;
-
-            Items.Move(oldIndex, newIndex);
-
-            for (int i = 0; i < Items.Count; i++)
+            if (result.Success && result.UpdatedOrders != null)
             {
-                var item = Items[i];
-                item.DisplayOrder = i;
-                
-                var key = $"{item.Category}_{item.Title}";
-                _itemOrders[key] = i;
+                _itemOrders = result.UpdatedOrders;
+                await UpdateFilterAsync();
             }
-            
-            await _mediator.Send(new SaveLauncherOrdersCommand(_itemOrders));
-
-            UpdateFilter();
         }
 
-        public void SelectCategory(string category)
+        public async void SelectCategory(string category)
         {
             CurrentCategory = category;
-            UpdateFilter();
+            await UpdateFilterAsync();
         }
 
         private async Task LoadDiscoveredItemsAsync()
@@ -112,13 +98,68 @@ namespace PromptMasterv6.Features.Launcher
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to load discovered items: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Failed to load discovered items: {ex.Message}");
             }
         }
 
         partial void OnSearchTextChanged(string value)
         {
-            UpdateFilter();
+            _ = UpdateFilterAsync();
+        }
+
+        private async Task UpdateFilterAsync()
+        {
+            _renderCancellationTokenSource?.Cancel();
+            _renderCancellationTokenSource = new CancellationTokenSource();
+            var token = _renderCancellationTokenSource.Token;
+
+            try
+            {
+                var result = await _mediator.Send(new FilterLauncherItemsFeature.Command(
+                    Items,
+                    _itemOrders,
+                    CurrentCategory,
+                    Config.IsLauncherSinglePageDisplayEnabled));
+
+                if (!result.Success) return;
+
+                if (Config.IsLauncherSinglePageDisplayEnabled)
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    Bookmarks.Clear();
+                    Applications.Clear();
+                    Tools.Clear();
+
+                    if (result.Bookmarks != null)
+                    {
+                        await LoadInBatchesAsync(Bookmarks, result.Bookmarks, 20, token);
+                    }
+                    if (result.Applications != null)
+                    {
+                        await LoadInBatchesAsync(Applications, result.Applications, 20, token);
+                    }
+                    if (result.Tools != null)
+                    {
+                        await LoadInBatchesAsync(Tools, result.Tools, 20, token);
+                    }
+                }
+                else
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    FilteredItems.Clear();
+
+                    if (result.FilteredItems != null)
+                    {
+                        await LoadInBatchesAsync(FilteredItems, result.FilteredItems, 20, token);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 取消时静默处理
+            }
         }
 
         private async Task LoadInBatchesAsync(
@@ -140,70 +181,13 @@ namespace PromptMasterv6.Features.Launcher
             }
         }
 
-        private async void UpdateFilter()
-        {
-            _renderCancellationTokenSource?.Cancel();
-            _renderCancellationTokenSource = new CancellationTokenSource();
-            var token = _renderCancellationTokenSource.Token;
-
-            foreach (var item in Items)
-            {
-                var key = $"{item.Category}_{item.Title}";
-                if (_itemOrders.TryGetValue(key, out var order))
-                {
-                    item.DisplayOrder = order;
-                }
-                else
-                {
-                    item.DisplayOrder = int.MaxValue;
-                }
-            }
-
-            try
-            {
-                if (Config.IsLauncherSinglePageDisplayEnabled)
-                {
-                    var b = Items.Where(i => i.Category == LauncherCategory.Bookmark).OrderBy(i => i.DisplayOrder).ToList();
-                    var a = Items.Where(i => i.Category == LauncherCategory.Application).OrderBy(i => i.DisplayOrder).ToList();
-                    var t = Items.Where(i => i.Category == LauncherCategory.Tool).OrderBy(i => i.DisplayOrder).ToList();
-
-                    Bookmarks.Clear();
-                    Applications.Clear();
-                    Tools.Clear();
-
-                    await LoadInBatchesAsync(Bookmarks, b, 20, token);
-                    await LoadInBatchesAsync(Applications, a, 20, token);
-                    await LoadInBatchesAsync(Tools, t, 20, token);
-                }
-                else
-                {
-                    var enumCategory = CurrentCategory switch
-                    {
-                        "Bookmark" => LauncherCategory.Bookmark,
-                        "Application" => LauncherCategory.Application,
-                        "Tool" => LauncherCategory.Tool,
-                        _ => LauncherCategory.Bookmark
-                    };
-
-                    var filtered = Items.Where(i => i.Category == enumCategory).OrderBy(i => i.DisplayOrder).ToList();
-
-                    FilteredItems.Clear();
-
-                    await LoadInBatchesAsync(FilteredItems, filtered, 20, token);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-        }
-
         [RelayCommand]
         private async Task ExecuteItem(LauncherItem item)
         {
             if (item == null) return;
 
             await _mediator.Send(new ExecuteLauncherItemCommand(item, Config.LauncherRunAsAdmin));
-            
+
             RequestClose?.Invoke();
         }
 
