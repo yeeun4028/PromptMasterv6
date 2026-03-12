@@ -249,6 +249,9 @@ namespace PromptMasterv6
 
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.SearchOnGitHubFeature.Handler>();
+            services.AddSingleton<Features.Main.ContentEditor.CopyCompiledTextFeature.Handler>();
+            services.AddSingleton<Features.Main.ContentEditor.SendToWebTargetFeature.Handler>();
+            services.AddSingleton<Features.Main.ContentEditor.OpenWebTargetFeature.Handler>();
 
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();

@@ -6,7 +6,6 @@ using MediatR;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Shared.Queries;
-using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Infrastructure.Services;
@@ -22,6 +21,9 @@ public partial class ContentEditorViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
+    private readonly CopyCompiledTextFeature.Handler _copyCompiledTextHandler;
+    private readonly SendToWebTargetFeature.Handler _sendToWebTargetHandler;
+    private readonly OpenWebTargetFeature.Handler _openWebTargetHandler;
     private readonly SearchOnGitHubFeature.Handler _searchOnGitHubHandler;
 
     [ObservableProperty] private PromptItem? selectedFile;
@@ -42,12 +44,18 @@ public partial class ContentEditorViewModel : ObservableObject
         DialogService dialogService,
         LoggerService logger,
         AppConfig config,
+        CopyCompiledTextFeature.Handler copyCompiledTextHandler,
+        SendToWebTargetFeature.Handler sendToWebTargetHandler,
+        OpenWebTargetFeature.Handler openWebTargetHandler,
         SearchOnGitHubFeature.Handler searchOnGitHubHandler)
     {
         _mediator = mediator;
         _dialogService = dialogService;
         _logger = logger;
         Config = config;
+        _copyCompiledTextHandler = copyCompiledTextHandler;
+        _sendToWebTargetHandler = sendToWebTargetHandler;
+        _openWebTargetHandler = openWebTargetHandler;
         _searchOnGitHubHandler = searchOnGitHubHandler;
 
         Pipeline = new MarkdownPipelineBuilder()
@@ -179,8 +187,9 @@ public partial class ContentEditorViewModel : ObservableObject
     [RelayCommand]
     private async Task CopyCompiledText()
     {
-        var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-        await _mediator.Send(new CopyCompiledTextCommand(SelectedFile?.Content, variablesDict, AdditionalInput));
+        await _copyCompiledTextHandler.Handle(
+            new CopyCompiledTextFeature.Command(SelectedFile, Variables, AdditionalInput),
+            default);
     }
 
     [RelayCommand]
@@ -200,9 +209,9 @@ public partial class ContentEditorViewModel : ObservableObject
             }
         }
 
-        var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-        var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
-        await _mediator.Send(new SendToDefaultTargetCommand(content, Config.WebDirectTargets, Config.DefaultWebTargetName));
+        await _sendToWebTargetHandler.Handle(
+            new SendToWebTargetFeature.Command(SelectedFile, Variables, AdditionalInput, Config.WebDirectTargets, Config.DefaultWebTargetName),
+            default);
         AdditionalInput = "";
     }
 
@@ -223,9 +232,9 @@ public partial class ContentEditorViewModel : ObservableObject
             }
         }
 
-        var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-        var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
-        await _mediator.Send(new ExecuteWebTargetCommand(target, content));
+        await _openWebTargetHandler.Handle(
+            new OpenWebTargetFeature.Command(SelectedFile, Variables, AdditionalInput, target),
+            default);
         AdditionalInput = "";
     }
 
