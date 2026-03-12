@@ -125,11 +125,16 @@ namespace PromptMasterv6
 
             try
             {
-                var mainVM = _serviceProvider?.GetService(typeof(MainViewModel)) as MainViewModel;
-                if (mainVM != null)
+                // 使用 CleanupApplicationFeature 进行清理
+                var cleanupHandler = _serviceProvider?.GetService<Features.AppCore.Shutdown.CleanupApplicationFeature.Handler>();
+                if (cleanupHandler != null && _serviceProvider != null)
                 {
-                    LoggerService.Instance.LogInfo("释放 MainViewModel 资源...", "App.OnExit");
-                    mainVM.Dispose();
+                    cleanupHandler.Handle(
+                        new Features.AppCore.Shutdown.CleanupApplicationFeature.Command(
+                            _serviceProvider,
+                            _singleInstanceMutex,
+                            _ownsMutex),
+                        System.Threading.CancellationToken.None).Wait();
                 }
             }
             catch (Exception ex)
@@ -137,13 +142,6 @@ namespace PromptMasterv6
                 LoggerService.Instance.LogException(ex, "退出清理失败", "App.OnExit");
             }
 
-            // 释放单实例锁
-            var releaseHandler = new Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler(LoggerService.Instance);
-            releaseHandler.Handle(
-                new Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Command(_singleInstanceMutex, _ownsMutex),
-                System.Threading.CancellationToken.None).Wait();
-
-            _serviceProvider?.Dispose();
             base.OnExit(e);
         }
 
@@ -163,6 +161,7 @@ namespace PromptMasterv6
             services.AddSingleton<Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler>();
             services.AddSingleton<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
             services.AddSingleton<Features.AppCore.Initialization.InitializeApplicationFeature.Handler>();
+            services.AddSingleton<Features.AppCore.Shutdown.CleanupApplicationFeature.Handler>();
 
             services.AddSingleton<ISessionState, SessionState>();
 
