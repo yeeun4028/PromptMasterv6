@@ -5,6 +5,7 @@ using Markdig;
 using MediatR;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Main.FileManager.Messages;
+using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Shared.Messages;
@@ -72,6 +73,11 @@ public partial class ContentEditorViewModel : ObservableObject
         {
             await SetCurrentFileAsync(m.File, m.EnterEditMode);
         });
+
+        WeakReferenceMessenger.Default.Register<ToggleEditModeRequestMessage>(this, async (_, _) =>
+        {
+            await ToggleEditMode();
+        });
     }
 
     partial void OnSelectedFileChanged(PromptItem? value)
@@ -84,6 +90,7 @@ public partial class ContentEditorViewModel : ObservableObject
         else
         {
             IsEditMode = false;
+            WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
         }
         _ = UpdatePreviewContentAsync(value?.Content);
         SafeParseVariables(value?.Content ?? "");

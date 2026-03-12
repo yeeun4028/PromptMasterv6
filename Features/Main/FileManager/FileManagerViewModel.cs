@@ -3,11 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Interfaces;
+using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Shared.Dialogs;
 using PromptMasterv6.Features.Main.Backup.Messages;
-using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Main.FileManager.Messages;
@@ -146,6 +146,11 @@ public partial class FileManagerViewModel : ObservableObject
         WeakReferenceMessenger.Default.Register<DeleteFolderRequestMessage>(this, async (_, m) =>
         {
             await DeleteFolder(m.Folder);
+        });
+
+        WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) =>
+        {
+            RequestSave();
         });
     }
 

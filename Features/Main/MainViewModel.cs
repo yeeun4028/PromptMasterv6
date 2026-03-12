@@ -74,9 +74,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
 
-        WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) => FileManagerVM.RequestSaveCommand.Execute(null));
-        WeakReferenceMessenger.Default.Register<RequestBackupMessage>(this, async (_, _) => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null));
-        WeakReferenceMessenger.Default.Register<RequestCloudBackupMessage>(this, async (_, _) => await ManualBackup());
         WeakReferenceMessenger.Default.Register<ToggleWindowMessage>(this, (_, _) => ToggleMainWindow());
         WeakReferenceMessenger.Default.Register<TriggerLauncherMessage>(this, (_, _) => HandleLauncherTriggered());
         WeakReferenceMessenger.Default.Register<JumpToEditPromptMessage>(this, (_, m) =>
@@ -89,11 +86,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         });
 
         WeakReferenceMessenger.Default.Register<OpenSettingsRequestMessage>(this, (_, _) => OpenSettings());
-        
-        WeakReferenceMessenger.Default.Register<ToggleEditModeRequestMessage>(this, async (_, _) => 
-        {
-            await ContentEditorVM.ToggleEditModeCommand.ExecuteAsync(null);
-        });
 
         WeakReferenceMessenger.Default.Register<Backup.Messages.BackupCompletedMessage>(this, (_, m) =>
         {
