@@ -181,26 +181,23 @@ public partial class FileManagerViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
-        AppData data;
-        try
-        {
-            data = await _dataService.LoadAsync();
-        }
-        catch
-        {
-            data = new AppData();
-        }
+        // 通过 MediatR 调用 LoadAppDataFeature
+        var result = await _mediator.Send(new LoadAppDataFeature.Command());
 
-        if ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0)
+        AppData data;
+        if (result.Success && result.Data != null)
         {
-            try
+            data = result.Data;
+            
+            if (result.UsedDefaultData)
             {
-                data = await _localDataService.LoadAsync();
+                _logger.LogWarning(result.Message, "FileManagerViewModel.InitializeAsync");
             }
-            catch
-            {
-                data = new AppData();
-            }
+        }
+        else
+        {
+            _logger.LogError(result.Message, "FileManagerViewModel.InitializeAsync");
+            data = new AppData();
         }
 
         Files = new ObservableCollection<PromptItem>(data.Files ?? new());
@@ -443,7 +440,13 @@ public partial class FileManagerViewModel : ObservableObject
     {
         try
         {
-            await _localDataService.SaveAsync(Folders, Files);
+            // 通过 MediatR 调用 SaveAppDataFeature (本地)
+            var result = await _mediator.Send(new SaveAppDataFeature.Command(Folders, Files));
+            
+            if (!result.Success)
+            {
+                _logger.LogError(result.Message, "FileManagerViewModel.PerformLocalBackupAsync");
+            }
         }
         catch (Exception ex)
         {
@@ -455,8 +458,18 @@ public partial class FileManagerViewModel : ObservableObject
     {
         try
         {
-            await _dataService.SaveAsync(Folders, Files);
-            IsDirty = false;
+            // 通过 MediatR 调用 SaveAppDataFeature (云端)
+            var result = await _mediator.Send(new SaveAppDataFeature.Command(Folders, Files));
+            
+            if (result.Success)
+            {
+                IsDirty = false;
+            }
+            else
+            {
+                _logger.LogError(result.Message, "FileManagerViewModel.PerformCloudBackupAsync");
+                throw new Exception(result.Message);
+            }
         }
         catch (Exception ex)
         {

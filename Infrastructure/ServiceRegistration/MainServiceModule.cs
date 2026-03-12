@@ -43,6 +43,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Main.FileManager.CreateFileFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.DeleteFileFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.RenameFileFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.LoadAppDataFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.SaveAppDataFeature.Handler>();
 
             // Main Features - Sidebar
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
