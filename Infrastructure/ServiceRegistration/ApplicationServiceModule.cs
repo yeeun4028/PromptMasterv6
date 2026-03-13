@@ -3,6 +3,7 @@ using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Shared.Behaviors;
+using PromptMasterv6.Features.Shared.Dialogs;
 using PromptMasterv6.Features.Main.Tray;
 using PromptMasterv6.Infrastructure.WindowRegistration;
 using PromptMasterv6.Features.Launcher;
@@ -11,6 +12,7 @@ using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.PinToScreen;
 using PromptMasterv6.Infrastructure.MediatR;
 using PromptMasterv6.Features.Ai;
+using PromptMasterv6.Features.AppCore.Initialization;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
 {
@@ -32,6 +34,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Handler>();
             services.AddSingleton<Features.AppCore.SingleInstance.ReleaseSingleInstanceFeature.Handler>();
             services.AddSingleton<Features.AppCore.ExceptionHandling.HandleUnhandledExceptionFeature.Handler>();
+            services.AddSingleton<ApplicationBootstrapper>();
             services.AddSingleton<Features.AppCore.Initialization.InitializeApplicationFeature.Handler>();
             services.AddSingleton<Features.AppCore.Shutdown.CleanupApplicationFeature.Handler>();
 
@@ -62,6 +65,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<HotkeyService>();
             services.AddSingleton<GlobalShortcutCoordinator>();
 
+            services.AddSingleton<IFeatureDialogProvider, FeatureDialogProvider>();
             services.AddSingleton<DialogService>();
             services.AddSingleton<WindowManager>();
 

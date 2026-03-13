@@ -8,7 +8,6 @@ using PromptMasterv6.Features.ExternalTools.Messages;
 using PromptMasterv6.Features.Settings.Sync.OpenLogFolder;
 using PromptMasterv6.Features.Settings.Sync.ClearLogs;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Sync;
@@ -16,9 +15,7 @@ namespace PromptMasterv6.Features.Settings.Sync;
 public partial class SyncViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
-    private readonly FileDataService _localDataService;
     private readonly DialogService _dialogService;
-    private readonly LoggerService _logger;
     private readonly IMediator _mediator;
 
     public AppConfig Config => _settingsService.Config;
@@ -26,19 +23,15 @@ public partial class SyncViewModel : ObservableObject
 
     [ObservableProperty] private bool isRestoreConfirmVisible;
     [ObservableProperty] private string? restoreStatus;
-    [ObservableProperty] private System.Windows.Media.Brush restoreStatusColor = System.Windows.Media.Brushes.Green;
+    [ObservableProperty] private RestoreStatusType currentRestoreStatus = RestoreStatusType.None;
 
     public SyncViewModel(
         SettingsService settingsService,
-        FileDataService localDataService,
         DialogService dialogService,
-        LoggerService logger,
         IMediator mediator)
     {
         _settingsService = settingsService;
-        _localDataService = localDataService;
         _dialogService = dialogService;
-        _logger = logger;
         _mediator = mediator;
     }
 
@@ -60,35 +53,34 @@ public partial class SyncViewModel : ObservableObject
     {
         IsRestoreConfirmVisible = false;
         RestoreStatus = "正在从云端恢复数据...";
-        RestoreStatusColor = System.Windows.Media.Brushes.Orange;
+        CurrentRestoreStatus = RestoreStatusType.InProgress;
 
         var result = await _mediator.Send(new ManualRestoreFeature.Command());
 
         if (result.Success)
         {
             RestoreStatus = $"✅ {result.Message}";
-            RestoreStatusColor = System.Windows.Media.Brushes.Green;
+            CurrentRestoreStatus = RestoreStatusType.Success;
         }
         else
         {
             RestoreStatus = $"❌ {result.Message}";
-            RestoreStatusColor = System.Windows.Media.Brushes.Red;
+            CurrentRestoreStatus = RestoreStatusType.Failed;
         }
     }
 
     [RelayCommand]
     private async Task ManualLocalRestore()
     {
-        var backups = _localDataService.GetBackups();
-        _logger.LogInfo($"Found {backups.Count} backups in {_localDataService.BackupDirectory}", "SyncViewModel.ManualLocalRestore");
+        var listResult = await _mediator.Send(new GetBackupListFeature.Query());
 
-        if (backups.Count == 0)
+        if (!listResult.Success || listResult.Backups.Count == 0)
         {
-            _dialogService.ShowToast($"在以下路径未找到本地备份文件：\n{_localDataService.BackupDirectory}\n\n请确保已进行过保存操作。", "Warning");
+            _dialogService.ShowToast($"在以下路径未找到本地备份文件：\n{listResult.BackupDirectory}\n\n请确保已进行过保存操作。", "Warning");
             return;
         }
 
-        var selected = _dialogService.ShowBackupSelectionDialog(backups);
+        var selected = _dialogService.ShowBackupSelectionDialog(listResult.Backups);
         if (selected == null) return;
 
         if (!_dialogService.ShowConfirmation($"确定要恢复到备份点：\n{selected.DisplayText} 吗？\n当前未保存的更改将会丢失。", "确认恢复"))
@@ -97,19 +89,19 @@ public partial class SyncViewModel : ObservableObject
         }
 
         RestoreStatus = "正在恢复本地数据...";
-        RestoreStatusColor = System.Windows.Media.Brushes.Orange;
+        CurrentRestoreStatus = RestoreStatusType.InProgress;
 
         var result = await _mediator.Send(new ManualLocalRestoreFeature.Command(selected.FilePath));
 
         if (result.Success)
         {
             RestoreStatus = $"✅ 本地恢复成功: {selected.FileName}";
-            RestoreStatusColor = System.Windows.Media.Brushes.Green;
+            CurrentRestoreStatus = RestoreStatusType.Success;
         }
         else
         {
             RestoreStatus = $"❌ {result.Message}";
-            RestoreStatusColor = System.Windows.Media.Brushes.Red;
+            CurrentRestoreStatus = RestoreStatusType.Failed;
         }
     }
 
@@ -131,17 +123,15 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ExportConfig()
     {
-        // 1. 选择导出路径
         var selectResult = await _mediator.Send(
             new SelectExportPathFeature.Command($"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip", "zip")
         );
 
         if (!selectResult.Success || selectResult.UserCancelled)
         {
-            return;  // 用户取消或失败
+            return;
         }
 
-        // 2. 执行导出
         var result = await _mediator.Send(new ExportConfigFeature.Command(selectResult.SelectedPath!));
 
         if (result.Success)
@@ -157,17 +147,15 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportConfig()
     {
-        // 1. 选择导入路径
         var selectResult = await _mediator.Send(
             new SelectImportPathFeature.Command("zip")
         );
 
         if (!selectResult.Success || selectResult.UserCancelled)
         {
-            return;  // 用户取消或失败
+            return;
         }
 
-        // 2. 确认导入
         if (_dialogService.ShowConfirmation("导入配置将覆盖当前的设置，确定要继续吗？\n(操作后将自动重启生效)", "确认导入"))
         {
             var result = await _mediator.Send(new ImportConfigFeature.Command(selectResult.SelectedPath!));

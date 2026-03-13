@@ -102,7 +102,7 @@ namespace PromptMasterv6
 
                 // 通过 MediatR 发送初始化命令
                 var initResult = await mediator.Send(
-                    new Features.AppCore.Initialization.InitializeApplicationFeature.Command(_serviceProvider)
+                    new Features.AppCore.Initialization.InitializeApplicationFeature.Command()
                 );
 
                 if (!initResult.Success)

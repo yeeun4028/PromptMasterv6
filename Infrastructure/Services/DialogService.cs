@@ -1,12 +1,19 @@
 using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Forms;
-using PromptMasterv6.Features.Shared.Dialogs;
+using PromptMasterv6.Core.Interfaces;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
     public class DialogService
     {
+        private readonly IFeatureDialogProvider _featureDialogProvider;
+
+        public DialogService(IFeatureDialogProvider featureDialogProvider)
+        {
+            _featureDialogProvider = featureDialogProvider;
+        }
+
         public void ShowAlert(string message, string title)
         {
             if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
@@ -127,64 +134,22 @@ namespace PromptMasterv6.Infrastructure.Services
 
         public bool ShowOcrNotConfiguredDialog()
         {
-            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
-            {
-                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowOcrNotConfiguredDialog());
-            }
-
-            var dialogType = Type.GetType("PromptMasterv6.Features.ExternalTools.Dialogs.OcrNotConfiguredDialog, PromptMasterv6");
-            if (dialogType == null)
-            {
-                ShowAlert("OCR 未配置，请在设置中配置 OCR 服务。", "提示");
-                return false;
-            }
-            
-            var dialog = System.Activator.CreateInstance(dialogType) as Window;
-            return dialog?.ShowDialog() == true;
+            return _featureDialogProvider.ShowOcrNotConfiguredDialog();
         }
 
         public string? ShowIconInputDialog(string? currentGeometry = "")
         {
-            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
-            {
-                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowIconInputDialog(currentGeometry));
-            }
-
-            var dialog = new IconInputDialog(currentGeometry);
-            return dialog.ShowDialog() == true ? dialog.ResultGeometry : null;
+            return _featureDialogProvider.ShowIconInputDialog(currentGeometry);
         }
 
         public (bool Confirmed, string? ResultName) ShowNameInputDialog(string initialName)
         {
-            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
-            {
-                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowNameInputDialog(initialName));
-            }
-
-            var dialog = new NameInputDialog(initialName);
-            if (dialog.ShowDialog() == true)
-            {
-                return (true, dialog.ResultName);
-            }
-            return (false, null);
+            return _featureDialogProvider.ShowNameInputDialog(initialName);
         }
 
-        public BackupFileItem? ShowBackupSelectionDialog(System.Collections.Generic.List<BackupFileItem> backups)
+        public Features.Settings.Sync.BackupFileItem? ShowBackupSelectionDialog(System.Collections.Generic.List<Features.Settings.Sync.BackupFileItem> backups)
         {
-            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
-            {
-                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowBackupSelectionDialog(backups));
-            }
-
-            var dialog = new Features.Settings.BackupSelectionDialog(backups);
-            var activeWindow = System.Windows.Application.Current?.Windows.OfType<System.Windows.Window>().FirstOrDefault(w => w.IsActive);
-            dialog.Owner = activeWindow ?? System.Windows.Application.Current?.MainWindow;
-
-            if (dialog.ShowDialog() == true)
-            {
-                return dialog.SelectedBackup;
-            }
-            return null;
+            return _featureDialogProvider.ShowBackupSelectionDialog(backups);
         }
     }
 }
