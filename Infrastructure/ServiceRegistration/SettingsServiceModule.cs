@@ -29,11 +29,27 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.LaunchBar.LaunchBarViewModel>();
             services.AddSingleton<Features.Settings.ExternalTools.ExternalToolsSettingsViewModel>();
 
+            // Views (VSA Refactored - 子 View 通过 DI 自动获取 ViewModel)
+            services.AddTransient<SettingsView>();
+            services.AddTransient<Features.Settings.Shortcut.ShortcutView>();
+            services.AddTransient<Features.Settings.Launcher.LauncherView>();
+            services.AddTransient<Features.Settings.Window.WindowView>();
+            services.AddTransient<Features.Settings.Automation.AutomationView>();
+            services.AddTransient<AiModelsView>();
+            services.AddTransient<SyncView>();
+            services.AddTransient<Features.Settings.ExternalTools.ExternalToolsSettingsView>();
+            services.AddTransient<Features.Settings.LaunchBar.LaunchBarView>();
+            services.AddTransient<Features.Settings.Proxy.ProxyView>();
+
             // Windows
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
             services.AddTransient<LauncherWindow>();
             services.AddTransient<SettingsWindow>();
+
+            // Settings Features - Core
+            services.AddSingleton<SelectSettingsTabFeature.Handler>();
+            services.AddSingleton<CloseSettingsFeature.Handler>();
 
             // Settings Features - AiModels
             services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
@@ -61,6 +77,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.ExternalTools.SaveAiTranslationConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.ExternalTools.DeleteAiTranslationConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.ExternalTools.HandleAiModelDeleted.HandleAiModelDeletedFeature.Handler>();
+            services.AddSingleton<Features.Settings.ExternalTools.SelectSubTabFeature.Handler>();
 
             // Settings Features - LaunchBar
             services.AddSingleton<Features.Settings.LaunchBar.AddLaunchBarItemFeature.Handler>();

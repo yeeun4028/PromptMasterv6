@@ -1,13 +1,30 @@
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Sync
 {
+    /// <summary>
+    /// VSA 重构后的 SyncView - 支持默认构造函数和 DI 注入
+    /// </summary>
     public partial class SyncView : System.Windows.Controls.UserControl
     {
+        // 默认构造函数 - 供 XAML 使用
         public SyncView()
         {
+            var app = System.Windows.Application.Current as App;
+            if (app?.ServiceProvider != null)
+            {
+                DataContext = app.ServiceProvider.GetService(typeof(SyncViewModel));
+            }
+            InitializeComponent();
+        }
+
+        // DI 构造函数 - 供 DI 容器使用
+        public SyncView(SyncViewModel viewModel)
+        {
+            DataContext = viewModel;
             InitializeComponent();
         }
 

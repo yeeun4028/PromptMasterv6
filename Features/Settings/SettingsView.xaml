@@ -393,7 +393,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <shortcut:ShortcutView DataContext="{Binding ShortcutVM}"/>
+                                    <shortcut:ShortcutView />
                                 </StackPanel>
 
                                 <!-- Tab 6: Launcher -->
@@ -408,7 +408,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <launcher:LauncherView DataContext="{Binding LauncherSettingsVM}"/>
+                                    <launcher:LauncherView />
                                 </StackPanel>
 
                                 <!-- Tab 8: Window -->
@@ -423,7 +423,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <window:WindowView DataContext="{Binding WindowVM}"/>
+                                    <window:WindowView />
                                 </StackPanel>
 
                                 <!-- Tab 1: Automation -->
@@ -438,7 +438,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <automation:AutomationView DataContext="{Binding AutomationVM}"/>
+                                    <automation:AutomationView />
                                 </StackPanel>
 
                                 <!-- Tab 2: AI Models -->
@@ -454,7 +454,7 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <aiModels:AiModelsView DataContext="{Binding AiModelsVM}" />
+                                    <aiModels:AiModelsView />
                                 </StackPanel>
                                 <!-- Tab 3: Sync -->
                                 <StackPanel>
@@ -468,7 +468,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <sync:SyncView DataContext="{Binding SyncVM}"/>
+                                    <sync:SyncView />
                                 </StackPanel>
 
 
@@ -485,7 +485,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <externalTools:ExternalToolsSettingsView DataContext="{Binding ExternalToolsSettingsVM}"/>
+                                    <externalTools:ExternalToolsSettingsView />
                                 </StackPanel>
                                 <!-- Tab 9: Launch Bar -->
                                 <StackPanel>
@@ -499,7 +499,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <launchBar:LaunchBarView DataContext="{Binding LaunchBarVM}"/>
+                                    <launchBar:LaunchBarView />
                                 </StackPanel>
 
                                 <!-- Tab 10: Proxy -->
@@ -514,7 +514,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <proxy:ProxyView DataContext="{Binding ProxyVM}"/>
+                                    <proxy:ProxyView />
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>

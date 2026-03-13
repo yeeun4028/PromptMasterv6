@@ -3,8 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
-using PromptMasterv6.Features.Settings.AiModels;
-using PromptMasterv6.Features.Settings.ApiCredentials;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
@@ -20,26 +18,25 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
     {
         private readonly SettingsService _settingsService;
         private readonly ISessionState _sessionState;
-        private readonly AiModelsViewModel _aiModelsVM;
-        private readonly ApiCredentialsViewModel _apiCredentialsVM;
         private readonly DialogService _dialogService;
         private readonly IMediator _mediator;
 
         public AppConfig Config => _settingsService.Config;
         public ObservableCollection<PromptItem> FilesView => _sessionState.Files;
-        public AiModelsViewModel AiModelsVM => _aiModelsVM;
-        public ApiCredentialsViewModel ApiCredentialsVM => _apiCredentialsVM;
 
         public global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel ExternalToolsVM { get; }
 
         [ObservableProperty] private int selectedSubTab = 0;
+        [ObservableProperty] private string? translationTestStatus;
+        [ObservableProperty] private System.Windows.Media.Brush translationTestStatusColor = System.Windows.Media.Brushes.Gray;
 
         [RelayCommand]
-        private void SelectSubTab(string tabIndexStr)
+        private async Task SelectSubTab(string tabIndexStr)
         {
-            if (int.TryParse(tabIndexStr, out int tabIndex))
+            var result = await _mediator.Send(new SelectSubTabFeature.Command(tabIndexStr));
+            if (result.Success)
             {
-                SelectedSubTab = tabIndex;
+                SelectedSubTab = result.SelectedTabIndex;
             }
         }
 
@@ -47,16 +44,12 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             SettingsService settingsService,
             ISessionState sessionState,
             global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel externalToolsVM,
-            AiModelsViewModel aiModelsVM,
-            ApiCredentialsViewModel apiCredentialsVM,
             DialogService dialogService,
             IMediator mediator)
         {
             _settingsService = settingsService;
             _sessionState = sessionState;
             ExternalToolsVM = externalToolsVM;
-            _aiModelsVM = aiModelsVM;
-            _apiCredentialsVM = apiCredentialsVM;
             _dialogService = dialogService;
             _mediator = mediator;
 
@@ -109,6 +102,57 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             if (string.IsNullOrWhiteSpace(configId)) return;
 
             await _mediator.Send(new DeleteAiTranslationConfigFeature.Command(configId));
+        }
+
+        [RelayCommand]
+        private async Task TestAiTranslationConnection()
+        {
+            var enabledModels = Config.SavedModels.Where(m => m.IsEnableForTranslation).ToList();
+            if (enabledModels.Count == 0)
+            {
+                TranslationTestStatus = "请先勾选至少一个参与翻译的 AI 模型";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
+                return;
+            }
+
+            TranslationTestStatus = "测试中...";
+            TranslationTestStatusColor = System.Windows.Media.Brushes.Gray;
+
+            int successCount = 0;
+            string lastError = "";
+            long totalTime = 0;
+
+            foreach (var model in enabledModels)
+            {
+                var cmd = new Features.Settings.AiModels.TestAiConnectionFeature.Command(
+                    model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
+                var result = await _mediator.Send(cmd);
+
+                if (result.Success)
+                {
+                    successCount++;
+                    if (result.ResponseTimeMs.HasValue)
+                        totalTime += result.ResponseTimeMs.Value;
+                }
+                else lastError = result.Message;
+            }
+
+            if (successCount == enabledModels.Count)
+            {
+                var avgTime = successCount > 0 ? totalTime / successCount : 0;
+                TranslationTestStatus = $"全部 {successCount} 个模型连接成功 (平均 {avgTime}ms)";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Green;
+            }
+            else if (successCount > 0)
+            {
+                TranslationTestStatus = $"部分成功 ({successCount}/{enabledModels.Count})\n失败示例: {lastError}";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Orange;
+            }
+            else
+            {
+                TranslationTestStatus = $"全部失败。\n错误示例: {lastError}";
+                TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
+            }
         }
 
         public async void Receive(AiModelDeletedMessage message)

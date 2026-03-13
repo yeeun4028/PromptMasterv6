@@ -215,7 +215,7 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-                    <apiCredentials:ApiCredentialsView DataContext="{Binding ApiCredentialsVM}"/>
+                    <apiCredentials:ApiCredentialsView />
                 </StackPanel>
 
                 <StackPanel Grid.Row="2">
@@ -348,13 +348,13 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
-                                <TextBlock Text="{Binding AiModelsVM.TranslationTestStatus}"
-                                           Foreground="{Binding AiModelsVM.TranslationTestStatusColor}"
+                                <TextBlock Text="{Binding TranslationTestStatus}"
+                                           Foreground="{Binding TranslationTestStatusColor}"
                                            VerticalAlignment="Center"
                                            Margin="0,0,15,0"
                                            FontWeight="SemiBold"/>
                                 <Button Content="测试勾选的模型"
-                                        Command="{Binding AiModelsVM.TestAiTranslationConnectionCommand}"
+                                        Command="{Binding TestAiTranslationConnectionCommand}"
                                         Width="150"
                                         Height="36"
                                         Style="{StaticResource PrimaryButtonStyle}"/>
