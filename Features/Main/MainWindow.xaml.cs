@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
 using PromptMasterv6.Features.Main.Tray;
+using PromptMasterv6.Features.Main.FileManager;
 
 using TextBox = System.Windows.Controls.TextBox;
 using MessageBox = System.Windows.MessageBox;
@@ -30,6 +31,7 @@ namespace PromptMasterv6.Features.Main
         public MainViewModel ViewModel { get; }
         private readonly LoggerService _logger;
         private readonly TrayService _trayService;
+        private readonly FileManagerViewModel _fileManagerVM;
 
         private DateTime _suppressAutoHideUntilUtc = DateTime.MinValue;
 
@@ -39,12 +41,17 @@ namespace PromptMasterv6.Features.Main
         private bool _isBackupExiting = false;
         private bool _isExternalCloseRequest = true;
 
-        public MainWindow(MainViewModel viewModel, LoggerService logger, TrayService trayService)
+        public MainWindow(
+            MainViewModel viewModel, 
+            LoggerService logger, 
+            TrayService trayService,
+            FileManagerViewModel fileManagerVM)
         {
             InitializeComponent();
 
             _logger = logger;
             _trayService = trayService;
+            _fileManagerVM = fileManagerVM;
             _logger.LogInfo("[MainWindow] Constructor called", "MainWindow");
 
             this.ShowInTaskbar = false;
@@ -62,6 +69,13 @@ namespace PromptMasterv6.Features.Main
             Application.Current.Exit += Current_Exit;
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
             SetConsoleCtrlHandler(ConsoleCtrlHandler, true);
+
+            this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Initialize();
         }
 
         private bool ConsoleCtrlHandler(CtrlTypes ctrlType)
@@ -114,7 +128,7 @@ namespace PromptMasterv6.Features.Main
             _trayService.Initialize(
                 ToggleWindowVisibility,
                 DoHandleExitRequest,
-                () => ViewModel.FileManagerVM.IsDirty);
+                () => _fileManagerVM.IsDirty);
 
             RestoreWindowPosition();
 
@@ -293,7 +307,7 @@ namespace PromptMasterv6.Features.Main
                 return;
             }
 
-            if (ViewModel.FileManagerVM.IsDirty)
+            if (_fileManagerVM.IsDirty)
             {
                 bool hasWebDav = !string.IsNullOrWhiteSpace(ViewModel.Config.WebDavUrl) 
                               && !string.IsNullOrWhiteSpace(ViewModel.Config.Password);

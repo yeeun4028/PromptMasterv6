@@ -3,29 +3,18 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Main.FileManager;
 using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Launcher.Messages;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Workspace;
-using PromptMasterv6.Features.Main.ContentEditor;
-using PromptMasterv6.Features.Main.ContentEditor.Messages;
-using PromptMasterv6.Features.Main.Backup;
-using PromptMasterv6.Features.Main.Sidebar;
+using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Main.WindowManagement;
 using PromptMasterv6.Features.Main.Hotkeys;
 using PromptMasterv6.Features.Main.Mode;
-using PromptMasterv6.Features.Main.Settings;
 
 using System;
-using System.ComponentModel;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 
 namespace PromptMasterv6.Features.Main;
 
@@ -37,28 +26,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IMediator _mediator;
     private readonly DialogService _dialogService;
 
-    private readonly Subject<System.Reactive.Unit> _saveSubject = new();
-
     private EventHandler? _onLauncherTriggeredHandler;
 
     [ObservableProperty] private AppConfig config;
     [ObservableProperty] private bool isFullMode = true;
 
-    public SettingsService SettingsService => _settingsService;
-
-    [ObservableProperty] private FileManagerViewModel fileManagerVM;
-    [ObservableProperty] private ContentEditorViewModel contentEditorVM;
-    [ObservableProperty] private BackupViewModel backupVM;
-    [ObservableProperty] private SidebarViewModel sidebarVM;
-
     public MainViewModel(
         SettingsService settingsService,
         GlobalKeyService keyService,
         LoggerService logger,
-        FileManagerViewModel fileManagerVM,
-        ContentEditorViewModel contentEditorVM,
-        BackupViewModel backupVM,
-        SidebarViewModel sidebarVM,
         IMediator mediator,
         DialogService dialogService)
     {
@@ -68,18 +44,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _mediator = mediator;
         _dialogService = dialogService;
 
-        FileManagerVM = fileManagerVM;
-        ContentEditorVM = contentEditorVM;
-        BackupVM = backupVM;
-        SidebarVM = sidebarVM;
-
         Config = settingsService.Config;
 
         RegisterMessageHandlers();
-        InitializeReactiveStreams();
         InitializeGlobalKeyService();
         UpdateWindowHotkeys();
+    }
 
+    public void Initialize()
+    {
         _ = TriggerInitializationAsync();
     }
 
@@ -95,7 +68,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             if (m.File != null)
             {
-                FileManagerVM.SelectedFile = m.File;
                 WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(m.File, true));
             }
         });
@@ -114,14 +86,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 _dialogService.ShowToast($"云端备份失败: {m.ErrorMessage}", "Error");
             }
         });
-    }
-
-    private void InitializeReactiveStreams()
-    {
-        _saveSubject
-            .Throttle(TimeSpan.FromSeconds(5))
-            .ObserveOn(System.Threading.SynchronizationContext.Current!)
-            .Subscribe(_ => WeakReferenceMessenger.Default.Send(new RequestLocalBackupMessage()));
     }
 
     private void InitializeGlobalKeyService()
@@ -200,18 +164,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        _saveSubject?.Dispose();
-
         if (_keyService != null)
         {
             if (_onLauncherTriggeredHandler != null)
                 _keyService.OnLauncherTriggered -= _onLauncherTriggeredHandler;
             _keyService.Dispose();
         }
-
-        FileManagerVM?.Cleanup();
-        BackupVM?.Cleanup();
-        SidebarVM?.Dispose();
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
 

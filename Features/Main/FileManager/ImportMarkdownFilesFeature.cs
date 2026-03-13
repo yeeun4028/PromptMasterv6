@@ -3,6 +3,7 @@ using PromptMasterv6.Features.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,16 +11,29 @@ namespace PromptMasterv6.Features.Main.FileManager;
 
 public static class ImportMarkdownFilesFeature
 {
-    public record Command(string[] Files, string TargetFolderId) : IRequest<List<PromptItem>>;
+    public record Command(string[] Files, string? TargetFolderId = null) : IRequest<Result>;
 
-    public class Handler : IRequestHandler<Command, List<PromptItem>>
+    public record Result(
+        bool Success,
+        List<PromptItem> ImportedItems,
+        int ImportCount,
+        string? NewFolderId = null
+    );
+
+    public class Handler : IRequestHandler<Command, Result>
     {
-        public async Task<List<PromptItem>> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             var importedItems = new List<PromptItem>();
 
             if (request.Files == null || request.Files.Length == 0)
-                return importedItems;
+                return new Result(false, importedItems, 0);
+
+            string? targetFolderId = request.TargetFolderId;
+            if (string.IsNullOrEmpty(targetFolderId))
+            {
+                targetFolderId = Guid.NewGuid().ToString("N");
+            }
 
             foreach (var filePath in request.Files)
             {
@@ -35,7 +49,7 @@ public static class ImportMarkdownFilesFeature
                         Id = Guid.NewGuid().ToString("N"),
                         Title = title,
                         Content = content,
-                        FolderId = request.TargetFolderId,
+                        FolderId = targetFolderId,
                         LastModified = DateTime.Now
                     };
                     
@@ -46,7 +60,13 @@ public static class ImportMarkdownFilesFeature
                 }
             }
 
-            return importedItems;
+            bool needsNewFolder = string.IsNullOrEmpty(request.TargetFolderId) && importedItems.Any();
+            return new Result(
+                true, 
+                importedItems, 
+                importedItems.Count, 
+                needsNewFolder ? targetFolderId : null
+            );
         }
     }
 }

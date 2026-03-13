@@ -17,11 +17,11 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
     {
         public void RegisterServices(IServiceCollection services)
         {
-            // ViewModels
-            services.AddTransient<FileManagerViewModel>();
-            services.AddTransient<ContentEditorViewModel>();
-            services.AddTransient<BackupViewModel>();
-            services.AddTransient<SidebarViewModel>();
+            // ViewModels - Singleton for shared state across views
+            services.AddSingleton<FileManagerViewModel>();
+            services.AddSingleton<ContentEditorViewModel>();
+            services.AddSingleton<BackupViewModel>();
+            services.AddSingleton<SidebarViewModel>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<TrayViewModel>();
 
@@ -35,6 +35,9 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
 
             // Main Features - FileManager
             services.AddSingleton<Features.Main.FileManager.ImportMarkdownFilesFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.SelectFilesForImportFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.MoveFileToFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.FileManager.InitializeAppDataFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
             services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();
@@ -50,6 +53,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
 
             // Main Features - ContentEditor
+            services.AddSingleton<Features.Main.ContentEditor.SyncVariablesFeature.Handler>();
+            services.AddSingleton<Features.Main.ContentEditor.ToggleEditModeFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.SearchOnGitHubFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.CopyCompiledTextFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.SendToWebTargetFeature.Handler>();

@@ -2,11 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
-using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
-using PromptMasterv6.Features.Shared.Dialogs;
+using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
@@ -25,8 +23,6 @@ namespace PromptMasterv6.Features.Main.FileManager;
 
 public partial class FileManagerViewModel : ObservableObject
 {
-    private readonly DialogService _dialogService;
-    private readonly LoggerService _logger;
     private readonly IMediator _mediator;
 
     [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
@@ -40,13 +36,8 @@ public partial class FileManagerViewModel : ObservableObject
 
     private bool _enterEditModeOnNextSelection;
 
-    public FileManagerViewModel(
-        DialogService dialogService,
-        LoggerService logger,
-        IMediator mediator)
+    public FileManagerViewModel(IMediator mediator)
     {
-        _dialogService = dialogService;
-        _logger = logger;
         _mediator = mediator;
         
         FolderDropHandler = new FileManagerFolderDropHandler(this);
@@ -57,7 +48,7 @@ public partial class FileManagerViewModel : ObservableObject
             SelectedFile = m.File;
         });
 
-        WeakReferenceMessenger.Default.Register<RequestMoveFileToFolderMessage>(this, (_, m) => MoveFileToFolder(m.File, m.TargetFolder));
+        WeakReferenceMessenger.Default.Register<RequestMoveFileToFolderMessage>(this, async (_, m) => await MoveFileToFolder(m.File, m.TargetFolder));
 
         WeakReferenceMessenger.Default.Register<RequestPromptFileMessage>(this, (_, m) =>
         {
@@ -156,70 +147,28 @@ public partial class FileManagerViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
-        // 通过 MediatR 调用 LoadAppDataFeature
-        var result = await _mediator.Send(new LoadAppDataFeature.Command());
+        var result = await _mediator.Send(new InitializeAppDataFeature.Command());
 
-        AppData data;
-        if (result.Success && result.Data != null)
+        if (result.Success)
         {
-            data = result.Data;
-            
-            if (result.UsedDefaultData)
+            Files = result.Files;
+            Files.CollectionChanged += OnFilesCollectionChanged;
+            foreach (var item in Files)
             {
-                _logger.LogWarning(result.Message, "FileManagerViewModel.InitializeAsync");
+                item.PropertyChanged += OnFilePropertyChanged;
             }
-        }
-        else
-        {
-            _logger.LogError(result.Message, "FileManagerViewModel.InitializeAsync");
-            data = new AppData();
-        }
 
-        Files = new ObservableCollection<PromptItem>(data.Files ?? new());
-        Files.CollectionChanged += OnFilesCollectionChanged;
-        foreach (var item in Files)
-        {
-            item.PropertyChanged += OnFilePropertyChanged;
-        }
+            Folders = result.Folders;
+            SelectedFolder = result.SelectedFolder;
+            SelectedFile = result.SelectedFile;
 
-        Folders = new ObservableCollection<FolderItem>(data.Folders ?? new());
-        if (Folders.Count == 0)
-        {
-            var defaultFolder = new FolderItem { Name = "默认" };
-            Folders.Add(defaultFolder);
-            SelectedFolder = defaultFolder;
-        }
-        else
-        {
-            SelectedFolder = Folders.FirstOrDefault();
-        }
+            FilesView = CollectionViewSource.GetDefaultView(Files);
+            UpdateFilesViewFilter();
+            FilesView?.Refresh();
 
-        if (SelectedFolder != null)
-        {
-            foreach (var f in Files)
-            {
-                if (string.IsNullOrWhiteSpace(f.FolderId))
-                {
-                    f.FolderId = SelectedFolder.Id;
-                }
-            }
+            IsDirty = false;
+            WeakReferenceMessenger.Default.Send(new DataInitializedMessage(Folders, Files));
         }
-
-        FilesView = CollectionViewSource.GetDefaultView(Files);
-        UpdateFilesViewFilter();
-        FilesView?.Refresh();
-
-        if (FilesView != null && !FilesView.IsEmpty)
-        {
-            var firstItem = FilesView.Cast<PromptItem>().FirstOrDefault();
-            if (firstItem != null)
-            {
-                SelectedFile = firstItem;
-            }
-        }
-
-        IsDirty = false;
-        WeakReferenceMessenger.Default.Send(new DataInitializedMessage(Folders, Files));
     }
 
     public void UpdateFilesViewFilter()
@@ -332,28 +281,30 @@ public partial class FileManagerViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportMarkdownFilesAsync()
     {
-        string filter = "Markdown 文件 (*.md;*.markdown)|*.md;*.markdown|所有文件 (*.*)|*.*";
-        var files = _dialogService.ShowOpenFilesDialog(filter);
+        var selectResult = await _mediator.Send(new SelectFilesForImportFeature.Command());
+        
+        if (!selectResult.Success || selectResult.Files == null || selectResult.Files.Length == 0) 
+            return;
 
-        if (files == null || files.Length == 0) return;
+        string? targetFolderId = SelectedFolder?.Id;
 
-        var targetFolder = SelectedFolder;
-        if (targetFolder == null)
+        if (string.IsNullOrEmpty(targetFolderId))
         {
-            targetFolder = new FolderItem 
+            var newFolder = new FolderItem 
             { 
                 Id = Guid.NewGuid().ToString("N"),
                 Name = "导入" 
             };
-            Folders.Add(targetFolder);
-            SelectedFolder = targetFolder;
+            Folders.Add(newFolder);
+            SelectedFolder = newFolder;
+            targetFolderId = newFolder.Id;
         }
 
-        var importedItems = await _mediator.Send(new ImportMarkdownFilesFeature.Command(files, targetFolder.Id));
+        var importResult = await _mediator.Send(new ImportMarkdownFilesFeature.Command(selectResult.Files, targetFolderId));
 
-        if (importedItems != null && importedItems.Any())
+        if (importResult.Success && importResult.ImportedItems.Count > 0)
         {
-            foreach (var item in importedItems)
+            foreach (var item in importResult.ImportedItems)
             {
                 Files.Add(item);
             }
@@ -395,13 +346,18 @@ public partial class FileManagerViewModel : ObservableObject
         }
     }
 
-    public void MoveFileToFolder(PromptItem f, FolderItem t)
+    public async Task MoveFileToFolder(PromptItem f, FolderItem t)
     {
-        if (f == null || t == null || f.FolderId == t.Id) return;
-        f.FolderId = t.Id;
-        FilesView?.Refresh();
-        if (SelectedFile == f) SelectedFile = null;
-        RequestSave();
+        if (f == null || t == null) return;
+        
+        var result = await _mediator.Send(new MoveFileToFolderFeature.Command(f, t));
+        
+        if (result.Success)
+        {
+            FilesView?.Refresh();
+            if (SelectedFile == f) SelectedFile = null;
+            RequestSave();
+        }
     }
 
     [RelayCommand]
@@ -413,43 +369,20 @@ public partial class FileManagerViewModel : ObservableObject
 
     public async Task PerformLocalBackupAsync()
     {
-        try
-        {
-            // 通过 MediatR 调用 SaveAppDataFeature (本地)
-            var result = await _mediator.Send(new SaveAppDataFeature.Command(Folders, Files));
-            
-            if (!result.Success)
-            {
-                _logger.LogError(result.Message, "FileManagerViewModel.PerformLocalBackupAsync");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogException(ex, "Failed to perform local backup", "FileManagerViewModel.PerformLocalBackupAsync");
-        }
+        await _mediator.Send(new PerformLocalBackupFeature.Command(Folders, Files));
     }
 
     public async Task PerformCloudBackupAsync()
     {
-        try
+        var result = await _mediator.Send(new PerformCloudBackupFeature.Command(Folders, Files));
+        
+        if (result.Success)
         {
-            // 通过 MediatR 调用 SaveAppDataFeature (云端)
-            var result = await _mediator.Send(new SaveAppDataFeature.Command(Folders, Files));
-            
-            if (result.Success)
-            {
-                IsDirty = false;
-            }
-            else
-            {
-                _logger.LogError(result.Message, "FileManagerViewModel.PerformCloudBackupAsync");
-                throw new Exception(result.Message);
-            }
+            IsDirty = false;
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogException(ex, "Failed to perform cloud backup", "FileManagerViewModel.PerformCloudBackupAsync");
-            throw;
+            throw new Exception(result.ErrorMessage ?? "Cloud backup failed");
         }
     }
 

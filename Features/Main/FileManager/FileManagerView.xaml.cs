@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Input;
 using PromptMasterv6.Features.Shared.Models;
@@ -6,9 +7,16 @@ namespace PromptMasterv6.Features.Main.FileManager
 {
     public partial class FileManagerView : System.Windows.Controls.UserControl
     {
-        public FileManagerView()
+        private FileManagerViewModel? ViewModel => DataContext as FileManagerViewModel;
+
+        public FileManagerView() : this(App.Services.GetRequiredService<FileManagerViewModel>())
+        {
+        }
+
+        public FileManagerView(FileManagerViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
 
         private void FileInlineEditor_Loaded(object sender, RoutedEventArgs e)
@@ -27,10 +35,7 @@ namespace PromptMasterv6.Features.Main.FileManager
                 if (e.Key == Key.Enter)
                 {
                     promptItem.IsRenaming = false;
-                    if (DataContext is FileManagerViewModel vm)
-                    {
-                        vm.RequestSaveCommand.Execute(null);
-                    }
+                    ViewModel?.RequestSaveCommand.Execute(null);
                     e.Handled = true;
                 }
                 else if (e.Key == Key.Escape)
@@ -54,10 +59,7 @@ namespace PromptMasterv6.Features.Main.FileManager
                     promptItem.Title = "未命名提示词";
                 }
                 promptItem.IsRenaming = false;
-                if (DataContext is FileManagerViewModel vm)
-                {
-                    vm.RequestSaveCommand.Execute(null);
-                }
+                ViewModel?.RequestSaveCommand.Execute(null);
             }
         }
     }

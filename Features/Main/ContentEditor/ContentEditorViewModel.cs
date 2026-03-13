@@ -6,13 +6,11 @@ using MediatR;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
-using PromptMasterv6.Features.Shared.Queries;
-using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Infrastructure.Services;
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Main.ContentEditor;
@@ -20,8 +18,6 @@ namespace PromptMasterv6.Features.Main.ContentEditor;
 public partial class ContentEditorViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
-    private readonly DialogService _dialogService;
-    private readonly LoggerService _logger;
 
     [ObservableProperty] private PromptItem? selectedFile;
     [ObservableProperty] private bool isEditMode;
@@ -38,13 +34,9 @@ public partial class ContentEditorViewModel : ObservableObject
 
     public ContentEditorViewModel(
         IMediator mediator,
-        DialogService dialogService,
-        LoggerService logger,
         AppConfig config)
     {
         _mediator = mediator;
-        _dialogService = dialogService;
-        _logger = logger;
         Config = config;
 
         Pipeline = new MarkdownPipelineBuilder()
@@ -80,8 +72,7 @@ public partial class ContentEditorViewModel : ObservableObject
             IsEditMode = false;
             WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
         }
-        _ = UpdatePreviewContentAsync(value?.Content);
-        SafeParseVariables(value?.Content ?? "");
+        _ = UpdatePreviewAndVariablesAsync(value?.Content);
     }
 
     public async Task SetCurrentFileAsync(PromptItem? file, bool enterEditMode = false)
@@ -90,8 +81,7 @@ public partial class ContentEditorViewModel : ObservableObject
         SelectedFile = file;
         if (file != null)
         {
-            await UpdatePreviewContentAsync(file.Content);
-            SafeParseVariables(file.Content ?? "");
+            await UpdatePreviewAndVariablesAsync(file.Content);
         }
         else
         {
@@ -101,50 +91,11 @@ public partial class ContentEditorViewModel : ObservableObject
         }
     }
 
-    private async Task UpdatePreviewContentAsync(string? content)
+    private async Task UpdatePreviewAndVariablesAsync(string? content)
     {
         PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(content));
-    }
-
-    private async void SafeParseVariables(string content)
-    {
-        try
-        {
-            var varNames = await _mediator.Send(new ParseVariablesQuery(content));
-            
-            for (int i = Variables.Count - 1; i >= 0; i--)
-            {
-                if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
-            }
-
-            foreach (var name in varNames)
-            {
-                if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
-            }
-
-            HasVariables = Variables.Count > 0;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogException(ex, "变量解析失败", "SafeParseVariables");
-        }
-    }
-
-    public async Task OnFileContentChangedAsync(string? content)
-    {
-        var varNames = await _mediator.Send(new ParseVariablesQuery(content ?? ""));
-        
-        for (int i = Variables.Count - 1; i >= 0; i--)
-        {
-            if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
-        }
-
-        foreach (var name in varNames)
-        {
-            if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
-        }
-
-        HasVariables = Variables.Count > 0;
+        var result = await _mediator.Send(new SyncVariablesFeature.Command(content, Variables));
+        HasVariables = result.HasVariables;
     }
 
     [RelayCommand]
@@ -158,18 +109,13 @@ public partial class ContentEditorViewModel : ObservableObject
 
         if (IsEditMode)
         {
-            bool contentChanged = !string.Equals(_originalContentBeforeEdit, SelectedFile.Content, StringComparison.Ordinal);
+            var result = await _mediator.Send(new ToggleEditModeFeature.Command(
+                SelectedFile, IsEditMode, _originalContentBeforeEdit));
 
-            if (contentChanged)
-            {
-                SelectedFile.LastModified = DateTime.Now;
-                WeakReferenceMessenger.Default.Send(new RequestBackupActionMessage());
-            }
-
-            IsEditMode = false;
-            PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(SelectedFile.Content));
+            IsEditMode = result.NewEditMode;
+            PreviewContent = result.PreviewContent;
             _originalContentBeforeEdit = null;
-            
+
             WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
             return;
         }
@@ -182,9 +128,7 @@ public partial class ContentEditorViewModel : ObservableObject
     [RelayCommand]
     private async Task CopyCompiledText()
     {
-        await _mediator.Send(
-            new CopyCompiledTextFeature.Command(SelectedFile, Variables, AdditionalInput),
-            default);
+        await _mediator.Send(new CopyCompiledTextFeature.Command(SelectedFile, Variables, AdditionalInput));
     }
 
     [RelayCommand]
@@ -192,21 +136,9 @@ public partial class ContentEditorViewModel : ObservableObject
     {
         if (SelectedFile == null) return;
 
-        if (HasVariables)
-        {
-            foreach (var v in Variables)
-            {
-                if (string.IsNullOrWhiteSpace(v.Value))
-                {
-                    _dialogService.ShowAlert("请先填写所有变量值。", "变量未填");
-                    return;
-                }
-            }
-        }
-
-        await _mediator.Send(
-            new SendToWebTargetFeature.Command(SelectedFile, Variables, AdditionalInput, Config.WebDirectTargets, Config.DefaultWebTargetName),
-            default);
+        await _mediator.Send(new SendToWebTargetFeature.Command(
+            SelectedFile, Variables, AdditionalInput, Config.WebDirectTargets, Config.DefaultWebTargetName));
+        
         AdditionalInput = "";
     }
 
@@ -215,21 +147,9 @@ public partial class ContentEditorViewModel : ObservableObject
     {
         if (target == null || SelectedFile == null) return;
 
-        if (HasVariables)
-        {
-            foreach (var v in Variables)
-            {
-                if (string.IsNullOrWhiteSpace(v.Value))
-                {
-                    _dialogService.ShowAlert("请先填写所有变量值。", "变量未填");
-                    return;
-                }
-            }
-        }
-
-        await _mediator.Send(
-            new OpenWebTargetFeature.Command(SelectedFile, Variables, AdditionalInput, target),
-            default);
+        await _mediator.Send(new OpenWebTargetFeature.Command(
+            SelectedFile, Variables, AdditionalInput, target));
+        
         AdditionalInput = "";
     }
 
@@ -238,21 +158,9 @@ public partial class ContentEditorViewModel : ObservableObject
     {
         var query = AdditionalInput?.Trim();
 
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            _dialogService.ShowAlert("请输入要搜索的内容。", "输入为空");
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(query)) return;
 
-        var result = await _mediator.Send(new SearchOnGitHubFeature.Command(query), default);
-        
-        if (result.Success)
-        {
-            AdditionalInput = "";
-        }
-        else
-        {
-            _dialogService.ShowAlert($"打开 GitHub 失败: {result.ErrorMessage}", "错误");
-        }
+        await _mediator.Send(new SearchOnGitHubFeature.Command(query));
+        AdditionalInput = "";
     }
 }

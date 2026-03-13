@@ -33,6 +33,8 @@ namespace PromptMasterv6
 
         public IServiceProvider ServiceProvider => _serviceProvider!;
 
+        public static IServiceProvider Services => ((App)Current)._serviceProvider!;
+
         private System.Threading.Mutex? _singleInstanceMutex;
         private bool _ownsMutex;
         private const string MutexName = "PromptMasterv6_SingleInstance_Mutex";
@@ -59,11 +61,10 @@ namespace PromptMasterv6
             {
                 if (_serviceProvider == null) return;
 
-                var handler = _serviceProvider.GetService<Features.Main.Tray.CleanupTrayIconFeature.Handler>();
-                if (handler != null)
-                {
-                    await handler.Handle(new Features.Main.Tray.CleanupTrayIconFeature.Command("ProcessExit"), System.Threading.CancellationToken.None);
-                }
+                var mediator = _serviceProvider.GetRequiredService<IMediator>();
+                await mediator.Send(
+                    new CleanupTrayIconFeature.Command("ProcessExit"),
+                    System.Threading.CancellationToken.None);
             }
             catch (Exception ex)
             {

@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
+using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Settings;
 using PromptMasterv6.Features.ExternalTools;
@@ -94,7 +95,14 @@ namespace PromptMasterv6.Features.AppCore.Initialization
                     _logger.LogInfo("Initializing external tools view model...", "InitializeApplicationFeature");
                     _ = serviceProvider.GetRequiredService<ExternalToolsViewModel>();
 
+                    // 7. 初始化备份视图模型（确保消息监听器注册）
+                    _logger.LogInfo("Initializing backup view model...", "InitializeApplicationFeature");
+                    _ = serviceProvider.GetRequiredService<BackupViewModel>();
+
                     _logger.LogInfo("Application initialized successfully.", "InitializeApplicationFeature");
+
+                    var mainViewModel = serviceProvider.GetRequiredService<MainViewModel>();
+                    mainViewModel.Initialize();
 
                     return new Result(
                         Success: true,
