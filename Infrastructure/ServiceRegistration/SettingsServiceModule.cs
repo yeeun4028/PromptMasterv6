@@ -63,6 +63,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.Launcher.SelectSearchPathFeature.Handler>();
 
             // Settings Features - Sync
+            services.AddSingleton<Features.Settings.Sync.GetBackupListFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ManualRestoreFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ManualLocalRestoreFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ManualBackupFeature.Handler>();
