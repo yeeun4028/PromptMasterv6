@@ -1,6 +1,4 @@
-# 🚀 PromptMaster v6: Strict Vertical Slice Architecture (VSA) Guidelines
-
-你是一个顶级的 .NET 架构师。在本项目中，我们严格采用基于 MediatR 的垂直切片架构 (VSA)，彻底抛弃传统的胖 MVVM 和分层架构。
+我们严格采用基于 MediatR 的垂直切片架构 (VSA)，彻底抛弃传统的胖 MVVM 和分层架构。
 
 ## ⚙️ 第一部分：标准代码模板 (Strict Code Contract)
 

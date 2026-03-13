@@ -1,6 +1,7 @@
 using MediatR;
-using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Features.Ai.TestConnection;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Infrastructure.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,12 +23,12 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         public class Handler : IRequestHandler<Command, Result>
         {
             private readonly SettingsService _settingsService;
-            private readonly AiService _aiService;
+            private readonly IMediator _mediator;
 
-            public Handler(SettingsService settingsService, AiService aiService)
+            public Handler(SettingsService settingsService, IMediator mediator)
             {
                 _settingsService = settingsService;
-                _aiService = aiService;
+                _mediator = mediator;
             }
 
             public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
@@ -47,21 +48,21 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
 
                 foreach (var model in enabledModels)
                 {
-                    var (success, message, responseTimeMs) = await _aiService.TestConnectionAsync(
+                    var result = await _mediator.Send(new Features.Ai.TestConnection.TestConnectionFeature.Command(
                         model.ApiKey,
                         model.BaseUrl,
                         model.ModelName,
-                        model.UseProxy);
+                        model.UseProxy), cancellationToken);
 
-                    if (success)
+                    if (result.Success)
                     {
                         successCount++;
-                        if (responseTimeMs.HasValue)
-                            totalTime += responseTimeMs.Value;
+                        if (result.ResponseTimeMs.HasValue)
+                            totalTime += result.ResponseTimeMs.Value;
                     }
                     else
                     {
-                        lastError = message;
+                        lastError = result.Message;
                     }
                 }
 

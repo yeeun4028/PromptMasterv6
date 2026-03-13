@@ -1,4 +1,5 @@
 using MediatR;
+using PromptMasterv6.Features.Ai.ChatWithImage;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Infrastructure.Services;
 using System;
@@ -11,26 +12,23 @@ namespace PromptMasterv6.Features.ExternalTools.PerformVisionTranslate;
 
 public static class PerformVisionTranslateFeature
 {
-    // 1. 定义输入
     public record Command(
         byte[] ImageBytes,
         List<AiModelConfig> VisionModels,
         string? VisionTranslationPromptTemplate) : IRequest<Result>;
 
-    // 2. 定义输出
     public record Result(bool Success, string? TranslatedText, string? ErrorMessage);
 
-    // 3. 执行逻辑
     public class Handler : IRequestHandler<Command, Result>
     {
-        private readonly AiService _aiService;
+        private readonly IMediator _mediator;
         private readonly LoggerService _logger;
 
         public Handler(
-            AiService aiService,
+            IMediator mediator,
             LoggerService logger)
         {
-            _aiService = aiService;
+            _mediator = mediator;
             _logger = logger;
         }
 
@@ -55,12 +53,14 @@ public static class PerformVisionTranslateFeature
             {
                 try
                 {
-                    return await _aiService.ChatWithImageAsync(
+                    var result = await _mediator.Send(new Features.Ai.ChatWithImage.ChatWithImageFeature.Command(
                         request.ImageBytes,
                         model.ApiKey,
                         model.BaseUrl,
                         model.ModelName,
-                        systemPrompt).ConfigureAwait(false);
+                        systemPrompt), cancellationToken);
+                    
+                    return result.Success ? result.Content : $"Vision Error: {result.ErrorMessage}";
                 }
                 catch (Exception ex)
                 {
@@ -68,7 +68,6 @@ public static class PerformVisionTranslateFeature
                 }
             }));
 
-            // 竞速执行
             while (tasks.Count > 0)
             {
                 var finishedTask = await Task.WhenAny(tasks).ConfigureAwait(false);

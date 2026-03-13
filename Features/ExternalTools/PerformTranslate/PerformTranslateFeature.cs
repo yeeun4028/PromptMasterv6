@@ -1,4 +1,5 @@
 using MediatR;
+using PromptMasterv6.Features.Ai.Chat;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Infrastructure.Services;
 using System;
@@ -11,7 +12,6 @@ namespace PromptMasterv6.Features.ExternalTools.PerformTranslate;
 
 public static class PerformTranslateFeature
 {
-    // 1. 定义输入
     public record Command(
         string Text,
         List<ApiProfile> TranslateProfiles,
@@ -19,26 +19,24 @@ public static class PerformTranslateFeature
         string? TranslationPromptTemplate,
         string? AiTranslationPromptContent) : IRequest<Result>;
 
-    // 2. 定义输出
     public record Result(bool Success, string? TranslatedText, string? ErrorMessage);
 
-    // 3. 执行逻辑
     public class Handler : IRequestHandler<Command, Result>
     {
-        private readonly AiService _aiService;
+        private readonly IMediator _mediator;
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
         private readonly GoogleService _googleService;
         private readonly LoggerService _logger;
 
         public Handler(
-            AiService aiService,
+            IMediator mediator,
             BaiduService baiduService,
             TencentService tencentService,
             GoogleService googleService,
             LoggerService logger)
         {
-            _aiService = aiService;
+            _mediator = mediator;
             _baiduService = baiduService;
             _tencentService = tencentService;
             _googleService = googleService;
@@ -54,7 +52,6 @@ public static class PerformTranslateFeature
 
             var tasks = new List<Task<string>>();
 
-            // 标准翻译服务
             if (request.TranslateProfiles != null && request.TranslateProfiles.Count > 0)
             {
                 tasks.AddRange(request.TranslateProfiles.Select(async profile =>
@@ -73,7 +70,6 @@ public static class PerformTranslateFeature
                 }));
             }
 
-            // AI 翻译服务
             if (request.EnabledAiModels != null && request.EnabledAiModels.Any())
             {
                 var systemPrompt = request.AiTranslationPromptContent
@@ -86,13 +82,15 @@ public static class PerformTranslateFeature
                     {
                         if (string.IsNullOrWhiteSpace(model.ApiKey)) return "";
 
-                        return await _aiService.ChatAsync(
+                        var result = await _mediator.Send(new Features.Ai.Chat.ChatFeature.Command(
                             request.Text,
                             model.ApiKey,
                             model.BaseUrl,
                             model.ModelName,
                             systemPrompt,
-                            model.UseProxy).ConfigureAwait(false) ?? "";
+                            model.UseProxy), cancellationToken);
+                        
+                        return result.Success ? result.Content : "";
                     }
                     catch { return ""; }
                 }));
@@ -103,7 +101,6 @@ public static class PerformTranslateFeature
                 return new Result(false, null, "未启用任何翻译服务 (Standard or AI)");
             }
 
-            // 竞速执行
             while (tasks.Count > 0)
             {
                 var finishedTask = await Task.WhenAny(tasks).ConfigureAwait(false);

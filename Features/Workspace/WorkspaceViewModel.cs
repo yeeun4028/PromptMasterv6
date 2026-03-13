@@ -13,7 +13,10 @@ using PromptMasterv6.Features.Workspace.LoadWorkspaceData;
 using PromptMasterv6.Features.Workspace.SearchOnGitHub;
 using PromptMasterv6.Features.Workspace.ChangeFileIcon;
 using PromptMasterv6.Features.Workspace.DeleteFile;
-using System;
+using PromptMasterv6.Features.Workspace.SyncVariables;
+using PromptMasterv6.Features.Workspace.ToggleEditMode;
+using PromptMasterv6.Features.Workspace.SendToWebTarget;
+using PromptMasterv6.Features.Workspace.FilterFiles;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -27,7 +30,6 @@ namespace PromptMasterv6.Features.Workspace
         private readonly IMediator _mediator;
         private readonly DialogService _dialogService;
         private readonly SettingsService _settingsService;
-        private readonly LoggerService _logger;
 
         [ObservableProperty] private ObservableCollection<PromptItem> files = new();
         [ObservableProperty] private PromptItem? selectedFile;
@@ -49,7 +51,7 @@ namespace PromptMasterv6.Features.Workspace
         {
             IsEditMode = false;
             _ = UpdatePreviewContentAsync(value?.Content);
-            SafeParseVariables(value?.Content ?? "");
+            _ = SyncVariablesAsync(value?.Content);
         }
 
         private async Task UpdatePreviewContentAsync(string? content)
@@ -57,16 +59,21 @@ namespace PromptMasterv6.Features.Workspace
             PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(content));
         }
 
+        private async Task SyncVariablesAsync(string? content)
+        {
+            var varNames = await _mediator.Send(new ParseVariablesQuery(content));
+            var result = await _mediator.Send(new SyncVariablesFeature.Command(Variables, varNames));
+            HasVariables = result.HasVariables;
+        }
+
         public WorkspaceViewModel(
             SettingsService settingsService,
             IMediator mediator,
-            DialogService dialogService,
-            LoggerService logger)
+            DialogService dialogService)
         {
             _settingsService = settingsService;
             _mediator = mediator;
             _dialogService = dialogService;
-            _logger = logger;
 
             Pipeline = new MarkdownPipelineBuilder()
                 .UseSoftlineBreakAsHardlineBreak()
@@ -98,9 +105,9 @@ namespace PromptMasterv6.Features.Workspace
                 }
             });
 
-            WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, (_, _) =>
+            WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, async (_, _) =>
             {
-                UpdateFilesViewFilter();
+                await _mediator.Send(new FilterFilesFeature.Command(FilesView, SelectedFolder));
                 FilesView?.Refresh();
 
                 if (FilesView != null && !FilesView.IsEmpty)
@@ -120,30 +127,6 @@ namespace PromptMasterv6.Features.Workspace
             });
         }
 
-        private async void SafeParseVariables(string content)
-        {
-            try
-            {
-                var varNames = await _mediator.Send(new ParseVariablesQuery(content));
-                
-                for (int i = Variables.Count - 1; i >= 0; i--)
-                {
-                    if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
-                }
-
-                foreach (var name in varNames)
-                {
-                    if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
-                }
-
-                HasVariables = Variables.Count > 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException(ex, "变量解析失败", "SafeParseVariables");
-            }
-        }
-
         public void SetFiles(ObservableCollection<PromptItem> files)
         {
             Files = files;
@@ -153,13 +136,13 @@ namespace PromptMasterv6.Features.Workspace
                 item.PropertyChanged += OnFilePropertyChanged;
             }
             FilesView = CollectionViewSource.GetDefaultView(Files);
-            UpdateFilesViewFilter();
+            _ = _mediator.Send(new FilterFilesFeature.Command(FilesView, SelectedFolder));
         }
 
         public void SetSelectedFolder(FolderItem? folder)
         {
             SelectedFolder = folder;
-            UpdateFilesViewFilter();
+            _ = _mediator.Send(new FilterFilesFeature.Command(FilesView, SelectedFolder));
             FilesView?.Refresh();
         }
 
@@ -179,7 +162,7 @@ namespace PromptMasterv6.Features.Workspace
                 Files.Add(f);
             }
 
-            UpdateFilesViewFilter();
+            await _mediator.Send(new FilterFilesFeature.Command(FilesView, SelectedFolder));
             FilesView?.Refresh();
 
             if (FilesView != null && !FilesView.IsEmpty)
@@ -192,19 +175,6 @@ namespace PromptMasterv6.Features.Workspace
             }
 
             IsDirty = false;
-        }
-
-        public void UpdateFilesViewFilter()
-        {
-            if (FilesView == null) return;
-
-            var selectedFolderId = SelectedFolder?.Id;
-            FilesView.Filter = item =>
-            {
-                if (item is not PromptItem f) return false;
-                if (string.IsNullOrWhiteSpace(selectedFolderId)) return true;
-                return string.Equals(f.FolderId, selectedFolderId, StringComparison.Ordinal);
-            };
         }
 
         [RelayCommand]
@@ -247,30 +217,28 @@ namespace PromptMasterv6.Features.Workspace
         [RelayCommand]
         private async Task ToggleEditMode()
         {
-            if (SelectedFile == null)
+            var result = await _mediator.Send(new ToggleEditModeFeature.Command(
+                SelectedFile,
+                IsEditMode,
+                _originalContentBeforeEdit));
+
+            if (result.NewLastModified.HasValue && SelectedFile != null)
             {
-                IsEditMode = false;
-                return;
+                SelectedFile.LastModified = result.NewLastModified.Value;
             }
 
-            if (IsEditMode)
+            if (result.ShouldSave)
             {
-                bool contentChanged = !string.Equals(_originalContentBeforeEdit, SelectedFile.Content, StringComparison.Ordinal);
+                RequestSave();
+            }
 
-                if (contentChanged)
-                {
-                    SelectedFile.LastModified = DateTime.Now;
-                    RequestSave();
-                }
+            IsEditMode = result.NewEditMode;
+            _originalContentBeforeEdit = result.OriginalContentBeforeEdit;
 
-                IsEditMode = false;
+            if (!IsEditMode && SelectedFile != null)
+            {
                 PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(SelectedFile.Content));
-                _originalContentBeforeEdit = null;
-                return;
             }
-
-            _originalContentBeforeEdit = SelectedFile.Content;
-            IsEditMode = true;
         }
 
         [RelayCommand]
@@ -283,47 +251,46 @@ namespace PromptMasterv6.Features.Workspace
         [RelayCommand]
         private async Task SendDefaultWebTarget()
         {
-            if (SelectedFile == null) return;
+            var result = await _mediator.Send(new SendToWebTargetFeature.Command(
+                SelectedFile,
+                Variables,
+                HasVariables,
+                AdditionalInput,
+                AllTargets: Config.WebDirectTargets,
+                DefaultTargetName: Config.DefaultWebTargetName));
 
-            if (HasVariables)
+            if (!result.Success)
             {
-                foreach (var v in Variables)
-                {
-                    if (string.IsNullOrWhiteSpace(v.Value))
-                    {
-                        _dialogService.ShowAlert("请先填写所有变量值。", "变量未填");
-                        return;
-                    }
-                }
+                _dialogService.ShowAlert(result.ErrorMessage ?? "发送失败", "错误");
+                return;
             }
 
-            var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-            var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
-            await _mediator.Send(new SendToDefaultTargetCommand(content, Config.WebDirectTargets, Config.DefaultWebTargetName));
-            AdditionalInput = "";
+            if (result.ShouldClearAdditionalInput)
+            {
+                AdditionalInput = "";
+            }
         }
 
         [RelayCommand]
         private async Task OpenWebTarget(WebTarget? target)
         {
-            if (target == null || SelectedFile == null) return;
+            var result = await _mediator.Send(new SendToWebTargetFeature.Command(
+                SelectedFile,
+                Variables,
+                HasVariables,
+                AdditionalInput,
+                Target: target));
 
-            if (HasVariables)
+            if (!result.Success)
             {
-                foreach (var v in Variables)
-                {
-                    if (string.IsNullOrWhiteSpace(v.Value))
-                    {
-                        _dialogService.ShowAlert("请先填写所有变量值。", "变量未填");
-                        return;
-                    }
-                }
+                _dialogService.ShowAlert(result.ErrorMessage ?? "发送失败", "错误");
+                return;
             }
 
-            var variablesDict = Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
-            var content = await _mediator.Send(new CompileContentQuery(SelectedFile?.Content, variablesDict, AdditionalInput));
-            await _mediator.Send(new ExecuteWebTargetCommand(target, content));
-            AdditionalInput = "";
+            if (result.ShouldClearAdditionalInput)
+            {
+                AdditionalInput = "";
+            }
         }
 
         [RelayCommand]
@@ -384,19 +351,7 @@ namespace PromptMasterv6.Features.Workspace
 
             if (e.PropertyName == nameof(PromptItem.Content) && sender == SelectedFile)
             {
-                var varNames = await _mediator.Send(new ParseVariablesQuery(SelectedFile?.Content ?? ""));
-                
-                for (int i = Variables.Count - 1; i >= 0; i--)
-                {
-                    if (!varNames.Contains(Variables[i].Name)) Variables.RemoveAt(i);
-                }
-
-                foreach (var name in varNames)
-                {
-                    if (!Variables.Any(v => v.Name == name)) Variables.Add(new VariableItem { Name = name });
-                }
-
-                HasVariables = Variables.Count > 0;
+                await SyncVariablesAsync(SelectedFile?.Content ?? "");
             }
 
             RequestSave();

@@ -109,6 +109,10 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Workspace.SearchOnGitHub.SearchOnGitHubFeature.Handler>();
             services.AddSingleton<Features.Workspace.ChangeFileIcon.ChangeFileIconFeature.Handler>();
             services.AddSingleton<Features.Workspace.DeleteFile.DeleteFileFeature.Handler>();
+            services.AddSingleton<Features.Workspace.SyncVariables.SyncVariablesFeature.Handler>();
+            services.AddSingleton<Features.Workspace.ToggleEditMode.ToggleEditModeFeature.Handler>();
+            services.AddSingleton<Features.Workspace.SendToWebTarget.SendToWebTargetFeature.Handler>();
+            services.AddSingleton<Features.Workspace.FilterFiles.FilterFilesFeature.Handler>();
 
             // Launcher Features
             services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();

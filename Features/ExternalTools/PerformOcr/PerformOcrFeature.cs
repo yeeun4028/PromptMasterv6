@@ -1,4 +1,5 @@
 using MediatR;
+using PromptMasterv6.Features.Ai.ChatWithImage;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Infrastructure.Services;
 using System;
@@ -11,31 +12,28 @@ namespace PromptMasterv6.Features.ExternalTools.PerformOcr;
 
 public static class PerformOcrFeature
 {
-    // 1. 定义输入
     public record Command(
         byte[] ImageBytes,
         List<ApiProfile> OcrProfiles,
         List<AiModelConfig> EnabledAiModels,
         string? OcrPromptTemplate) : IRequest<Result>;
 
-    // 2. 定义输出
     public record Result(bool Success, string? OcrText, string? ErrorMessage);
 
-    // 3. 执行逻辑
     public class Handler : IRequestHandler<Command, Result>
     {
-        private readonly AiService _aiService;
+        private readonly IMediator _mediator;
         private readonly BaiduService _baiduService;
         private readonly TencentService _tencentService;
         private readonly LoggerService _logger;
 
         public Handler(
-            AiService aiService,
+            IMediator mediator,
             BaiduService baiduService,
             TencentService tencentService,
             LoggerService logger)
         {
-            _aiService = aiService;
+            _mediator = mediator;
             _baiduService = baiduService;
             _tencentService = tencentService;
             _logger = logger;
@@ -50,7 +48,6 @@ public static class PerformOcrFeature
 
             var tasks = new List<Task<string>>();
 
-            // 标准 OCR 服务
             if (request.OcrProfiles != null && request.OcrProfiles.Count > 0)
             {
                 var standardProfiles = request.OcrProfiles.Where(p => p.Provider != ApiProvider.AI).ToList();
@@ -69,7 +66,6 @@ public static class PerformOcrFeature
                 }));
             }
 
-            // AI OCR 服务
             bool isAiOcrEnabled = request.OcrProfiles?.Any(p => p.Provider == ApiProvider.AI && p.ServiceType == ServiceType.OCR) ?? false;
 
             if (isAiOcrEnabled && request.EnabledAiModels != null && request.EnabledAiModels.Any())
@@ -80,12 +76,14 @@ public static class PerformOcrFeature
                 {
                     try
                     {
-                        return await _aiService.ChatWithImageAsync(
+                        var result = await _mediator.Send(new Features.Ai.ChatWithImage.ChatWithImageFeature.Command(
                             request.ImageBytes,
                             model.ApiKey,
                             model.BaseUrl,
                             model.ModelName,
-                            ocrPrompt).ConfigureAwait(false);
+                            ocrPrompt), cancellationToken);
+                        
+                        return result.Success ? result.Content : "";
                     }
                     catch { return ""; }
                 }));
@@ -96,7 +94,6 @@ public static class PerformOcrFeature
                 return new Result(false, null, "未启用任何 OCR 服务 (Standard or AI), 或者开启了 AI OCR 但未选择模型");
             }
 
-            // 竞速执行
             while (tasks.Count > 0)
             {
                 var finishedTask = await Task.WhenAny(tasks).ConfigureAwait(false);

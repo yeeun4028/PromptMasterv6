@@ -1,4 +1,5 @@
 using MediatR;
+using PromptMasterv6.Features.Ai.TestConnection;
 using PromptMasterv6.Infrastructure.Services;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,40 +8,28 @@ namespace PromptMasterv6.Features.Settings.AiModels
 {
     public static class TestAiConnectionFeature
     {
-        /// <summary>
-        /// 定义输入（必须实现 IRequest）
-        /// </summary>
         public record Command(string ApiKey, string BaseUrl, string ModelName, bool UseProxy) : IRequest<Result>;
 
-        /// <summary>
-        /// 定义输出
-        /// </summary>
         public record Result(bool Success, string Message, long? ResponseTimeMs);
 
-        /// <summary>
-        /// 执行逻辑（必须实现 IRequestHandler）
-        /// </summary>
         public class Handler : IRequestHandler<Command, Result>
         {
-            private readonly AiService _aiService;
+            private readonly IMediator _mediator;
 
-            public Handler(AiService aiService)
+            public Handler(IMediator mediator)
             {
-                _aiService = aiService;
+                _mediator = mediator;
             }
 
-            /// <summary>
-            /// 必须带有 CancellationToken 以支持异步取消
-            /// </summary>
             public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
             {
-                var (success, message, responseTimeMs) = await _aiService.TestConnectionAsync(
+                var result = await _mediator.Send(new Features.Ai.TestConnection.TestConnectionFeature.Command(
                     request.ApiKey, 
                     request.BaseUrl, 
                     request.ModelName, 
-                    request.UseProxy);
+                    request.UseProxy), cancellationToken);
 
-                return new Result(success, message, responseTimeMs);
+                return new Result(result.Success, result.Message, result.ResponseTimeMs);
             }
         }
     }
