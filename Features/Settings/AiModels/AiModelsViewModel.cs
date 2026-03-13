@@ -5,8 +5,6 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Settings.AiModels.AddAiModel;
 using PromptMasterv6.Features.Settings.AiModels.RenameAiModel;
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.AiModels;
@@ -57,52 +55,17 @@ public partial class AiModelsViewModel : ObservableObject
     [RelayCommand]
     private async Task TestAiTranslationConnection()
     {
-        var enabledModels = Config.SavedModels.Where(m => m.IsEnableForTranslation).ToList();
-        if (enabledModels.Count == 0)
-        {
-            TranslationTestStatus = "请先勾选至少一个参与翻译的 AI 模型";
-            TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
-            return;
-        }
-
         TranslationTestStatus = "测试中...";
         TranslationTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-        int successCount = 0;
-        string lastError = "";
-        long totalTime = 0;
+        var result = await _mediator.Send(new TestAiTranslationBatchFeature.Command());
 
-        foreach (var model in enabledModels)
-        {
-            var cmd = new TestAiConnectionFeature.Command(
-                model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
-            var result = await _mediator.Send(cmd);
-            
-            if (result.Success)
-            {
-                successCount++;
-                if (result.ResponseTimeMs.HasValue)
-                    totalTime += result.ResponseTimeMs.Value;
-            }
-            else lastError = result.Message;
-        }
-
-        if (successCount == enabledModels.Count)
-        {
-            var avgTime = successCount > 0 ? totalTime / successCount : 0;
-            TranslationTestStatus = $"全部 {successCount} 个模型连接成功 (平均 {avgTime}ms)";
-            TranslationTestStatusColor = System.Windows.Media.Brushes.Green;
-        }
-        else if (successCount > 0)
-        {
-            TranslationTestStatus = $"部分成功 ({successCount}/{enabledModels.Count})\n失败示例: {lastError}";
-            TranslationTestStatusColor = System.Windows.Media.Brushes.Orange;
-        }
-        else
-        {
-            TranslationTestStatus = $"全部失败。\n错误示例: {lastError}";
-            TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
-        }
+        TranslationTestStatus = result.Message;
+        TranslationTestStatusColor = result.Success && result.SuccessCount == result.TotalCount
+            ? System.Windows.Media.Brushes.Green
+            : result.Success && result.SuccessCount > 0
+                ? System.Windows.Media.Brushes.Orange
+                : System.Windows.Media.Brushes.Red;
     }
 
     [RelayCommand]

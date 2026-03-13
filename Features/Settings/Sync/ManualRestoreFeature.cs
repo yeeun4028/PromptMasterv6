@@ -19,12 +19,14 @@ namespace PromptMasterv6.Features.Settings.Sync
         {
             private readonly IDataService _dataService;
             private readonly ISessionState _sessionState;
+            private readonly SettingsService _settingsService;
             private readonly LoggerService _logger;
 
-            public Handler(IDataService dataService, ISessionState sessionState, LoggerService logger)
+            public Handler(IDataService dataService, ISessionState sessionState, SettingsService settingsService, LoggerService logger)
             {
                 _dataService = dataService;
                 _sessionState = sessionState;
+                _settingsService = settingsService;
                 _logger = logger;
             }
 
@@ -32,6 +34,8 @@ namespace PromptMasterv6.Features.Settings.Sync
             {
                 try
                 {
+                    _settingsService.SaveConfig();
+
                     var data = await _dataService.LoadAsync();
 
                     if (data == null || ((data.Folders?.Count ?? 0) == 0 && (data.Files?.Count ?? 0) == 0))

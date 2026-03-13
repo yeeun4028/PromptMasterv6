@@ -1,28 +1,29 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Window
 {
     public partial class WindowViewModel : ObservableObject
     {
-        private readonly UpdateWindowSettingsFeature.Handler _updateWindowSettingsHandler;
+        private readonly IMediator _mediator;
         private readonly LoggerService _logger;
         private readonly DialogService _dialogService;
 
         [ObservableProperty] private bool _autoHide;
 
         public WindowViewModel(
-            UpdateWindowSettingsFeature.Handler updateWindowSettingsHandler,
+            IMediator mediator,
             LoggerService logger,
             SettingsService settingsService,
             DialogService dialogService)
         {
-            _updateWindowSettingsHandler = updateWindowSettingsHandler;
+            _mediator = mediator;
             _logger = logger;
             _dialogService = dialogService;
 
-            // 从配置加载初始值
             var config = settingsService.Config;
             _autoHide = config.AutoHide;
         }
@@ -30,9 +31,7 @@ namespace PromptMasterv6.Features.Settings.Window
         [RelayCommand]
         private async Task SaveWindowSettings()
         {
-            var command = new UpdateWindowSettingsFeature.Command(AutoHide);
-
-            var result = await _updateWindowSettingsHandler.Handle(command, CancellationToken.None);
+            var result = await _mediator.Send(new UpdateWindowSettingsFeature.Command(AutoHide));
 
             if (result.Success)
             {

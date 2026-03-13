@@ -1,28 +1,29 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Proxy
 {
     public partial class ProxyViewModel : ObservableObject
     {
-        private readonly UpdateProxyFeature.Handler _updateProxyHandler;
+        private readonly IMediator _mediator;
         private readonly LoggerService _logger;
         private readonly DialogService _dialogService;
 
         [ObservableProperty] private string _proxyAddress;
 
         public ProxyViewModel(
-            UpdateProxyFeature.Handler updateProxyHandler,
+            IMediator mediator,
             LoggerService logger,
             SettingsService settingsService,
             DialogService dialogService)
         {
-            _updateProxyHandler = updateProxyHandler;
+            _mediator = mediator;
             _logger = logger;
             _dialogService = dialogService;
 
-            // 从配置加载初始值
             var config = settingsService.Config;
             _proxyAddress = config.ProxyAddress;
         }
@@ -30,9 +31,7 @@ namespace PromptMasterv6.Features.Settings.Proxy
         [RelayCommand]
         private async Task SaveProxySettings()
         {
-            var command = new UpdateProxyFeature.Command(ProxyAddress);
-
-            var result = await _updateProxyHandler.Handle(command, CancellationToken.None);
+            var result = await _mediator.Send(new UpdateProxyFeature.Command(ProxyAddress));
 
             if (result.Success)
             {

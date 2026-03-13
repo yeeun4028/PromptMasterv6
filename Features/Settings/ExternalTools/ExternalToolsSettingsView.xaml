@@ -80,7 +80,7 @@
                         <StackPanel>
                             <TextBlock Text="OCR 识别引擎" Style="{StaticResource SectionHeaderTextStyle}"/>
                             
-                            <ItemsControl ItemsSource="{Binding ExternalToolsVM.OcrProfiles}">
+                            <ItemsControl ItemsSource="{Binding OcrProfiles}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
@@ -109,7 +109,7 @@
                         <StackPanel>
                             <TextBlock Text="翻译引擎" Style="{StaticResource SectionHeaderTextStyle}"/>
                             
-                            <ItemsControl ItemsSource="{Binding ExternalToolsVM.TranslateProfiles}">
+                            <ItemsControl ItemsSource="{Binding TranslateProfiles}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">

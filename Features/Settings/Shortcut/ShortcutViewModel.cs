@@ -1,56 +1,68 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Infrastructure.Services;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Shortcut
 {
     public partial class ShortcutViewModel : ObservableObject
     {
-        private readonly UpdateShortcutFeature.Handler _updateShortcutHandler;
+        private readonly IMediator _mediator;
         private readonly LoggerService _logger;
         private readonly DialogService _dialogService;
+        private bool _isLoading = true;
 
         [ObservableProperty] private string _fullWindowHotkey;
         [ObservableProperty] private string _screenshotTranslateHotkey;
         [ObservableProperty] private string _ocrHotkey;
         [ObservableProperty] private string _pinToScreenHotkey;
 
+        partial void OnFullWindowHotkeyChanged(string value) => OnHotkeyChanged();
+        partial void OnScreenshotTranslateHotkeyChanged(string value) => OnHotkeyChanged();
+        partial void OnOcrHotkeyChanged(string value) => OnHotkeyChanged();
+        partial void OnPinToScreenHotkeyChanged(string value) => OnHotkeyChanged();
+
+        private async void OnHotkeyChanged()
+        {
+            if (_isLoading) return;
+            await SaveShortcutSettings();
+        }
+
         public ShortcutViewModel(
-            UpdateShortcutFeature.Handler updateShortcutHandler,
+            IMediator mediator,
             LoggerService logger,
             SettingsService settingsService,
             DialogService dialogService)
         {
-            _updateShortcutHandler = updateShortcutHandler;
+            _mediator = mediator;
             _logger = logger;
             _dialogService = dialogService;
 
-            // 从配置加载初始值
             var config = settingsService.Config;
             _fullWindowHotkey = config.FullWindowHotkey;
             _screenshotTranslateHotkey = config.ScreenshotTranslateHotkey;
             _ocrHotkey = config.OcrHotkey;
             _pinToScreenHotkey = config.PinToScreenHotkey;
+
+            _isLoading = false;
         }
 
         [RelayCommand]
         private async Task SaveShortcutSettings()
         {
-            var command = new UpdateShortcutFeature.Command(
+            var result = await _mediator.Send(new UpdateShortcutFeature.Command(
                 FullWindowHotkey,
                 ScreenshotTranslateHotkey,
                 OcrHotkey,
                 PinToScreenHotkey
-            );
-
-            var result = await _updateShortcutHandler.Handle(command, CancellationToken.None);
+            ));
 
             if (result.Success)
             {
                 _logger.LogInfo(result.Message, "ShortcutViewModel.SaveShortcutSettings");
-                // 通知其他组件重新加载快捷键
                 WeakReferenceMessenger.Default.Send(new ReloadDataMessage());
                 _dialogService.ShowToast(result.Message, "Success");
             }

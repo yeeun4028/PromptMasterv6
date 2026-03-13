@@ -58,8 +58,6 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ManualRestore()
     {
-        _settingsService.SaveConfig();
-
         IsRestoreConfirmVisible = false;
         RestoreStatus = "正在从云端恢复数据...";
         RestoreStatusColor = System.Windows.Media.Brushes.Orange;

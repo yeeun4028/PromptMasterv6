@@ -8,9 +8,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Settings.AiModels.Messages;
-using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Settings.ExternalTools.HandleAiModelDeleted;
+using PromptMasterv6.Features.Shared.Models;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.ExternalTools
 {
@@ -24,7 +26,8 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         public AppConfig Config => _settingsService.Config;
         public ObservableCollection<PromptItem> FilesView => _sessionState.Files;
 
-        public global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel ExternalToolsVM { get; }
+        public ObservableCollection<ApiProfile> OcrProfiles { get; }
+        public ObservableCollection<ApiProfile> TranslateProfiles { get; }
 
         [ObservableProperty] private int selectedSubTab = 0;
         [ObservableProperty] private string? translationTestStatus;
@@ -43,17 +46,44 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         public ExternalToolsSettingsViewModel(
             SettingsService settingsService,
             ISessionState sessionState,
-            global::PromptMasterv6.Features.ExternalTools.ExternalToolsViewModel externalToolsVM,
             DialogService dialogService,
             IMediator mediator)
         {
             _settingsService = settingsService;
             _sessionState = sessionState;
-            ExternalToolsVM = externalToolsVM;
             _dialogService = dialogService;
             _mediator = mediator;
 
+            OcrProfiles = new ObservableCollection<ApiProfile>(
+                _settingsService.Config.ApiProfiles.Where(p => p.ServiceType == ServiceType.OCR));
+            TranslateProfiles = new ObservableCollection<ApiProfile>(
+                _settingsService.Config.ApiProfiles.Where(p => p.ServiceType == ServiceType.Translation));
+
+            _settingsService.Config.ApiProfiles.CollectionChanged += OnApiProfilesChanged;
+
             WeakReferenceMessenger.Default.Register(this);
+        }
+
+        private void OnApiProfilesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            RefreshProfiles();
+        }
+
+        public void RefreshProfiles()
+        {
+            OcrProfiles.Clear();
+            TranslateProfiles.Clear();
+
+            foreach (var profile in _settingsService.Config.ApiProfiles)
+            {
+                if (profile.ServiceType == ServiceType.OCR)
+                    OcrProfiles.Add(profile);
+                else if (profile.ServiceType == ServiceType.Translation)
+                    TranslateProfiles.Add(profile);
+            }
+
+            OnPropertyChanged(nameof(OcrProfiles));
+            OnPropertyChanged(nameof(TranslateProfiles));
         }
 
         [RelayCommand]
@@ -107,52 +137,17 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         [RelayCommand]
         private async Task TestAiTranslationConnection()
         {
-            var enabledModels = Config.SavedModels.Where(m => m.IsEnableForTranslation).ToList();
-            if (enabledModels.Count == 0)
-            {
-                TranslationTestStatus = "请先勾选至少一个参与翻译的 AI 模型";
-                TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
-                return;
-            }
-
             TranslationTestStatus = "测试中...";
             TranslationTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            int successCount = 0;
-            string lastError = "";
-            long totalTime = 0;
+            var result = await _mediator.Send(new TestExternalAiTranslationBatchFeature.Command());
 
-            foreach (var model in enabledModels)
-            {
-                var cmd = new Features.Settings.AiModels.TestAiConnectionFeature.Command(
-                    model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
-                var result = await _mediator.Send(cmd);
-
-                if (result.Success)
-                {
-                    successCount++;
-                    if (result.ResponseTimeMs.HasValue)
-                        totalTime += result.ResponseTimeMs.Value;
-                }
-                else lastError = result.Message;
-            }
-
-            if (successCount == enabledModels.Count)
-            {
-                var avgTime = successCount > 0 ? totalTime / successCount : 0;
-                TranslationTestStatus = $"全部 {successCount} 个模型连接成功 (平均 {avgTime}ms)";
-                TranslationTestStatusColor = System.Windows.Media.Brushes.Green;
-            }
-            else if (successCount > 0)
-            {
-                TranslationTestStatus = $"部分成功 ({successCount}/{enabledModels.Count})\n失败示例: {lastError}";
-                TranslationTestStatusColor = System.Windows.Media.Brushes.Orange;
-            }
-            else
-            {
-                TranslationTestStatus = $"全部失败。\n错误示例: {lastError}";
-                TranslationTestStatusColor = System.Windows.Media.Brushes.Red;
-            }
+            TranslationTestStatus = result.Message;
+            TranslationTestStatusColor = result.Success && result.SuccessCount == result.TotalCount
+                ? System.Windows.Media.Brushes.Green
+                : result.Success && result.SuccessCount > 0
+                    ? System.Windows.Media.Brushes.Orange
+                    : System.Windows.Media.Brushes.Red;
         }
 
         public async void Receive(AiModelDeletedMessage message)
