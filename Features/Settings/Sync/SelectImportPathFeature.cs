@@ -32,44 +32,53 @@ public static class SelectImportPathFeature
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
-                {
-                    var dialog = new Microsoft.Win32.OpenFileDialog
-                    {
-                        Title = "导入配置",
-                        DefaultExt = $".{request.FileExtension}",
-                        Filter = $"{request.FileExtension.ToUpper()} files (*.{request.FileExtension})|*.{request.FileExtension}|All files (*.*)|*.*"
-                    };
+                // 在 UI 线程执行对话框操作
+                var tcs = new TaskCompletionSource<Result>();
 
-                    // 获取当前活动窗口作为所有者
-                    System.Windows.Window? owner = null;
-                    System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+                {
+                    try
                     {
-                        owner = System.Windows.Application.Current.Windows
+                        var dialog = new Microsoft.Win32.OpenFileDialog
+                        {
+                            Title = "导入配置",
+                            DefaultExt = $".{request.FileExtension}",
+                            Filter = $"{request.FileExtension.ToUpper()} files (*.{request.FileExtension})|*.{request.FileExtension}|All files (*.*)|*.*"
+                        };
+
+                        // 获取当前活动窗口作为所有者
+                        var owner = System.Windows.Application.Current.Windows
                             .OfType<System.Windows.Window>()
                             .FirstOrDefault(w => w.IsActive);
-                    });
 
-                    var result = dialog.ShowDialog(owner);
+                        var result = dialog.ShowDialog(owner);
 
-                    if (result == true)
-                    {
-                        _logger.LogInfo($"用户选择导入路径: {dialog.FileName}", "SelectImportPathFeature.Handle");
-                        return new Result(true, dialog.FileName);
+                        if (result == true)
+                        {
+                            _logger.LogInfo($"用户选择导入路径: {dialog.FileName}", "SelectImportPathFeature.Handle");
+                            tcs.SetResult(new Result(true, dialog.FileName));
+                        }
+                        else
+                        {
+                            tcs.SetResult(new Result(false, null, true));
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        return new Result(false, null, true);
+                        _logger.LogException(ex, "文件对话框初始化失败", "SelectImportPathFeature.Handle");
+                        tcs.SetResult(new Result(false, null));
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogException(ex, "文件对话框初始化失败", "SelectImportPathFeature.Handle");
-                    return new Result(false, null);
-                }
-            });
+                });
+
+                return await tcs.Task;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(ex, "文件对话框初始化失败", "SelectImportPathFeature.Handle");
+                return new Result(false, null);
+            }
         }
     }
 }
