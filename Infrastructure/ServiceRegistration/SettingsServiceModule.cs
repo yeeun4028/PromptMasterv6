@@ -117,6 +117,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             // Launcher Features
             services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();
             services.AddSingleton<Features.Launcher.FilterLauncherItems.FilterLauncherItemsFeature.Handler>();
+            services.AddSingleton<Features.Launcher.InitializeLauncher.InitializeLauncherFeature.Handler>();
+            services.AddSingleton<Features.Launcher.SwitchLauncherCategory.SwitchLauncherCategoryFeature.Handler>();
         }
     }
 }

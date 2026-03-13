@@ -2,10 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using PromptMasterv6.Features.Launcher.Execution;
-using PromptMasterv6.Features.Launcher.Orders;
-using PromptMasterv6.Features.Launcher.Queries;
+using PromptMasterv6.Features.Launcher.InitializeLauncher;
 using PromptMasterv6.Features.Launcher.ReorderLauncherItems;
-using PromptMasterv6.Features.Launcher.FilterLauncherItems;
+using PromptMasterv6.Features.Launcher.SwitchLauncherCategory;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,9 @@ namespace PromptMasterv6.Features.Launcher
         private readonly SettingsService _settingsService;
         private readonly IMediator _mediator;
         private Dictionary<string, int> _itemOrders = new();
-        private CancellationTokenSource? _renderCancellationTokenSource;
+        private CancellationTokenSource? _switchCancellationTokenSource;
+
+        private static readonly string[] CategoryCycle = { "Bookmark", "Application", "Tool" };
 
         [ObservableProperty]
         private ObservableCollection<LauncherItem> items = new();
@@ -44,6 +45,9 @@ namespace PromptMasterv6.Features.Launcher
         [ObservableProperty]
         private string currentCategory = "Bookmark";
 
+        [ObservableProperty]
+        private bool isLoading = false;
+
         public AppConfig Config => _settingsService.Config;
 
         public LauncherViewModel(
@@ -53,15 +57,108 @@ namespace PromptMasterv6.Features.Launcher
             _settingsService = settingsService;
             _mediator = mediator;
 
-            InitializeItemsAsync();
+            _ = InitializeAsync();
         }
 
-        private async void InitializeItemsAsync()
+        private async Task InitializeAsync()
         {
-            _itemOrders = await _mediator.Send(new GetLauncherOrdersQuery());
+            IsLoading = true;
 
-            await LoadDiscoveredItemsAsync();
-            await UpdateFilterAsync();
+            var result = await _mediator.Send(new InitializeLauncherFeature.Command());
+
+            if (result.Success && result.Items != null)
+            {
+                _itemOrders = result.ItemOrders ?? new Dictionary<string, int>();
+
+                foreach (var item in result.Items)
+                {
+                    Items.Add(item);
+                }
+
+                await RefreshDisplayAsync();
+            }
+
+            IsLoading = false;
+        }
+
+        private async Task RefreshDisplayAsync()
+        {
+            _switchCancellationTokenSource?.Cancel();
+            _switchCancellationTokenSource = new CancellationTokenSource();
+            var ct = _switchCancellationTokenSource.Token;
+
+            try
+            {
+                var result = await _mediator.Send(new SwitchLauncherCategoryFeature.Command(
+                    Items.ToList(),
+                    _itemOrders,
+                    CurrentCategory,
+                    Config.IsLauncherSinglePageDisplayEnabled), ct);
+
+                if (!result.Success) return;
+
+                ct.ThrowIfCancellationRequested();
+
+                await ApplyDisplayResultAsync(result, ct);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private async Task ApplyDisplayResultAsync(SwitchLauncherCategoryFeature.Result result, CancellationToken ct)
+        {
+            if (Config.IsLauncherSinglePageDisplayEnabled)
+            {
+                FilteredItems.Clear();
+
+                Bookmarks.Clear();
+                Applications.Clear();
+                Tools.Clear();
+
+                if (result.Bookmarks != null)
+                {
+                    await LoadInBatchesAsync(Bookmarks, result.Bookmarks, 20, ct);
+                }
+                if (result.Applications != null)
+                {
+                    await LoadInBatchesAsync(Applications, result.Applications, 20, ct);
+                }
+                if (result.Tools != null)
+                {
+                    await LoadInBatchesAsync(Tools, result.Tools, 20, ct);
+                }
+            }
+            else
+            {
+                Bookmarks.Clear();
+                Applications.Clear();
+                Tools.Clear();
+
+                FilteredItems.Clear();
+
+                if (result.FilteredItems != null)
+                {
+                    await LoadInBatchesAsync(FilteredItems, result.FilteredItems, 20, ct);
+                }
+            }
+        }
+
+        private async Task LoadInBatchesAsync(
+            ObservableCollection<LauncherItem> targetCollection,
+            List<LauncherItem> sourceItems,
+            int batchSize,
+            CancellationToken ct)
+        {
+            for (int i = 0; i < sourceItems.Count; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                targetCollection.Add(sourceItems[i]);
+                if ((i + 1) % batchSize == 0)
+                {
+                    await Task.Delay(15, ct);
+                }
+            }
         }
 
         public async void MoveItem(LauncherItem source, LauncherItem target)
@@ -73,112 +170,39 @@ namespace PromptMasterv6.Features.Launcher
             if (result.Success && result.UpdatedOrders != null)
             {
                 _itemOrders = result.UpdatedOrders;
-                await UpdateFilterAsync();
+                await RefreshDisplayAsync();
             }
         }
 
         public async void SelectCategory(string category)
         {
             CurrentCategory = category;
-            await UpdateFilterAsync();
+            await RefreshDisplayAsync();
         }
 
-        private async Task LoadDiscoveredItemsAsync()
+        [RelayCommand]
+        private void CycleCategoryUp()
         {
-            try
-            {
-                var paths = _settingsService.Config.LauncherSearchPaths;
-                if (paths == null || !paths.Any()) return;
+            if (Config.IsLauncherSinglePageDisplayEnabled) return;
 
-                var discovered = await _mediator.Send(new GetLauncherItemsQuery(paths));
-                foreach (var item in discovered)
-                {
-                    Items.Add(item);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to load discovered items: {ex.Message}");
-            }
+            var currentIndex = Array.IndexOf(CategoryCycle, CurrentCategory);
+            var newIndex = (currentIndex - 1 + CategoryCycle.Length) % CategoryCycle.Length;
+            SelectCategory(CategoryCycle[newIndex]);
+        }
+
+        [RelayCommand]
+        private void CycleCategoryDown()
+        {
+            if (Config.IsLauncherSinglePageDisplayEnabled) return;
+
+            var currentIndex = Array.IndexOf(CategoryCycle, CurrentCategory);
+            var newIndex = (currentIndex + 1) % CategoryCycle.Length;
+            SelectCategory(CategoryCycle[newIndex]);
         }
 
         partial void OnSearchTextChanged(string value)
         {
-            _ = UpdateFilterAsync();
-        }
-
-        private async Task UpdateFilterAsync()
-        {
-            _renderCancellationTokenSource?.Cancel();
-            _renderCancellationTokenSource = new CancellationTokenSource();
-            var token = _renderCancellationTokenSource.Token;
-
-            try
-            {
-                var result = await _mediator.Send(new FilterLauncherItemsFeature.Command(
-                    Items,
-                    _itemOrders,
-                    CurrentCategory,
-                    Config.IsLauncherSinglePageDisplayEnabled));
-
-                if (!result.Success) return;
-
-                if (Config.IsLauncherSinglePageDisplayEnabled)
-                {
-                    token.ThrowIfCancellationRequested();
-
-                    Bookmarks.Clear();
-                    Applications.Clear();
-                    Tools.Clear();
-
-                    if (result.Bookmarks != null)
-                    {
-                        await LoadInBatchesAsync(Bookmarks, result.Bookmarks, 20, token);
-                    }
-                    if (result.Applications != null)
-                    {
-                        await LoadInBatchesAsync(Applications, result.Applications, 20, token);
-                    }
-                    if (result.Tools != null)
-                    {
-                        await LoadInBatchesAsync(Tools, result.Tools, 20, token);
-                    }
-                }
-                else
-                {
-                    token.ThrowIfCancellationRequested();
-
-                    FilteredItems.Clear();
-
-                    if (result.FilteredItems != null)
-                    {
-                        await LoadInBatchesAsync(FilteredItems, result.FilteredItems, 20, token);
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // 取消时静默处理
-            }
-        }
-
-        private async Task LoadInBatchesAsync(
-            ObservableCollection<LauncherItem> targetCollection,
-            List<LauncherItem> sourceItems,
-            int batchSize,
-            CancellationToken token)
-        {
-            for (int i = 0; i < sourceItems.Count; i++)
-            {
-                token.ThrowIfCancellationRequested();
-
-                targetCollection.Add(sourceItems[i]);
-
-                if ((i + 1) % batchSize == 0)
-                {
-                    await Task.Delay(15, token);
-                }
-            }
+            _ = RefreshDisplayAsync();
         }
 
         [RelayCommand]

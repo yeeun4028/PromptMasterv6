@@ -1,4 +1,4 @@
-﻿﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,19 +23,19 @@ namespace PromptMasterv6.Features.Launcher
                 Interval = TimeSpan.FromMilliseconds(150)
             };
             _tabHoverTimer.Tick += TabHoverTimer_Tick;
-            PreviewMouseWheel += Window_PreviewMouseWheel;
         }
 
         public LauncherWindow(LauncherViewModel viewModel) : this()
         {
             DataContext = viewModel;
+            viewModel.RequestClose = SafeClose;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var workArea = SystemParameters.WorkArea;
-            double browserTopUiHeight = 85; 
-            
+            double browserTopUiHeight = 85;
+
             Width = workArea.Width;
             Height = workArea.Height - browserTopUiHeight;
             Left = workArea.Left;
@@ -76,22 +76,16 @@ namespace PromptMasterv6.Features.Launcher
 
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (DataContext is LauncherViewModel vm && vm.Config.IsLauncherSinglePageDisplayEnabled)
+            if (DataContext is LauncherViewModel vm)
             {
-                return;
-            }
-
-            if (e.Delta > 0)
-            {
-                if (TabTool.IsChecked == true) TabApplication.IsChecked = true;
-                else if (TabApplication.IsChecked == true) TabBookmark.IsChecked = true;
-                else if (TabBookmark.IsChecked == true) TabTool.IsChecked = true;
-            }
-            else
-            {
-                if (TabBookmark.IsChecked == true) TabApplication.IsChecked = true;
-                else if (TabApplication.IsChecked == true) TabTool.IsChecked = true;
-                else if (TabTool.IsChecked == true) TabBookmark.IsChecked = true;
+                if (e.Delta > 0)
+                {
+                    vm.CycleCategoryUpCommand.Execute(null);
+                }
+                else
+                {
+                    vm.CycleCategoryDownCommand.Execute(null);
+                }
             }
         }
 
