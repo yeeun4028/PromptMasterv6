@@ -1,0 +1,29 @@
+<UserControl x:Class="PromptMasterv6.Features.Workspace.FolderTree.FolderTreeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:utils="clr-namespace:PromptMasterv6.Infrastructure.Converters"
+             mc:Ignorable="d" d:DesignWidth="60" d:DesignHeight="400">
+
+    <UserControl.Resources>
+        <utils:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource Block1Background}" CornerRadius="5,0,0,5">
+        <Grid>
+            <ListBox ItemsSource="{Binding Folders}" 
+                     SelectedItem="{Binding SelectedFolder}"
+                     ItemContainerStyle="{StaticResource FolderListBoxItemStyle}" 
+                     Background="Transparent" 
+                     BorderThickness="0" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                     VerticalAlignment="Top" 
+                     Margin="0,15,0,0"
+                     dd:DragDrop.IsDragSource="True" 
+                     dd:DragDrop.IsDropTarget="True"
+                     dd:DragDrop.DropHandler="{Binding FolderDropHandler}"/>
+        </Grid>
+    </Border>
+</UserControl>

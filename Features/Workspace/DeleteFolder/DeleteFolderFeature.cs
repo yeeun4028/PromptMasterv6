@@ -12,7 +12,7 @@ public static class DeleteFolderFeature
     public record Command(
         FolderItem? Folder,
         ObservableCollection<FolderItem> Folders,
-        ObservableCollection<PromptItem> Files) : IRequest<Result>;
+        ObservableCollection<PromptItem>? Files) : IRequest<Result>;
 
     public record Result(bool Success, bool WasSelected);
 
@@ -25,13 +25,16 @@ public static class DeleteFolderFeature
                 return Task.FromResult(new Result(false, false));
             }
 
-            var filesInFolder = request.Files
-                .Where(f => f.FolderId == request.Folder.Id)
-                .ToList();
-            
-            foreach (var file in filesInFolder) 
+            if (request.Files != null)
             {
-                request.Files.Remove(file);
+                var filesInFolder = request.Files
+                    .Where(f => f.FolderId == request.Folder.Id)
+                    .ToList();
+                
+                foreach (var file in filesInFolder) 
+                {
+                    request.Files.Remove(file);
+                }
             }
 
             bool wasSelected = request.Folders.Contains(request.Folder);

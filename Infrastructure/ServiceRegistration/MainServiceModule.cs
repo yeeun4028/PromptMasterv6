@@ -6,6 +6,10 @@ using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Sidebar;
 using PromptMasterv6.Features.Main.Tray;
 using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Features.Workspace.State;
+using PromptMasterv6.Features.Workspace.FolderTree;
+using PromptMasterv6.Features.Workspace.FileList;
+using PromptMasterv6.Features.Workspace;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
 {
@@ -13,6 +17,12 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
     {
         public void RegisterServices(IServiceCollection services)
         {
+            services.AddSingleton<IWorkspaceState, WorkspaceState>();
+            
+            services.AddSingleton<FolderTreeViewModel>();
+            services.AddSingleton<FileListViewModel>();
+            services.AddSingleton<WorkspaceContainerViewModel>();
+            
             services.AddSingleton<FileManagerViewModel>();
             services.AddSingleton<ContentEditorViewModel>();
             services.AddSingleton<BackupViewModel>();
@@ -40,6 +50,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Workspace.RenameFile.RenameFileFeature.Handler>();
             services.AddSingleton<Features.Workspace.LoadAppData.LoadAppDataFeature.Handler>();
             services.AddSingleton<Features.Workspace.SaveAppData.SaveAppDataFeature.Handler>();
+            services.AddSingleton<Features.Workspace.FileList.GetFilesByFolderFeature.Handler>();
+            services.AddSingleton<Features.Workspace.ReorderFolder.ReorderFolderFeature.Handler>();
 
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
 
