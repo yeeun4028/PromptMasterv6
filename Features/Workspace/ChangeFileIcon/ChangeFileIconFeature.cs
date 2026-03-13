@@ -1,5 +1,5 @@
 using MediatR;
-using PromptMasterv6.Features.Shared.Dialogs;
+using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +17,11 @@ public static class ChangeFileIconFeature
     // 3. 执行逻辑
     public class Handler : IRequestHandler<Command, Result>
     {
-        public Handler()
+        private readonly DialogService _dialogService;
+
+        public Handler(DialogService dialogService)
         {
+            _dialogService = dialogService;
         }
 
         public Task<Result> Handle(Command request, CancellationToken cancellationToken)
@@ -28,10 +31,10 @@ public static class ChangeFileIconFeature
                 return Task.FromResult(new Result(false, null, "文件不能为空"));
             }
 
-            var dialog = new IconInputDialog(request.File.IconGeometry);
-            if (dialog.ShowDialog() == true)
+            var resultGeometry = _dialogService.ShowIconInputDialog(request.File.IconGeometry);
+            if (resultGeometry != null)
             {
-                return Task.FromResult(new Result(true, dialog.ResultGeometry, null));
+                return Task.FromResult(new Result(true, resultGeometry, null));
             }
 
             return Task.FromResult(new Result(false, null, null)); // 用户取消

@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.Sync.ClearLogs;
@@ -8,9 +11,9 @@ namespace PromptMasterv6.Features.Settings.Sync.ClearLogs;
 public static class ClearLogsFeature
 {
     /// <summary>
-    /// 定义输入
+    /// 定义输入（必须实现 IRequest）
     /// </summary>
-    public record Command();
+    public record Command() : IRequest<Result>;
 
     /// <summary>
     /// 定义输出
@@ -18,9 +21,9 @@ public static class ClearLogsFeature
     public record Result(bool Success, string Message);
 
     /// <summary>
-    /// 执行逻辑
+    /// 执行逻辑（必须实现 IRequestHandler）
     /// </summary>
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly LoggerService _logger;
 
@@ -33,9 +36,9 @@ public static class ClearLogsFeature
         }
 
         /// <summary>
-        /// 在这里实现从头到尾的业务逻辑
+        /// 必须带有 CancellationToken 以支持异步取消
         /// </summary>
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             try
             {

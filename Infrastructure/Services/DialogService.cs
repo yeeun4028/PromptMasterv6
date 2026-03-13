@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Forms;
+using PromptMasterv6.Features.Shared.Dialogs;
 
 namespace PromptMasterv6.Infrastructure.Services
 {
@@ -151,6 +152,39 @@ namespace PromptMasterv6.Infrastructure.Services
 
             var dialog = new IconInputDialog(currentGeometry);
             return dialog.ShowDialog() == true ? dialog.ResultGeometry : null;
+        }
+
+        public (bool Confirmed, string? ResultName) ShowNameInputDialog(string initialName)
+        {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowNameInputDialog(initialName));
+            }
+
+            var dialog = new NameInputDialog(initialName);
+            if (dialog.ShowDialog() == true)
+            {
+                return (true, dialog.ResultName);
+            }
+            return (false, null);
+        }
+
+        public BackupFileItem? ShowBackupSelectionDialog(System.Collections.Generic.List<BackupFileItem> backups)
+        {
+            if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == false)
+            {
+                return System.Windows.Application.Current.Dispatcher.Invoke(() => ShowBackupSelectionDialog(backups));
+            }
+
+            var dialog = new Features.Settings.BackupSelectionDialog(backups);
+            var activeWindow = System.Windows.Application.Current?.Windows.OfType<System.Windows.Window>().FirstOrDefault(w => w.IsActive);
+            dialog.Owner = activeWindow ?? System.Windows.Application.Current?.MainWindow;
+
+            if (dialog.ShowDialog() == true)
+            {
+                return dialog.SelectedBackup;
+            }
+            return null;
         }
     }
 }

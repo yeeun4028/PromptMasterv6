@@ -7,6 +7,8 @@ using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Settings.LaunchBar;
 using PromptMasterv6.Features.Settings.ExternalTools;
+using MediatR;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings
 {
@@ -14,6 +16,7 @@ namespace PromptMasterv6.Features.Settings
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
+        private readonly IMediator _mediator;
 
         #region Child ViewModels
 
@@ -58,6 +61,7 @@ namespace PromptMasterv6.Features.Settings
         public SettingsViewModel(
             SettingsService settingsService,
             LoggerService logger,
+            IMediator mediator,
             AiModelsViewModel aiModelsVM,
             SyncViewModel syncVM,
             LauncherSettingsViewModel launcherSettingsVM,
@@ -72,6 +76,7 @@ namespace PromptMasterv6.Features.Settings
         {
             _settingsService = settingsService;
             _logger = logger;
+            _mediator = mediator;
 
             AiModelsVM = aiModelsVM;
             SyncVM = syncVM;
@@ -97,11 +102,10 @@ namespace PromptMasterv6.Features.Settings
         }
 
         [RelayCommand]
-        private void CloseSettings()
+        private async Task CloseSettings()
         {
             IsSettingsOpen = false;
-            _settingsService.SaveConfig();
-            _settingsService.SaveLocalConfig();
+            await _mediator.Send(new CloseSettingsFeature.Command());
         }
 
         #endregion

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.ExternalTools.Messages;
@@ -18,15 +19,7 @@ public partial class SyncViewModel : ObservableObject
     private readonly FileDataService _localDataService;
     private readonly DialogService _dialogService;
     private readonly LoggerService _logger;
-    private readonly ManualRestoreFeature.Handler _manualRestoreHandler;
-    private readonly ManualLocalRestoreFeature.Handler _manualLocalRestoreHandler;
-    private readonly ManualBackupFeature.Handler _manualBackupHandler;
-    private readonly ExportConfigFeature.Handler _exportConfigHandler;
-    private readonly ImportConfigFeature.Handler _importConfigHandler;
-    private readonly SelectExportPathFeature.Handler _selectExportPathHandler;
-    private readonly SelectImportPathFeature.Handler _selectImportPathHandler;
-    private readonly OpenLogFolderFeature.Handler _openLogFolderHandler;
-    private readonly ClearLogsFeature.Handler _clearLogsHandler;
+    private readonly IMediator _mediator;
 
     public AppConfig Config => _settingsService.Config;
     public LocalSettings LocalConfig => _settingsService.LocalConfig;
@@ -40,29 +33,13 @@ public partial class SyncViewModel : ObservableObject
         FileDataService localDataService,
         DialogService dialogService,
         LoggerService logger,
-        ManualRestoreFeature.Handler manualRestoreHandler,
-        ManualLocalRestoreFeature.Handler manualLocalRestoreHandler,
-        ManualBackupFeature.Handler manualBackupHandler,
-        ExportConfigFeature.Handler exportConfigHandler,
-        ImportConfigFeature.Handler importConfigHandler,
-        SelectExportPathFeature.Handler selectExportPathHandler,
-        SelectImportPathFeature.Handler selectImportPathHandler,
-        OpenLogFolderFeature.Handler openLogFolderHandler,
-        ClearLogsFeature.Handler clearLogsHandler)
+        IMediator mediator)
     {
         _settingsService = settingsService;
         _localDataService = localDataService;
         _dialogService = dialogService;
         _logger = logger;
-        _manualRestoreHandler = manualRestoreHandler;
-        _manualLocalRestoreHandler = manualLocalRestoreHandler;
-        _manualBackupHandler = manualBackupHandler;
-        _exportConfigHandler = exportConfigHandler;
-        _importConfigHandler = importConfigHandler;
-        _selectExportPathHandler = selectExportPathHandler;
-        _selectImportPathHandler = selectImportPathHandler;
-        _openLogFolderHandler = openLogFolderHandler;
-        _clearLogsHandler = clearLogsHandler;
+        _mediator = mediator;
     }
 
     [RelayCommand]
@@ -87,7 +64,7 @@ public partial class SyncViewModel : ObservableObject
         RestoreStatus = "正在从云端恢复数据...";
         RestoreStatusColor = System.Windows.Media.Brushes.Orange;
 
-        var result = await _manualRestoreHandler.Handle(new ManualRestoreFeature.Command());
+        var result = await _mediator.Send(new ManualRestoreFeature.Command());
 
         if (result.Success)
         {
@@ -113,14 +90,9 @@ public partial class SyncViewModel : ObservableObject
             return;
         }
 
-        var dialog = new BackupSelectionDialog(backups);
-        
-        var activeWindow = System.Windows.Application.Current.Windows.OfType<System.Windows.Window>().FirstOrDefault(w => w.IsActive);
-        dialog.Owner = activeWindow ?? System.Windows.Application.Current.MainWindow;
+        var selected = _dialogService.ShowBackupSelectionDialog(backups);
+        if (selected == null) return;
 
-        if (dialog.ShowDialog() != true || dialog.SelectedBackup == null) return;
-
-        var selected = dialog.SelectedBackup;
         if (!_dialogService.ShowConfirmation($"确定要恢复到备份点：\n{selected.DisplayText} 吗？\n当前未保存的更改将会丢失。", "确认恢复"))
         {
             return;
@@ -129,7 +101,7 @@ public partial class SyncViewModel : ObservableObject
         RestoreStatus = "正在恢复本地数据...";
         RestoreStatusColor = System.Windows.Media.Brushes.Orange;
 
-        var result = await _manualLocalRestoreHandler.Handle(new ManualLocalRestoreFeature.Command(selected.FilePath));
+        var result = await _mediator.Send(new ManualLocalRestoreFeature.Command(selected.FilePath));
 
         if (result.Success)
         {
@@ -146,7 +118,7 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ManualBackup()
     {
-        var result = await _manualBackupHandler.Handle(new ManualBackupFeature.Command());
+        var result = await _mediator.Send(new ManualBackupFeature.Command());
         
         if (result.Success)
         {
@@ -162,9 +134,8 @@ public partial class SyncViewModel : ObservableObject
     private async Task ExportConfig()
     {
         // 1. 选择导出路径
-        var selectResult = await _selectExportPathHandler.Handle(
-            new SelectExportPathFeature.Command($"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip", "zip"),
-            CancellationToken.None
+        var selectResult = await _mediator.Send(
+            new SelectExportPathFeature.Command($"PromptMasterv6_Config_{DateTime.Now:yyyyMMdd_HHmm}.zip", "zip")
         );
 
         if (!selectResult.Success || selectResult.UserCancelled)
@@ -173,7 +144,7 @@ public partial class SyncViewModel : ObservableObject
         }
 
         // 2. 执行导出
-        var result = _exportConfigHandler.Handle(new ExportConfigFeature.Command(selectResult.SelectedPath!));
+        var result = await _mediator.Send(new ExportConfigFeature.Command(selectResult.SelectedPath!));
 
         if (result.Success)
         {
@@ -189,9 +160,8 @@ public partial class SyncViewModel : ObservableObject
     private async Task ImportConfig()
     {
         // 1. 选择导入路径
-        var selectResult = await _selectImportPathHandler.Handle(
-            new SelectImportPathFeature.Command("zip"),
-            CancellationToken.None
+        var selectResult = await _mediator.Send(
+            new SelectImportPathFeature.Command("zip")
         );
 
         if (!selectResult.Success || selectResult.UserCancelled)
@@ -202,7 +172,7 @@ public partial class SyncViewModel : ObservableObject
         // 2. 确认导入
         if (_dialogService.ShowConfirmation("导入配置将覆盖当前的设置，确定要继续吗？\n(操作后将自动重启生效)", "确认导入"))
         {
-            var result = _importConfigHandler.Handle(new ImportConfigFeature.Command(selectResult.SelectedPath!));
+            var result = await _mediator.Send(new ImportConfigFeature.Command(selectResult.SelectedPath!));
 
             if (result.Success)
             {
@@ -220,7 +190,7 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenLogFolder()
     {
-        var result = await _openLogFolderHandler.Handle(new OpenLogFolderFeature.Command());
+        var result = await _mediator.Send(new OpenLogFolderFeature.Command());
 
         if (result.Success)
         {
@@ -235,7 +205,7 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task ClearLogs()
     {
-        var result = await _clearLogsHandler.Handle(new ClearLogsFeature.Command());
+        var result = await _mediator.Send(new ClearLogsFeature.Command());
 
         if (result.Success)
         {

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Settings.AiModels;
@@ -22,9 +23,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         private readonly AiModelsViewModel _aiModelsVM;
         private readonly ApiCredentialsViewModel _apiCredentialsVM;
         private readonly DialogService _dialogService;
-        private readonly SaveAiTranslationConfigFeature.Handler _saveAiTranslationConfigHandler;
-        private readonly DeleteAiTranslationConfigFeature.Handler _deleteAiTranslationConfigHandler;
-        private readonly HandleAiModelDeletedFeature.Handler _handleAiModelDeletedHandler;
+        private readonly IMediator _mediator;
 
         public AppConfig Config => _settingsService.Config;
         public ObservableCollection<PromptItem> FilesView => _sessionState.Files;
@@ -51,9 +50,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             AiModelsViewModel aiModelsVM,
             ApiCredentialsViewModel apiCredentialsVM,
             DialogService dialogService,
-            SaveAiTranslationConfigFeature.Handler saveAiTranslationConfigHandler,
-            DeleteAiTranslationConfigFeature.Handler deleteAiTranslationConfigHandler,
-            HandleAiModelDeletedFeature.Handler handleAiModelDeletedHandler)
+            IMediator mediator)
         {
             _settingsService = settingsService;
             _sessionState = sessionState;
@@ -61,9 +58,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
             _aiModelsVM = aiModelsVM;
             _apiCredentialsVM = apiCredentialsVM;
             _dialogService = dialogService;
-            _saveAiTranslationConfigHandler = saveAiTranslationConfigHandler;
-            _deleteAiTranslationConfigHandler = deleteAiTranslationConfigHandler;
-            _handleAiModelDeletedHandler = handleAiModelDeletedHandler;
+            _mediator = mediator;
 
             WeakReferenceMessenger.Default.Register(this);
         }
@@ -83,7 +78,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         }
 
         [RelayCommand]
-        private void SaveAiTranslationConfig()
+        private async Task SaveAiTranslationConfig()
         {
             var promptId = Config.AiTranslationPromptId;
             var promptTitle = "";
@@ -94,7 +89,7 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
                 promptTitle = msg.HasReceivedResponse ? msg.Response?.File?.Title ?? "" : "";
             }
 
-            var result = _saveAiTranslationConfigHandler.Handle(new SaveAiTranslationConfigFeature.Command(
+            var result = await _mediator.Send(new SaveAiTranslationConfigFeature.Command(
                 promptId,
                 promptTitle,
                 Config.AiBaseUrl,
@@ -109,16 +104,16 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
         }
 
         [RelayCommand]
-        private void DeleteAiTranslationConfig(string? configId)
+        private async Task DeleteAiTranslationConfig(string? configId)
         {
             if (string.IsNullOrWhiteSpace(configId)) return;
 
-            _deleteAiTranslationConfigHandler.Handle(new DeleteAiTranslationConfigFeature.Command(configId));
+            await _mediator.Send(new DeleteAiTranslationConfigFeature.Command(configId));
         }
 
         public async void Receive(AiModelDeletedMessage message)
         {
-            var result = await _handleAiModelDeletedHandler.Handle(
+            var result = await _mediator.Send(
                 new HandleAiModelDeletedFeature.Command(message.DeletedModelName)
             );
 

@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.Settings.ExternalTools.HandleAiModelDeleted;
@@ -8,9 +11,9 @@ namespace PromptMasterv6.Features.Settings.ExternalTools.HandleAiModelDeleted;
 public static class HandleAiModelDeletedFeature
 {
     /// <summary>
-    /// 定义输入
+    /// 定义输入（必须实现 IRequest）
     /// </summary>
-    public record Command(string DeletedModelName);
+    public record Command(string DeletedModelName) : IRequest<Result>;
 
     /// <summary>
     /// 定义输出
@@ -18,9 +21,9 @@ public static class HandleAiModelDeletedFeature
     public record Result(bool Success, string Message, int AffectedConfigCount);
 
     /// <summary>
-    /// 执行逻辑
+    /// 执行逻辑（必须实现 IRequestHandler）
     /// </summary>
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
@@ -35,9 +38,9 @@ public static class HandleAiModelDeletedFeature
         }
 
         /// <summary>
-        /// 在这里实现从头到尾的业务逻辑
+        /// 必须带有 CancellationToken 以支持异步取消
         /// </summary>
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             try
             {

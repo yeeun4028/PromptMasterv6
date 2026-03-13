@@ -35,6 +35,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly SettingsService _settingsService;
     private readonly LoggerService _logger;
     private readonly IMediator _mediator;
+    private readonly DialogService _dialogService;
 
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
 
@@ -58,12 +59,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ContentEditorViewModel contentEditorVM,
         BackupViewModel backupVM,
         SidebarViewModel sidebarVM,
-        IMediator mediator)
+        IMediator mediator,
+        DialogService dialogService)
     {
         _settingsService = settingsService;
         _keyService = keyService;
         _logger = logger;
         _mediator = mediator;
+        _dialogService = dialogService;
 
         FileManagerVM = fileManagerVM;
         ContentEditorVM = contentEditorVM;
@@ -104,11 +107,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             if (m.Success)
             {
-                HandyControl.Controls.Growl.Success("云端备份已完成");
+                _dialogService.ShowToast("云端备份已完成", "Success");
             }
             else
             {
-                HandyControl.Controls.Growl.Error($"云端备份失败: {m.ErrorMessage}");
+                _dialogService.ShowToast($"云端备份失败: {m.ErrorMessage}", "Error");
             }
         });
     }

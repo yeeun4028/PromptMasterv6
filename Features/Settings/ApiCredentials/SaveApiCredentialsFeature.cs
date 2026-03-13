@@ -1,23 +1,36 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.ExternalTools.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.ApiCredentials
 {
     public static class SaveApiCredentialsFeature
     {
+        /// <summary>
+        /// 定义输入（必须实现 IRequest）
+        /// </summary>
         public record Command(
             ApiProvider Provider,
             ServiceType ServiceType,
             string Name,
             string Key1,
             string Key2,
-            string? BaseUrl = null);
+            string? BaseUrl = null) : IRequest<Result>;
+        
+        /// <summary>
+        /// 定义输出
+        /// </summary>
         public record Result(bool Success);
 
-        public class Handler
+        /// <summary>
+        /// 执行逻辑（必须实现 IRequestHandler）
+        /// </summary>
+        public class Handler : IRequestHandler<Command, Result>
         {
             private readonly SettingsService _settingsService;
 
@@ -26,7 +39,10 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
                 _settingsService = settingsService;
             }
 
-            public Result Handle(Command request)
+            /// <summary>
+            /// 必须带有 CancellationToken 以支持异步取消
+            /// </summary>
+            public Task<Result> Handle(Command request, CancellationToken cancellationToken)
             {
                 var profile = _settingsService.Config.ApiProfiles.FirstOrDefault(p =>
                     p.Provider == request.Provider && p.ServiceType == request.ServiceType);
@@ -61,7 +77,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
                 _settingsService.SaveConfig();
                 WeakReferenceMessenger.Default.Send(new RefreshExternalToolsMessage());
 
-                return new Result(true);
+                return Task.FromResult(new Result(true));
             }
         }
     }

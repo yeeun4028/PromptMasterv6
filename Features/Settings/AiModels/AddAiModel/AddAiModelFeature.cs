@@ -1,5 +1,8 @@
+using MediatR;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Infrastructure.Services;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.AiModels.AddAiModel;
 
@@ -9,14 +12,14 @@ namespace PromptMasterv6.Features.Settings.AiModels.AddAiModel;
 public static class AddAiModelFeature
 {
     /// <summary>
-    /// 定义输入
+    /// 定义输入（必须实现 IRequest）
     /// </summary>
     public record Command(
         string ModelName = "gpt-3.5-turbo",
         string BaseUrl = "https://api.openai.com/v1",
         string ApiKey = "",
         string Remark = "New Model"
-    );
+    ) : IRequest<Result>;
 
     /// <summary>
     /// 定义输出
@@ -24,9 +27,9 @@ public static class AddAiModelFeature
     public record Result(bool Success, string Message, AiModelConfig? AddedModel);
 
     /// <summary>
-    /// 执行逻辑
+    /// 执行逻辑（必须实现 IRequestHandler）
     /// </summary>
-    public class Handler
+    public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
@@ -41,9 +44,9 @@ public static class AddAiModelFeature
         }
 
         /// <summary>
-        /// 在这里实现从头到尾的业务逻辑
+        /// 必须带有 CancellationToken 以支持异步取消
         /// </summary>
-        public async Task<Result> Handle(Command request)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             try
             {

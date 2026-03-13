@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Settings.AiModels.AddAiModel;
 using PromptMasterv6.Features.Settings.AiModels.RenameAiModel;
-using PromptMasterv6.Features.Shared.Dialogs;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,10 +14,7 @@ namespace PromptMasterv6.Features.Settings.AiModels;
 public partial class AiModelsViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
-    private readonly TestAiConnectionFeature.Handler _testHandler;
-    private readonly DeleteAiModelFeature.Handler _deleteHandler;
-    private readonly AddAiModelFeature.Handler _addAiModelHandler;
-    private readonly RenameAiModelFeature.Handler _renameAiModelHandler;
+    private readonly IMediator _mediator;
     private readonly DialogService _dialogService;
 
     [ObservableProperty] private string? testStatus;
@@ -30,17 +27,11 @@ public partial class AiModelsViewModel : ObservableObject
 
     public AiModelsViewModel(
         SettingsService settingsService,
-        TestAiConnectionFeature.Handler testHandler,
-        DeleteAiModelFeature.Handler deleteHandler,
-        AddAiModelFeature.Handler addAiModelHandler,
-        RenameAiModelFeature.Handler renameAiModelHandler,
+        IMediator mediator,
         DialogService dialogService)
     {
         _settingsService = settingsService;
-        _testHandler = testHandler;
-        _deleteHandler = deleteHandler;
-        _addAiModelHandler = addAiModelHandler;
-        _renameAiModelHandler = renameAiModelHandler;
+        _mediator = mediator;
         _dialogService = dialogService;
     }
 
@@ -55,7 +46,7 @@ public partial class AiModelsViewModel : ObservableObject
         var cmd = new TestAiConnectionFeature.Command(
             model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
 
-        var result = await _testHandler.Handle(cmd);
+        var result = await _mediator.Send(cmd);
 
         TestStatus = result.Success && result.ResponseTimeMs.HasValue 
             ? $"{result.Message} ({result.ResponseTimeMs}ms)" 
@@ -85,7 +76,7 @@ public partial class AiModelsViewModel : ObservableObject
         {
             var cmd = new TestAiConnectionFeature.Command(
                 model.ApiKey, model.BaseUrl, model.ModelName, model.UseProxy);
-            var result = await _testHandler.Handle(cmd);
+            var result = await _mediator.Send(cmd);
             
             if (result.Success)
             {
@@ -117,7 +108,7 @@ public partial class AiModelsViewModel : ObservableObject
     [RelayCommand]
     private async Task AddAiModel()
     {
-        var result = await _addAiModelHandler.Handle(new AddAiModelFeature.Command());
+        var result = await _mediator.Send(new AddAiModelFeature.Command());
 
         if (result.Success && result.AddedModel != null)
         {
@@ -138,16 +129,18 @@ public partial class AiModelsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteAiModel(AiModelConfig? model)
+    private async Task DeleteAiModel(AiModelConfig? model)
     {
         if (model == null) return;
 
-        var cmd = new DeleteAiModelFeature.Command(model);
-        _deleteHandler.Handle(cmd);
+        var result = await _mediator.Send(new DeleteAiModelFeature.Command(model));
 
-        if (SelectedSavedModel == model)
+        if (result.Success)
         {
-            SelectedSavedModel = null;
+            if (SelectedSavedModel == model)
+            {
+                SelectedSavedModel = null;
+            }
         }
     }
 
@@ -157,10 +150,11 @@ public partial class AiModelsViewModel : ObservableObject
         if (model == null) return;
 
         string initialName = string.IsNullOrWhiteSpace(model.Remark) ? model.ModelName : model.Remark;
-        var dialog = new NameInputDialog(initialName);
-        if (dialog.ShowDialog() == true)
+        var (confirmed, resultName) = _dialogService.ShowNameInputDialog(initialName);
+        
+        if (confirmed && !string.IsNullOrWhiteSpace(resultName))
         {
-            var result = await _renameAiModelHandler.Handle(new RenameAiModelFeature.Command(model.Id, dialog.ResultName));
+            var result = await _mediator.Send(new RenameAiModelFeature.Command(model.Id, resultName));
 
             if (result.Success)
             {

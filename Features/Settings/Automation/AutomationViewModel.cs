@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using System.Collections.ObjectModel;
@@ -8,7 +9,7 @@ namespace PromptMasterv6.Features.Settings.Automation
 {
     public partial class AutomationViewModel : ObservableObject
     {
-        private readonly UpdateAutomationFeature.Handler _updateAutomationHandler;
+        private readonly IMediator _mediator;
         private readonly LoggerService _logger;
         private readonly DialogService _dialogService;
 
@@ -17,12 +18,12 @@ namespace PromptMasterv6.Features.Settings.Automation
         [ObservableProperty] private bool _enableDoubleEnterSend;
 
         public AutomationViewModel(
-            UpdateAutomationFeature.Handler updateAutomationHandler,
+            IMediator mediator,
             LoggerService logger,
             SettingsService settingsService,
             DialogService dialogService)
         {
-            _updateAutomationHandler = updateAutomationHandler;
+            _mediator = mediator;
             _logger = logger;
             _dialogService = dialogService;
 
@@ -38,7 +39,7 @@ namespace PromptMasterv6.Features.Settings.Automation
         {
             var command = new UpdateAutomationFeature.Command(DefaultWebTargetName, EnableDoubleEnterSend);
 
-            var result = await _updateAutomationHandler.Handle(command, CancellationToken.None);
+            var result = await _mediator.Send(command);
 
             if (result.Success)
             {

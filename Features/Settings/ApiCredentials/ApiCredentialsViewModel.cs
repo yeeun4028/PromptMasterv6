@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using System.Linq;
@@ -10,12 +11,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
     public partial class ApiCredentialsViewModel : ObservableObject
     {
         private readonly SettingsService _settingsService;
-        private readonly TestBaiduOcrFeature.Handler _testBaiduOcrHandler;
-        private readonly TestBaiduTranslateFeature.Handler _testBaiduTranslateHandler;
-        private readonly TestTencentOcrFeature.Handler _testTencentOcrHandler;
-        private readonly TestTencentTranslateFeature.Handler _testTencentTranslateHandler;
-        private readonly TestGoogleFeature.Handler _testGoogleHandler;
-        private readonly SaveApiCredentialsFeature.Handler _saveCredentialsHandler;
+        private readonly IMediator _mediator;
 
         public AppConfig Config => _settingsService.Config;
 
@@ -87,20 +83,10 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public ApiCredentialsViewModel(
             SettingsService settingsService,
-            TestBaiduOcrFeature.Handler testBaiduOcrHandler,
-            TestBaiduTranslateFeature.Handler testBaiduTranslateHandler,
-            TestTencentOcrFeature.Handler testTencentOcrHandler,
-            TestTencentTranslateFeature.Handler testTencentTranslateHandler,
-            TestGoogleFeature.Handler testGoogleHandler,
-            SaveApiCredentialsFeature.Handler saveCredentialsHandler)
+            IMediator mediator)
         {
             _settingsService = settingsService;
-            _testBaiduOcrHandler = testBaiduOcrHandler;
-            _testBaiduTranslateHandler = testBaiduTranslateHandler;
-            _testTencentOcrHandler = testTencentOcrHandler;
-            _testTencentTranslateHandler = testTencentTranslateHandler;
-            _testGoogleHandler = testGoogleHandler;
-            _saveCredentialsHandler = saveCredentialsHandler;
+            _mediator = mediator;
 
             LoadAllCredentials();
         }
@@ -123,7 +109,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             BaiduOcrTestStatus = "测试中...";
             BaiduOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            var result = await _testBaiduOcrHandler.Handle(new TestBaiduOcrFeature.Command(BaiduOcrApiKey ?? "", BaiduOcrSecretKey ?? ""));
+            var result = await _mediator.Send(new TestBaiduOcrFeature.Command(BaiduOcrApiKey ?? "", BaiduOcrSecretKey ?? ""));
 
             BaiduOcrTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
             BaiduOcrTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
@@ -137,7 +123,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             BaiduTranslateTestStatus = "测试中...";
             BaiduTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            var result = await _testBaiduTranslateHandler.Handle(new TestBaiduTranslateFeature.Command(BaiduTranslateAppId ?? "", BaiduTranslateSecretKey ?? ""));
+            var result = await _mediator.Send(new TestBaiduTranslateFeature.Command(BaiduTranslateAppId ?? "", BaiduTranslateSecretKey ?? ""));
 
             BaiduTranslateTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
             BaiduTranslateTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
@@ -155,7 +141,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             TencentOcrTestStatus = "测试中...";
             TencentOcrTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            var result = await _testTencentOcrHandler.Handle(new TestTencentOcrFeature.Command(TencentOcrSecretId ?? "", TencentOcrSecretKey ?? ""));
+            var result = await _mediator.Send(new TestTencentOcrFeature.Command(TencentOcrSecretId ?? "", TencentOcrSecretKey ?? ""));
 
             TencentOcrTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
             TencentOcrTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
@@ -169,7 +155,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             TencentTranslateTestStatus = "测试中...";
             TencentTranslateTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            var result = await _testTencentTranslateHandler.Handle(new TestTencentTranslateFeature.Command(TencentTranslateSecretId ?? "", TencentTranslateSecretKey ?? ""));
+            var result = await _mediator.Send(new TestTencentTranslateFeature.Command(TencentTranslateSecretId ?? "", TencentTranslateSecretKey ?? ""));
 
             TencentTranslateTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
             TencentTranslateTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
@@ -210,7 +196,7 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
             GoogleTestStatus = "测试中...";
             GoogleTestStatusColor = System.Windows.Media.Brushes.Gray;
 
-            var result = await _testGoogleHandler.Handle(new TestGoogleFeature.Command(GoogleBaseUrl ?? "", GoogleApiKey ?? ""));
+            var result = await _mediator.Send(new TestGoogleFeature.Command(GoogleBaseUrl ?? "", GoogleApiKey ?? ""));
 
             GoogleTestStatus = result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
             GoogleTestStatusColor = result.Success ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
@@ -242,13 +228,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveBaiduCredentials()
         {
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Baidu, ServiceType.OCR, "百度 OCR",
-                BaiduOcrApiKey ?? "", BaiduOcrSecretKey ?? ""));
+                BaiduOcrApiKey ?? "", BaiduOcrSecretKey ?? "")).Wait();
 
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Baidu, ServiceType.Translation, "百度翻译",
-                BaiduTranslateAppId ?? "", BaiduTranslateSecretKey ?? ""));
+                BaiduTranslateAppId ?? "", BaiduTranslateSecretKey ?? "")).Wait();
         }
 
         private void LoadTencentCredentials()
@@ -273,13 +259,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveTencentCredentials()
         {
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Tencent, ServiceType.OCR, "腾讯云 OCR",
-                TencentOcrSecretId ?? "", TencentOcrSecretKey ?? ""));
+                TencentOcrSecretId ?? "", TencentOcrSecretKey ?? "")).Wait();
 
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Tencent, ServiceType.Translation, "腾讯云翻译",
-                TencentTranslateSecretId ?? "", TencentTranslateSecretKey ?? ""));
+                TencentTranslateSecretId ?? "", TencentTranslateSecretKey ?? "")).Wait();
         }
 
         private void LoadGoogleCredentials()
@@ -296,9 +282,9 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveGoogleCredentials()
         {
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Google, ServiceType.Translation, "Google 翻译",
-                GoogleApiKey ?? "", "", GoogleBaseUrl ?? ""));
+                GoogleApiKey ?? "", "", GoogleBaseUrl ?? "")).Wait();
         }
 
         private void LoadYoudaoCredentials()
@@ -323,13 +309,13 @@ namespace PromptMasterv6.Features.Settings.ApiCredentials
 
         public void SaveYoudaoCredentials()
         {
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Youdao, ServiceType.OCR, "有道 OCR",
-                YoudaoOcrAppKey ?? "", YoudaoOcrAppSecret ?? ""));
+                YoudaoOcrAppKey ?? "", YoudaoOcrAppSecret ?? "")).Wait();
 
-            _saveCredentialsHandler.Handle(new SaveApiCredentialsFeature.Command(
+            _mediator.Send(new SaveApiCredentialsFeature.Command(
                 ApiProvider.Youdao, ServiceType.Translation, "有道翻译",
-                YoudaoTranslateAppKey ?? "", YoudaoTranslateAppSecret ?? ""));
+                YoudaoTranslateAppKey ?? "", YoudaoTranslateAppSecret ?? "")).Wait();
         }
 
         #endregion

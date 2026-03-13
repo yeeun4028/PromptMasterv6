@@ -1,18 +1,20 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Sync
 {
     public static class ManualLocalRestoreFeature
     {
-        public record Command(string FilePath);
+        public record Command(string FilePath) : IRequest<Result>;
         public record Result(bool Success, string Message);
 
-        public class Handler
+        public class Handler : IRequestHandler<Command, Result>
         {
             private readonly FileDataService _localDataService;
             private readonly ISessionState _sessionState;
@@ -25,7 +27,7 @@ namespace PromptMasterv6.Features.Settings.Sync
                 _logger = logger;
             }
 
-            public async Task<Result> Handle(Command request)
+            public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
             {
                 try
                 {

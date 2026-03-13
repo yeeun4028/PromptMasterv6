@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
 
-namespace PromptMasterv6
+namespace PromptMasterv6.Features.Shared.Dialogs
 {
     public partial class IconInputDialog : Window
     {

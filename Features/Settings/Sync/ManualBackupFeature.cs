@@ -1,15 +1,17 @@
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.Sync
 {
     public static class ManualBackupFeature
     {
-        public record Command();
+        public record Command() : IRequest<Result>;
         public record Result(bool Success, string Message);
 
-        public class Handler
+        public class Handler : IRequestHandler<Command, Result>
         {
             private readonly IDataService _dataService;
             private readonly SettingsService _settingsService;
@@ -24,7 +26,7 @@ namespace PromptMasterv6.Features.Settings.Sync
                 _logger = logger;
             }
 
-            public async Task<Result> Handle(Command request)
+            public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
             {
                 try
                 {

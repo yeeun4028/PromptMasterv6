@@ -1,9 +1,9 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 // ★★★ 关键修复：明确指定使用 WPF 版本的 MessageBox，解决与 WinForms 的冲突 ★★★
 using MessageBox = System.Windows.MessageBox;
 
-namespace PromptMasterv6
+namespace PromptMasterv6.Features.Shared.Dialogs
 {
     public partial class NameInputDialog : Window
     {

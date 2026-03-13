@@ -1,4 +1,4 @@
-﻿<Window x:Class="PromptMasterv6.NameInputDialog"
+<Window x:Class="PromptMasterv6.Features.Shared.Dialogs.NameInputDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="重命名" Width="380" MinHeight="180"

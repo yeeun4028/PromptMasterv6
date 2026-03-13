@@ -1,5 +1,5 @@
 using MediatR;
-using PromptMasterv6.Features.Shared.Dialogs;
+using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +14,13 @@ public static class ChangeFileIconFeature
 
     public class Handler : IRequestHandler<Command, Result>
     {
+        private readonly DialogService _dialogService;
+
+        public Handler(DialogService dialogService)
+        {
+            _dialogService = dialogService;
+        }
+
         public Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             if (request.File == null)
@@ -21,11 +28,11 @@ public static class ChangeFileIconFeature
                 return Task.FromResult(new Result(false, null));
             }
 
-            var dialog = new IconInputDialog(request.File.IconGeometry);
-            if (dialog.ShowDialog() == true)
+            var resultGeometry = _dialogService.ShowIconInputDialog(request.File.IconGeometry);
+            if (resultGeometry != null)
             {
-                request.File.IconGeometry = dialog.ResultGeometry;
-                return Task.FromResult(new Result(true, dialog.ResultGeometry));
+                request.File.IconGeometry = resultGeometry;
+                return Task.FromResult(new Result(true, resultGeometry));
             }
 
             return Task.FromResult(new Result(false, null));
