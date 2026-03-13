@@ -24,6 +24,7 @@ public partial class SyncViewModel : ObservableObject
     [ObservableProperty] private bool isRestoreConfirmVisible;
     [ObservableProperty] private string? restoreStatus;
     [ObservableProperty] private RestoreStatusType currentRestoreStatus = RestoreStatusType.None;
+    [ObservableProperty] private string? clearLogsStatus;
 
     public SyncViewModel(
         SettingsService settingsService,
@@ -195,10 +196,12 @@ public partial class SyncViewModel : ObservableObject
 
         if (result.Success)
         {
+            ClearLogsStatus = $"✅ {result.Message}";
             _dialogService.ShowToast(result.Message, "Success");
         }
         else
         {
+            ClearLogsStatus = $"❌ {result.Message}";
             _dialogService.ShowAlert(result.Message, "错误");
         }
     }

@@ -6,14 +6,12 @@
     <MenuItem Header="显示/隐藏窗口"
               Style="{StaticResource TrayMenuItemStyle}"
               Command="{Binding ToggleVisibilityCommand}"/>
-    <Separator/>
     <MenuItem Header="云端同步"
               Style="{StaticResource TrayMenuItemStyle}"
               Command="{Binding ManualBackupCommand}"/>
     <MenuItem Header="配置中心"
               Style="{StaticResource TrayMenuItemStyle}"
               Command="{Binding OpenSettingsCommand}"/>
-    <Separator/>
     <MenuItem Header="退出"
               Style="{StaticResource TrayMenuItemStyle}"
               Command="{Binding ExitCommand}"/>

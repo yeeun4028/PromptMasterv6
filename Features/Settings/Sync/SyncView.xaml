@@ -191,6 +191,22 @@
                             <Button Content="清除所有日志"
                                     Command="{Binding ClearLogsCommand}"
                                     Style="{StaticResource DangerLinkButtonStyle}"/>
+                            <TextBlock Text="{Binding ClearLogsStatus}"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"
+                                       Margin="14,0,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ClearLogsStatus, Converter={StaticResource StringToVis}}" Value="Visible">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </StackPanel>
                     </StackPanel>
                 </Border>
