@@ -16,7 +16,7 @@ using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
-using PromptMasterv6.Features.Main.ManageFiles;
+using PromptMasterv6.Features.Workspace._LegacyUI;
 
 using TextBox = System.Windows.Controls.TextBox;
 using MessageBox = System.Windows.MessageBox;
@@ -347,6 +347,8 @@ namespace PromptMasterv6.Features.Main
             {
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
             }
+
+            _fileManagerVM.Cleanup();
 
             WeakReferenceMessenger.Default.Unregister<ToggleMainWindowMessage>(this);
 

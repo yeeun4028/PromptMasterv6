@@ -1,6 +1,6 @@
 using MediatR;
 using PromptMasterv6.Features.Shared.Models;
-using PromptMasterv6.Features.Main.ManageFiles.Messages;
+using PromptMasterv6.Features.Workspace.Messages;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,8 @@ namespace PromptMasterv6.Features.ExternalTools.PerformScreenshotTranslate;
 
 public static class PerformScreenshotTranslateFeature
 {
-    // 1. 定义输入
     public record Command() : IRequest<Result>;
 
-    // 2. 定义输出
     public record Result(
         bool Success,
         string? TranslatedText,
@@ -24,7 +22,6 @@ public static class PerformScreenshotTranslateFeature
         bool ShouldShowPopup,
         string? ErrorMessage);
 
-    // 3. 执行逻辑
     public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
@@ -48,13 +45,11 @@ public static class PerformScreenshotTranslateFeature
         {
             var config = _settingsService.Config;
 
-            // 获取 Vision 模型
             var enabledVisionModels = config.SavedModels
                 .Where(m => m.IsEnableForScreenshotTranslate)
                 .ToList();
             bool useVisionTranslate = enabledVisionModels.Any();
 
-            // 获取 OCR 和翻译 Profile
             var enabledOcrProfiles = config.ApiProfiles
                 .Where(p => p.ServiceType == ServiceType.OCR && p.IsEnabled)
                 .ToList();
@@ -62,7 +57,6 @@ public static class PerformScreenshotTranslateFeature
                 .Where(p => p.ServiceType == ServiceType.Translation && p.IsEnabled)
                 .ToList();
 
-            // 检查配置
             if (!useVisionTranslate && (enabledOcrProfiles.Count == 0 || enabledTransProfiles.Count == 0))
             {
                 return new Result(false, null, null, true, false, "未配置 OCR 或翻译服务");
@@ -71,7 +65,6 @@ public static class PerformScreenshotTranslateFeature
             string? translatedResult = null;
             System.Windows.Rect? actionRect = null;
 
-            // 获取 AI 翻译 Prompt
             string? aiTranslationPromptContent = null;
             if (!string.IsNullOrWhiteSpace(config.AiTranslationPromptId))
             {
@@ -83,22 +76,18 @@ public static class PerformScreenshotTranslateFeature
                 }
             }
 
-            // 获取 AI OCR 模型
             var enabledAiOcrModels = config.SavedModels
                 .Where(m => m.IsEnableForOcr)
                 .ToList();
 
-            // 获取 AI 翻译模型
             var enabledAiTransModels = config.SavedModels
                 .Where(m => m.IsEnableForTranslation)
                 .ToList();
 
-            // 显示截图窗口并执行翻译
             var capturedBytes = await _windowManager.ShowCaptureWindowAsync(async (byte[] bytes, System.Windows.Rect rect) =>
             {
                 actionRect = rect;
 
-                // 尝试 Vision 翻译
                 if (useVisionTranslate)
                 {
                     var visionResult = await _mediator.Send(new PerformVisionTranslate.PerformVisionTranslateFeature.Command(
@@ -112,7 +101,6 @@ public static class PerformScreenshotTranslateFeature
                         return;
                     }
 
-                    // Vision 翻译失败，检查是否有备选方案
                     if (enabledOcrProfiles.Count == 0 || enabledTransProfiles.Count == 0)
                     {
                         translatedResult = visionResult.ErrorMessage ?? "Vision 翻译失败";
@@ -120,7 +108,6 @@ public static class PerformScreenshotTranslateFeature
                     }
                 }
 
-                // 执行 OCR
                 var ocrResult = await _mediator.Send(new PerformOcr.PerformOcrFeature.Command(
                     bytes,
                     enabledOcrProfiles,
@@ -133,7 +120,6 @@ public static class PerformScreenshotTranslateFeature
                     return;
                 }
 
-                // 执行翻译
                 var transResult = await _mediator.Send(new PerformTranslate.PerformTranslateFeature.Command(
                     ocrResult.OcrText,
                     enabledTransProfiles,
@@ -151,13 +137,11 @@ public static class PerformScreenshotTranslateFeature
                 return new Result(false, null, null, false, false, "用户取消截图");
             }
 
-            // 判断结果
             if (string.IsNullOrWhiteSpace(translatedResult))
             {
                 return new Result(false, null, actionRect, false, true, "翻译结果为空");
             }
 
-            // 检查是否为错误结果
             bool isError = translatedResult.StartsWith("OCR 错误") ||
                            translatedResult.StartsWith("错误") ||
                            translatedResult == "无法识别文字" ||

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using PromptMasterv6.Features.AiModels._LegacyUI;
 
 namespace PromptMasterv6.Features.Settings
 {
@@ -40,7 +41,7 @@ namespace PromptMasterv6.Features.Settings
             var launcherView = _serviceProvider.GetService<Launcher.LauncherView>();
             var windowView = _serviceProvider.GetService<Window.WindowView>();
             var automationView = _serviceProvider.GetService<Automation.AutomationView>();
-            var aiModelsView = _serviceProvider.GetService<AiModels.AiModelsView>();
+            var aiModelsView = _serviceProvider.GetService<AiModelsView>();
             var syncView = _serviceProvider.GetService<Sync.SyncView>();
             var externalToolsSettingsView = _serviceProvider.GetService<ExternalTools.ExternalToolsSettingsView>();
             var launchBarView = _serviceProvider.GetService<LaunchBar.LaunchBarView>();

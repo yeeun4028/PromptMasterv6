@@ -92,7 +92,7 @@ public partial class {SliceGroup}ViewModel : ObservableObject
 using MediatR;
 // NO UI namespaces allowed here!
 
-namespace PromptMasterv6.Features.Settings.AiModels.UseCases.TestConnection
+namespace PromptMasterv6.Features.AiModels.TestConnection
 {
     public static class TestConnectionFeature
     {
@@ -132,7 +132,7 @@ namespace PromptMasterv6.Features.Settings.AiModels.UseCases.TestConnection
 **Events/{Entity}{PastTenseVerb}Event.cs**:
 
 ```csharp
-namespace PromptMasterv6.Features.Settings.AiModels.Events
+namespace PromptMasterv6.Features.AiModels.Messages
 {
     // Naming Rule: Past tense! It already happened.
     public record AiModelDeletedEvent(string ModelId) : INotification;

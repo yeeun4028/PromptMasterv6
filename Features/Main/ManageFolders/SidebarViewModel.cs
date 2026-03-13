@@ -5,7 +5,7 @@ using GongSolutions.Wpf.DragDrop;
 using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.Backup.Messages;
-using PromptMasterv6.Features.Main.ManageFiles.Messages;
+using PromptMasterv6.Features.Workspace.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Shared.Models;

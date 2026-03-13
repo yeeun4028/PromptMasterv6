@@ -15,7 +15,7 @@
         xmlns:contextMenu="clr-namespace:PromptMasterv6.Features.Main.ContextMenus"
         xmlns:contentEditor="clr-namespace:PromptMasterv6.Features.Main.ContentEditor"
         xmlns:sidebar="clr-namespace:PromptMasterv6.Features.Main.Sidebar"
-        xmlns:manageFiles="clr-namespace:PromptMasterv6.Features.Main.ManageFiles"
+        xmlns:manageFiles="clr-namespace:PromptMasterv6.Features.Workspace._LegacyUI"
         mc:Ignorable="d"
         Title="PromptMaster v6" 
         Height="600" Width="1000"

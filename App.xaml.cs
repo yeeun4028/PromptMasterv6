@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Main.ManageFiles;
+using PromptMasterv6.Features.Workspace._LegacyUI;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Sidebar;
@@ -16,7 +16,7 @@ using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Settings;
-using PromptMasterv6.Features.Settings.AiModels;
+using PromptMasterv6.Features.AiModels._LegacyUI;
 using PromptMasterv6.Features.Settings.ExternalTools;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;
@@ -79,13 +79,11 @@ namespace PromptMasterv6
 
             try
             {
-                // 配置服务
                 LoggerService.Instance.LogInfo("Configuring services...", "App.OnStartup");
                 var services = new ServiceCollection();
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
 
-                // 通过 MediatR 发送单实例检查命令
                 var mediator = _serviceProvider.GetRequiredService<IMediator>();
                 var singleInstanceResult = await mediator.Send(
                     new Features.AppCore.SingleInstance.EnsureSingleInstanceFeature.Command(MutexName, WindowTitle)
@@ -101,7 +99,6 @@ namespace PromptMasterv6
                 _singleInstanceMutex = singleInstanceResult.Mutex;
                 _ownsMutex = singleInstanceResult.OwnsMutex;
 
-                // 通过 MediatR 发送初始化命令
                 var initResult = await mediator.Send(
                     new Features.AppCore.Initialization.InitializeApplicationFeature.Command()
                 );
@@ -130,7 +127,6 @@ namespace PromptMasterv6
             {
                 if (_serviceProvider != null)
                 {
-                    // 通过 MediatR 发送清理命令
                     var mediator = _serviceProvider.GetRequiredService<IMediator>();
                     await mediator.Send(
                         new Features.AppCore.Shutdown.CleanupApplicationFeature.Command(
@@ -150,7 +146,6 @@ namespace PromptMasterv6
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            // 注册服务模块
             var modules = new List<Infrastructure.ServiceRegistration.IServiceModule>
             {
                 new Infrastructure.ServiceRegistration.ApplicationServiceModule(),
@@ -159,7 +154,6 @@ namespace PromptMasterv6
                 new Infrastructure.ServiceRegistration.ExternalToolsServiceModule()
             };
 
-            // 遍历所有模块注册服务
             foreach (var module in modules)
             {
                 module.RegisterServices(services);

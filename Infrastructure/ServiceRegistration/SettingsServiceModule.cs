@@ -1,22 +1,22 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Features.Settings;
-using PromptMasterv6.Features.Settings.AiModels;
+using PromptMasterv6.Features.AiModels._LegacyUI;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
+using PromptMasterv6.Features.AiModels.TestConnection;
+using PromptMasterv6.Features.AiModels.DeleteModel;
+using PromptMasterv6.Features.AiModels.AddModel;
+using PromptMasterv6.Features.AiModels.RenameModel;
+using PromptMasterv6.Features.AiModels.TestTranslationBatch;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
 {
-    /// <summary>
-    /// 设置服务模块
-    /// 注册设置相关的ViewModel、窗口和Feature Handlers
-    /// </summary>
     public class SettingsServiceModule : IServiceModule
     {
         public void RegisterServices(IServiceCollection services)
         {
-            // ViewModels
             services.AddTransient<SettingsViewModel>();
             services.AddSingleton<AiModelsViewModel>();
             services.AddSingleton<SyncViewModel>();
@@ -29,7 +29,6 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.LaunchBar.LaunchBarViewModel>();
             services.AddSingleton<Features.Settings.ExternalTools.ExternalToolsSettingsViewModel>();
 
-            // Views (VSA Refactored - 子 View 通过 DI 自动获取 ViewModel)
             services.AddTransient<SettingsView>();
             services.AddTransient<Features.Settings.Shortcut.ShortcutView>();
             services.AddTransient<Features.Settings.Launcher.LauncherView>();
@@ -41,28 +40,24 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddTransient<Features.Settings.LaunchBar.LaunchBarView>();
             services.AddTransient<Features.Settings.Proxy.ProxyView>();
 
-            // Windows
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
             services.AddTransient<LauncherWindow>();
             services.AddTransient<SettingsWindow>();
 
-            // Settings Features - Core
             services.AddSingleton<SelectSettingsTabFeature.Handler>();
             services.AddSingleton<CloseSettingsFeature.Handler>();
 
-            // Settings Features - AiModels
-            services.AddSingleton<Features.Settings.AiModels.TestAiConnectionFeature.Handler>();
-            services.AddSingleton<Features.Settings.AiModels.DeleteAiModelFeature.Handler>();
-            services.AddSingleton<Features.Settings.AiModels.AddAiModel.AddAiModelFeature.Handler>();
-            services.AddSingleton<Features.Settings.AiModels.RenameAiModel.RenameAiModelFeature.Handler>();
+            services.AddSingleton<Features.AiModels.TestConnection.TestAiConnectionFeature.Handler>();
+            services.AddSingleton<Features.AiModels.DeleteModel.DeleteAiModelFeature.Handler>();
+            services.AddSingleton<Features.AiModels.AddModel.AddAiModelFeature.Handler>();
+            services.AddSingleton<Features.AiModels.RenameModel.RenameAiModelFeature.Handler>();
+            services.AddSingleton<Features.AiModels.TestTranslationBatch.TestAiTranslationBatchFeature.Handler>();
 
-            // Settings Features - Launcher
             services.AddSingleton<Features.Settings.Launcher.AddSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.RemoveSearchPathFeature.Handler>();
             services.AddSingleton<Features.Settings.Launcher.SelectSearchPathFeature.Handler>();
 
-            // Settings Features - Sync
             services.AddSingleton<Features.Settings.Sync.GetBackupListFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ManualRestoreFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ManualLocalRestoreFeature.Handler>();
@@ -74,18 +69,15 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.Sync.OpenLogFolder.OpenLogFolderFeature.Handler>();
             services.AddSingleton<Features.Settings.Sync.ClearLogs.ClearLogsFeature.Handler>();
 
-            // Settings Features - ExternalTools
             services.AddSingleton<Features.Settings.ExternalTools.SaveAiTranslationConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.ExternalTools.DeleteAiTranslationConfigFeature.Handler>();
             services.AddSingleton<Features.Settings.ExternalTools.HandleAiModelDeleted.HandleAiModelDeletedFeature.Handler>();
             services.AddSingleton<Features.Settings.ExternalTools.SelectSubTabFeature.Handler>();
 
-            // Settings Features - LaunchBar
             services.AddSingleton<Features.Settings.LaunchBar.AddLaunchBarItemFeature.Handler>();
             services.AddSingleton<Features.Settings.LaunchBar.RemoveLaunchBarItemFeature.Handler>();
             services.AddSingleton<Features.Settings.LaunchBar.MoveLaunchBarItemFeature.Handler>();
 
-            // Settings Features - ApiCredentials
             services.AddSingleton<Features.Settings.ApiCredentials.TestBaiduOcrFeature.Handler>();
             services.AddSingleton<Features.Settings.ApiCredentials.TestBaiduTranslateFeature.Handler>();
             services.AddSingleton<Features.Settings.ApiCredentials.TestTencentOcrFeature.Handler>();
@@ -93,19 +85,14 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Settings.ApiCredentials.TestGoogleFeature.Handler>();
             services.AddSingleton<Features.Settings.ApiCredentials.SaveApiCredentialsFeature.Handler>();
 
-            // Settings Features - Proxy
             services.AddSingleton<Features.Settings.Proxy.UpdateProxyFeature.Handler>();
 
-            // Settings Features - Window
             services.AddSingleton<Features.Settings.Window.UpdateWindowSettingsFeature.Handler>();
 
-            // Settings Features - Automation
             services.AddSingleton<Features.Settings.Automation.UpdateAutomationFeature.Handler>();
 
-            // Settings Features - Shortcut
             services.AddSingleton<Features.Settings.Shortcut.UpdateShortcutFeature.Handler>();
 
-            // Workspace Features
             services.AddSingleton<Features.Workspace.LoadWorkspaceData.LoadWorkspaceDataFeature.Handler>();
             services.AddSingleton<Features.Workspace.SearchOnGitHub.SearchOnGitHubFeature.Handler>();
             services.AddSingleton<Features.Workspace.ChangeFileIcon.ChangeFileIconFeature.Handler>();
@@ -115,7 +102,6 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Workspace.SendToWebTarget.SendToWebTargetFeature.Handler>();
             services.AddSingleton<Features.Workspace.FilterFiles.FilterFilesFeature.Handler>();
 
-            // Launcher Features
             services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();
             services.AddSingleton<Features.Launcher.FilterLauncherItems.FilterLauncherItemsFeature.Handler>();
             services.AddSingleton<Features.Launcher.InitializeLauncher.InitializeLauncherFeature.Handler>();
