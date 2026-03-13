@@ -57,8 +57,8 @@
             <Border Background="{DynamicResource ShellBackground}" CornerRadius="5">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="{Binding LocalConfig.Block1Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" MinWidth="20"/>
-                        <ColumnDefinition Width="{Binding LocalConfig.Block2Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}"/>
+                        <ColumnDefinition Width="{Binding SidebarVM.LocalConfig.Block1Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" MinWidth="20"/>
+                        <ColumnDefinition Width="{Binding SidebarVM.LocalConfig.Block2Width, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 

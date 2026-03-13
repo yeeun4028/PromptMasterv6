@@ -16,6 +16,7 @@ using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Main.WindowManagement;
 using PromptMasterv6.Features.Main.Hotkeys;
 using PromptMasterv6.Features.Main.Mode;
+using PromptMasterv6.Features.Main.Settings;
 
 using System;
 using System.ComponentModel;
@@ -31,20 +32,15 @@ namespace PromptMasterv6.Features.Main;
 public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly GlobalKeyService _keyService;
-    private readonly WindowManager _windowManager;
     private readonly SettingsService _settingsService;
-    private readonly HotkeyService _hotkeyService;
     private readonly LoggerService _logger;
     private readonly IMediator _mediator;
 
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
-    private readonly Subject<System.Reactive.Unit> _saveLocalSettingsSubject = new();
 
     private EventHandler? _onLauncherTriggeredHandler;
-    private PropertyChangedEventHandler? _localConfigPropertyChangedHandler;
 
     [ObservableProperty] private AppConfig config;
-    [ObservableProperty] private LocalSettings localConfig;
     [ObservableProperty] private bool isFullMode = true;
 
     public SettingsService SettingsService => _settingsService;
@@ -57,8 +53,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(
         SettingsService settingsService,
         GlobalKeyService keyService,
-        WindowManager windowManager,
-        HotkeyService hotkeyService,
         LoggerService logger,
         FileManagerViewModel fileManagerVM,
         ContentEditorViewModel contentEditorVM,
@@ -68,8 +62,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         _settingsService = settingsService;
         _keyService = keyService;
-        _windowManager = windowManager;
-        _hotkeyService = hotkeyService;
         _logger = logger;
         _mediator = mediator;
 
@@ -79,7 +71,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         SidebarVM = sidebarVM;
 
         Config = settingsService.Config;
-        LocalConfig = settingsService.LocalConfig;
 
         RegisterMessageHandlers();
         InitializeReactiveStreams();
@@ -128,21 +119,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             .Throttle(TimeSpan.FromSeconds(5))
             .ObserveOn(System.Threading.SynchronizationContext.Current!)
             .Subscribe(_ => WeakReferenceMessenger.Default.Send(new RequestLocalBackupMessage()));
-
-        _saveLocalSettingsSubject
-            .Throttle(TimeSpan.FromSeconds(2))
-            .ObserveOn(System.Threading.SynchronizationContext.Current!)
-            .Subscribe(_ => _settingsService.SaveLocalConfig());
-
-        _localConfigPropertyChangedHandler = (_, e) =>
-        {
-            if (e.PropertyName == nameof(LocalSettings.Block1Width) ||
-                e.PropertyName == nameof(LocalSettings.Block2Width))
-            {
-                _saveLocalSettingsSubject.OnNext(System.Reactive.Unit.Default);
-            }
-        };
-        LocalConfig.PropertyChanged += _localConfigPropertyChangedHandler;
     }
 
     private void InitializeGlobalKeyService()
@@ -150,11 +126,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _onLauncherTriggeredHandler = (_, _) => _ = ShowLauncherAsync();
         _keyService.OnLauncherTriggered += _onLauncherTriggeredHandler;
 
-        _keyService.LauncherHotkeyString = Config.LauncherHotkey;
-        try { _keyService.Start(); }
-        catch (Exception ex)
+        var result = _mediator.Send(new InitializeGlobalHotkeyFeature.Command(Config.LauncherHotkey)).Result;
+        if (!result.Success)
         {
-            _logger.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.InitializeGlobalKeyService");
+            _logger.LogError(result.ErrorMessage ?? "Failed to initialize global hotkey", "MainViewModel.InitializeGlobalKeyService");
         }
     }
 
@@ -178,9 +153,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage());
     }
 
-    public void SimulateFullWindowHotkey()
+    public async void SimulateFullWindowHotkey()
     {
-        _hotkeyService.SimulateHotkey(Config.FullWindowHotkey);
+        await _mediator.Send(new SimulateHotkeyFeature.Command(Config.FullWindowHotkey));
     }
 
     public void ToggleModeViaHotkey()
@@ -223,18 +198,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _disposed = true;
 
         _saveSubject?.Dispose();
-        _saveLocalSettingsSubject?.Dispose();
 
         if (_keyService != null)
         {
             if (_onLauncherTriggeredHandler != null)
                 _keyService.OnLauncherTriggered -= _onLauncherTriggeredHandler;
             _keyService.Dispose();
-        }
-
-        if (LocalConfig != null && _localConfigPropertyChangedHandler != null)
-        {
-            LocalConfig.PropertyChanged -= _localConfigPropertyChangedHandler;
         }
 
         FileManagerVM?.Cleanup();
