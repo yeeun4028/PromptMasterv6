@@ -53,6 +53,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
 
             // Main Features - ContentEditor
+            services.AddSingleton<Features.Main.ContentEditor.SetCurrentFileFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.SyncVariablesFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.ToggleEditModeFeature.Handler>();
             services.AddSingleton<Features.Main.ContentEditor.SearchOnGitHubFeature.Handler>();

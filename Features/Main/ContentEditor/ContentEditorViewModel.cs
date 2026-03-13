@@ -8,7 +8,6 @@ using PromptMasterv6.Features.Main.FileManager.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Shared.Models;
-using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Infrastructure.Services;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -27,7 +26,6 @@ public partial class ContentEditorViewModel : ObservableObject
     [ObservableProperty] private string additionalInput = "";
 
     private string? _originalContentBeforeEdit;
-    private bool _enterEditModeOnNextFileChange;
 
     public MarkdownPipeline Pipeline { get; }
     public AppConfig Config { get; }
@@ -60,42 +58,16 @@ public partial class ContentEditorViewModel : ObservableObject
         });
     }
 
-    partial void OnSelectedFileChanged(PromptItem? value)
+    private async Task SetCurrentFileAsync(PromptItem? file, bool enterEditMode = false)
     {
-        if (_enterEditModeOnNextFileChange)
-        {
-            IsEditMode = true;
-            _enterEditModeOnNextFileChange = false;
-        }
-        else
-        {
-            IsEditMode = false;
-            WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
-        }
-        _ = UpdatePreviewAndVariablesAsync(value?.Content);
-    }
-
-    public async Task SetCurrentFileAsync(PromptItem? file, bool enterEditMode = false)
-    {
-        _enterEditModeOnNextFileChange = enterEditMode;
-        SelectedFile = file;
-        if (file != null)
-        {
-            await UpdatePreviewAndVariablesAsync(file.Content);
-        }
-        else
-        {
-            PreviewContent = null;
-            Variables.Clear();
-            HasVariables = false;
-        }
-    }
-
-    private async Task UpdatePreviewAndVariablesAsync(string? content)
-    {
-        PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(content));
-        var result = await _mediator.Send(new SyncVariablesFeature.Command(content, Variables));
+        var result = await _mediator.Send(new SetCurrentFileFeature.Command(file, enterEditMode, Variables));
+        
+        SelectedFile = result.SelectedFile;
+        IsEditMode = result.IsEditMode;
+        PreviewContent = result.PreviewContent;
         HasVariables = result.HasVariables;
+
+        WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(result.IsEditMode));
     }
 
     [RelayCommand]
@@ -116,7 +88,7 @@ public partial class ContentEditorViewModel : ObservableObject
             PreviewContent = result.PreviewContent;
             _originalContentBeforeEdit = null;
 
-            WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
+            WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(result.NewEditMode));
             return;
         }
 
