@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Settings.LaunchBar
@@ -20,6 +22,37 @@ namespace PromptMasterv6.Features.Settings.LaunchBar
         {
             _settingsService = settingsService;
             _mediator = mediator;
+
+            Config.LaunchBarItems.CollectionChanged += OnLaunchBarItemsCollectionChanged;
+
+            foreach (var item in Config.LaunchBarItems)
+            {
+                item.PropertyChanged += OnLaunchBarItemPropertyChanged;
+            }
+        }
+
+        private void OnLaunchBarItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (LaunchBarItem item in e.NewItems)
+                {
+                    item.PropertyChanged += OnLaunchBarItemPropertyChanged;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (LaunchBarItem item in e.OldItems)
+                {
+                    item.PropertyChanged -= OnLaunchBarItemPropertyChanged;
+                }
+            }
+        }
+
+        private void OnLaunchBarItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            _settingsService.SaveConfig();
         }
 
         [RelayCommand]
