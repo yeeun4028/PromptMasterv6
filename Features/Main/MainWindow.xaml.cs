@@ -335,6 +335,8 @@ namespace PromptMasterv6.Features.Main
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
             }
 
+            WeakReferenceMessenger.Default.Unregister<ToggleMainWindowMessage>(this);
+
             _trayService.Dispose();
         }
 

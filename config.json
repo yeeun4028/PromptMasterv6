@@ -251,6 +251,7 @@
     "ScreenshotTranslateHotkey": "Alt+S",
     "SelectedTextTranslateHotkey": "Alt+D",
     "OcrHotkey": "F9",
+    "PinToScreenHotkey": "Alt+P",
     "LauncherHotkey": "Ctrl+Shift+S",
     "LauncherRunAsAdmin": false,
     "LauncherSearchPaths": [

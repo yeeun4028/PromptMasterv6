@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main.FileManager;
 using PromptMasterv6.Features.Main.FileManager.Messages;
@@ -12,6 +13,9 @@ using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Sidebar;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
+using PromptMasterv6.Features.Main.WindowManagement;
+using PromptMasterv6.Features.Main.Hotkeys;
+using PromptMasterv6.Features.Main.Mode;
 
 using System;
 using System.ComponentModel;
@@ -31,6 +35,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly SettingsService _settingsService;
     private readonly HotkeyService _hotkeyService;
     private readonly LoggerService _logger;
+    private readonly IMediator _mediator;
 
     private readonly Subject<System.Reactive.Unit> _saveSubject = new();
     private readonly Subject<System.Reactive.Unit> _saveLocalSettingsSubject = new();
@@ -58,13 +63,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
         FileManagerViewModel fileManagerVM,
         ContentEditorViewModel contentEditorVM,
         BackupViewModel backupVM,
-        SidebarViewModel sidebarVM)
+        SidebarViewModel sidebarVM,
+        IMediator mediator)
     {
         _settingsService = settingsService;
         _keyService = keyService;
         _windowManager = windowManager;
         _hotkeyService = hotkeyService;
         _logger = logger;
+        _mediator = mediator;
 
         FileManagerVM = fileManagerVM;
         ContentEditorVM = contentEditorVM;
@@ -74,8 +81,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Config = settingsService.Config;
         LocalConfig = settingsService.LocalConfig;
 
-        WeakReferenceMessenger.Default.Register<ToggleWindowMessage>(this, (_, _) => ToggleMainWindow());
-        WeakReferenceMessenger.Default.Register<TriggerLauncherMessage>(this, (_, _) => HandleLauncherTriggered());
+        RegisterMessageHandlers();
+        InitializeReactiveStreams();
+        InitializeGlobalKeyService();
+        UpdateWindowHotkeys();
+
+        _ = TriggerInitializationAsync();
+    }
+
+    private void RegisterMessageHandlers()
+    {
+        WeakReferenceMessenger.Default.Register<ToggleWindowMessage>(this, (_, _) =>
+            WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage()));
+
+        WeakReferenceMessenger.Default.Register<TriggerLauncherMessage>(this, async (_, _) =>
+            await ShowLauncherAsync());
+
         WeakReferenceMessenger.Default.Register<JumpToEditPromptMessage>(this, (_, m) =>
         {
             if (m.File != null)
@@ -85,7 +106,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         });
 
-        WeakReferenceMessenger.Default.Register<OpenSettingsRequestMessage>(this, (_, _) => OpenSettings());
+        WeakReferenceMessenger.Default.Register<OpenSettingsRequestMessage>(this, async (_, _) =>
+            await OpenSettingsAsync());
 
         WeakReferenceMessenger.Default.Register<Backup.Messages.BackupCompletedMessage>(this, (_, m) =>
         {
@@ -98,11 +120,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 HandyControl.Controls.Growl.Error($"云端备份失败: {m.ErrorMessage}");
             }
         });
+    }
 
+    private void InitializeReactiveStreams()
+    {
         _saveSubject
             .Throttle(TimeSpan.FromSeconds(5))
             .ObserveOn(System.Threading.SynchronizationContext.Current!)
-            .Subscribe(async _ => await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null));
+            .Subscribe(_ => WeakReferenceMessenger.Default.Send(new RequestLocalBackupMessage()));
 
         _saveLocalSettingsSubject
             .Throttle(TimeSpan.FromSeconds(2))
@@ -118,36 +143,39 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
         };
         LocalConfig.PropertyChanged += _localConfigPropertyChangedHandler;
+    }
 
-        _onLauncherTriggeredHandler = (_, _) => HandleLauncherTriggered();
+    private void InitializeGlobalKeyService()
+    {
+        _onLauncherTriggeredHandler = (_, _) => _ = ShowLauncherAsync();
         _keyService.OnLauncherTriggered += _onLauncherTriggeredHandler;
 
         _keyService.LauncherHotkeyString = Config.LauncherHotkey;
         try { _keyService.Start(); }
         catch (Exception ex)
         {
-            _logger.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.ctor");
+            _logger.LogException(ex, "Failed to start GlobalKeyService", "MainViewModel.InitializeGlobalKeyService");
         }
-
-        UpdateWindowHotkeys();
-
-        _ = InitializeAsync();
     }
 
-    private async Task InitializeAsync()
+    private async Task TriggerInitializationAsync()
     {
-        await FileManagerVM.InitializeAsync();
+        WeakReferenceMessenger.Default.Send(new ApplicationInitializedMessage());
     }
 
     [RelayCommand]
-    private void EnterFullMode()
+    private async Task EnterFullMode()
     {
-        IsFullMode = true;
+        var result = await _mediator.Send(new EnterFullModeFeature.Command());
+        if (result.Success)
+        {
+            IsFullMode = result.IsFullMode;
+        }
     }
 
     public void OnWindowHotkeyPressed()
     {
-        ToggleMainWindow();
+        WeakReferenceMessenger.Default.Send(new ToggleMainWindowMessage());
     }
 
     public void SimulateFullWindowHotkey()
@@ -157,46 +185,34 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void ToggleModeViaHotkey()
     {
-        EnterFullMode();
+        _ = EnterFullMode();
     }
 
-    [RelayCommand]
-    private void OpenSettings()
+    private async Task OpenSettingsAsync()
     {
-        _windowManager.ShowSettingsWindow();
+        await _mediator.Send(new OpenSettingsFeature.Command());
     }
 
     [RelayCommand]
     private async Task ManualBackup()
     {
-        await BackupVM.PerformCloudBackupCommand.ExecuteAsync(null);
-    }
-
-    private void ToggleMainWindow()
-    {
-        var win = System.Windows.Application.Current.MainWindow as MainWindow;
-        if (win == null) return;
-
-        win.ToggleWindowVisibility();
+        WeakReferenceMessenger.Default.Send(new RequestCloudBackupMessage());
     }
 
     [SupportedOSPlatform("windows")]
-    public void UpdateWindowHotkeys()
+    public async void UpdateWindowHotkeys()
     {
-        _hotkeyService.RegisterWindowHotkey("ToggleLaunchBarHotkey", Config.LaunchBarHotkey, () => 
-        {
-            Config.EnableLaunchBar = !Config.EnableLaunchBar;
-        });
+        await _mediator.Send(new UpdateWindowHotkeysFeature.Command(Config.LaunchBarHotkey));
     }
 
     public async Task PerformLocalBackup()
     {
-        await BackupVM.PerformLocalBackupCommand.ExecuteAsync(null);
+        WeakReferenceMessenger.Default.Send(new RequestLocalBackupMessage());
     }
 
-    public void HandleLauncherTriggered()
+    private async Task ShowLauncherAsync()
     {
-        _windowManager.ShowLauncherWindow();
+        await _mediator.Send(new ShowLauncherFeature.Command());
     }
 
     private bool _disposed = false;

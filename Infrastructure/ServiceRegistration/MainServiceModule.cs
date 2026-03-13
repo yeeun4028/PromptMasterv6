@@ -59,6 +59,19 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Main.Tray.OpenSettingsFeature.Handler>();
             services.AddSingleton<Features.Main.Tray.PinToScreenFromCaptureFeature.Handler>();
             services.AddSingleton<Features.Main.Tray.CleanupTrayIconFeature.Handler>();
+
+            // Main Features - WindowManagement
+            services.AddTransient<Features.Main.WindowManagement.OpenSettingsFeature.Handler>();
+            services.AddTransient<Features.Main.WindowManagement.ShowLauncherFeature.Handler>();
+
+            // Main Features - Hotkeys
+            services.AddTransient<Features.Main.Hotkeys.UpdateWindowHotkeysFeature.Handler>();
+
+            // Main Features - Mode
+            services.AddTransient<Features.Main.Mode.EnterFullModeFeature.Handler>();
+
+            // Main Features - AutoSave
+            services.AddTransient<Features.Main.AutoSave.ScheduleAutoSaveFeature.Handler>();
         }
     }
 }

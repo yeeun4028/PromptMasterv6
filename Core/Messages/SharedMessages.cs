@@ -10,3 +10,5 @@ public sealed record OpenSettingsMessage(int TabIndex = 0);
 public sealed record TriggerTranslateMessage;
 public sealed record TriggerOcrMessage;
 public sealed record TriggerPinToScreenMessage;
+public sealed record ApplicationInitializedMessage;
+public sealed record RequestLocalBackupMessage;

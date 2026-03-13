@@ -103,6 +103,11 @@ public partial class FileManagerViewModel : ObservableObject
             }
         });
 
+        WeakReferenceMessenger.Default.Register<ApplicationInitializedMessage>(this, async (_, _) =>
+        {
+            await InitializeAsync();
+        });
+
         WeakReferenceMessenger.Default.Register<ChangeFolderIconRequestMessage>(this, async (_, m) =>
         {
             await ChangeFolderIcon(m.Folder);
