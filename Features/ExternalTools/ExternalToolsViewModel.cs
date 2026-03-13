@@ -89,7 +89,7 @@ namespace PromptMasterv6.Features.ExternalTools
 
                 if (!result.Success)
                 {
-                    if (!string.IsNullOrEmpty(result.ErrorMessage))
+                    if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage != "用户取消截图")
                     {
                         _dialogService.ShowAlert(result.ErrorMessage, "OCR 失败");
                     }
@@ -130,7 +130,7 @@ namespace PromptMasterv6.Features.ExternalTools
 
                 if (!result.Success)
                 {
-                    if (!string.IsNullOrEmpty(result.ErrorMessage))
+                    if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage != "用户取消截图")
                     {
                         _dialogService.ShowAlert(result.ErrorMessage, "识别/翻译失败");
                     }
