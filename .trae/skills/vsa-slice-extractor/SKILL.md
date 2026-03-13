@@ -1,339 +1,185 @@
 ---
 name: "vsa-slice-extractor"
-description: "Extracts a vertical slice from monolithic WPF code: UI isolation, CQRS handlers, and event-driven communication. Invoke when refactoring a large Settings tab or ViewModel into independent slice."
+description: "Extracts a TRUE vertical slice from monolithic WPF code. Enforces Use-Case driven organization, extremely thin ViewModels, and event-driven cross-slice communication."
 ---
 
-# VSA Slice Extractor (Vertical Slice Architecture)
+# VSA Slice Extractor (Strict Vertical Slice Architecture)
 
 ## Purpose
 
-Extract a feature slice from monolithic WPF code through a **three-step refactoring process**:
-1. **UI Physical Isolation** - Separate View/XAML
-2. **CQRS Use Case Sinking** - Extract business logic to Handlers
-3. **Event-Driven Communication** - Decouple cross-slice dependencies
+Extract a feature slice from monolithic WPF code through a **Strict VSA Refactoring Process**:
+1. **Use-Case Driven Organization** - Organize folders by actions/verbs, NOT by entities.
+2. **Dumb UI & ViewModels** - Strip ALL business logic from ViewModels. They are just empty shells for XAML bindings and command dispatching.
+3. **Pure CQRS Handlers** - Sink all actual logic into pure Feature Handlers.
+4. **Event-Driven Isolation** - Cross-slice communication strictly via Domain Events (Publish), NEVER cross-slice Commands (Send).
 
 ## When to Invoke
 
 Invoke when:
-- A Settings tab has grown too large (500+ lines XAML or 300+ lines C#)
-- Business logic is tightly coupled in ViewModel
-- Cross-feature communication uses direct method calls
-- You want to apply Vertical Slice Architecture principles
+- A large ViewModel or View needs to be broken down.
+- You are extracting logic into independent, highly cohesive Vertical Slices.
+- You need to eliminate "UI-driven" or "Entity-driven" folder structures in favor of "Behavior-driven" structures.
 
-## Architecture Overview
+## Architecture Overview (The VSA Way)
 
-```
-Before (Monolithic):
+**CRITICAL RULE:** Do NOT group by Noun/Entity (e.g., `AiModels/`). Group by Use Case!
+
+```text
+Before (Monolithic/Fat MVVM):
 Features/Settings/
-├── SettingsView.xaml          (2000+ lines, all tabs mixed)
-└── SettingsViewModel.cs       (500+ lines, all logic mixed)
+├── SettingsView.xaml
+└── SettingsViewModel.cs       (Contains logic for TestConnection, DeleteModel, etc.)
 
-After (Vertical Slice):
-Features/Settings/
-├── SettingsView.xaml          (Container only)
-├── SettingsViewModel.cs       (Coordinator, event listener)
+After (Strict Vertical Slice):
+Features/Settings/AiModels/
+├── AiModelsView.xaml          (Dumb Presentation)
+├── AiModelsViewModel.cs       (Dumb State Shell + Dispatcher)
 │
-└── AiModels/                  ← Independent Vertical Slice
-    ├── AiModelsView.xaml      (UI)
-    ├── AiModelsView.xaml.cs
-    ├── AiModelsViewModel.cs   (Thin, UI state only)
-    ├── TestAiConnectionFeature.cs   (CQRS Use Case)
-    ├── DeleteAiModelFeature.cs      (CQRS Use Case)
-    └── Messages/
-        └── AiModelDeletedMessage.cs (Domain Event)
+├── UseCases/                  ← THIS IS THE CORE OF VSA
+│   ├── TestConnection/
+│   │   └── TestConnectionFeature.cs  (Command, Result, Handler)
+│   ├── DeleteModel/
+│   │   └── DeleteModelFeature.cs     (Command, Result, Handler)
+│   └── UpdateConfig/
+│       └── UpdateConfigFeature.cs    (Command, Result, Handler)
+│
+└── Events/
+    └── AiModelDeletedEvent.cs (Domain Event for cross-slice)
+
 ```
 
-## Three-Step Procedure
+## Step-by-Step Procedure
 
-### Step 1: UI Physical Isolation
+### Step 1: Create the Dumb Presentation Layer
 
-**Goal**: Extract UI into independent View file.
+**Goal**: The ViewModel must contain ZERO business logic. It only holds state and forwards actions.
 
-#### 1.1 Create Slice Directory Structure
-```
-Features/Settings/{SliceName}/
-├── {SliceName}View.xaml
-├── {SliceName}View.xaml.cs
-├── {SliceName}ViewModel.cs
-├── Messages/
-│   └── (events will be added in Step 3)
-└── (Feature files will be added in Step 2)
-```
+**{SliceGroup}ViewModel.cs**:
 
-#### 1.2 Create View Files
-
-**{SliceName}View.xaml**:
-```xml
-<UserControl x:Class="PromptMasterv6.Features.Settings.{SliceName}.{SliceName}View"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500">
-    <StackPanel>
-        <!-- Extracted content from SettingsView.xaml -->
-    </StackPanel>
-</UserControl>
-```
-
-**{SliceName}View.xaml.cs**:
 ```csharp
-using System.Windows.Controls;
-
-namespace PromptMasterv6.Features.Settings.{SliceName}
+public partial class {SliceGroup}ViewModel : ObservableObject
 {
-    public partial class {SliceName}View : UserControl
+    private readonly IMediator _mediator; // ONLY inject Mediator or specific Handlers. NO domain services!
+
+    // Pure UI State
+    [ObservableProperty] private string _statusText;
+
+    public {SliceGroup}ViewModel(IMediator mediator)
     {
-        public {SliceName}View()
-        {
-            InitializeComponent();
-        }
+        _mediator = mediator;
+    }
+
+    [RelayCommand]
+    private async Task TestConnectionAsync()
+    {
+        // NO LOGIC HERE. Just dispatch!
+        var command = new TestConnectionFeature.Command(CurrentConfig);
+        var result = await _mediator.Send(command); // Local slice execution
+
+        StatusText = result.Message; // Update dumb state
     }
 }
+
 ```
 
-#### 1.3 Update Parent View
+### Step 2: Extract Pure CQRS Use Cases
 
-**SettingsView.xaml** - Add namespace and replace tab content:
-```xml
-<!-- Add namespace -->
-xmlns:{sliceName}="clr-namespace:PromptMasterv6.Features.Settings.{SliceName}"
+**Goal**: Every action the user can take is an isolated class containing its own Input (Command), Output (Result), and Logic (Handler).
 
-<!-- Replace Tab Content -->
-<StackPanel>
-    <StackPanel.Style>...</StackPanel.Style>
-    <{sliceName}:{SliceName}View DataContext="{Binding {SliceName}VM}" />
-</StackPanel>
-```
+**UseCases/{Action}/{Action}Feature.cs**:
 
-#### 1.4 Move Shared Styles to App.xaml
-
-If View uses styles defined in parent (e.g., `CardStyle`, `ModernComboBoxStyle`), move them to `App.xaml`:
-```xml
-<!-- App.xaml -->
-<Application.Resources>
-    <Style x:Key="CardStyle" TargetType="Border">...</Style>
-    <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">...</Style>
-</Application.Resources>
-```
-
----
-
-### Step 2: CQRS Use Case Sinking
-
-**Goal**: Extract business logic from ViewModel into pure Handler classes.
-
-#### 2.1 Create Feature Files
-
-**{Action}Feature.cs** (one per use case):
 ```csharp
-using PromptMasterv6.Infrastructure.Services;
-using System.Threading.Tasks;
+using MediatR;
+// NO UI namespaces allowed here!
 
-namespace PromptMasterv6.Features.Settings.{SliceName}
+namespace PromptMasterv6.Features.Settings.AiModels.UseCases.TestConnection
 {
-    public static class {Action}Feature
+    public static class TestConnectionFeature
     {
-        // Input Contract
-        public record Command(string Param1, string Param2);
+        // 1. Input Contract
+        public record Command(string ApiKey, string Endpoint) : IRequest<Result>;
 
-        // Output Contract
+        // 2. Output Contract
         public record Result(bool Success, string Message);
 
-        // Pure Business Logic Handler
-        public class Handler
+        // 3. Pure Business Logic Handler
+        public class Handler : IRequestHandler<Command, Result>
         {
-            private readonly SomeService _service;
+            private readonly IHttpClientFactory _httpClientFactory;
 
-            public Handler(SomeService service)
+            // Inject infrastructure directly into the handler
+            public Handler(IHttpClientFactory httpClientFactory)
             {
-                _service = service;
+                _httpClientFactory = httpClientFactory;
             }
 
-            public async Task<Result> Handle(Command request)
+            public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
             {
-                // Business logic here - NO UI dependencies
-                return new Result(true, "Success");
+                // ALL Business logic lives here.
+                // Highly cohesive. If "Test Connection" changes, ONLY this file changes.
+                return new Result(true, "Connection Successful");
             }
         }
     }
 }
+
 ```
 
-#### 2.2 Update ViewModel to Use Handlers
+### Step 3: Event-Driven Cross-Slice Communication
 
-**Before**:
-```csharp
-public partial class {SliceName}ViewModel : ObservableObject
-{
-    private readonly AiService _aiService;  // Direct dependency
+**Goal**: Slices must NOT know about each other. They communicate by announcing things happened (Events).
 
-    [RelayCommand]
-    private async Task TestConnection()
-    {
-        var result = await _aiService.TestConnectionAsync(...);  // Direct call
-        // Update UI state
-    }
-}
-```
-
-**After**:
-```csharp
-public partial class {SliceName}ViewModel : ObservableObject
-{
-    private readonly TestConnectionFeature.Handler _testHandler;  // Handler only
-
-    public {SliceName}ViewModel(
-        TestConnectionFeature.Handler testHandler,
-        DeleteItemFeature.Handler deleteHandler)
-    {
-        _testHandler = testHandler;
-    }
-
-    [RelayCommand]
-    private async Task TestConnection()
-    {
-        var cmd = new TestConnectionFeature.Command(...);
-        var result = await _testHandler.Handle(cmd);  // Through handler
-        // Update UI state
-    }
-}
-```
-
-#### 2.3 Register Handlers in DI
-
-**App.xaml.cs**:
-```csharp
-services.AddSingleton<TestConnectionFeature.Handler>();
-services.AddSingleton<DeleteItemFeature.Handler>();
-services.AddSingleton<{SliceName}ViewModel>();
-```
-
----
-
-### Step 3: Event-Driven Communication
-
-**Goal**: Decouple cross-slice communication via domain events.
-
-#### 3.1 Define Domain Event
-
-**Messages/{Event}Message.cs**:
-```csharp
-using PromptMasterv6.Features.Shared.Models;
-
-namespace PromptMasterv6.Features.Settings.{SliceName}.Messages
-{
-    // Event naming: Past tense (something happened)
-    public class {Entity}DeletedMessage
-    {
-        public string DeletedId { get; }
-        public string DeletedName { get; }
-
-        public {Entity}DeletedMessage(EntityConfig deleted)
-        {
-            DeletedId = deleted.Id;
-            DeletedName = deleted.Name;
-        }
-    }
-}
-```
-
-#### 3.2 Publish Event from Handler
-
-**{Action}Feature.cs**:
-```csharp
-using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Features.Settings.{SliceName}.Messages;
-
-public class Handler
-{
-    public void Handle(Command request)
-    {
-        // 1. Execute core logic
-        // 2. Persist changes
-        _service.Save();
-
-        // 3. Broadcast domain event (Fire and Forget)
-        WeakReferenceMessenger.Default.Send(new {Entity}DeletedMessage(deletedItem));
-    }
-}
-```
-
-#### 3.3 Subscribe to Event in Other Slices
-
-**OtherViewModel.cs**:
-```csharp
-using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Features.Settings.{SliceName}.Messages;
-
-public partial class OtherViewModel : ObservableObject, 
-    IRecipient<{Entity}DeletedMessage>
-{
-    public OtherViewModel()
-    {
-        WeakReferenceMessenger.Default.Register(this);
-    }
-
-    public void Receive({Entity}DeletedMessage message)
-    {
-        // React to the event
-        // e.g., clean up related data, show notification
-    }
-}
-```
-
----
-
-## File Placement Rules
-
-| File Type | Location |
-|-----------|----------|
-| View XAML | `Features/{Module}/{SliceName}/{SliceName}View.xaml` |
-| View Code-Behind | `Features/{Module}/{SliceName}/{SliceName}View.xaml.cs` |
-| ViewModel | `Features/{Module}/{SliceName}/{SliceName}ViewModel.cs` |
-| Feature/Handler | `Features/{Module}/{SliceName}/{Action}Feature.cs` |
-| Domain Events | `Features/{Module}/{SliceName}/Messages/{Event}Message.cs` |
-| Shared Styles | `App.xaml` (global) |
-
-## Verification Checklist
-
-- [ ] **Step 1 Complete**: View extracted, parent XAML references new View
-- [ ] **Step 2 Complete**: Handlers created, ViewModel uses handlers
-- [ ] **Step 3 Complete**: Events defined, cross-slice communication via messages
-- [ ] DI registration updated
-- [ ] Build succeeds
-- [ ] No direct cross-slice ViewModel references
-- [ ] Shared styles moved to App.xaml
-
-## Anti-Patterns (AVOID)
+**Events/{Entity}{PastTenseVerb}Event.cs**:
 
 ```csharp
-// ❌ WRONG: Direct cross-slice call
-public void DeleteItem()
+namespace PromptMasterv6.Features.Settings.AiModels.Events
 {
-    _otherViewModel.Refresh();  // Tight coupling!
+    // Naming Rule: Past tense! It already happened.
+    public record AiModelDeletedEvent(string ModelId) : INotification;
 }
 
-// ❌ WRONG: Handler with UI dependencies
-public class Handler
-{
-    public void Handle()
-    {
-        _dialogService.ShowAlert(...);  // UI in business logic!
-    }
-}
-
-// ✅ CORRECT: Event-driven communication
-public void Handle()
-{
-    WeakReferenceMessenger.Default.Send(new ItemDeletedMessage(item));
-}
-// Other slice listens and decides what to do
 ```
 
-## Example: AI Models Slice
+**Inside the Handler (Publishing):**
 
-See the completed refactoring:
-- `Features/Settings/AiModels/AiModelsView.xaml`
-- `Features/Settings/AiModels/AiModelsViewModel.cs`
-- `Features/Settings/AiModels/TestAiConnectionFeature.cs`
-- `Features/Settings/AiModels/DeleteAiModelFeature.cs`
-- `Features/Settings/AiModels/Messages/AiModelDeletedMessage.cs`
+```csharp
+public async Task<Result> Handle(Command request, CancellationToken ct)
+{
+    _database.Delete(request.Id);
+
+    // Fire and forget. We don't care who listens.
+    await _mediator.Publish(new AiModelDeletedEvent(request.Id), ct);
+
+    return new Result(true);
+}
+
+```
+
+## Verification Checklist (AI MUST VERIFY)
+
+* [ ] **Are Folders Action-Oriented?** Check if directories inside the feature are named after Use Cases (e.g., `TestConnection/`) rather than abstract concepts.
+* [ ] **Is ViewModel Brainless?** The ViewModel must NOT contain `if/else` business rules, API calls, or database queries.
+* [ ] **No Cross-Slice Commands?** Code must NEVER use `_mediator.Send(new CommandFromAnotherSlice())`. It must only `Publish` events.
+* [ ] **Dependency Injection**: Are the new Handlers registered in DI? (Or does MediatR auto-discover them?)
+
+## Anti-Patterns to Destroy
+
+```csharp
+// ❌ FATAL WRONG: Logic in ViewModel
+public async Task Delete() {
+    _db.Remove(item); // UI layer talking to DB!
+    Status = "Deleted";
+}
+
+// ❌ FATAL WRONG: Cross-slice command (Coupling!)
+public async Task UpdateSync() {
+    // Calling Settings slice from Main slice! NO!
+    await _mediator.Send(new Features.Settings.Sync.UpdateSyncCommand());
+}
+
+// ✅ CORRECT: Publish Event
+public async Task UpdateSync() {
+    await _mediator.Publish(new SyncTriggeredEvent()); // Let the Sync slice listen and handle it itself.
+}
+
+```

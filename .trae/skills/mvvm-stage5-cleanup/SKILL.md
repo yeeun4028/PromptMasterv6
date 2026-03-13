@@ -1,114 +1,94 @@
 ---
 name: "mvvm-stage5-cleanup"
-description: "Fixes code-behind references after MVVM split within a feature module, removes compatibility shims, and verifies messenger registrations. Invoke after XAML bindings are moved to child VMs."
+description: "Finalizes VSA refactoring by obliterating the Fat ViewModel, cleaning up Code-Behind dependencies, and enforcing strict Use-Case boundaries. Kills aggregator properties and cross-slice commands."
 ---
 
-# MVVM Stage 5 Cleanup (Vertical Slice Edition)
+# MVVM Stage 5 Cleanup (Strict VSA Execution)
 
 ## Goal
 
-After updating XAML bindings to child ViewModels **within the same feature module**, this skill:
+This is the final verification and cleanup phase after extracting Use Cases and creating Dumb ViewModels. This skill acts as a strict architectural linter:
 
-1. Updates code-behind references to use child VM properties
-2. Removes compatibility forwarding properties from parent ViewModel
-3. Verifies `WeakReferenceMessenger` registrations
-4. Ensures build succeeds and vertical slice boundaries are maintained
+1. Obliterate Aggregator Properties (e.g., `ParentVM.ChildVM`).
+2. Update Code-Behind to respect UI Composition or isolated ViewModels.
+3. Eradicate ALL cross-slice commands/queries (`_mediator.Send` across boundaries).
+4. Verify Domain Event subscriptions (`_mediator.Publish`).
 
 ## When to Invoke
 
 Invoke when:
-- A feature module's ViewModels have been split into child VMs
-- XAML bindings point to child VMs (e.g., `SidebarVM.*`, `ChatVM.*`)
-- You want to remove temporary adapter properties from parent ViewModel
-- Code-behind still references old parent VM properties
+- You have finished extracting handlers/Use Cases for a feature.
+- XAML bindings or Code-Behind still contain legacy dot-chains (e.g., `Binding SidebarVM.Folders`).
+- You need to perform a final architectural audit on a module to ensure 100% VSA compliance.
 
-## Architecture Context
+## Procedure (The VSA Purge)
 
-```
-Features/Main/
-├── Sidebar/
-│   └── SidebarViewModel.cs     # Child VM owns: Folders, SelectedFolder
-├── Chat/
-│   └── ChatViewModel.cs        # Child VM owns: MiniInputText, Messages
-├── Messages/
-│   └── *.cs                    # Module-internal messages
-├── MainWindow.xaml             # View
-├── MainWindow.xaml.cs          # Code-behind
-└── MainViewModel.cs            # Parent VM (aggregator)
-```
-
-## Procedure
-
-### 1. Scan Code-Behind (Same Module Only)
-Find and update references in `MainWindow.xaml.cs`:
+### 1. Destroy Aggregator Properties
+Scan the parent ViewModel (e.g., `MainViewModel.cs`) and **delete** all properties that expose other ViewModels.
 
 ```csharp
-// ❌ OLD: Direct parent VM reference
-ViewModel.MiniInputText
-ViewModel.Folders
-
-// ✅ NEW: Child VM reference
-ViewModel.ChatVM.MiniInputText
-ViewModel.SidebarVM.Folders
-```
-
-### 2. Responsibility Mapping
-
-| Responsibility | Child VM | Properties |
-|----------------|----------|------------|
-| File/Folder Management | `SidebarViewModel` | `Folders`, `SelectedFolder`, `DragDropHandler` |
-| Chat/Input | `ChatViewModel` | `MiniInputText`, `Messages`, `IsAiProcessing` |
-| Content Editing | `EditorViewModel` | `CurrentFile`, `Content`, `Variables` |
-| Global State | `MainViewModel` | `Config`, `IsFullMode`, `AppData` |
-
-### 3. Clean Parent ViewModel
-Remove forwarding properties that were only for XAML compatibility:
-
-```csharp
-// ❌ REMOVE these from MainViewModel
+// ❌ FATAL WRONG: Must be deleted!
+public SidebarViewModel SidebarVM { get; }
+public ChatViewModel ChatVM { get; }
 public ObservableCollection<FolderItem> Folders => SidebarVM.Folders;
-public string MiniInputText { get => ChatVM.MiniInputText; set => ChatVM.MiniInputText = value; }
 
-// ✅ KEEP global state in MainViewModel
-public AppConfig Config { get; }
-public bool IsFullMode { get; set; }
 ```
 
-### 4. Verify Messenger Registrations
-Ensure messages are registered correctly:
+### 2. Fix Code-Behind References
+
+If `MainWindow.xaml.cs` (or similar code-behind) was relying on the Aggregator, fix it by either resolving the specific Dumb ViewModel needed for that interaction, or relying on MediatR.
 
 ```csharp
-// In MainViewModel constructor
-WeakReferenceMessenger.Default.Register<FolderSelectionChangedMessage>(this, OnFolderChanged);
-WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(this, OnSelectFileRequested);
+// ❌ WRONG: Chaining through parent
+var text = ViewModel.ChatVM.MiniInputText;
 
-// In child ViewModels - send messages, don't reference parent
-WeakReferenceMessenger.Default.Send(new FolderSelectionChangedMessage(folderId));
+// ✅ CORRECT: Inject or resolve the specific isolated ViewModel, OR just dispatch a command
+var text = _chatViewModel.MiniInputText;
+// OR better yet, let XAML bindings handle state, and code-behind only handles pure UI events.
+
 ```
 
-### 5. Validate Vertical Slice Integrity
-- ✅ All code-behind references updated
-- ✅ No cross-module direct references
-- ✅ Compatibility shims removed
-- ✅ Build succeeds
-- ✅ Startup smoke test passes
+### 3. Eradicate Cross-Slice Commands (CRITICAL AUDIT)
 
-## Cross-Module Communication Check
-
-If code-behind needs data from another module:
+Scan the entire module for `_mediator.Send(...)`.
+**Rule:** A slice can ONLY send its OWN commands. It can NEVER send a command or query belonging to another slice/module.
 
 ```csharp
-// ❌ WRONG: Direct reference to other module's VM
-ViewModel.SettingsVM.SomeProperty
+// ❌ FATAL WRONG: Cross-Module/Cross-Slice Command or Query
+// Example: Main module trying to fetch from Settings module directly
+var settings = await _mediator.Send(new GetSettingsQuery());
+await _mediator.Send(new UpdateSidebarCommand());
 
-// ✅ CORRECT: Use MediatR or shared state
-await _mediator.Send(new GetSettingsQuery());
-// Or inject shared service from Features/Shared/Models/
+// ✅ CORRECT: Use Shared State for reading, or Publish Events for writing
+var settings = _configProvider.CurrentConfig; // Read shared state
+await _mediator.Publish(new SidebarUpdateRequestedEvent()); // Fire domain event
+
 ```
 
-## Output
+### 4. Verify Shared State & Event Subscriptions
 
-- Compiling solution with clean code-behind
-- No compatibility shims in parent ViewModel
-- Messenger subscriptions verified
-- Vertical slice boundaries preserved
+If slices need to communicate:
+
+* Ensure they are implementing `INotificationHandler<T>` for MediatR events.
+* Ensure any shared data (like the current user, or current folder) is pushed down into a Shared State service (e.g., `IWorkspaceState`) rather than passed around via Messenger.
+
+### 5. Final XAML Binding Check
+
+Ensure no XAML bindings are using dotted paths through ViewModels.
+
+```xml
+<!-- ❌ WRONG: Dot-chain through parent VM -->
+<ListView ItemsSource="{Binding SidebarVM.Folders}" />
+
+<!-- ✅ CORRECT: UI Composition or Direct Binding -->
+<local:SidebarView />
+<ListView ItemsSource="{Binding Folders}" />
+
+```
+
+## Output / Verification Checklist
+
+* [ ] **NO Aggregators:** Parent ViewModel has ZERO references to child ViewModels.
+* [ ] **NO Cross-Slice Send:** Zero instances of `_mediator.Send()` calling a contract outside its own Use Case folder.
+* [ ] **Clean Code-Behind:** Code-behind references updated, removing all dot-chained ViewModel paths.
+* [ ] **Build Succeeds:** Solution compiles successfully with strict boundaries.

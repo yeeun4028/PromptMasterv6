@@ -1,130 +1,158 @@
 ---
 name: "mvvm-vm-splitter"
-description: "Splits a large WPF ViewModel into child VMs within the SAME feature module. Maintains vertical slice boundaries. Invoke when refactoring MVVM responsibilities within a feature."
+description: "Deconstructs a Fat ViewModel into Use-Case driven Vertical Slices. Replaces UI-based splitting (Sidebar/Chat) with Behavior-based splitting (Commands/Queries). strictly forbids Messenger abuse."
 ---
 
-# MVVM VM Splitter (Vertical Slice Edition)
+# MVVM to VSA Deconstructor (Stop splitting by UI!)
 
 ## Purpose
 
-Refactor a large ViewModel **within the same feature module** into smaller, single-responsibility child ViewModels.
+Refactor a bloated, God-like ViewModel into strict **Vertical Slices based on Use Cases**, NOT UI regions.
 
-**CRITICAL**: This skill respects **Vertical Feature Slice Architecture**:
-- All new files MUST stay inside the same `Features/<ModuleName>/` folder
-- NEVER create files in `Shared/` or root directories
-- Cross-module communication via MediatR Messages or DI interfaces only
+**CRITICAL SHIFT**: Do NOT simply split `MainViewModel` into `SidebarViewModel` and `ChatViewModel`. That is UI-component thinking. VSA demands we extract **Behaviors** (e.g., `SelectFileFeature`, `SendMessageFeature`).
 
 ## When to Invoke
 
 Invoke this skill when:
-- A ViewModel within a feature module has too many unrelated responsibilities
-- You need to split responsibilities **within the same feature boundary**
-- You want to remove `new Service()` coupling while maintaining slice integrity
+- A ViewModel has grown too large and contains multiple unrelated responsibilities.
+- You need to extract logic out of a Fat ViewModel into independent CQRS Handlers.
+- The code suffers from "Event Spaghetti" (abusing Messenger to send commands between VMs).
 
-## Architecture Constraints
+## Architecture Constraints & Paradigm Shift
 
-```
-Features/
-├── Main/                          # Feature Module
-│   ├── Editor/                    # ✅ Child VM folder (SAME module)
-│   │   └── EditorViewModel.cs
-│   ├── Files/                     # ✅ Commands folder
-│   ├── Messages/                  # ✅ Messages folder
-│   ├── Queries/                   # ✅ Queries folder
-│   └── MainViewModel.cs           # Parent VM
-│
-├── Settings/
-│   ├── AiModels/                  # ✅ Child VM folder
-│   │   └── AiModelsViewModel.cs
-│   └── SettingsViewModel.cs
-│
-└── Shared/                        # ❌ NEVER put feature VMs here!
-```
-
-## Procedure (Vertical Slice Compliant)
-
-### 1. Identify the Feature Module
-- Confirm the target ViewModel belongs to a specific `Features/<Module>/`
-- All new files will be created **inside this module only**
-
-### 2. Create Child ViewModel(s) Within Module
-```
+```text
+❌ WRONG (UI-Driven / Component Split):
 Features/Main/
 ├── Sidebar/
-│   └── SidebarViewModel.cs    # ✅ New child VM
+│   └── SidebarViewModel.cs    (Contains Folder Logic)
 ├── Chat/
-│   └── ChatViewModel.cs       # ✅ New child VM
-└── MainViewModel.cs           # Parent aggregates children
+│   └── ChatViewModel.cs       (Contains Chat Logic)
+
+✅ CORRECT (Use-Case Driven / VSA Split):
+Features/Main/
+├── MainViewModel.cs           (DUMB UI State + MediatR Dispatcher only)
+├── UseCases/
+│   ├── SelectFolder/
+│   │   └── SelectFolderFeature.cs   (Command + Handler)
+│   ├── SendChatMessage/
+│   │   └── SendChatMessageFeature.cs (Command + Handler)
+│   └── LoadHistory/
+│       └── LoadHistoryFeature.cs    (Query + Handler)
+└── State/
+    └── IMainSessionState.cs   (Shared reactive state, if needed)
+
 ```
 
-### 3. Wire DI (Module-Scoped)
-```csharp
-// In App.xaml.cs or Module DI registration
-services.AddSingleton<MainViewModel>();
-services.AddSingleton<SidebarViewModel>();
-services.AddSingleton<ChatViewModel>();
-```
+## Procedure (Strict VSA Compliance)
 
-### 4. Update XAML Bindings (Same Module)
-```xml
-<!-- MainWindow.xaml in Features/Main/ -->
-<TextBox Text="{Binding SidebarVM.SearchText}" />
-<ListView ItemsSource="{Binding ChatVM.Messages}" />
-```
+### 1. Identify Behaviors, NOT Components
 
-### 5. Cross-Module Communication
-**NEVER** reference ViewModels from other modules directly.
+Scan the Fat ViewModel and list the actual *actions* it performs (e.g., `SaveFile()`, `DeleteFolder()`, `LoadData()`). Each action becomes its own Slice.
 
-**DO** use:
-- `MediatR` requests/commands for cross-module calls
-- `WeakReferenceMessenger` for loose coupling
-- Shared interfaces in `Features/Shared/Models/`
+### 2. Extract Logic into CQRS Features
 
-```csharp
-// ✅ Correct: Message-based communication
-public record RequestSelectFileMessage(Guid FileId);
-
-// In SidebarViewModel (Features/Main/Sidebar/)
-WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(id));
-
-// In MainViewModel (Features/Main/)
-WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(...);
-```
-
-### 6. Verify
-- Build succeeds
-- No cross-module direct references
-- All new files are inside `Features/<Module>/`
-
-## File Placement Rules
-
-| File Type | Location | Example |
-|-----------|----------|---------|
-| Child ViewModel | `Features/<Module>/<SubFolder>/` | `Features/Main/Sidebar/SidebarViewModel.cs` |
-| Commands | `Features/<Module>/Commands/` | `Features/Main/Files/ChangeFileIconCommand.cs` |
-| Queries | `Features/<Module>/Queries/` | `Features/Main/Queries/LoadAppDataQuery.cs` |
-| Messages | `Features/<Module>/Messages/` | `Features/Main/Messages/FolderSelectionChangedMessage.cs` |
-| Shared Models | `Features/Shared/Models/` | `Features/Shared/Models/AppConfig.cs` |
-
-## Anti-Patterns (AVOID)
+For each action, create a complete Use Case file in `Features/<Module>/UseCases/<ActionName>/`:
 
 ```csharp
-// ❌ WRONG: Cross-module direct reference
-public class SidebarViewModel
+// Features/Main/UseCases/SelectFile/SelectFileFeature.cs
+public static class SelectFileFeature
 {
-    private readonly SettingsViewModel _settings; // Different module!
+    public record Command(string FileId) : IRequest<Result>;
+    public record Result(bool Success, FileData? Data);
+
+    public class Handler : IRequestHandler<Command, Result>
+    {
+        private readonly IFileDataService _fileService;
+
+        public Handler(IFileDataService fileService)
+        {
+            _fileService = fileService;
+        }
+
+        public async Task<Result> Handle(Command request, CancellationToken ct)
+        {
+            // ALL core logic moves here. Zero UI dependencies.
+            var data = await _fileService.LoadAsync(request.FileId);
+            return new Result(true, data);
+        }
+    }
 }
 
-// ✅ CORRECT: Use MediatR or shared interface
-public class SidebarViewModel
+```
+
+### 3. Neutering the ViewModel (Make it Dumb)
+
+Strip all injected services (except `IMediator` and Shared State) from the ViewModel. Replace method bodies with simple Mediator dispatches.
+
+```csharp
+public partial class MainViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
-    // Or inject IConfigService from Shared/Models/
+
+    [ObservableProperty] private FileData? _currentFile;
+
+    public MainViewModel(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [RelayCommand]
+    private async Task SelectFileAsync(string fileId)
+    {
+        // NO LOGIC. Just Dispatch and Update State.
+        var result = await _mediator.Send(new SelectFileFeature.Command(fileId));
+        if (result.Success)
+        {
+            CurrentFile = result.Data;
+        }
+    }
 }
+
 ```
+
+### 4. Fix Cross-Component Communication (NO MESSENGER COMMANDS)
+
+**CRITICAL RULE:** `WeakReferenceMessenger` MUST ONLY be used for **Domain Events** (Publishing that something *happened*), NEVER for **Commands** (Telling someone to *do* something).
+
+**❌ AVOID (Event Spaghetti / Command via Messenger):**
+
+```csharp
+// WRONG: Sidebar telling Main to do something via Messenger
+WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(id));
+
+```
+
+**✅ SOLUTION A: Shared Reactive State (Recommended for local module)**
+If multiple dumb VMs (like a sidebar and a main view) need to share the selected file, inject a Shared State object.
+
+```csharp
+public class MainViewModel
+{
+    private readonly IWorkspaceState _state; // Singleton or Scoped state
+    public MainViewModel(IWorkspaceState state) => _state = state;
+}
+
+```
+
+**✅ SOLUTION B: Domain Events**
+If a slice finishes an action and others need to know:
+
+```csharp
+// Inside the SelectFileFeature Handler:
+await _mediator.Publish(new FileSelectedEvent(data));
+
+// Any VM or Handler can implement INotificationHandler<FileSelectedEvent>
+
+```
+
+## Verification Checklist
+
+* [ ] Has all business logic (`if/else`, service calls, DB access) been removed from the ViewModel?
+* [ ] Are the extracted files named by **Use Case** (e.g., `RenameFileFeature.cs`) and not by UI component?
+* [ ] Are all MediatR requests (`_mediator.Send`) strictly within the slice or dispatching to pure Handlers?
+* [ ] **NO MESSENGER COMMANDS**: Ensure no `RequestXXXMessage` exists. Replace with Shared State or `IMediator.Send`.
 
 ## Non-Goals
 
-- Do NOT create files outside the feature module
-- Do NOT introduce cross-module ViewModel dependencies
-- Do NOT break the vertical slice boundary
+* Do NOT extract logic into helper classes or "Services" (e.g., `FileService`). Extract them into CQRS Handlers!
+* Do NOT create "Aggregator ViewModels" that instantiate child ViewModels in their constructors.
