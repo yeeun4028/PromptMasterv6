@@ -4,7 +4,7 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Shared.Behaviors;
 using PromptMasterv6.Features.Shared.Dialogs;
-using PromptMasterv6.Features.Main.Tray;
+
 using PromptMasterv6.Infrastructure.WindowRegistration;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Settings;

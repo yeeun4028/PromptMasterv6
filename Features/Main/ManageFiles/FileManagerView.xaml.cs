@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using PromptMasterv6.Features.Shared.Models;
 
-namespace PromptMasterv6.Features.Main.FileManager
+namespace PromptMasterv6.Features.Main.ManageFiles
 {
     public partial class FileManagerView : System.Windows.Controls.UserControl
     {

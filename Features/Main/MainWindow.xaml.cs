@@ -16,8 +16,7 @@ using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
-using PromptMasterv6.Features.Main.Tray;
-using PromptMasterv6.Features.Main.FileManager;
+using PromptMasterv6.Features.Main.ManageFiles;
 
 using TextBox = System.Windows.Controls.TextBox;
 using MessageBox = System.Windows.MessageBox;

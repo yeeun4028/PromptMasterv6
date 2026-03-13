@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Main.FileManager;
+using PromptMasterv6.Features.Main.ManageFiles;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Sidebar;
@@ -33,21 +33,21 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Main.Backup.PerformCloudBackupFeature.Handler>();
             services.AddSingleton<Features.Main.Backup.PerformLocalBackupFeature.Handler>();
 
-            // Main Features - FileManager
-            services.AddSingleton<Features.Main.FileManager.ImportMarkdownFilesFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.SelectFilesForImportFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.MoveFileToFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.InitializeAppDataFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.ChangeFileIconFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.CreateFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.DeleteFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.RenameFolderFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.ChangeFolderIconFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.CreateFileFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.DeleteFileFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.RenameFileFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.LoadAppDataFeature.Handler>();
-            services.AddSingleton<Features.Main.FileManager.SaveAppDataFeature.Handler>();
+            // Main Features - ManageFiles
+            services.AddSingleton<Features.Main.ManageFiles.ImportMarkdownFilesFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.SelectFilesForImportFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.MoveFileToFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.InitializeAppDataFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.ChangeFileIconFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.CreateFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.DeleteFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.RenameFolderFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.ChangeFolderIconFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.CreateFileFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.DeleteFileFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.RenameFileFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.LoadAppDataFeature.Handler>();
+            services.AddSingleton<Features.Main.ManageFiles.SaveAppDataFeature.Handler>();
 
             // Main Features - Sidebar
             services.AddSingleton<Features.Main.Sidebar.ChangeActionIconFeature.Handler>();
@@ -64,7 +64,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             // Main Features - Tray
             services.AddSingleton<Features.Main.Tray.OpenSettingsFeature.Handler>();
             services.AddSingleton<Features.Main.Tray.PinToScreenFromCaptureFeature.Handler>();
-            services.AddSingleton<Features.Main.Tray.CleanupTrayIconFeature.Handler>();
+            services.AddSingleton<Features.Main.SystemTray.CleanupTrayIconFeature.Handler>();
 
             // Main Features - WindowManagement
             services.AddTransient<Features.Main.WindowManagement.OpenSettingsFeature.Handler>();

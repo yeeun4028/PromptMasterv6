@@ -1,6 +1,6 @@
 using MediatR;
 using PromptMasterv6.Features.Shared.Models;
-using PromptMasterv6.Features.Main.FileManager.Messages;
+using PromptMasterv6.Features.Main.ManageFiles.Messages;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.Generic;

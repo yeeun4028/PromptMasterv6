@@ -4,7 +4,7 @@ using PromptMasterv6.Features.Shared.Models;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PromptMasterv6.Features.Main.FileManager;
+namespace PromptMasterv6.Features.Main.ManageFiles;
 
 public static class ChangeFolderIconFeature
 {

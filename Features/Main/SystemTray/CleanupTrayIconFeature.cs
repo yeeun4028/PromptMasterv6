@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PromptMasterv6.Features.Main.Tray;
+namespace PromptMasterv6.Features.Main.SystemTray;
 
 /// <summary>
 /// 清理系统托盘图标功能

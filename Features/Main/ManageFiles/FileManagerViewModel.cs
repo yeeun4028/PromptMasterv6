@@ -8,7 +8,7 @@ using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Backup.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
-using PromptMasterv6.Features.Main.FileManager.Messages;
+using PromptMasterv6.Features.Main.ManageFiles.Messages;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -19,7 +19,7 @@ using GongSolutions.Wpf.DragDrop;
 using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
 using DragDropEffects = System.Windows.DragDropEffects;
 
-namespace PromptMasterv6.Features.Main.FileManager;
+namespace PromptMasterv6.Features.Main.ManageFiles;
 
 public partial class FileManagerViewModel : ObservableObject
 {

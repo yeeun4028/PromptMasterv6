@@ -1,6 +1,6 @@
 using PromptMasterv6.Features.Shared.Models;
 
-namespace PromptMasterv6.Features.Main.FileManager.Messages;
+namespace PromptMasterv6.Features.Main.ManageFiles.Messages;
 
 public sealed record RequestSelectFileMessage(PromptItem? File, bool EnterEditMode = false);
 

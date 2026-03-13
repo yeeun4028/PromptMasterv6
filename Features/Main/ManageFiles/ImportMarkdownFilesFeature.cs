@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PromptMasterv6.Features.Main.FileManager;
+namespace PromptMasterv6.Features.Main.ManageFiles;
 
 public static class ImportMarkdownFilesFeature
 {

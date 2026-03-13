@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Main.Tray;
+using PromptMasterv6.Features.Main.SystemTray;
 using PromptMasterv6.Features.AppCore.SingleInstance;
 
 namespace PromptMasterv6.Features.AppCore.Shutdown

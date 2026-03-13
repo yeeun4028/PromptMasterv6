@@ -4,7 +4,7 @@ using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 using System.Collections.Generic;
 
-namespace PromptMasterv6.Features.Main.FileManager;
+namespace PromptMasterv6.Features.Main.ManageFiles;
 
 /// <summary>
 /// 保存应用数据功能

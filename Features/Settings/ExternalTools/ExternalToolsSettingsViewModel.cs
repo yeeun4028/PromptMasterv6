@@ -6,7 +6,7 @@ using PromptMasterv6.Core.Interfaces;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Main.FileManager.Messages;
+using PromptMasterv6.Features.Main.ManageFiles.Messages;
 using PromptMasterv6.Features.Settings.AiModels.Messages;
 using PromptMasterv6.Features.Settings.ExternalTools.HandleAiModelDeleted;
 using PromptMasterv6.Features.Shared.Models;

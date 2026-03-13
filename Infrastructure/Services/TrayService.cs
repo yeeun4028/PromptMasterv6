@@ -4,9 +4,9 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Infrastructure.Helpers;
-using PromptMasterv6.Infrastructure.Services;
+using PromptMasterv6.Features.Main.Tray;
 
-namespace PromptMasterv6.Features.Main.Tray;
+namespace PromptMasterv6.Infrastructure.Services;
 
 public class TrayService : IDisposable
 {

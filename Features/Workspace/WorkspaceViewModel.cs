@@ -5,7 +5,7 @@ using Markdig;
 using MediatR;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
-using PromptMasterv6.Features.Main.FileManager.Messages;
+using PromptMasterv6.Features.Main.ManageFiles.Messages;
 using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Core.Messages;

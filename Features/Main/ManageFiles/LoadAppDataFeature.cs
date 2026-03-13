@@ -3,7 +3,7 @@ using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
 
-namespace PromptMasterv6.Features.Main.FileManager;
+namespace PromptMasterv6.Features.Main.ManageFiles;
 
 /// <summary>
 /// 加载应用数据功能
