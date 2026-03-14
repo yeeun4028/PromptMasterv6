@@ -114,6 +114,10 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Workspace.ToggleEditMode.ToggleEditModeFeature.Handler>();
             services.AddSingleton<Features.Workspace.SendToWebTarget.SendToWebTargetFeature.Handler>();
             services.AddSingleton<Features.Workspace.FilterFiles.FilterFilesFeature.Handler>();
+            services.AddSingleton<Features.Workspace.SelectedFileChanged.SelectedFileChangedFeature.Handler>();
+            services.AddSingleton<Features.Workspace.InitializeFiles.InitializeFilesFeature.Handler>();
+            services.AddSingleton<Features.Workspace.FilesCollectionChanged.FilesCollectionChangedFeature.Handler>();
+            services.AddSingleton<Features.Workspace.FilePropertyChanged.FilePropertyChangedFeature.Handler>();
 
             services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();
             services.AddSingleton<Features.Launcher.FilterLauncherItems.FilterLauncherItemsFeature.Handler>();

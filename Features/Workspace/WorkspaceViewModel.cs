@@ -17,7 +17,11 @@ using PromptMasterv6.Features.Workspace.SyncVariables;
 using PromptMasterv6.Features.Workspace.ToggleEditMode;
 using PromptMasterv6.Features.Workspace.SendToWebTarget;
 using PromptMasterv6.Features.Workspace.FilterFiles;
+using PromptMasterv6.Features.Workspace.SelectedFileChanged;
+using PromptMasterv6.Features.Workspace.InitializeFiles;
+using PromptMasterv6.Features.Workspace.FilePropertyChanged;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,19 +54,13 @@ namespace PromptMasterv6.Features.Workspace
         partial void OnSelectedFileChanged(PromptItem? value)
         {
             IsEditMode = false;
-            _ = UpdatePreviewContentAsync(value?.Content);
-            _ = SyncVariablesAsync(value?.Content);
+            _ = HandleSelectedFileChangedAsync(value);
         }
 
-        private async Task UpdatePreviewContentAsync(string? content)
+        private async Task HandleSelectedFileChangedAsync(PromptItem? newFile)
         {
-            PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(content));
-        }
-
-        private async Task SyncVariablesAsync(string? content)
-        {
-            var varNames = await _mediator.Send(new ParseVariablesQuery(content));
-            var result = await _mediator.Send(new SyncVariablesFeature.Command(Variables, varNames));
+            var result = await _mediator.Send(new SelectedFileChangedFeature.Command(newFile, Variables));
+            PreviewContent = result.PreviewContent;
             HasVariables = result.HasVariables;
         }
 
@@ -323,7 +321,7 @@ namespace PromptMasterv6.Features.Workspace
             WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
         }
 
-        private void OnFilesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void OnFilesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems != null)
             {
@@ -349,9 +347,14 @@ namespace PromptMasterv6.Features.Workspace
             if (e.PropertyName == nameof(PromptItem.LastModified))
                 return;
 
-            if (e.PropertyName == nameof(PromptItem.Content) && sender == SelectedFile)
+            if (sender is PromptItem changedItem && e.PropertyName == nameof(PromptItem.Content) && sender == SelectedFile)
             {
-                await SyncVariablesAsync(SelectedFile?.Content ?? "");
+                var result = await _mediator.Send(new FilePropertyChangedFeature.Command(
+                    changedItem,
+                    e.PropertyName,
+                    SelectedFile,
+                    Variables));
+                HasVariables = result.HasVariables;
             }
 
             RequestSave();
