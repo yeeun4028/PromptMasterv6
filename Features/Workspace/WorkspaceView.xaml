@@ -132,7 +132,6 @@
             <RowDefinition Height="3*"/>
         </Grid.RowDefinitions>
 
-        <!-- 空状态占位提示 -->
         <TextBlock Grid.Row="0"
                    Text="请在左侧选择或新建提示词"
                    FontSize="16"
@@ -145,7 +144,7 @@
                 <Style TargetType="TextBlock">
                     <Setter Property="Visibility" Value="Collapsed"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                        <DataTrigger Binding="{Binding State.SelectedFile}" Value="{x:Null}">
                             <Setter Property="Visibility" Value="Visible"/>
                         </DataTrigger>
                     </Style.Triggers>
@@ -158,7 +157,7 @@
                 <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Visible"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                        <DataTrigger Binding="{Binding State.SelectedFile}" Value="{x:Null}">
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
                     </Style.Triggers>
@@ -169,7 +168,7 @@
                 <TextBox x:Name="Block3ContentEditor"
                          Margin="0,0,0,0"
                          ContextMenu="{DynamicResource Block4EditorContextMenu}"
-                         Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding State.SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalContentAlignment="Top"
@@ -189,7 +188,7 @@
                         <Style TargetType="TextBox">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <DataTrigger Binding="{Binding State.IsEditMode}" Value="True">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -199,7 +198,7 @@
             </Grid>
 
             <md:MarkdownViewer Margin="0,0,0,0"
-                              Markdown="{Binding PreviewContent}"
+                              Markdown="{Binding State.PreviewContent}"
                               Pipeline="{Binding Pipeline}"
                               xml:lang="zh-CN"
                               Background="{DynamicResource Block3Background}">
@@ -234,7 +233,7 @@
                         <Setter Property="Visibility" Value="Visible"/>
                         <Setter Property="Margin" Value="0"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                            <DataTrigger Binding="{Binding State.IsEditMode}" Value="True">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -252,13 +251,13 @@
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Collapsed"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                            <DataTrigger Binding="{Binding State.IsEditMode}" Value="True">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding SelectedFile.Content}" Value="">
+                            <DataTrigger Binding="{Binding State.SelectedFile.Content}" Value="">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding SelectedFile.Content}" Value="{x:Null}">
+                            <DataTrigger Binding="{Binding State.SelectedFile.Content}" Value="{x:Null}">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -277,10 +276,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Web Direct Targets -->
                 <Grid Grid.Row="0" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <ItemsControl ItemsSource="{Binding Config.WebDirectTargets}">
+                        <ItemsControl ItemsSource="{Binding State.WebDirectTargets}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
@@ -326,7 +324,6 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!-- GitHub Search Button -->
                         <Button Command="{Binding SearchOnGitHubCommand}"
                                 ToolTip="在 GitHub 上搜索 (仅搜索此输入框内容)"
                                 Margin="0,0,0,0"
@@ -360,7 +357,6 @@
                         </Button>
                     </StackPanel>
 
-                    <!-- Copy Result Button -->
                     <Button Command="{Binding CopyCompiledTextCommand}"
                             ToolTip="复制最终结果 (Ctrl+C)"
                             HorizontalAlignment="Right"
@@ -393,13 +389,13 @@
                         <Style TargetType="ScrollViewer">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasVariables}" Value="True">
+                                <DataTrigger Binding="{Binding State.HasVariables}" Value="True">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </ScrollViewer.Style>
-                    <ItemsControl ItemsSource="{Binding Variables}">
+                    <ItemsControl ItemsSource="{Binding State.Variables}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,5">
@@ -429,7 +425,7 @@
                     </ItemsControl>
                 </ScrollViewer>
 
-                <TextBox Grid.Row="1" Text="{Binding AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
+                <TextBox Grid.Row="1" Text="{Binding State.AdditionalInput, UpdateSourceTrigger=PropertyChanged}" 
                          Foreground="{DynamicResource PrimaryTextBrush}"
                          CaretBrush="{DynamicResource PrimaryTextBrush}"
                          AcceptsReturn="True" 
@@ -445,7 +441,7 @@
                         <Style TargetType="TextBox">
                             <Setter Property="Visibility" Value="Visible"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasVariables}" Value="True">
+                                <DataTrigger Binding="{Binding State.HasVariables}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>

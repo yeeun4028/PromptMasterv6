@@ -34,15 +34,21 @@ namespace PromptMasterv6.Infrastructure.Services
                 if (Enum.TryParse(keyStr, true, out Key key))
                 {
                     TryRemoveHotkey(name);
-                    HotkeyManager.Current.AddOrReplace(name, key, modifiers, (_, __) => action());
-                    return true;
+                    
+                    try
+                    {
+                        HotkeyManager.Current.AddOrReplace(name, key, modifiers, (_, __) => action());
+                        _logger.LogInfo($"热键注册成功: {name} ({hotkeyStr})", "HotkeyService.RegisterWindowHotkey");
+                        return true;
+                    }
+                    catch (HotkeyAlreadyRegisteredException)
+                    {
+                        _logger.LogWarning($"快捷键被其他程序占用: {name} ({hotkeyStr})", "HotkeyService.RegisterWindowHotkey");
+                        return false;
+                    }
                 }
                 
-                return false;
-            }
-            catch (HotkeyAlreadyRegisteredException ex)
-            {
-                _logger.LogException(ex, $"快捷键被占用: {name} ({hotkeyStr})", "HotkeyService.RegisterWindowHotkey");
+                _logger.LogWarning($"无效的热键格式: {hotkeyStr}", "HotkeyService.RegisterWindowHotkey");
                 return false;
             }
             catch (Exception ex)
@@ -58,9 +64,8 @@ namespace PromptMasterv6.Infrastructure.Services
             {
                 HotkeyManager.Current.Remove(name);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogException(ex, $"Failed to remove hotkey: {name}", "HotkeyService.TryRemoveHotkey");
             }
         }
 

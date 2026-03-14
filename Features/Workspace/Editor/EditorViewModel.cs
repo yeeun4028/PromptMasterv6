@@ -8,6 +8,8 @@ using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Workspace.ToggleEditMode;
 using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Core.Messages;
+using PromptMasterv6.Features.Main.Sidebar.Messages;
+using PromptMasterv6.Features.Main.ContentEditor.Messages;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.Editor;
@@ -36,13 +38,20 @@ public partial class EditorViewModel : ObservableObject
             if (m.EnterEditMode)
             {
                 _state.IsEditMode = true;
+                WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(true));
             }
+        });
+
+        WeakReferenceMessenger.Default.Register<ToggleEditModeRequestMessage>(this, async (_, _) =>
+        {
+            await ToggleEditMode();
         });
     }
 
     private async Task OnFileSelectedAsync(PromptItem? file)
     {
         _state.IsEditMode = false;
+        WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
         
         if (file == null)
         {
@@ -74,6 +83,8 @@ public partial class EditorViewModel : ObservableObject
 
         _state.IsEditMode = result.NewEditMode;
         _originalContentBeforeEdit = result.OriginalContentBeforeEdit;
+
+        WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(result.NewEditMode));
 
         if (!_state.IsEditMode && _state.SelectedFile != null)
         {

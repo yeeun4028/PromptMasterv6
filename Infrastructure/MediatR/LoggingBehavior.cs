@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace PromptMasterv6.Infrastructure.MediatR;
 
-/// <summary>
-/// MediatR 日志记录管道行为
-/// </summary>
 public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : IBaseRequest
 {
     private readonly LoggerService _logger;
 

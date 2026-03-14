@@ -11,10 +11,14 @@ using PromptMasterv6.Features.Workspace.LoadWorkspaceData;
 using PromptMasterv6.Features.Workspace.FilterFiles;
 using PromptMasterv6.Features.Workspace.DeleteFile;
 using PromptMasterv6.Features.Workspace.ChangeFileIcon;
+using PromptMasterv6.Features.Workspace.GetWorkspaceConfig;
+using PromptMasterv6.Features.Workspace.SearchOnGitHub;
+using PromptMasterv6.Features.Workspace.SendToWebTarget;
+using PromptMasterv6.Features.Shared.Commands;
+using PromptMasterv6.Features.Workspace.Editor;
 using Markdig;
 using PromptMasterv6.Infrastructure.Services;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,21 +31,21 @@ public partial class WorkspaceViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly IWorkspaceState _state;
     private readonly DialogService _dialogService;
-    private readonly SettingsService _settingsService;
+    private readonly EditorViewModel _editorViewModel;
 
     public MarkdownPipeline Pipeline { get; }
-    public AppConfig Config => _settingsService.Config;
+    public IWorkspaceState State => _state;
 
     public WorkspaceViewModel(
-        SettingsService settingsService,
         IMediator mediator,
         DialogService dialogService,
-        IWorkspaceState state)
+        IWorkspaceState state,
+        EditorViewModel editorViewModel)
     {
-        _settingsService = settingsService;
         _mediator = mediator;
         _dialogService = dialogService;
         _state = state;
+        _editorViewModel = editorViewModel;
 
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
@@ -96,6 +100,13 @@ public partial class WorkspaceViewModel : ObservableObject
         {
             await LoadDataAsync();
         });
+    }
+
+    public async Task InitializeAsync()
+    {
+        var config = await _mediator.Send(new GetWorkspaceConfigFeature.Query());
+        _state.WebDirectTargets = config.WebDirectTargets;
+        _state.DefaultWebTargetName = config.DefaultWebTargetName;
     }
 
     public void SetFiles(ObservableCollection<PromptItem> files)
@@ -211,13 +222,70 @@ public partial class WorkspaceViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task CopyCompiledText()
+    {
+        var variablesDict = _state.Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
+        await _mediator.Send(new CopyCompiledTextCommand(
+            _state.SelectedFile?.Content, 
+            variablesDict, 
+            _state.AdditionalInput));
+    }
+
+    [RelayCommand]
+    private async Task SearchOnGitHub()
+    {
+        var query = _state.AdditionalInput?.Trim();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            _dialogService.ShowAlert("请输入要搜索的内容。", "输入为空");
+            return;
+        }
+
+        var result = await _mediator.Send(new SearchOnGitHubFeature.Command(query));
+
+        if (result.Success)
+        {
+            _state.AdditionalInput = "";
+        }
+        else
+        {
+            _dialogService.ShowAlert(result.ErrorMessage ?? "搜索失败", "错误");
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenWebTarget(WebTarget? target)
+    {
+        if (target == null) return;
+
+        var result = await _mediator.Send(new SendToWebTargetFeature.Command(
+            _state.SelectedFile,
+            _state.Variables,
+            _state.HasVariables,
+            _state.AdditionalInput,
+            Target: target));
+
+        if (!result.Success)
+        {
+            _dialogService.ShowAlert(result.ErrorMessage ?? "发送失败", "错误");
+            return;
+        }
+
+        if (result.ShouldClearAdditionalInput)
+        {
+            _state.AdditionalInput = "";
+        }
+    }
+
+    [RelayCommand]
     private void RequestSave()
     {
         if (!_state.IsDirty) _state.IsDirty = true;
         WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
     }
 
-    private async void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(PromptItem.LastModified))
             return;

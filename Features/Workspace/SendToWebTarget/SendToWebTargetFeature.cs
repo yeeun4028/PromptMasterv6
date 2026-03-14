@@ -2,7 +2,6 @@ using MediatR;
 using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Shared.Queries;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -18,7 +17,7 @@ public static class SendToWebTargetFeature
         bool HasVariables,
         string AdditionalInput,
         WebTarget? Target = null,
-        List<WebTarget>? AllTargets = null,
+        ObservableCollection<WebTarget>? AllTargets = null,
         string? DefaultTargetName = null) : IRequest<Result>;
 
     public record Result(bool Success, string? ErrorMessage, bool ShouldClearAdditionalInput);
@@ -65,10 +64,9 @@ public static class SendToWebTargetFeature
             }
             else if (request.AllTargets != null && !string.IsNullOrEmpty(request.DefaultTargetName))
             {
-                var targets = new ObservableCollection<WebTarget>(request.AllTargets);
                 await _mediator.Send(new SendToDefaultTargetCommand(
                     content,
-                    targets,
+                    request.AllTargets,
                     request.DefaultTargetName));
             }
 

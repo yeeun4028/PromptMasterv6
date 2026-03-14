@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
 namespace PromptMasterv6.Features.Workspace
@@ -7,6 +8,8 @@ namespace PromptMasterv6.Features.Workspace
         public WorkspaceView()
         {
             InitializeComponent();
+            DataContext = App.Services.GetRequiredService<WorkspaceViewModel>();
+            _ = ((WorkspaceViewModel)DataContext).InitializeAsync();
         }
     }
 }

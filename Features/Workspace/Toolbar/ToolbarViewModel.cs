@@ -8,7 +8,7 @@ using PromptMasterv6.Features.Workspace.SendToWebTarget;
 using PromptMasterv6.Features.Shared.Commands;
 using PromptMasterv6.Features.Workspace.GetWorkspaceConfig;
 using PromptMasterv6.Infrastructure.Services;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,7 +21,7 @@ public partial class ToolbarViewModel : ObservableObject
     private readonly DialogService _dialogService;
 
     [ObservableProperty]
-    private List<WebTarget> _webDirectTargets = new();
+    private ObservableCollection<WebTarget> _webDirectTargets = new();
 
     [ObservableProperty]
     private string? _defaultWebTargetName;

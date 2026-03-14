@@ -19,5 +19,8 @@ public interface IWorkspaceState
     string AdditionalInput { get; set; }
     ICollectionView? FilesView { get; set; }
     
+    ObservableCollection<WebTarget> WebDirectTargets { get; set; }
+    string? DefaultWebTargetName { get; set; }
+    
     void Initialize(ObservableCollection<FolderItem> folders, ObservableCollection<PromptItem> files);
 }

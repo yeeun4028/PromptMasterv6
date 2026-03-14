@@ -31,6 +31,12 @@ public partial class WorkspaceState : ObservableObject, IWorkspaceState
     [ObservableProperty]
     private ICollectionView? _filesView;
 
+    [ObservableProperty]
+    private ObservableCollection<WebTarget> _webDirectTargets = new();
+
+    [ObservableProperty]
+    private string? _defaultWebTargetName;
+
     public ObservableCollection<FolderItem> Folders { get; } = new();
     public ObservableCollection<PromptItem> Files { get; } = new();
     public ObservableCollection<VariableItem> Variables { get; } = new();
