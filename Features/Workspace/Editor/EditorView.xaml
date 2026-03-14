@@ -1,0 +1,138 @@
+<UserControl x:Class="PromptMasterv6.Features.Workspace.Editor.EditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:md="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="600">
+
+    <UserControl.Resources>
+        <Style x:Key="Block4MenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter Content="{TemplateBinding Header}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ContextMenu x:Key="EditorContextMenu" x:Shared="False">
+            <MenuItem Command="ApplicationCommands.Cut" Header="剪切" Style="{StaticResource Block4MenuItemStyle}"/>
+            <MenuItem Command="ApplicationCommands.Copy" Header="复制" Style="{StaticResource Block4MenuItemStyle}"/>
+            <MenuItem Command="ApplicationCommands.Paste" Header="粘贴" Style="{StaticResource Block4MenuItemStyle}"/>
+            <Separator/>
+            <MenuItem Command="ApplicationCommands.SelectAll" Header="全选" Style="{StaticResource Block4MenuItemStyle}"/>
+        </ContextMenu>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource Block3Background}">
+        <TextBlock Text="请在左侧选择或新建提示词"
+                   FontSize="16"
+                   Foreground="{DynamicResource PlaceholderTextBrush}"
+                   FontFamily="Segoe UI, Microsoft YaHei UI"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   IsHitTestVisible="False">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <Grid Margin="20,0,4,0" TextElement.Foreground="{DynamicResource Block3EditorTextBrush}" TextElement.FontFamily="Segoe UI, Microsoft YaHei UI">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedFile}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <TextBox x:Name="ContentEditor"
+                     Text="{Binding SelectedFile.Content, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     VerticalContentAlignment="Top"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Foreground="{DynamicResource Block3EditorTextBrush}"
+                     CaretBrush="{DynamicResource Block3EditorCaretBrush}"
+                     SelectionBrush="{DynamicResource Block3EditorSelectionBrush}"
+                     SelectionOpacity="1"
+                     FontSize="13"
+                     Padding="5"
+                     FontFamily="Segoe UI, Microsoft YaHei UI"
+                     ContextMenu="{StaticResource EditorContextMenu}"
+                     hc:InfoElement.Placeholder="在此处键入提示词内容...">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+
+            <md:MarkdownViewer Markdown="{Binding PreviewContent}"
+                              Pipeline="{Binding Pipeline}"
+                              xml:lang="zh-CN"
+                              Background="{DynamicResource Block3Background}">
+                <md:MarkdownViewer.Resources>
+                    <Style TargetType="FlowDocumentScrollViewer">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                    </Style>
+                    <Style x:Key="{x:Static md:Styles.ParagraphStyleKey}" TargetType="{x:Type Paragraph}">
+                        <Setter Property="LineHeight" Value="30"/>
+                        <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+                        <Setter Property="Margin" Value="0,0,0,12"/>
+                    </Style>
+                    <Style x:Key="{x:Static md:Styles.DocumentStyleKey}" TargetType="{x:Type FlowDocument}">
+                        <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
+                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Block3EditorTextBrush}"/>
+                        <Setter Property="TextAlignment" Value="Left"/>
+                        <Setter Property="PagePadding" Value="30,0,30,50"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                </md:MarkdownViewer.Resources>
+                <md:MarkdownViewer.Style>
+                    <Style TargetType="md:MarkdownViewer">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </md:MarkdownViewer.Style>
+            </md:MarkdownViewer>
+        </Grid>
+    </Grid>
+</UserControl>

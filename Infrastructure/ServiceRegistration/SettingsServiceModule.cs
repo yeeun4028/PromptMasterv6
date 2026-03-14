@@ -55,6 +55,13 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
 
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
+            services.AddSingleton<Features.Workspace.State.IWorkspaceState, Features.Workspace.State.WorkspaceState>();
+            services.AddTransient<Features.Workspace.Editor.EditorViewModel>();
+            services.AddTransient<Features.Workspace.Editor.EditorView>();
+            services.AddTransient<Features.Workspace.Variables.VariablesViewModel>();
+            services.AddTransient<Features.Workspace.Variables.VariablesView>();
+            services.AddTransient<Features.Workspace.Toolbar.ToolbarViewModel>();
+            services.AddTransient<Features.Workspace.Toolbar.ToolbarView>();
             services.AddTransient<LauncherWindow>();
             services.AddTransient<SettingsWindow>();
 
@@ -118,6 +125,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Workspace.InitializeFiles.InitializeFilesFeature.Handler>();
             services.AddSingleton<Features.Workspace.FilesCollectionChanged.FilesCollectionChangedFeature.Handler>();
             services.AddSingleton<Features.Workspace.FilePropertyChanged.FilePropertyChangedFeature.Handler>();
+            services.AddSingleton<Features.Workspace.GetWorkspaceConfig.GetWorkspaceConfigFeature.Handler>();
 
             services.AddSingleton<Features.Launcher.ReorderLauncherItems.ReorderLauncherItemsFeature.Handler>();
             services.AddSingleton<Features.Launcher.FilterLauncherItems.FilterLauncherItemsFeature.Handler>();

@@ -18,7 +18,7 @@ public static class SendToWebTargetFeature
         bool HasVariables,
         string AdditionalInput,
         WebTarget? Target = null,
-        ObservableCollection<WebTarget>? AllTargets = null,
+        List<WebTarget>? AllTargets = null,
         string? DefaultTargetName = null) : IRequest<Result>;
 
     public record Result(bool Success, string? ErrorMessage, bool ShouldClearAdditionalInput);
@@ -65,9 +65,10 @@ public static class SendToWebTargetFeature
             }
             else if (request.AllTargets != null && !string.IsNullOrEmpty(request.DefaultTargetName))
             {
+                var targets = new ObservableCollection<WebTarget>(request.AllTargets);
                 await _mediator.Send(new SendToDefaultTargetCommand(
                     content,
-                    request.AllTargets,
+                    targets,
                     request.DefaultTargetName));
             }
 

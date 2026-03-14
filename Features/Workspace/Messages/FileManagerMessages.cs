@@ -20,3 +20,5 @@ public class JumpToEditPromptMessage
 {
     public PromptItem? File { get; set; }
 }
+
+public record FileContentChangedMessage(string? Content);

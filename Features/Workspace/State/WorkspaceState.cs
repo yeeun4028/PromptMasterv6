@@ -1,15 +1,39 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using PromptMasterv6.Features.Shared.Models;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace PromptMasterv6.Features.Workspace.State;
 
-public class WorkspaceState : IWorkspaceState
+public partial class WorkspaceState : ObservableObject, IWorkspaceState
 {
+    [ObservableProperty]
+    private FolderItem? _selectedFolder;
+
+    [ObservableProperty]
+    private PromptItem? _selectedFile;
+
+    [ObservableProperty]
+    private bool _isDirty;
+
+    [ObservableProperty]
+    private bool _isEditMode;
+
+    [ObservableProperty]
+    private string? _previewContent;
+
+    [ObservableProperty]
+    private bool _hasVariables;
+
+    [ObservableProperty]
+    private string _additionalInput = "";
+
+    [ObservableProperty]
+    private ICollectionView? _filesView;
+
     public ObservableCollection<FolderItem> Folders { get; } = new();
     public ObservableCollection<PromptItem> Files { get; } = new();
-    public FolderItem? SelectedFolder { get; set; }
-    public PromptItem? SelectedFile { get; set; }
-    public bool IsDirty { get; set; }
+    public ObservableCollection<VariableItem> Variables { get; } = new();
 
     public void Initialize(ObservableCollection<FolderItem> folders, ObservableCollection<PromptItem> files)
     {
