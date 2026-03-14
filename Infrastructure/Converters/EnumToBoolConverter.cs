@@ -23,9 +23,17 @@ namespace PromptMasterv6.Infrastructure.Converters
             if (value is bool useValue && useValue)
             {
                 string targetValue = parameter.ToString() ?? "";
+                if (string.IsNullOrWhiteSpace(targetValue)) return Binding.DoNothing;
+                
                 try
                 {
-                    return Enum.Parse(targetType, targetValue);
+                    if (!targetType.IsEnum) return Binding.DoNothing;
+                    
+                    if (Enum.TryParse(targetType, targetValue, true, out var result))
+                    {
+                        return result;
+                    }
+                    return Binding.DoNothing;
                 }
                 catch
                 {

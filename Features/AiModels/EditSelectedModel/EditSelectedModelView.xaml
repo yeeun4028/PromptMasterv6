@@ -1,0 +1,47 @@
+<UserControl x:Class="PromptMasterv6.Features.AiModels.EditSelectedModel.EditSelectedModelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:testConnection="clr-namespace:PromptMasterv6.Features.AiModels.TestConnection"
+             x:Name="This">
+    <StackPanel>
+        <StackPanel.Style>
+            <Style TargetType="StackPanel">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding SelectionState.SelectedModel}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </StackPanel.Style>
+
+        <TextBlock Text="编辑选中的模型" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,15" FontSize="15" FontWeight="SemiBold"/>
+        <StackPanel Margin="0,0,0,12">
+            <TextBlock Text="API 地址 (Base URL)" Style="{StaticResource FieldLabelTextStyle}"/>
+            <TextBox Text="{Binding SelectionState.SelectedModel.BaseUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+        </StackPanel>
+        <StackPanel Margin="0,0,0,12">
+            <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
+            <TextBox Text="{Binding SelectionState.SelectedModel.ApiKey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
+        </StackPanel>
+        <StackPanel Margin="0,0,0,12">
+            <TextBlock Text="模型名称 (Model ID)" Style="{StaticResource FieldLabelTextStyle}"/>
+            <TextBox Text="{Binding SelectionState.SelectedModel.ModelName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+        </StackPanel>
+        <StackPanel Margin="0,0,0,12">
+            <TextBlock Text="备注名称 (Display Name)" Style="{StaticResource FieldLabelTextStyle}"/>
+            <TextBox Text="{Binding SelectionState.SelectedModel.Remark, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+        </StackPanel>
+
+        <CheckBox IsChecked="{Binding SelectionState.SelectedModel.UseProxy, Mode=TwoWay}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center">
+                    <Run Text="使用 VPN 代理" Foreground="{DynamicResource TextPrimary}" FontWeight="Medium"/>
+                    <Run Text=" (海外模型请勾选)" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                </TextBlock>
+            </StackPanel>
+        </CheckBox>
+
+        <testConnection:TestConnectionView DataContext="{Binding TestConnectionViewModel}"
+                                           SelectedModel="{Binding SelectionState.SelectedModel, Mode=OneWay}"/>
+    </StackPanel>
+</UserControl>

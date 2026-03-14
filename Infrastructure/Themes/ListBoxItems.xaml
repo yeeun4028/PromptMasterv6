@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters">
+                    xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
+                    xmlns:diagnostics="clr-namespace:System.Diagnostics;assembly=System.Diagnostics.DiagnosticSource">
 
     <converters:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
 
@@ -17,7 +18,7 @@
                             <ToolTip Style="{StaticResource Block1ToolTipStyle}" Content="{Binding Name}"/>
                         </Border.ToolTip>
                         <Path x:Name="IconPath" 
-                              Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconFolderLinear}}" 
+                              Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}, TargetNullValue={StaticResource IconFolderLinear}, FallbackValue={StaticResource IconFolderLinear}}" 
                               Fill="{DynamicResource ActionIconBrush}" 
                               Stretch="Uniform" 
                               Width="14" Height="14" 
@@ -78,7 +79,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Path x:Name="FileIcon" 
-                                  Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}, FallbackValue={StaticResource IconFolderLinear}}" 
+                                  Data="{Binding IconGeometry, Converter={StaticResource StringToGeometryConverter}, TargetNullValue={StaticResource IconFolderLinear}, FallbackValue={StaticResource IconFolderLinear}}" 
                                   Visibility="Visible" 
                                   Fill="{DynamicResource PlaceholderTextBrush}" 
                                   Stretch="Uniform" 
@@ -111,7 +112,8 @@
         <Setter Property="ContextMenu">
             <Setter.Value>
                 <ContextMenu Style="{StaticResource ModernContextMenuStyle}"
-                             DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                             DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}"
+                             x:Name="FileContextMenu">
                     <MenuItem Header="重命名"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding RenameFileVM.ExecuteCommand}"

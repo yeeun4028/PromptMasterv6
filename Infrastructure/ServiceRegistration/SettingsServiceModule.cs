@@ -1,14 +1,16 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Features.Settings;
 using PromptMasterv6.Features.AiModels;
+using PromptMasterv6.Features.AiModels.AddModel;
+using PromptMasterv6.Features.AiModels.AiModelList;
+using PromptMasterv6.Features.AiModels.EditSelectedModel;
+using PromptMasterv6.Features.AiModels.RenameModel;
+using PromptMasterv6.Features.AiModels.TestConnection;
+using PromptMasterv6.Features.AiModels.Shared;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
-using PromptMasterv6.Features.AiModels.TestConnection;
-using PromptMasterv6.Features.AiModels.DeleteModel;
-using PromptMasterv6.Features.AiModels.AddModel;
-using PromptMasterv6.Features.AiModels.RenameModel;
 using PromptMasterv6.Features.AiModels.TestTranslationBatch;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
@@ -19,7 +21,12 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
         {
             services.AddTransient<SettingsViewModel>();
             
-            services.AddTransient<AiModelsViewModel>();
+            services.AddSingleton<AiModelSelectionState>();
+            services.AddTransient<AddModelViewModel>();
+            services.AddTransient<AiModelListViewModel>();
+            services.AddTransient<RenameModelViewModel>();
+            services.AddTransient<TestConnectionViewModel>();
+            services.AddTransient<EditSelectedModelViewModel>();
             
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
@@ -37,6 +44,10 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddTransient<Features.Settings.Window.WindowView>();
             services.AddTransient<Features.Settings.Automation.AutomationView>();
             services.AddTransient<AiModelsView>();
+            services.AddTransient<AddModelView>();
+            services.AddTransient<AiModelListView>();
+            services.AddTransient<EditSelectedModelView>();
+            services.AddTransient<TestConnectionView>();
             services.AddTransient<SyncView>();
             services.AddTransient<Features.Settings.ExternalTools.ExternalToolsSettingsView>();
             services.AddTransient<Features.Settings.LaunchBar.LaunchBarView>();

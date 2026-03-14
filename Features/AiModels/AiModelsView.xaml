@@ -17,49 +17,7 @@
                               HorizontalAlignment="Stretch"/>
                 </StackPanel>
 
-                <StackPanel>
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding SelectedSavedModel}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-
-                    <TextBlock Text="编辑选中的模型" Style="{StaticResource FieldLabelTextStyle}" Margin="0,0,0,15" FontSize="15" FontWeight="SemiBold"/>
-                    <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="API 地址 (Base URL)" Style="{StaticResource FieldLabelTextStyle}"/>
-                        <TextBox Text="{Binding SelectedSavedModel.BaseUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="API Key" Style="{StaticResource FieldLabelTextStyle}"/>
-                        <TextBox Text="{Binding SelectedSavedModel.ApiKey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ApiKeyTextBoxStyle}"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="模型名称 (Model ID)" Style="{StaticResource FieldLabelTextStyle}"/>
-                        <TextBox Text="{Binding SelectedSavedModel.ModelName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="备注名称 (Display Name)" Style="{StaticResource FieldLabelTextStyle}"/>
-                        <TextBox Text="{Binding SelectedSavedModel.Remark, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-
-                    <CheckBox IsChecked="{Binding SelectedSavedModel.UseProxy, Mode=TwoWay}" Style="{StaticResource ToggleSwitchStyle}" Cursor="Hand" Margin="0,10,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center">
-                                <Run Text="使用 VPN 代理" Foreground="{DynamicResource TextPrimary}" FontWeight="Medium"/>
-                                <Run Text=" (海外模型请勾选)" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </CheckBox>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <TextBlock Text="{Binding ConnectionTestStatus}" Foreground="{Binding ConnectionTestStatusColor}" VerticalAlignment="Center" Margin="0,0,15,0" FontWeight="SemiBold"/>
-                        <Button Content="测试连接" Command="{Binding TestConnectionCommand}" CommandParameter="{Binding SelectedSavedModel}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,15,0"/>
-                    </StackPanel>
-                </StackPanel>
+                <ContentControl x:Name="EditSelectedModelContainer"/>
             </StackPanel>
         </Border>
 
@@ -71,77 +29,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="已保存的模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Content="+ 新建模型" Command="{Binding AddModelCommand}" Style="{StaticResource TextLinkButtonStyle}" FontWeight="Bold"/>
+                    <ContentControl x:Name="AddModelContainer" Grid.Column="1"/>
                 </Grid>
 
-                <ListBox ItemsSource="{Binding Config.SavedModels}"
-                         SelectedItem="{Binding SelectedSavedModel, Mode=TwoWay}"
-                         BorderThickness="0" Background="Transparent" SelectionMode="Single">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListBoxItem">
-                                        <Border x:Name="Chip"
-                                                Background="{DynamicResource ShellBackground}"
-                                                BorderBrush="{DynamicResource DividerBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="6"
-                                                Padding="12,10"
-                                                Margin="0,0,0,8"
-                                                Cursor="Hand"
-                                                Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Border Width="16" Height="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource DividerColor}" Margin="0,0,10,0" VerticalAlignment="Center">
-                                                    <Path x:Name="CheckMark" Data="M2,5 L5,8 L10,2" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock x:Name="DeleteBtn" Grid.Column="2" Text="删除" FontSize="12" Foreground="{DynamicResource DangerBrush}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
-                                                    <TextBlock.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.ConfirmDeleteModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
-                                                    </TextBlock.InputBindings>
-                                                </TextBlock>
-                                                <TextBlock x:Name="ConfirmBtn" Grid.Column="3" Text="确认" FontSize="12" Foreground="{DynamicResource AccentColor}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
-                                                    <TextBlock.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.DeleteModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
-                                                    </TextBlock.InputBindings>
-                                                </TextBlock>
-                                            </Grid>
-
-                                            <Border.ContextMenu>
-                                                <ContextMenu>
-                                                    <MenuItem Header="重命名" Command="{Binding PlacementTarget.Tag.RenameModelCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="删除" Command="{Binding PlacementTarget.Tag.DeleteModelCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
-                                                </ContextMenu>
-                                            </Border.ContextMenu>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
-                                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemSelectedBackgroundBrush}"/>
-                                            </Trigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                <Setter TargetName="DeleteBtn" Property="Visibility" Value="Visible"/>
-                                            </Trigger>
-                                            <DataTrigger Binding="{Binding IsPendingDelete}" Value="True">
-                                                <Setter TargetName="ConfirmBtn" Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                </ListBox>
+                <ContentControl x:Name="AiModelListContainer"/>
             </StackPanel>
         </Border>
     </StackPanel>

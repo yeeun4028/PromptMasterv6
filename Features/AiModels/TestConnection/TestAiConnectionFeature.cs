@@ -9,7 +9,7 @@ public static class TestAiConnectionFeature
 {
     public record Command(string ApiKey, string BaseUrl, string ModelName, bool UseProxy) : IRequest<Result>;
 
-    public record Result(bool Success, string Message, long? ResponseTimeMs);
+    public record Result(bool Success, string Message, long? ResponseTimeMs, string DisplayMessage);
 
     public class Handler : IRequestHandler<Command, Result>
     {
@@ -22,13 +22,17 @@ public static class TestAiConnectionFeature
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new Features.Ai.TestConnection.TestConnectionFeature.Command(
-                request.ApiKey, 
-                request.BaseUrl, 
-                request.ModelName, 
-                request.UseProxy), cancellationToken);
+                var result = await _mediator.Send(new Features.Ai.TestConnection.TestConnectionFeature.Command(
+                    request.ApiKey, 
+                    request.BaseUrl, 
+                    request.ModelName, 
+                    request.UseProxy), cancellationToken);
 
-            return new Result(result.Success, result.Message, result.ResponseTimeMs);
+                var displayMessage = result.Success && result.ResponseTimeMs.HasValue
+                    ? $"{result.Message} ({result.ResponseTimeMs}ms)"
+                    : result.Message;
+
+                return new Result(result.Success, result.Message, result.ResponseTimeMs, displayMessage);
         }
     }
 }

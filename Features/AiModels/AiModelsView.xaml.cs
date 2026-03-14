@@ -1,24 +1,27 @@
 using System.Windows.Controls;
-using Microsoft.Extensions.DependencyInjection;
+using PromptMasterv6.Features.AiModels.AddModel;
+using PromptMasterv6.Features.AiModels.AiModelList;
+using PromptMasterv6.Features.AiModels.EditSelectedModel;
+using PromptMasterv6.Features.AiModels.Shared;
+using PromptMasterv6.Infrastructure.Services;
 
 namespace PromptMasterv6.Features.AiModels;
 
 public partial class AiModelsView : System.Windows.Controls.UserControl
 {
-    public AiModelsView()
+    public AiModelsView(
+        AddModelView addModelView,
+        AiModelListView aiModelListView,
+        EditSelectedModelView editSelectedModelView,
+        AiModelSelectionState selectionState,
+        SettingsService settingsService)
     {
-        var app = System.Windows.Application.Current as App;
-        if (app?.ServiceProvider != null)
-        {
-            DataContext = app.ServiceProvider.GetService(typeof(AiModelsViewModel)) as AiModelsViewModel;
-        }
-
         InitializeComponent();
-    }
-
-    public AiModelsView(AiModelsViewModel viewModel)
-    {
-        DataContext = viewModel;
-        InitializeComponent();
+        
+        EditSelectedModelContainer.Content = editSelectedModelView;
+        AddModelContainer.Content = addModelView;
+        AiModelListContainer.Content = aiModelListView;
+        
+        DataContext = new { Config = settingsService.Config, SelectionState = selectionState };
     }
 }
