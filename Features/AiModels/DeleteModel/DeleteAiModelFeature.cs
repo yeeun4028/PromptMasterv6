@@ -1,8 +1,7 @@
 using MediatR;
 using PromptMasterv6.Infrastructure.Services;
 using PromptMasterv6.Features.Shared.Models;
-using CommunityToolkit.Mvvm.Messaging;
-using PromptMasterv6.Features.AiModels.Messages;
+using PromptMasterv6.Features.AiModels.Events;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,13 +16,15 @@ public static class DeleteAiModelFeature
     public class Handler : IRequestHandler<Command, Result>
     {
         private readonly SettingsService _settingsService;
+        private readonly IPublisher _publisher;
 
-        public Handler(SettingsService settingsService)
+        public Handler(SettingsService settingsService, IPublisher publisher)
         {
             _settingsService = settingsService;
+            _publisher = publisher;
         }
 
-        public Task<Result> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             var model = request.Model;
             var config = _settingsService.Config;
@@ -41,9 +42,9 @@ public static class DeleteAiModelFeature
 
             _settingsService.SaveConfig();
 
-            WeakReferenceMessenger.Default.Send(new AiModelDeletedMessage(model));
+            await _publisher.Publish(new AiModelDeletedEvent(model), cancellationToken);
 
-            return Task.FromResult(new Result(true, "模型删除成功"));
+            return new Result(true, "模型删除成功");
         }
     }
 }

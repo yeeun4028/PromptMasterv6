@@ -56,8 +56,8 @@
                     </CheckBox>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <TextBlock Text="{Binding TestConnectionVM.TestStatus}" Foreground="{Binding TestConnectionVM.TestStatusColor}" VerticalAlignment="Center" Margin="0,0,15,0" FontWeight="SemiBold"/>
-                        <Button Content="测试连接" Command="{Binding TestConnectionVM.ExecuteCommand}" CommandParameter="{Binding SelectedSavedModel}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,15,0"/>
+                        <TextBlock Text="{Binding ConnectionTestStatus}" Foreground="{Binding ConnectionTestStatusColor}" VerticalAlignment="Center" Margin="0,0,15,0" FontWeight="SemiBold"/>
+                        <Button Content="测试连接" Command="{Binding TestConnectionCommand}" CommandParameter="{Binding SelectedSavedModel}" Style="{StaticResource TextLinkButtonStyle}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,15,0"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
@@ -71,7 +71,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="已保存的模型" Style="{StaticResource FieldLabelTextStyle}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Content="+ 新建模型" Command="{Binding AddModelVM.ExecuteCommand}" Style="{StaticResource TextLinkButtonStyle}" FontWeight="Bold"/>
+                    <Button Grid.Column="1" Content="+ 新建模型" Command="{Binding AddModelCommand}" Style="{StaticResource TextLinkButtonStyle}" FontWeight="Bold"/>
                 </Grid>
 
                 <ListBox ItemsSource="{Binding Config.SavedModels}"
@@ -106,20 +106,20 @@
                                                 <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="14" Foreground="{DynamicResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock x:Name="DeleteBtn" Grid.Column="2" Text="删除" FontSize="12" Foreground="{DynamicResource DangerBrush}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
                                                     <TextBlock.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.DeleteModelVM.ConfirmDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.ConfirmDeleteModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
                                                     </TextBlock.InputBindings>
                                                 </TextBlock>
                                                 <TextBlock x:Name="ConfirmBtn" Grid.Column="3" Text="确认" FontSize="12" Foreground="{DynamicResource AccentColor}" Cursor="Hand" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
                                                     <TextBlock.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.DeleteModelVM.ExecuteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.DeleteModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
                                                     </TextBlock.InputBindings>
                                                 </TextBlock>
                                             </Grid>
 
                                             <Border.ContextMenu>
                                                 <ContextMenu>
-                                                    <MenuItem Header="重命名" Command="{Binding PlacementTarget.Tag.RenameModelVM.ExecuteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="删除" Command="{Binding PlacementTarget.Tag.DeleteModelVM.ExecuteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="重命名" Command="{Binding PlacementTarget.Tag.RenameModelCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="删除" Command="{Binding PlacementTarget.Tag.DeleteModelCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
                                                 </ContextMenu>
                                             </Border.ContextMenu>
                                         </Border>

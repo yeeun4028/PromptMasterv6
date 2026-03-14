@@ -7,16 +7,17 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Workspace.Messages;
-using PromptMasterv6.Features.AiModels.Messages;
+using PromptMasterv6.Features.AiModels.Events;
 using PromptMasterv6.Features.Settings.ExternalTools.HandleAiModelDeleted;
 using PromptMasterv6.Features.Shared.Models;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace PromptMasterv6.Features.Settings.ExternalTools
 {
-    public partial class ExternalToolsSettingsViewModel : ObservableObject, IRecipient<AiModelDeletedMessage>
+    public partial class ExternalToolsSettingsViewModel : ObservableObject, INotificationHandler<AiModelDeletedEvent>
     {
         private readonly SettingsService _settingsService;
         private readonly ISessionState _sessionState;
@@ -60,8 +61,6 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
                 _settingsService.Config.ApiProfiles.Where(p => p.ServiceType == ServiceType.Translation));
 
             _settingsService.Config.ApiProfiles.CollectionChanged += OnApiProfilesChanged;
-
-            WeakReferenceMessenger.Default.Register(this);
         }
 
         private void OnApiProfilesChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -150,10 +149,10 @@ namespace PromptMasterv6.Features.Settings.ExternalTools
                     : System.Windows.Media.Brushes.Red;
         }
 
-        public async void Receive(AiModelDeletedMessage message)
+        public async Task Handle(AiModelDeletedEvent notification, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
-                new HandleAiModelDeletedFeature.Command(message.DeletedModelName)
+                new HandleAiModelDeletedFeature.Command(notification.DeletedModel.DisplayName ?? notification.DeletedModel.ModelName)
             );
 
             if (result.Success && result.AffectedConfigCount > 0)

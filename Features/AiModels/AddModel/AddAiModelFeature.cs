@@ -1,5 +1,6 @@
 using MediatR;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.AiModels.Events;
 using PromptMasterv6.Infrastructure.Services;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,11 +22,13 @@ public static class AddAiModelFeature
     {
         private readonly SettingsService _settingsService;
         private readonly LoggerService _logger;
+        private readonly IPublisher _publisher;
 
-        public Handler(SettingsService settingsService, LoggerService logger)
+        public Handler(SettingsService settingsService, LoggerService logger, IPublisher publisher)
         {
             _settingsService = settingsService;
             _logger = logger;
+            _publisher = publisher;
         }
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
@@ -51,6 +54,8 @@ public static class AddAiModelFeature
                 _settingsService.SaveConfig();
 
                 _logger.LogInfo($"添加新模型: {newModel.DisplayName} (ID: {newModel.Id})", "AddAiModelFeature.Handle");
+
+                await _publisher.Publish(new AiModelAddedEvent(newModel), cancellationToken);
 
                 return new Result(true, "模型添加成功", newModel);
             }

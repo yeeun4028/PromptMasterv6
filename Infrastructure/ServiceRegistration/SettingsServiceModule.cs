@@ -19,10 +19,6 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
         {
             services.AddTransient<SettingsViewModel>();
             
-            services.AddTransient<AddAiModelViewModel>();
-            services.AddTransient<DeleteAiModelViewModel>();
-            services.AddTransient<RenameAiModelViewModel>();
-            services.AddTransient<TestAiConnectionViewModel>();
             services.AddTransient<AiModelsViewModel>();
             
             services.AddSingleton<SyncViewModel>();
