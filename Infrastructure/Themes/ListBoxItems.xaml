@@ -47,16 +47,16 @@
                     <MenuItem Header="更改图标"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding ChangeFolderIconVM.ExecuteCommand}"
-                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                     <MenuItem Header="重命名"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding RenameFolderVM.ExecuteCommand}"
-                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                     <Separator Style="{StaticResource ModernSeparatorStyle}"/>
                     <MenuItem Header="删除"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding DeleteFolderVM.ExecuteCommand}"
-                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                 </ContextMenu>
             </Setter.Value>
         </Setter>
@@ -115,16 +115,16 @@
                     <MenuItem Header="重命名"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding RenameFileVM.ExecuteCommand}"
-                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                     <MenuItem Header="更改图标"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding ChangeFileIconVM.ExecuteCommand}"
-                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                     <Separator Style="{StaticResource ModernSeparatorStyle}"/>
                     <MenuItem Header="删除"
                               Style="{StaticResource ModernMenuItemStyle}"
                               Command="{Binding DeleteFileVM.ExecuteCommand}"
-                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                 </ContextMenu>
             </Setter.Value>
         </Setter>

@@ -21,6 +21,7 @@ using PromptMasterv6.Features.Workspace.MoveFile;
 using PromptMasterv6.Features.Workspace.ImportFiles;
 using PromptMasterv6.Features.Workspace.InitializeAppData;
 using PromptMasterv6.Features.Workspace.SelectFilesForImport;
+using PromptMasterv6.Features.Workspace.State;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -36,10 +37,12 @@ namespace PromptMasterv6.Features.Workspace._LegacyUI;
 public partial class FileManagerViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
+    private readonly IWorkspaceState _state;
 
-    [ObservableProperty] private ObservableCollection<FolderItem> folders = new();
+    public ObservableCollection<FolderItem> Folders => _state.Folders;
+    public ObservableCollection<PromptItem> Files => _state.Files;
+    
     [ObservableProperty] private FolderItem? selectedFolder;
-    [ObservableProperty] private ObservableCollection<PromptItem> files = new();
     [ObservableProperty] private PromptItem? selectedFile;
     [ObservableProperty] private ICollectionView? filesView;
     [ObservableProperty] private bool isDirty;
@@ -54,11 +57,13 @@ public partial class FileManagerViewModel : ObservableObject
 
     public FileManagerViewModel(
         IMediator mediator,
+        IWorkspaceState state,
         RenameFileViewModel renameFileVM,
         DeleteFileViewModel deleteFileVM,
         ChangeFileIconViewModel changeFileIconVM)
     {
         _mediator = mediator;
+        _state = state;
         RenameFileVM = renameFileVM;
         DeleteFileVM = deleteFileVM;
         ChangeFileIconVM = changeFileIconVM;
@@ -174,16 +179,19 @@ public partial class FileManagerViewModel : ObservableObject
 
         if (result.Success)
         {
-            Files = result.Files;
+            _state.Initialize(result.Folders, result.Files);
+            
             Files.CollectionChanged += OnFilesCollectionChanged;
             foreach (var item in Files)
             {
                 item.PropertyChanged += OnFilePropertyChanged;
             }
 
-            Folders = result.Folders;
             SelectedFolder = result.SelectedFolder;
+            _state.SelectedFolder = result.SelectedFolder;
+            
             SelectedFile = result.SelectedFile;
+            _state.SelectedFile = result.SelectedFile;
 
             FilesView = CollectionViewSource.GetDefaultView(Files);
             UpdateFilesViewFilter();
