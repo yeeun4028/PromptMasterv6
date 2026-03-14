@@ -18,9 +18,13 @@ public partial class TestConnectionView : System.Windows.Controls.UserControl
         set => SetValue(SelectedModelProperty, value);
     }
 
-    public TestConnectionView(TestConnectionViewModel viewModel)
+    public TestConnectionView()
     {
         InitializeComponent();
+    }
+
+    public TestConnectionView(TestConnectionViewModel viewModel) : this()
+    {
         DataContext = viewModel;
     }
 }

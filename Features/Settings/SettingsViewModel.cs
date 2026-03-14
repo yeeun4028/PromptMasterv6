@@ -3,13 +3,10 @@ using CommunityToolkit.Mvvm.Input;
 using PromptMasterv6.Infrastructure.Services;
 using MediatR;
 using System.Threading.Tasks;
+using PromptMasterv6.Features.AiModels;
 
 namespace PromptMasterv6.Features.Settings
 {
-    /// <summary>
-    /// VSA 重构后的 SettingsViewModel - 仅负责 UI 状态管理
-    /// 不再持有子 ViewModel 引用,符合垂直切片架构原则
-    /// </summary>
     public partial class SettingsViewModel : ObservableObject
     {
         private readonly SettingsService _settingsService;
@@ -30,14 +27,22 @@ namespace PromptMasterv6.Features.Settings
 
         #endregion
 
+        #region Child Views
+
+        public AiModelsView AiModelsView { get; }
+
+        #endregion
+
         public SettingsViewModel(
             SettingsService settingsService,
             LoggerService logger,
-            IMediator mediator)
+            IMediator mediator,
+            AiModelsView aiModelsView)
         {
             _settingsService = settingsService;
             _logger = logger;
             _mediator = mediator;
+            AiModelsView = aiModelsView;
 
             _logger.LogInfo("SettingsViewModel initialized (VSA Refactored)", "SettingsViewModel.ctor");
         }

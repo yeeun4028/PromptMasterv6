@@ -454,7 +454,7 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <aiModels:AiModelsView />
+                                    <ContentControl Content="{Binding AiModelsView}" />
                                 </StackPanel>
                                 <!-- Tab 3: Sync -->
                                 <StackPanel>
