@@ -3,18 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:folderTree="clr-namespace:PromptMasterv6.Features.Workspace.FolderTree"
              xmlns:fileList="clr-namespace:PromptMasterv6.Features.Workspace.FileList"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="300">
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <folderTree:FolderTreeView Grid.Column="0" DataContext="{Binding FolderTreeViewModel}"/>
-        <fileList:FileListView Grid.Column="1" DataContext="{Binding FileListViewModel}"/>
-    </Grid>
+    <fileList:FileListView DataContext="{Binding FileListViewModel}"/>
 </UserControl>

@@ -16,7 +16,8 @@ using PromptMasterv6.Infrastructure.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
-using PromptMasterv6.Features.Workspace._LegacyUI;
+using PromptMasterv6.Features.Workspace.State;
+using PromptMasterv6.Features.Workspace;
 
 using TextBox = System.Windows.Controls.TextBox;
 using MessageBox = System.Windows.MessageBox;
@@ -30,7 +31,7 @@ namespace PromptMasterv6.Features.Main
         public MainViewModel ViewModel { get; }
         private readonly LoggerService _logger;
         private readonly TrayService _trayService;
-        private readonly FileManagerViewModel _fileManagerVM;
+        private readonly IWorkspaceState _workspaceState;
 
         private DateTime _suppressAutoHideUntilUtc = DateTime.MinValue;
 
@@ -44,19 +45,22 @@ namespace PromptMasterv6.Features.Main
             MainViewModel viewModel, 
             LoggerService logger, 
             TrayService trayService,
-            FileManagerViewModel fileManagerVM)
+            IWorkspaceState workspaceState,
+            WorkspaceContainerView workspaceContainerView)
         {
             InitializeComponent();
 
             _logger = logger;
             _trayService = trayService;
-            _fileManagerVM = fileManagerVM;
+            _workspaceState = workspaceState;
             _logger.LogInfo("[MainWindow] Constructor called", "MainWindow");
 
             this.ShowInTaskbar = false;
 
             ViewModel = viewModel;
             this.DataContext = ViewModel;
+
+            WorkspaceViewControl.Content = workspaceContainerView;
 
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
 
@@ -127,7 +131,7 @@ namespace PromptMasterv6.Features.Main
             _trayService.Initialize(
                 ToggleWindowVisibility,
                 DoHandleExitRequest,
-                () => _fileManagerVM.IsDirty);
+                () => _workspaceState.IsDirty);
 
             RestoreWindowPosition();
 
@@ -306,7 +310,7 @@ namespace PromptMasterv6.Features.Main
                 return;
             }
 
-            if (_fileManagerVM.IsDirty)
+            if (_workspaceState.IsDirty)
             {
                 bool hasWebDav = !string.IsNullOrWhiteSpace(ViewModel.Config.WebDavUrl) 
                               && !string.IsNullOrWhiteSpace(ViewModel.Config.Password);
@@ -347,8 +351,6 @@ namespace PromptMasterv6.Features.Main
             {
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
             }
-
-            _fileManagerVM.Cleanup();
 
             WeakReferenceMessenger.Default.Unregister<ToggleMainWindowMessage>(this);
 

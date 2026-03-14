@@ -13,6 +13,7 @@ using PromptMasterv6.Features.Workspace.ChangeFileIcon;
 using PromptMasterv6.Features.Workspace.MoveFile;
 using PromptMasterv6.Features.Workspace.Messages;
 using PromptMasterv6.Features.Workspace.ImportFiles;
+using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -28,6 +29,7 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
 {
     private readonly IMediator _mediator;
     private readonly IWorkspaceState _state;
+    private readonly LoggerService _logger;
     private string? _currentFolderId;
 
     [ObservableProperty] private ObservableCollection<PromptItem> files = new();
@@ -48,6 +50,7 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
     public FileListViewModel(
         IMediator mediator, 
         IWorkspaceState state,
+        LoggerService logger,
         CreateFileViewModel createFileVM,
         RenameFileViewModel renameFileVM,
         DeleteFileViewModel deleteFileVM,
@@ -57,6 +60,7 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
     {
         _mediator = mediator;
         _state = state;
+        _logger = logger;
         CreateFileVM = createFileVM;
         RenameFileVM = renameFileVM;
         DeleteFileVM = deleteFileVM;
@@ -109,20 +113,24 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
 
     public async Task Handle(FolderSelectedEvent notification, CancellationToken cancellationToken)
     {
+        _logger.LogInfo($"[FileListViewModel] Handle FolderSelectedEvent: FolderId={notification.FolderId}", "FileListViewModel");
         _currentFolderId = notification.FolderId;
         await LoadFilesForFolder(notification.FolderId);
     }
 
     private async Task LoadFilesForFolder(string? folderId)
     {
+        _logger.LogInfo($"[FileListViewModel] LoadFilesForFolder: folderId={folderId}, _state.Files.Count={_state.Files.Count}", "FileListViewModel");
         var result = await _mediator.Send(new GetFilesByFolderQuery(folderId));
-        Files = new ObservableCollection<PromptItem>(result);
+        _logger.LogInfo($"[FileListViewModel] GetFilesByFolderQuery returned {result.Count} files", "FileListViewModel");
         
-        _state.Files.Clear();
-        foreach (var file in Files)
+        Files.CollectionChanged -= OnFilesCollectionChanged;
+        foreach (var item in Files)
         {
-            _state.Files.Add(file);
+            item.PropertyChanged -= OnFilePropertyChanged;
         }
+        
+        Files = new ObservableCollection<PromptItem>(result);
         
         Files.CollectionChanged += OnFilesCollectionChanged;
         foreach (var item in Files)

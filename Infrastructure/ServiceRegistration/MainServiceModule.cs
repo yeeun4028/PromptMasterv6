@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using MediatR;
 using PromptMasterv6.Features.Main;
-using PromptMasterv6.Features.Workspace._LegacyUI;
 using PromptMasterv6.Features.Main.ContentEditor;
 using PromptMasterv6.Features.Main.Backup;
 using PromptMasterv6.Features.Main.Sidebar;
@@ -34,9 +34,9 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             
             services.AddSingleton<FolderTreeViewModel>();
             services.AddSingleton<FileListViewModel>();
+            services.AddSingleton<INotificationHandler<FolderSelectedEvent>, FileListViewModel>(sp => sp.GetRequiredService<FileListViewModel>());
             services.AddSingleton<WorkspaceContainerViewModel>();
             
-            services.AddSingleton<FileManagerViewModel>();
             services.AddSingleton<ContentEditorViewModel>();
             services.AddSingleton<BackupViewModel>();
             services.AddSingleton<SidebarViewModel>();
@@ -60,6 +60,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<LaunchBarWindow>();
+            services.AddSingleton<WorkspaceContainerView>();
 
             services.AddSingleton<Features.Main.Backup.PerformCloudBackupFeature.Handler>();
             services.AddSingleton<Features.Main.Backup.PerformLocalBackupFeature.Handler>();

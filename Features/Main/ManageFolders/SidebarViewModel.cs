@@ -12,6 +12,7 @@ using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Workspace.ChangeFolderIcon;
 using PromptMasterv6.Features.Workspace.RenameFolder;
 using PromptMasterv6.Features.Workspace.DeleteFolder;
+using PromptMasterv6.Features.Workspace.FolderTree;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.ObjectModel;
@@ -98,6 +99,11 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedFolderChanged(FolderItem? value)
     {
+        _logger.LogInfo($"[SidebarViewModel] OnSelectedFolderChanged: FolderId={value?.Id}, Name={value?.Name}", "SidebarViewModel");
+        if (value != null)
+        {
+            _mediator.Publish(new FolderSelectedEvent(value.Id));
+        }
         WeakReferenceMessenger.Default.Send(new FolderSelectionChangedMessage(value));
     }
 
