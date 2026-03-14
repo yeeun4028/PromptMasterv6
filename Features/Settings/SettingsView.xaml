@@ -6,7 +6,7 @@
              xmlns:dd="urn:gong-wpf-dragdrop"
              xmlns:models="clr-namespace:PromptMasterv6.Features.Shared.Models"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
-             xmlns:aiModels="clr-namespace:PromptMasterv6.Features.AiModels._LegacyUI"
+             xmlns:aiModels="clr-namespace:PromptMasterv6.Features.AiModels"
              xmlns:shortcut="clr-namespace:PromptMasterv6.Features.Settings.Shortcut"
              xmlns:automation="clr-namespace:PromptMasterv6.Features.Settings.Automation"
              xmlns:window="clr-namespace:PromptMasterv6.Features.Settings.Window"

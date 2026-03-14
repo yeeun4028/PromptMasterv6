@@ -15,7 +15,7 @@ using PromptMasterv6.Features.ExternalTools;
 using PromptMasterv6.Features.Launcher;
 using PromptMasterv6.Features.Workspace;
 using PromptMasterv6.Features.Settings;
-using PromptMasterv6.Features.AiModels._LegacyUI;
+using PromptMasterv6.Features.AiModels;
 using PromptMasterv6.Features.Settings.ExternalTools;
 using PromptMasterv6.Features.Settings.Sync;
 using PromptMasterv6.Features.Settings.Launcher;

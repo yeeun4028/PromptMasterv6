@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromptMasterv6.Features.Settings;
-using PromptMasterv6.Features.AiModels._LegacyUI;
+using PromptMasterv6.Features.AiModels;
 using PromptMasterv6.Features.Settings.Launcher;
 using PromptMasterv6.Features.Settings.ApiCredentials;
 using PromptMasterv6.Features.Launcher;
@@ -18,7 +18,13 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
         public void RegisterServices(IServiceCollection services)
         {
             services.AddTransient<SettingsViewModel>();
-            services.AddSingleton<AiModelsViewModel>();
+            
+            services.AddTransient<AddAiModelViewModel>();
+            services.AddTransient<DeleteAiModelViewModel>();
+            services.AddTransient<RenameAiModelViewModel>();
+            services.AddTransient<TestAiConnectionViewModel>();
+            services.AddTransient<AiModelsViewModel>();
+            
             services.AddSingleton<SyncViewModel>();
             services.AddSingleton<LauncherSettingsViewModel>();
             services.AddSingleton<ApiCredentialsViewModel>();

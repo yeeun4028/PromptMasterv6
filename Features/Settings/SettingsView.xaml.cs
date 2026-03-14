@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using PromptMasterv6.Features.AiModels._LegacyUI;
+using PromptMasterv6.Features.AiModels;
 
 namespace PromptMasterv6.Features.Settings
 {
