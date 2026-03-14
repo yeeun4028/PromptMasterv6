@@ -9,13 +9,15 @@ using PromptMasterv6.Features.Workspace.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Workspace.ChangeFolderIcon;
+using PromptMasterv6.Features.Workspace.RenameFolder;
+using PromptMasterv6.Features.Workspace.DeleteFolder;
 using PromptMasterv6.Infrastructure.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Data;
 using IDropTarget = GongSolutions.Wpf.DragDrop.IDropTarget;
 using DragDropEffects = System.Windows.DragDropEffects;
 
@@ -36,16 +38,26 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
 
     public IDropTarget FolderDropHandler { get; }
 
+    public ChangeFolderIconViewModel ChangeFolderIconVM { get; }
+    public RenameFolderViewModel RenameFolderVM { get; }
+    public DeleteFolderViewModel DeleteFolderVM { get; }
+
     public SidebarViewModel(
         IMediator mediator,
         SettingsService settingsService,
         LoggerService logger,
-        DialogService dialogService)
+        DialogService dialogService,
+        ChangeFolderIconViewModel changeFolderIconVM,
+        RenameFolderViewModel renameFolderVM,
+        DeleteFolderViewModel deleteFolderVM)
     {
         _mediator = mediator;
         _settingsService = settingsService;
         _logger = logger;
         _dialogService = dialogService;
+        ChangeFolderIconVM = changeFolderIconVM;
+        RenameFolderVM = renameFolderVM;
+        DeleteFolderVM = deleteFolderVM;
 
         LocalConfig = settingsService.LocalConfig;
         FolderDropHandler = new SidebarFolderDropHandler(this);
@@ -147,24 +159,6 @@ public partial class SidebarViewModel : ObservableObject, IDisposable
     private void ManualBackup()
     {
         WeakReferenceMessenger.Default.Send(new RequestCloudBackupMessage());
-    }
-
-    [RelayCommand]
-    private void ChangeFolderIcon(FolderItem? folder)
-    {
-        WeakReferenceMessenger.Default.Send(new ChangeFolderIconRequestMessage(folder));
-    }
-
-    [RelayCommand]
-    private void RenameFolder(FolderItem? folder)
-    {
-        WeakReferenceMessenger.Default.Send(new RenameFolderRequestMessage(folder));
-    }
-
-    [RelayCommand]
-    private void DeleteFolder(FolderItem? folder)
-    {
-        WeakReferenceMessenger.Default.Send(new DeleteFolderRequestMessage(folder));
     }
 
     public void ReorderFolders(int oldIndex, int newIndex)

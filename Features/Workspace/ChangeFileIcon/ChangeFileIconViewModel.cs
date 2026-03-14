@@ -12,24 +12,21 @@ namespace PromptMasterv6.Features.Workspace.ChangeFileIcon
     {
         private readonly IMediator _mediator;
 
-        [ObservableProperty]
-        private PromptItem? _item;
-
         public ChangeFileIconViewModel(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [RelayCommand]
-        private async Task ExecuteAsync()
+        private async Task ExecuteAsync(PromptItem? item)
         {
-            if (Item == null) return;
+            if (item == null) return;
             
-            var result = await _mediator.Send(new ChangeFileIconFeature.Command(Item));
+            var result = await _mediator.Send(new ChangeFileIconFeature.Command(item));
             
             if (result.Success && result.NewIconGeometry != null)
             {
-                Item.IconGeometry = result.NewIconGeometry;
+                item.IconGeometry = result.NewIconGeometry;
                 WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
             }
         }

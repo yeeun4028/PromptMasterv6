@@ -3,8 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Shared.Models;
-using System.Collections.ObjectModel;
+using PromptMasterv6.Features.Workspace.State;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.CreateFolder
@@ -12,28 +11,22 @@ namespace PromptMasterv6.Features.Workspace.CreateFolder
     public partial class CreateFolderViewModel : ObservableObject
     {
         private readonly IMediator _mediator;
+        private readonly IWorkspaceState _state;
 
-        [ObservableProperty]
-        private ObservableCollection<FolderItem>? _folders;
-
-        [ObservableProperty]
-        private FolderItem? _createdFolder;
-
-        public CreateFolderViewModel(IMediator mediator)
+        public CreateFolderViewModel(IMediator mediator, IWorkspaceState state)
         {
             _mediator = mediator;
+            _state = state;
         }
 
         [RelayCommand]
         private async Task ExecuteAsync()
         {
-            if (Folders == null) return;
-            
-            var result = await _mediator.Send(new CreateFolderFeature.Command(Folders));
+            var result = await _mediator.Send(new CreateFolderFeature.Command(_state.Folders));
             
             if (result.CreatedFolder != null)
             {
-                CreatedFolder = result.CreatedFolder;
+                _state.SelectedFolder = result.CreatedFolder;
                 WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
             }
         }

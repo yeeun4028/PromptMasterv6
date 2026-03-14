@@ -42,20 +42,21 @@
         </Setter>
         <Setter Property="ContextMenu">
             <Setter.Value>
-                <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                <ContextMenu Style="{StaticResource ModernContextMenuStyle}"
+                             DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
                     <MenuItem Header="更改图标"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.ChangeFolderIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                              CommandParameter="{Binding}"/>
+                              Command="{Binding ChangeFolderIconVM.ExecuteCommand}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
                     <MenuItem Header="重命名"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.RenameFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                              CommandParameter="{Binding}"/>
+                              Command="{Binding RenameFolderVM.ExecuteCommand}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
                     <Separator Style="{StaticResource ModernSeparatorStyle}"/>
                     <MenuItem Header="删除"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                              CommandParameter="{Binding}"/>
+                              Command="{Binding DeleteFolderVM.ExecuteCommand}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
                 </ContextMenu>
             </Setter.Value>
         </Setter>
@@ -109,20 +110,21 @@
         </Setter>
         <Setter Property="ContextMenu">
             <Setter.Value>
-                <ContextMenu Style="{StaticResource ModernContextMenuStyle}">
+                <ContextMenu Style="{StaticResource ModernContextMenuStyle}"
+                             DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
                     <MenuItem Header="重命名"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.RenameFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                              CommandParameter="{Binding}"/>
+                              Command="{Binding RenameFileVM.ExecuteCommand}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
                     <MenuItem Header="更改图标"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.ChangeFileIconCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                              CommandParameter="{Binding}"/>
+                              Command="{Binding ChangeFileIconVM.ExecuteCommand}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
                     <Separator Style="{StaticResource ModernSeparatorStyle}"/>
                     <MenuItem Header="删除"
                               Style="{StaticResource ModernMenuItemStyle}"
-                              Command="{Binding PlacementTarget.Tag.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                              CommandParameter="{Binding}"/>
+                              Command="{Binding DeleteFileVM.ExecuteCommand}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"/>
                 </ContextMenu>
             </Setter.Value>
         </Setter>

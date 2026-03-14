@@ -46,11 +46,22 @@ public partial class FileManagerViewModel : ObservableObject
 
     public IDropTarget FolderDropHandler { get; }
 
+    public RenameFileViewModel RenameFileVM { get; }
+    public DeleteFileViewModel DeleteFileVM { get; }
+    public ChangeFileIconViewModel ChangeFileIconVM { get; }
+
     private bool _enterEditModeOnNextSelection;
 
-    public FileManagerViewModel(IMediator mediator)
+    public FileManagerViewModel(
+        IMediator mediator,
+        RenameFileViewModel renameFileVM,
+        DeleteFileViewModel deleteFileVM,
+        ChangeFileIconViewModel changeFileIconVM)
     {
         _mediator = mediator;
+        RenameFileVM = renameFileVM;
+        DeleteFileVM = deleteFileVM;
+        ChangeFileIconVM = changeFileIconVM;
         
         FolderDropHandler = new FileManagerFolderDropHandler(this);
 

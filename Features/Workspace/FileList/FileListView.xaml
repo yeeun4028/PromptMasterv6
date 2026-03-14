@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:behaviors="clr-namespace:PromptMasterv6.Infrastructure.Behaviors"
+             xmlns:renameFile="clr-namespace:PromptMasterv6.Features.Workspace.RenameFile"
              xmlns:dd="urn:gong-wpf-dragdrop"
              mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="400">
 
@@ -29,7 +30,7 @@
                 </ListBox.Resources>
 
                 <ListBox.InputBindings>
-                    <KeyBinding Key="Delete" Command="{Binding DeleteFileCommand}" CommandParameter="{Binding SelectedFile}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteFileVM.ExecuteCommand}" CommandParameter="{Binding SelectedFile}"/>
                 </ListBox.InputBindings>
 
                 <ListBox.ItemTemplate>
@@ -51,8 +52,7 @@
                                      Background="{DynamicResource InputFocusBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}" 
                                      BorderBrush="{StaticResource GitHubBlue}" BorderThickness="0,0,0,1" 
                                      FontSize="13" FontFamily="Segoe UI, Microsoft YaHei UI" Padding="0"
-                                     VerticalAlignment="Center"
-                                     Loaded="FileInlineEditor_Loaded" PreviewKeyDown="FileInlineEditor_KeyDown" LostFocus="FileInlineEditor_LostFocus">
+                                     VerticalAlignment="Center">
                                 <TextBox.Style>
                                     <Style TargetType="TextBox">
                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -63,6 +63,9 @@
                                         </Style.Triggers>
                                     </Style>
                                 </TextBox.Style>
+                                <b:Interaction.Behaviors>
+                                    <renameFile:InlineRenameBehavior Mediator="{Binding DataContext.RenameFileVM.Mediator, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                </b:Interaction.Behaviors>
                             </TextBox>
                         </Grid>
                     </DataTemplate>

@@ -3,13 +3,13 @@ using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.Backup.Messages;
-using PromptMasterv6.Features.Shared.Models;
 using PromptMasterv6.Features.Shared.Messages;
 using PromptMasterv6.Features.Workspace.FolderTree;
 using PromptMasterv6.Features.Workspace.FileList;
 using PromptMasterv6.Features.Workspace.State;
 using PromptMasterv6.Features.Workspace.InitializeAppData;
 using PromptMasterv6.Features.Workspace.Messages;
+using PromptMasterv6.Features.Workspace.Backup;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace;
@@ -22,18 +22,26 @@ public partial class WorkspaceContainerViewModel : ObservableObject
     public FolderTreeViewModel FolderTreeViewModel { get; }
     public FileListViewModel FileListViewModel { get; }
     
-    [ObservableProperty] private bool isDirty;
+    public RequestSaveViewModel RequestSaveVM { get; }
+    public PerformLocalBackupViewModel PerformLocalBackupVM { get; }
+    public PerformCloudBackupViewModel PerformCloudBackupVM { get; }
 
     public WorkspaceContainerViewModel(
         IMediator mediator,
         IWorkspaceState state,
         FolderTreeViewModel folderTreeViewModel,
-        FileListViewModel fileListViewModel)
+        FileListViewModel fileListViewModel,
+        RequestSaveViewModel requestSaveVM,
+        PerformLocalBackupViewModel performLocalBackupVM,
+        PerformCloudBackupViewModel performCloudBackupVM)
     {
         _mediator = mediator;
         _state = state;
         FolderTreeViewModel = folderTreeViewModel;
         FileListViewModel = fileListViewModel;
+        RequestSaveVM = requestSaveVM;
+        PerformLocalBackupVM = performLocalBackupVM;
+        PerformCloudBackupVM = performCloudBackupVM;
 
         WeakReferenceMessenger.Default.Register<ApplicationInitializedMessage>(this, async (_, _) =>
         {
@@ -44,14 +52,13 @@ public partial class WorkspaceContainerViewModel : ObservableObject
         {
             if (m.Success)
             {
-                IsDirty = false;
                 _state.IsDirty = false;
             }
         });
 
         WeakReferenceMessenger.Default.Register<RequestSaveMessage>(this, (_, _) =>
         {
-            RequestSave();
+            RequestSaveVM.ExecuteCommand.Execute(null);
         });
     }
 
@@ -72,15 +79,8 @@ public partial class WorkspaceContainerViewModel : ObservableObject
             FolderTreeViewModel.SelectedFolder = result.SelectedFolder;
             FileListViewModel.SelectedFile = result.SelectedFile;
 
-            IsDirty = false;
+            _state.IsDirty = false;
             WeakReferenceMessenger.Default.Send(new DataInitializedMessage(_state.Folders, _state.Files));
         }
-    }
-
-    public void RequestSave()
-    {
-        if (!IsDirty) IsDirty = true;
-        _state.IsDirty = true;
-        WeakReferenceMessenger.Default.Send(new RequestBackupActionMessage());
     }
 }

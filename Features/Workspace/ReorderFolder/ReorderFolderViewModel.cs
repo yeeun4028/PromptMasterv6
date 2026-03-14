@@ -3,8 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Messages;
-using PromptMasterv6.Features.Shared.Models;
-using System.Collections.ObjectModel;
+using PromptMasterv6.Features.Workspace.State;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.ReorderFolder
@@ -12,20 +11,17 @@ namespace PromptMasterv6.Features.Workspace.ReorderFolder
     public partial class ReorderFolderViewModel : ObservableObject
     {
         private readonly IMediator _mediator;
+        private readonly IWorkspaceState _state;
 
-        [ObservableProperty]
-        private ObservableCollection<FolderItem>? _folders;
-
-        public ReorderFolderViewModel(IMediator mediator)
+        public ReorderFolderViewModel(IMediator mediator, IWorkspaceState state)
         {
             _mediator = mediator;
+            _state = state;
         }
 
         public async Task ReorderAsync(int oldIndex, int newIndex)
         {
-            if (Folders == null) return;
-            
-            var result = await _mediator.Send(new ReorderFolderFeature.Command(Folders, oldIndex, newIndex));
+            var result = await _mediator.Send(new ReorderFolderFeature.Command(_state.Folders, oldIndex, newIndex));
             
             if (result.Success)
             {

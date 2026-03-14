@@ -10,8 +10,7 @@ namespace PromptMasterv6.Features.Workspace.RenameFile
     {
         private readonly IMediator _mediator;
 
-        [ObservableProperty]
-        private PromptItem? _item;
+        public IMediator Mediator => _mediator;
 
         public RenameFileViewModel(IMediator mediator)
         {
@@ -19,10 +18,10 @@ namespace PromptMasterv6.Features.Workspace.RenameFile
         }
 
         [RelayCommand]
-        private async Task ExecuteAsync()
+        private async Task ExecuteAsync(PromptItem? item)
         {
-            if (Item == null) return;
-            await _mediator.Send(new RenameFileFeature.Command(Item));
+            if (item == null) return;
+            await _mediator.Send(new RenameFileFeature.Command(item));
         }
     }
 }

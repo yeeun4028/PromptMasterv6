@@ -4,8 +4,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Workspace.State;
 using PromptMasterv6.Features.Workspace.Messages;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.DeleteFolder
@@ -13,34 +13,24 @@ namespace PromptMasterv6.Features.Workspace.DeleteFolder
     public partial class DeleteFolderViewModel : ObservableObject
     {
         private readonly IMediator _mediator;
+        private readonly IWorkspaceState _state;
 
-        [ObservableProperty]
-        private FolderItem? _folder;
-
-        [ObservableProperty]
-        private ObservableCollection<FolderItem>? _folders;
-
-        [ObservableProperty]
-        private ObservableCollection<PromptItem>? _files;
-
-        [ObservableProperty]
-        private FolderItem? _selectedFolder;
-
-        public DeleteFolderViewModel(IMediator mediator)
+        public DeleteFolderViewModel(IMediator mediator, IWorkspaceState state)
         {
             _mediator = mediator;
+            _state = state;
         }
 
         [RelayCommand]
-        private async Task ExecuteAsync()
+        private async Task ExecuteAsync(FolderItem? folder)
         {
-            if (Folder == null || Folders == null) return;
+            if (folder == null) return;
             
-            var result = await _mediator.Send(new DeleteFolderFeature.Command(Folder, Folders, Files));
+            var result = await _mediator.Send(new DeleteFolderFeature.Command(folder, _state.Folders, _state.Files));
             
             if (result.Success)
             {
-                if (result.WasSelected) SelectedFolder = null;
+                if (result.WasSelected) _state.SelectedFolder = null;
                 WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(null, EnterEditMode: false));
                 WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
             }

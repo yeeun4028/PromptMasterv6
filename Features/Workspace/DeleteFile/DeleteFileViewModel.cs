@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Models;
-using System.Collections.ObjectModel;
+using PromptMasterv6.Features.Workspace.State;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.DeleteFile
@@ -12,31 +12,24 @@ namespace PromptMasterv6.Features.Workspace.DeleteFile
     public partial class DeleteFileViewModel : ObservableObject
     {
         private readonly IMediator _mediator;
+        private readonly IWorkspaceState _state;
 
-        [ObservableProperty]
-        private PromptItem? _file;
-
-        [ObservableProperty]
-        private ObservableCollection<PromptItem>? _files;
-
-        [ObservableProperty]
-        private PromptItem? _selectedFile;
-
-        public DeleteFileViewModel(IMediator mediator)
+        public DeleteFileViewModel(IMediator mediator, IWorkspaceState state)
         {
             _mediator = mediator;
+            _state = state;
         }
 
         [RelayCommand]
-        private async Task ExecuteAsync()
+        private async Task ExecuteAsync(PromptItem? file)
         {
-            if (File == null || Files == null) return;
+            if (file == null) return;
             
-            var result = await _mediator.Send(new DeleteFileFeature.Command(File, Files));
+            var result = await _mediator.Send(new DeleteFileFeature.Command(file, _state.Files));
             
             if (result.Success)
             {
-                if (result.WasSelected) SelectedFile = null;
+                if (result.WasSelected) _state.SelectedFile = null;
                 WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
             }
         }

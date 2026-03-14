@@ -12,20 +12,17 @@ namespace PromptMasterv6.Features.Workspace.ChangeFolderIcon
     {
         private readonly IMediator _mediator;
 
-        [ObservableProperty]
-        private FolderItem? _folder;
-
         public ChangeFolderIconViewModel(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [RelayCommand]
-        private async Task ExecuteAsync()
+        private async Task ExecuteAsync(FolderItem? folder)
         {
-            if (Folder == null) return;
+            if (folder == null) return;
             
-            var result = await _mediator.Send(new ChangeFolderIconFeature.Command(Folder));
+            var result = await _mediator.Send(new ChangeFolderIconFeature.Command(folder));
             
             if (result.Success)
             {

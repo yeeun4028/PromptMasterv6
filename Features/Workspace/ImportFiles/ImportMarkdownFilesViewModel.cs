@@ -4,34 +4,21 @@ using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Workspace.State;
 using PromptMasterv6.Features.Workspace.SelectFilesForImport;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Data;
 
 namespace PromptMasterv6.Features.Workspace.ImportFiles
 {
     public partial class ImportMarkdownFilesViewModel : ObservableObject
     {
         private readonly IMediator _mediator;
+        private readonly IWorkspaceState _state;
 
-        [ObservableProperty]
-        private ObservableCollection<FolderItem>? _folders;
-
-        [ObservableProperty]
-        private ObservableCollection<PromptItem>? _files;
-
-        [ObservableProperty]
-        private FolderItem? _selectedFolder;
-
-        [ObservableProperty]
-        private ICollectionView? _filesView;
-
-        public ImportMarkdownFilesViewModel(IMediator mediator)
+        public ImportMarkdownFilesViewModel(IMediator mediator, IWorkspaceState state)
         {
             _mediator = mediator;
+            _state = state;
         }
 
         [RelayCommand]
@@ -42,7 +29,7 @@ namespace PromptMasterv6.Features.Workspace.ImportFiles
             if (!selectResult.Success || selectResult.Files == null || selectResult.Files.Length == 0) 
                 return;
 
-            string? targetFolderId = SelectedFolder?.Id;
+            string? targetFolderId = _state.SelectedFolder?.Id;
 
             if (string.IsNullOrEmpty(targetFolderId))
             {
@@ -51,8 +38,8 @@ namespace PromptMasterv6.Features.Workspace.ImportFiles
                     Id = System.Guid.NewGuid().ToString("N"),
                     Name = "导入" 
                 };
-                Folders?.Add(newFolder);
-                SelectedFolder = newFolder;
+                _state.Folders.Add(newFolder);
+                _state.SelectedFolder = newFolder;
                 targetFolderId = newFolder.Id;
             }
 
@@ -62,26 +49,11 @@ namespace PromptMasterv6.Features.Workspace.ImportFiles
             {
                 foreach (var item in importResult.ImportedItems)
                 {
-                    Files?.Add(item);
+                    _state.Files.Add(item);
                 }
 
-                UpdateFilesViewFilter();
-                FilesView?.Refresh();
                 WeakReferenceMessenger.Default.Send(new RequestSaveMessage());
             }
-        }
-
-        private void UpdateFilesViewFilter()
-        {
-            if (FilesView == null) return;
-
-            var selectedFolderId = SelectedFolder?.Id;
-            FilesView.Filter = item =>
-            {
-                if (item is not PromptItem f) return false;
-                if (string.IsNullOrWhiteSpace(selectedFolderId)) return true;
-                return string.Equals(f.FolderId, selectedFolderId, System.StringComparison.Ordinal);
-            };
         }
     }
 }

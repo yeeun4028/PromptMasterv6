@@ -10,6 +10,19 @@ using PromptMasterv6.Features.Workspace.State;
 using PromptMasterv6.Features.Workspace.FolderTree;
 using PromptMasterv6.Features.Workspace.FileList;
 using PromptMasterv6.Features.Workspace;
+using PromptMasterv6.Features.Workspace.RenameFile;
+using PromptMasterv6.Features.Workspace.ChangeFileIcon;
+using PromptMasterv6.Features.Workspace.ChangeFolderIcon;
+using PromptMasterv6.Features.Workspace.RenameFolder;
+using PromptMasterv6.Features.Workspace.CreateFolder;
+using PromptMasterv6.Features.Workspace.Messages;
+using PromptMasterv6.Features.Workspace.Backup;
+using PromptMasterv6.Features.Workspace.ReorderFolder;
+using PromptMasterv6.Features.Workspace.CreateFile;
+using PromptMasterv6.Features.Workspace.DeleteFile;
+using PromptMasterv6.Features.Workspace.DeleteFolder;
+using PromptMasterv6.Features.Workspace.MoveFile;
+using PromptMasterv6.Features.Workspace.ImportFiles;
 
 namespace PromptMasterv6.Infrastructure.ServiceRegistration
 {
@@ -29,6 +42,21 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<SidebarViewModel>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<TrayViewModel>();
+
+            services.AddTransient<RenameFileViewModel>();
+            services.AddTransient<ChangeFileIconViewModel>();
+            services.AddTransient<ChangeFolderIconViewModel>();
+            services.AddTransient<RenameFolderViewModel>();
+            services.AddTransient<CreateFolderViewModel>();
+            services.AddTransient<RequestSaveViewModel>();
+            services.AddTransient<PerformLocalBackupViewModel>();
+            services.AddTransient<PerformCloudBackupViewModel>();
+            services.AddTransient<ReorderFolderViewModel>();
+            services.AddTransient<CreateFileViewModel>();
+            services.AddTransient<DeleteFileViewModel>();
+            services.AddTransient<DeleteFolderViewModel>();
+            services.AddTransient<MoveFileViewModel>();
+            services.AddTransient<ImportMarkdownFilesViewModel>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<LaunchBarWindow>();

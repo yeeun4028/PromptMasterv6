@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MediatR;
 using PromptMasterv6.Features.Shared.Models;
@@ -14,7 +13,6 @@ using PromptMasterv6.Features.Workspace.ChangeFileIcon;
 using PromptMasterv6.Features.Workspace.MoveFile;
 using PromptMasterv6.Features.Workspace.Messages;
 using PromptMasterv6.Features.Workspace.ImportFiles;
-using PromptMasterv6.Features.Workspace.SelectFilesForImport;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -35,16 +33,36 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
     [ObservableProperty] private ObservableCollection<PromptItem> files = new();
     [ObservableProperty] private PromptItem? selectedFile;
     [ObservableProperty] private FolderItem? selectedFolder;
-    [ObservableProperty] private bool isDirty;
 
     private bool _enterEditModeOnNextSelection;
 
     public IDropTarget FileDropHandler { get; }
 
-    public FileListViewModel(IMediator mediator, IWorkspaceState state)
+    public CreateFileViewModel CreateFileVM { get; }
+    public RenameFileViewModel RenameFileVM { get; }
+    public DeleteFileViewModel DeleteFileVM { get; }
+    public ChangeFileIconViewModel ChangeFileIconVM { get; }
+    public MoveFileViewModel MoveFileVM { get; }
+    public ImportMarkdownFilesViewModel ImportMarkdownFilesVM { get; }
+
+    public FileListViewModel(
+        IMediator mediator, 
+        IWorkspaceState state,
+        CreateFileViewModel createFileVM,
+        RenameFileViewModel renameFileVM,
+        DeleteFileViewModel deleteFileVM,
+        ChangeFileIconViewModel changeFileIconVM,
+        MoveFileViewModel moveFileVM,
+        ImportMarkdownFilesViewModel importMarkdownFilesVM)
     {
         _mediator = mediator;
         _state = state;
+        CreateFileVM = createFileVM;
+        RenameFileVM = renameFileVM;
+        DeleteFileVM = deleteFileVM;
+        ChangeFileIconVM = changeFileIconVM;
+        MoveFileVM = moveFileVM;
+        ImportMarkdownFilesVM = importMarkdownFilesVM;
         FileDropHandler = new FileListDropHandler(this);
 
         WeakReferenceMessenger.Default.Register<RequestSelectFileMessage>(this, (_, m) =>
@@ -53,7 +71,11 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
             SelectedFile = m.File;
         });
 
-        WeakReferenceMessenger.Default.Register<RequestMoveFileToFolderMessage>(this, async (_, m) => await MoveFileToFolder(m.File, m.TargetFolder));
+        WeakReferenceMessenger.Default.Register<RequestMoveFileToFolderMessage>(this, async (_, m) => 
+        {
+            await MoveFileVM.ExecuteCommand.ExecuteAsync(new MoveFileParameter(m.File, m.TargetFolder));
+            await LoadFilesForFolder(_currentFolderId);
+        });
 
         WeakReferenceMessenger.Default.Register<RequestPromptFileMessage>(this, (_, m) =>
         {
@@ -71,16 +93,17 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
             {
                 SelectedFolder = m.TargetFolder;
             }
-            await CreateFile();
+            await CreateFileVM.ExecuteCommand.ExecuteAsync(null);
         });
 
         WeakReferenceMessenger.Default.Register<ImportMarkdownFilesRequestMessage>(this, async (_, m) =>
         {
             if (m.TargetFolder != null)
             {
-                SelectedFolder = m.TargetFolder;
+                _state.SelectedFolder = m.TargetFolder;
             }
-            await ImportMarkdownFilesAsync();
+            await ImportMarkdownFilesVM.ExecuteCommand.ExecuteAsync(null);
+            await LoadFilesForFolder(_currentFolderId);
         });
     }
 
@@ -126,112 +149,6 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
         WeakReferenceMessenger.Default.Send(new FileSelectedMessage(value, enterEditMode));
     }
 
-    [RelayCommand]
-    private async Task CreateFile()
-    {
-        if (SelectedFolder == null) return;
-
-        var result = await _mediator.Send(
-            new CreateFileFeature.Command(SelectedFolder.Id),
-            default);
-
-        if (result.CreatedFile != null)
-        {
-            Files.Add(result.CreatedFile);
-            WeakReferenceMessenger.Default.Send(new RequestSelectFileMessage(result.CreatedFile, EnterEditMode: true));
-            RequestSave();
-        }
-    }
-
-    [RelayCommand]
-    private async Task DeleteFile(PromptItem? file)
-    {
-        if (file == null) return;
-        
-        var result = await _mediator.Send(
-            new DeleteFileFeature.Command(file, Files),
-            default);
-
-        if (result.Success)
-        {
-            if (result.WasSelected) SelectedFile = null;
-            RequestSave();
-        }
-    }
-
-    [RelayCommand]
-    private async Task RenameFile(PromptItem? item)
-    {
-        if (item == null) return;
-        
-        var result = await _mediator.Send(
-            new RenameFileFeature.Command(item),
-            default);
-    }
-
-    [RelayCommand]
-    private async Task ChangeFileIcon(PromptItem? file)
-    {
-        if (file == null) return;
-        
-        var result = await _mediator.Send(
-            new ChangeFileIconFeature.Command(file),
-            default);
-
-        if (result.Success)
-        {
-            RequestSave();
-        }
-    }
-
-    public async Task MoveFileToFolder(PromptItem f, FolderItem t)
-    {
-        if (f == null || t == null) return;
-        
-        var result = await _mediator.Send(new MoveFileToFolderFeature.Command(f, t));
-        
-        if (result.Success)
-        {
-            await LoadFilesForFolder(_currentFolderId);
-            if (SelectedFile == f) SelectedFile = null;
-            RequestSave();
-        }
-    }
-
-    [RelayCommand]
-    private async Task ImportMarkdownFilesAsync()
-    {
-        var selectResult = await _mediator.Send(new SelectFilesForImportFeature.Command());
-        
-        if (!selectResult.Success || selectResult.Files == null || selectResult.Files.Length == 0) 
-            return;
-
-        string? targetFolderId = SelectedFolder?.Id;
-
-        if (string.IsNullOrEmpty(targetFolderId))
-        {
-            return;
-        }
-
-        var importResult = await _mediator.Send(new ImportMarkdownFilesFeature.Command(selectResult.Files, targetFolderId));
-
-        if (importResult.Success && importResult.ImportedItems.Count > 0)
-        {
-            foreach (var item in importResult.ImportedItems)
-            {
-                Files.Add(item);
-            }
-
-            RequestSave();
-        }
-    }
-
-    public void RequestSave()
-    {
-        if (!IsDirty) IsDirty = true;
-        WeakReferenceMessenger.Default.Send(new RequestBackupActionMessage());
-    }
-
     private void OnFilesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems != null)
@@ -249,16 +166,12 @@ public partial class FileListViewModel : ObservableObject, INotificationHandler<
                 item.PropertyChanged -= OnFilePropertyChanged;
             }
         }
-
-        RequestSave();
     }
 
     private void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(PromptItem.LastModified))
             return;
-
-        RequestSave();
     }
 
     public void Cleanup()
