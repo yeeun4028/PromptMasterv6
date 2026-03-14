@@ -48,6 +48,8 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddSingleton<Features.Workspace.CreateFile.CreateFileFeature.Handler>();
             services.AddSingleton<Features.Workspace.DeleteFile.DeleteFileFeature.Handler>();
             services.AddSingleton<Features.Workspace.RenameFile.RenameFileFeature.Handler>();
+            services.AddSingleton<Features.Workspace.CompleteFileRename.CompleteFileRenameFeature.Handler>();
+            services.AddSingleton<Features.Workspace.CancelFileRename.CancelFileRenameFeature.Handler>();
             services.AddSingleton<Features.Workspace.LoadAppData.LoadAppDataFeature.Handler>();
             services.AddSingleton<Features.Workspace.SaveAppData.SaveAppDataFeature.Handler>();
             services.AddSingleton<Features.Workspace.FileList.GetFilesByFolderFeature.Handler>();
