@@ -56,7 +56,7 @@ namespace PromptMasterv6.Infrastructure.ServiceRegistration
             services.AddTransient<LauncherViewModel>();
             services.AddTransient<WorkspaceViewModel>();
             services.AddSingleton<Features.Workspace.State.IWorkspaceState, Features.Workspace.State.WorkspaceState>();
-            services.AddTransient<Features.Workspace.Editor.EditorViewModel>();
+            services.AddSingleton<Features.Workspace.Editor.EditorViewModel>();
             services.AddTransient<Features.Workspace.Editor.EditorView>();
             services.AddTransient<Features.Workspace.Variables.VariablesViewModel>();
             services.AddTransient<Features.Workspace.Variables.VariablesView>();

@@ -15,7 +15,6 @@ using PromptMasterv6.Features.Workspace.GetWorkspaceConfig;
 using PromptMasterv6.Features.Workspace.SearchOnGitHub;
 using PromptMasterv6.Features.Workspace.SendToWebTarget;
 using PromptMasterv6.Features.Shared.Commands;
-using PromptMasterv6.Features.Workspace.Editor;
 using Markdig;
 using PromptMasterv6.Infrastructure.Services;
 using System.Collections.ObjectModel;
@@ -31,7 +30,6 @@ public partial class WorkspaceViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly IWorkspaceState _state;
     private readonly DialogService _dialogService;
-    private readonly EditorViewModel _editorViewModel;
 
     public MarkdownPipeline Pipeline { get; }
     public IWorkspaceState State => _state;
@@ -39,13 +37,11 @@ public partial class WorkspaceViewModel : ObservableObject
     public WorkspaceViewModel(
         IMediator mediator,
         DialogService dialogService,
-        IWorkspaceState state,
-        EditorViewModel editorViewModel)
+        IWorkspaceState state)
     {
         _mediator = mediator;
         _dialogService = dialogService;
         _state = state;
-        _editorViewModel = editorViewModel;
 
         Pipeline = new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()

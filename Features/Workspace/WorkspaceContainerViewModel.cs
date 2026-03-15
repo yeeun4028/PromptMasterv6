@@ -10,6 +10,7 @@ using PromptMasterv6.Features.Workspace.State;
 using PromptMasterv6.Features.Workspace.InitializeAppData;
 using PromptMasterv6.Features.Workspace.Messages;
 using PromptMasterv6.Features.Workspace.Backup;
+using PromptMasterv6.Features.Workspace.Editor;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace;
@@ -33,7 +34,8 @@ public partial class WorkspaceContainerViewModel : ObservableObject
         FileListViewModel fileListViewModel,
         RequestSaveViewModel requestSaveVM,
         PerformLocalBackupViewModel performLocalBackupVM,
-        PerformCloudBackupViewModel performCloudBackupVM)
+        PerformCloudBackupViewModel performCloudBackupVM,
+        EditorViewModel editorViewModel)
     {
         _mediator = mediator;
         _state = state;

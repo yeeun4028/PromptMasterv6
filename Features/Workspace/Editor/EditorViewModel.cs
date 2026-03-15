@@ -10,6 +10,7 @@ using PromptMasterv6.Features.Shared.Queries;
 using PromptMasterv6.Core.Messages;
 using PromptMasterv6.Features.Main.Sidebar.Messages;
 using PromptMasterv6.Features.Main.ContentEditor.Messages;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.Editor;
@@ -34,7 +35,7 @@ public partial class EditorViewModel : ObservableObject
 
         WeakReferenceMessenger.Default.Register<FileSelectedMessage>(this, async (_, m) =>
         {
-            await OnFileSelectedAsync(m.File);
+            await OnFileSelectedAsync(m.File, CancellationToken.None);
             if (m.EnterEditMode)
             {
                 _state.IsEditMode = true;
@@ -44,11 +45,11 @@ public partial class EditorViewModel : ObservableObject
 
         WeakReferenceMessenger.Default.Register<ToggleEditModeRequestMessage>(this, async (_, _) =>
         {
-            await ToggleEditMode();
+            await ToggleEditMode(CancellationToken.None);
         });
     }
 
-    private async Task OnFileSelectedAsync(PromptItem? file)
+    private async Task OnFileSelectedAsync(PromptItem? file, CancellationToken cancellationToken)
     {
         _state.IsEditMode = false;
         WeakReferenceMessenger.Default.Send(new EditModeChangedMessage(false));
@@ -59,17 +60,17 @@ public partial class EditorViewModel : ObservableObject
             return;
         }
 
-        var previewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(file.Content));
+        var previewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(file.Content), cancellationToken);
         _state.PreviewContent = previewContent;
     }
 
     [RelayCommand]
-    private async Task ToggleEditMode()
+    private async Task ToggleEditMode(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new ToggleEditModeFeature.Command(
             _state.SelectedFile,
             _state.IsEditMode,
-            _originalContentBeforeEdit));
+            _originalContentBeforeEdit), cancellationToken);
 
         if (result.NewLastModified.HasValue && _state.SelectedFile != null)
         {
@@ -88,7 +89,7 @@ public partial class EditorViewModel : ObservableObject
 
         if (!_state.IsEditMode && _state.SelectedFile != null)
         {
-            _state.PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(_state.SelectedFile.Content));
+            _state.PreviewContent = await _mediator.Send(new ConvertHtmlToMarkdownQuery(_state.SelectedFile.Content), cancellationToken);
         }
     }
 }
