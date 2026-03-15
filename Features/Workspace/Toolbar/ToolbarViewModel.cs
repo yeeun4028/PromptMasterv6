@@ -6,10 +6,10 @@ using PromptMasterv6.Features.Workspace.State;
 using PromptMasterv6.Features.Workspace.SearchOnGitHub;
 using PromptMasterv6.Features.Workspace.SendToWebTarget;
 using PromptMasterv6.Features.Shared.Commands;
-using PromptMasterv6.Features.Workspace.GetWorkspaceConfig;
 using PromptMasterv6.Infrastructure.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PromptMasterv6.Features.Workspace.Toolbar;
@@ -20,11 +20,7 @@ public partial class ToolbarViewModel : ObservableObject
     private readonly IWorkspaceState _state;
     private readonly DialogService _dialogService;
 
-    [ObservableProperty]
-    private ObservableCollection<WebTarget> _webDirectTargets = new();
-
-    [ObservableProperty]
-    private string? _defaultWebTargetName;
+    public ObservableCollection<WebTarget> WebDirectTargets => _state.WebDirectTargets;
 
     public ToolbarViewModel(
         IMediator mediator, 
@@ -36,39 +32,18 @@ public partial class ToolbarViewModel : ObservableObject
         _dialogService = dialogService;
     }
 
-    public async Task InitializeAsync()
-    {
-        var config = await _mediator.Send(new GetWorkspaceConfigFeature.Query());
-        WebDirectTargets = config.WebDirectTargets;
-        DefaultWebTargetName = config.DefaultWebTargetName;
-    }
-
     [RelayCommand]
-    private async Task CopyCompiledText()
+    private async Task CopyCompiledText(CancellationToken cancellationToken)
     {
         var variablesDict = _state.Variables.ToDictionary(v => v.Name, v => v.Value ?? "");
         await _mediator.Send(new CopyCompiledTextCommand(
             _state.SelectedFile?.Content, 
             variablesDict, 
-            _state.AdditionalInput));
+            _state.AdditionalInput), cancellationToken);
     }
 
     [RelayCommand]
-    private async Task SendDefaultWebTarget()
-    {
-        var result = await _mediator.Send(new SendToWebTargetFeature.Command(
-            _state.SelectedFile,
-            _state.Variables,
-            _state.HasVariables,
-            _state.AdditionalInput,
-            AllTargets: WebDirectTargets,
-            DefaultTargetName: DefaultWebTargetName));
-
-        await HandleSendResultAsync(result);
-    }
-
-    [RelayCommand]
-    private async Task OpenWebTarget(WebTarget? target)
+    private async Task OpenWebTarget(WebTarget? target, CancellationToken cancellationToken)
     {
         if (target == null) return;
 
@@ -77,13 +52,13 @@ public partial class ToolbarViewModel : ObservableObject
             _state.Variables,
             _state.HasVariables,
             _state.AdditionalInput,
-            Target: target));
+            Target: target), cancellationToken);
 
         await HandleSendResultAsync(result);
     }
 
     [RelayCommand]
-    private async Task SearchOnGitHub()
+    private async Task SearchOnGitHub(CancellationToken cancellationToken)
     {
         var query = _state.AdditionalInput?.Trim();
 
@@ -93,7 +68,7 @@ public partial class ToolbarViewModel : ObservableObject
             return;
         }
 
-        var result = await _mediator.Send(new SearchOnGitHubFeature.Command(query));
+        var result = await _mediator.Send(new SearchOnGitHubFeature.Command(query), cancellationToken);
 
         if (result.Success)
         {

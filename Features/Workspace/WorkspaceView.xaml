@@ -7,6 +7,7 @@
              xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:converters="clr-namespace:PromptMasterv6.Infrastructure.Converters"
              xmlns:utils="clr-namespace:PromptMasterv6.Infrastructure.Converters"
+             xmlns:toolbar="clr-namespace:PromptMasterv6.Features.Workspace.Toolbar"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="700">
 
@@ -276,113 +277,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,0,6">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <ItemsControl ItemsSource="{Binding State.WebDirectTargets}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Command="{Binding DataContext.OpenWebTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"
-                                            ToolTip="{Binding Name}"
-                                            Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVis}}"
-                                            Margin="0,0,8,0"
-                                            Padding="6,4"
-                                            Cursor="Hand"
-                                            Background="Transparent"
-                                            BorderThickness="0">
-                                        <Button.Template>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <Path x:Name="Icon" 
-                                                              Data="{Binding IconData, Converter={StaticResource StringToGeometryConverter}}"
-                                                              Visibility="{Binding IconData, Converter={StaticResource StringVisibilityConverter}}"
-                                                              Fill="{DynamicResource ActionIconBrush}"
-                                                              Stretch="Uniform" Width="14" Height="14" VerticalAlignment="Center"/>
-                                                        <TextBlock x:Name="Label" Text="{Binding Name}" 
-                                                                   Foreground="{DynamicResource SecondaryTextBrush}" 
-                                                                   FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"
-                                                                   FontFamily="Segoe UI, Microsoft YaHei UI"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                                        <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource ActionIconHoverBrush}"/>
-                                                        <Setter TargetName="Label" Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Button.Template>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Button Command="{Binding SearchOnGitHubCommand}"
-                                ToolTip="在 GitHub 上搜索 (仅搜索此输入框内容)"
-                                Margin="0,0,0,0"
-                                Padding="6,4"
-                                Cursor="Hand"
-                                Background="Transparent"
-                                BorderThickness="0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Path x:Name="Icon" 
-                                                  Data="{StaticResource IconGitHub}"
-                                                  Fill="{DynamicResource ActionIconBrush}"
-                                                  Stretch="Uniform" Width="14" Height="14" VerticalAlignment="Center"/>
-                                            <TextBlock x:Name="Label" Text="GitHub" 
-                                                       Foreground="{DynamicResource SecondaryTextBrush}" 
-                                                       FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"
-                                                       FontFamily="Segoe UI, Microsoft YaHei UI"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                            <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource ActionIconHoverBrush}"/>
-                                            <Setter TargetName="Label" Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </StackPanel>
-
-                    <Button Command="{Binding CopyCompiledTextCommand}"
-                            ToolTip="复制最终结果 (Ctrl+C)"
-                            HorizontalAlignment="Right"
-                            Margin="0,0,0,0"
-                            Padding="6,4"
-                            Cursor="Hand"
-                            Background="Transparent"
-                            BorderThickness="0">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                    <Path x:Name="Icon" 
-                                          Data="{StaticResource IconCopyThin}"
-                                          Fill="{DynamicResource ActionIconBrush}"
-                                          Stretch="Uniform" Width="14" Height="14" VerticalAlignment="Center"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListItemHoverBackgroundBrush}"/>
-                                        <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource ActionIconHoverBrush}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
+                <toolbar:ToolbarView Grid.Row="0" Margin="0,0,0,6"/>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" BorderThickness="0">
                     <ScrollViewer.Style>

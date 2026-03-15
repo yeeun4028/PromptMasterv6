@@ -1,49 +1,58 @@
 using MediatR;
 using PromptMasterv6.Core.Interfaces;
 using PromptMasterv6.Features.Shared.Models;
+using PromptMasterv6.Features.Workspace.State;
+using PromptMasterv6.Features.Workspace.FilterFiles;
+using PromptMasterv6.Features.Shared.Messages;
+using PromptMasterv6.Infrastructure.Services;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace PromptMasterv6.Features.Workspace.LoadWorkspaceData;
 
 public static class LoadWorkspaceDataFeature
 {
-    // 1. 定义输入
     public record Command() : IRequest<Result>;
+    public record Result(bool Success);
 
-    // 2. 定义输出
-    public record Result(bool Success, List<PromptItem>? Files, List<FolderItem>? Folders, string? ErrorMessage);
-
-    // 3. 执行逻辑
     public class Handler : IRequestHandler<Command, Result>
     {
         private readonly IDataService _dataService;
         private readonly IDataService _localDataService;
+        private readonly IWorkspaceState _state;
+        private readonly DialogService _dialogService;
+        private readonly IMediator _mediator;
 
         public Handler(
             [Microsoft.Extensions.DependencyInjection.FromKeyedServices("cloud")] IDataService dataService,
-            [Microsoft.Extensions.DependencyInjection.FromKeyedServices("local")] IDataService localDataService)
+            [Microsoft.Extensions.DependencyInjection.FromKeyedServices("local")] IDataService localDataService,
+            IWorkspaceState state,
+            DialogService dialogService,
+            IMediator mediator)
         {
             _dataService = dataService;
             _localDataService = localDataService;
+            _state = state;
+            _dialogService = dialogService;
+            _mediator = mediator;
         }
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
             AppData? data = null;
 
-            // 优先尝试云端数据
             try
             {
                 data = await _dataService.LoadAsync();
             }
             catch
             {
-                // 云端加载失败，继续尝试本地
             }
 
-            // 如果云端数据为空，尝试本地数据
             if ((data?.Files?.Count ?? 0) == 0 && (data?.Folders?.Count ?? 0) == 0)
             {
                 try
@@ -52,16 +61,50 @@ public static class LoadWorkspaceDataFeature
                 }
                 catch
                 {
-                    // 本地加载也失败
                 }
             }
 
             if (data == null)
             {
-                return new Result(false, null, null, "无法加载数据");
+                _dialogService.ShowAlert("无法加载数据", "错误");
+                return new Result(false);
             }
 
-            return new Result(true, data.Files ?? new List<PromptItem>(), data.Folders ?? new List<FolderItem>(), null);
+            var files = data.Files ?? new List<PromptItem>();
+            var folders = data.Folders ?? new List<FolderItem>();
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                _state.Files.Clear();
+                _state.Folders.Clear();
+
+                foreach (var folder in folders)
+                {
+                    _state.Folders.Add(folder);
+                }
+
+                foreach (var file in files)
+                {
+                    _state.Files.Add(file);
+                }
+
+                _mediator.Send(new FilterFilesFeature.Command(_state.FilesView, _state.SelectedFolder), cancellationToken);
+                _state.FilesView?.Refresh();
+
+                if (_state.FilesView != null && !_state.FilesView.IsEmpty)
+                {
+                    var firstItem = _state.FilesView.Cast<PromptItem>().FirstOrDefault();
+                    if (firstItem != null)
+                    {
+                        _state.SelectedFile = firstItem;
+                        WeakReferenceMessenger.Default.Send(new FileSelectedMessage(firstItem));
+                    }
+                }
+
+                _state.IsDirty = false;
+            });
+
+            return new Result(true);
         }
     }
 }
